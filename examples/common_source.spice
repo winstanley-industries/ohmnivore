@@ -1,0 +1,13 @@
+* NMOS Common-Source Amplifier
+* A MOSFET with Vgs=2V and a 1k drain resistor.
+* With Vdd=5V, the transistor operates in saturation.
+
+V1 vdd 0 DC 5
+V2 gate 0 DC 2.0
+R1 vdd drain 1k
+.MODEL NMOD NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)
+M1 drain gate 0 0 NMOD
+
+.OP
+.PRINT OP V(drain) V(gate)
+.END

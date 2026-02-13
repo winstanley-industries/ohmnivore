@@ -1,0 +1,12 @@
+* Diode Voltage Clamp
+* A silicon diode clamps node "out" to about 0.6V.
+* The 1k resistor limits current through the diode.
+
+V1 in 0 DC 5
+R1 in out 1k
+.MODEL D1N4148 D(IS=2.52e-9 N=1.752)
+D1 out 0 D1N4148
+
+.OP
+.PRINT OP V(out)
+.END

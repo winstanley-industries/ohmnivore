@@ -1,0 +1,11 @@
+* Voltage Divider
+* Two equal resistors divide a 10V supply in half.
+* Expected: V(mid) = 5V
+
+V1 in 0 DC 10
+R1 in mid 1k
+R2 mid 0 1k
+
+.OP
+.PRINT OP V(mid)
+.END

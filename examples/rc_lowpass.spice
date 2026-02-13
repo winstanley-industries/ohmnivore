@@ -1,0 +1,11 @@
+* RC Low-Pass Filter
+* 1k resistor + 1uF capacitor, cutoff frequency ~159 Hz.
+* The output rolls off at -20dB/decade above cutoff.
+
+V1 in 0 AC 1 0
+R1 in out 1k
+C1 out 0 1u
+
+.AC DEC 20 1 1MEG
+.PRINT AC V(out)
+.END

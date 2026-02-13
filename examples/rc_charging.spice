@@ -1,0 +1,12 @@
+* RC Charging Curve
+* A 1k/1uF RC circuit charges toward 5V.
+* Time constant tau = RC = 1ms. After 5ms (~5*tau) the
+* capacitor is nearly fully charged.
+
+V1 in 0 DC 5
+R1 in cap 1k
+C1 cap 0 1u
+
+.TRAN 10u 5m 0 UIC
+.PRINT TRAN V(cap)
+.END
