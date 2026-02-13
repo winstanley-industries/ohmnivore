@@ -573,6 +573,645 @@ fn assemble_rhs_stamp(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 "#;
 
+/// WGSL shader for evaluating the Ebers-Moll BJT model on GPU.
+///
+/// One invocation per BJT. Reads the solution vector and BJT descriptors,
+/// computes collector/base currents and four Jacobian derivatives.
+///
+/// Descriptor layout per BJT (flat u32 buffer, 24 words per BJT):
+///   [0] collector_idx, [1] base_idx, [2] emitter_idx,
+///   [3] polarity (bitcast f32), [4] is_val (bitcast f32), [5] bf (bitcast f32),
+///   [6] br (bitcast f32), [7] nf_vt (bitcast f32), [8] nr_vt (bitcast f32),
+///   [9..11] padding, [12..20] g_row_col (9 CSR indices), [21..23] b_idx (3 RHS indices)
+///
+/// Output: 6 floats per BJT in eval_output:
+///   [I_C, I_B, dI_C/dV_BE, dI_C/dV_BC, dI_B/dV_BE, dI_B/dV_BC]
+pub const BJT_EVAL_SHADER: &str = r#"
+// ============================================================
+// BJT Evaluation Shader (Ebers-Moll Level 1)
+// ============================================================
+
+struct BjtEvalParams {
+    num_bjts: u32,
+}
+
+@group(0) @binding(0) var<storage, read> bjt_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> eval_x: array<f32>;
+@group(0) @binding(2) var<storage, read_write> eval_output: array<f32>;
+@group(0) @binding(3) var<uniform> eval_params: BjtEvalParams;
+
+const SENTINEL: u32 = 0xFFFFFFFFu;
+
+fn read_voltage(idx: u32) -> f32 {
+    if idx == SENTINEL {
+        return 0.0;
+    }
+    return eval_x[idx];
+}
+
+@compute @workgroup_size(64)
+fn bjt_eval(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= eval_params.num_bjts {
+        return;
+    }
+
+    let base = i * 24u;
+    let collector_idx = bjt_desc[base + 0u];
+    let base_idx = bjt_desc[base + 1u];
+    let emitter_idx = bjt_desc[base + 2u];
+    let polarity = bitcast<f32>(bjt_desc[base + 3u]);
+    let is_val = bitcast<f32>(bjt_desc[base + 4u]);
+    let bf = bitcast<f32>(bjt_desc[base + 5u]);
+    let br = bitcast<f32>(bjt_desc[base + 6u]);
+    let nf_vt = bitcast<f32>(bjt_desc[base + 7u]);
+    let nr_vt = bitcast<f32>(bjt_desc[base + 8u]);
+
+    let v_be = polarity * (read_voltage(base_idx) - read_voltage(emitter_idx));
+    let v_bc = polarity * (read_voltage(base_idx) - read_voltage(collector_idx));
+
+    let e_f = exp(clamp(v_be / nf_vt, -80.0, 80.0));
+    let e_r = exp(clamp(v_bc / nr_vt, -80.0, 80.0));
+
+    let i_f = is_val * (e_f - 1.0);
+    let i_r = is_val * (e_r - 1.0);
+
+    let i_c = bf / (bf + 1.0) * i_f - i_r / (br + 1.0);
+    let i_b = i_f / (bf + 1.0) + i_r / (br + 1.0);
+
+    // Jacobian derivatives
+    let di_c_dvbe = bf / (bf + 1.0) * is_val * e_f / nf_vt;
+    let di_c_dvbc = -is_val * e_r / nr_vt / (br + 1.0);
+    let di_b_dvbe = is_val * e_f / nf_vt / (bf + 1.0);
+    let di_b_dvbc = is_val * e_r / nr_vt / (br + 1.0);
+
+    let out = 6u * i;
+    eval_output[out + 0u] = i_c * polarity;
+    eval_output[out + 1u] = i_b * polarity;
+    eval_output[out + 2u] = di_c_dvbe;
+    eval_output[out + 3u] = di_c_dvbc;
+    eval_output[out + 4u] = di_b_dvbe;
+    eval_output[out + 5u] = di_b_dvbc;
+}
+"#;
+
+/// WGSL shader for evaluating the Shichman-Hodges MOSFET model on GPU.
+///
+/// One invocation per MOSFET. Computes drain current and partial derivatives
+/// (g_m, g_ds) with region selection (cutoff/linear/saturation).
+///
+/// Descriptor layout per MOSFET (flat u32 buffer, 16 words per MOSFET):
+///   [0] drain_idx, [1] gate_idx, [2] source_idx,
+///   [3] polarity (bitcast f32), [4] vto (bitcast f32), [5] kp (bitcast f32),
+///   [6] lambda (bitcast f32), [7] padding,
+///   [8..13] g_row_col (6 CSR indices), [14..15] b_idx (2 RHS indices)
+///
+/// Output: 4 floats per MOSFET in eval_output: [I_D, g_m, g_ds, polarity]
+pub const MOSFET_EVAL_SHADER: &str = r#"
+// ============================================================
+// MOSFET Evaluation Shader (Shichman-Hodges Level 1)
+// ============================================================
+
+struct MosfetEvalParams {
+    num_mosfets: u32,
+}
+
+@group(0) @binding(0) var<storage, read> mosfet_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> eval_x: array<f32>;
+@group(0) @binding(2) var<storage, read_write> eval_output: array<f32>;
+@group(0) @binding(3) var<uniform> eval_params: MosfetEvalParams;
+
+const SENTINEL: u32 = 0xFFFFFFFFu;
+
+fn read_voltage(idx: u32) -> f32 {
+    if idx == SENTINEL {
+        return 0.0;
+    }
+    return eval_x[idx];
+}
+
+@compute @workgroup_size(64)
+fn mosfet_eval(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= eval_params.num_mosfets {
+        return;
+    }
+
+    let base = i * 16u;
+    let drain_idx = mosfet_desc[base + 0u];
+    let gate_idx = mosfet_desc[base + 1u];
+    let source_idx = mosfet_desc[base + 2u];
+    let polarity = bitcast<f32>(mosfet_desc[base + 3u]);
+    let vto = bitcast<f32>(mosfet_desc[base + 4u]);
+    let kp = bitcast<f32>(mosfet_desc[base + 5u]);
+    let lambda = bitcast<f32>(mosfet_desc[base + 6u]);
+
+    let v_gs = polarity * (read_voltage(gate_idx) - read_voltage(source_idx));
+    let v_ds = polarity * (read_voltage(drain_idx) - read_voltage(source_idx));
+
+    var i_d: f32 = 0.0;
+    var g_m: f32 = 0.0;
+    var g_ds: f32 = 0.0;
+
+    let v_ov = v_gs - vto;
+    if v_ov > 0.0 {
+        if v_ds < v_ov {
+            // Linear region
+            let lam = 1.0 + lambda * v_ds;
+            i_d = kp * (v_ov * v_ds - v_ds * v_ds / 2.0) * lam;
+            g_m = kp * v_ds * lam;
+            g_ds = kp * (v_ov - v_ds) * lam + kp * (v_ov * v_ds - v_ds * v_ds / 2.0) * lambda;
+        } else {
+            // Saturation region
+            let lam = 1.0 + lambda * v_ds;
+            i_d = kp / 2.0 * v_ov * v_ov * lam;
+            g_m = kp * v_ov * lam;
+            g_ds = kp / 2.0 * v_ov * v_ov * lambda;
+        }
+    }
+
+    let out = 4u * i;
+    eval_output[out + 0u] = polarity * i_d;
+    eval_output[out + 1u] = g_m;
+    eval_output[out + 2u] = g_ds;
+    eval_output[out + 3u] = polarity;
+}
+"#;
+
+/// WGSL shader for assembling BJT contributions into MNA matrix and RHS.
+///
+/// Two entry points:
+/// - `assemble_bjt_matrix_stamp`: Expands 4 Jacobian derivatives to 9 G-matrix
+///   entries via KCL and stamps into CSR positions.
+/// - `assemble_bjt_rhs_stamp`: Stamps Norton companion currents into RHS vector.
+pub const BJT_ASSEMBLE_SHADER: &str = r#"
+// ============================================================
+// BJT Assembly Shader
+// ============================================================
+
+const SENTINEL: u32 = 0xFFFFFFFFu;
+
+// --- Matrix stamp: expand 4 Jacobian values to 9 G-matrix entries per BJT ---
+
+struct BjtStampMatParams {
+    num_bjts: u32,
+}
+
+@group(0) @binding(0) var<storage, read> bjt_mat_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> bjt_mat_eval: array<f32>;
+@group(0) @binding(2) var<storage, read_write> bjt_mat_values: array<f32>;
+@group(0) @binding(3) var<uniform> bjt_mat_params: BjtStampMatParams;
+
+@compute @workgroup_size(64)
+fn assemble_bjt_matrix_stamp(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= bjt_mat_params.num_bjts {
+        return;
+    }
+
+    let desc_base = i * 24u;
+    let eval_base = 6u * i;
+
+    // Read 4 Jacobian derivatives from eval output
+    let di_c_dvbe = bjt_mat_eval[eval_base + 2u];
+    let di_c_dvbc = bjt_mat_eval[eval_base + 3u];
+    let di_b_dvbe = bjt_mat_eval[eval_base + 4u];
+    let di_b_dvbc = bjt_mat_eval[eval_base + 5u];
+
+    // Compute 9 stamp values (3x3 matrix)
+    // Row: Collector
+    let g_cc = -(di_c_dvbc);              // dI_C/dV_C
+    let g_cb = di_c_dvbe + di_c_dvbc;     // dI_C/dV_B
+    let g_ce = -(di_c_dvbe);              // dI_C/dV_E
+
+    // Row: Base
+    let g_bc = -(di_b_dvbc);              // dI_B/dV_C
+    let g_bb = di_b_dvbe + di_b_dvbc;     // dI_B/dV_B
+    let g_be = -(di_b_dvbe);              // dI_B/dV_E
+
+    // Row: Emitter (KCL: I_E = -(I_C + I_B))
+    let g_ec = di_c_dvbc + di_b_dvbc;     // dI_E/dV_C = -(dI_C/dV_C + dI_B/dV_C)
+    let g_eb = -(di_c_dvbe + di_c_dvbc + di_b_dvbe + di_b_dvbc); // dI_E/dV_B
+    let g_ee = di_c_dvbe + di_b_dvbe;     // dI_E/dV_E
+
+    // Stamp values correspond to g_row_col[0..8] in descriptor
+    var stamps: array<f32, 9>;
+    stamps[0] = g_cc;
+    stamps[1] = g_cb;
+    stamps[2] = g_ce;
+    stamps[3] = g_bc;
+    stamps[4] = g_bb;
+    stamps[5] = g_be;
+    stamps[6] = g_ec;
+    stamps[7] = g_eb;
+    stamps[8] = g_ee;
+
+    for (var j = 0u; j < 9u; j = j + 1u) {
+        let pos = bjt_mat_desc[desc_base + 12u + j];
+        if pos != SENTINEL {
+            bjt_mat_values[pos] = bjt_mat_values[pos] + stamps[j];
+        }
+    }
+}
+
+// --- RHS stamp: Norton companion current per BJT ---
+
+struct BjtStampRhsParams {
+    num_bjts: u32,
+}
+
+@group(0) @binding(0) var<storage, read> bjt_rhs_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> bjt_rhs_x: array<f32>;
+@group(0) @binding(2) var<storage, read> bjt_rhs_eval: array<f32>;
+@group(0) @binding(3) var<storage, read_write> bjt_rhs_b: array<f32>;
+@group(0) @binding(4) var<uniform> bjt_rhs_params: BjtStampRhsParams;
+
+fn bjt_read_voltage(idx: u32) -> f32 {
+    if idx == SENTINEL {
+        return 0.0;
+    }
+    return bjt_rhs_x[idx];
+}
+
+@compute @workgroup_size(64)
+fn assemble_bjt_rhs_stamp(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= bjt_rhs_params.num_bjts {
+        return;
+    }
+
+    let desc_base = i * 24u;
+    let eval_base = 6u * i;
+
+    let collector_idx = bjt_rhs_desc[desc_base + 0u];
+    let base_idx = bjt_rhs_desc[desc_base + 1u];
+    let emitter_idx = bjt_rhs_desc[desc_base + 2u];
+
+    // Read eval outputs
+    let i_c = bjt_rhs_eval[eval_base + 0u];
+    let i_b = bjt_rhs_eval[eval_base + 1u];
+    let i_e = -(i_c + i_b);
+
+    let di_c_dvbe = bjt_rhs_eval[eval_base + 2u];
+    let di_c_dvbc = bjt_rhs_eval[eval_base + 3u];
+    let di_b_dvbe = bjt_rhs_eval[eval_base + 4u];
+    let di_b_dvbc = bjt_rhs_eval[eval_base + 5u];
+
+    // Read node voltages
+    let v_c = bjt_read_voltage(collector_idx);
+    let v_b = bjt_read_voltage(base_idx);
+    let v_e = bjt_read_voltage(emitter_idx);
+
+    // Collector row stamp values (same as matrix stamp)
+    let g_cc = -(di_c_dvbc);
+    let g_cb = di_c_dvbe + di_c_dvbc;
+    let g_ce = -(di_c_dvbe);
+
+    // Base row stamp values
+    let g_bc = -(di_b_dvbc);
+    let g_bb = di_b_dvbe + di_b_dvbc;
+    let g_be = -(di_b_dvbe);
+
+    // Emitter row stamp values
+    let g_ec = di_c_dvbc + di_b_dvbc;
+    let g_eb = -(di_c_dvbe + di_c_dvbc + di_b_dvbe + di_b_dvbc);
+    let g_ee = di_c_dvbe + di_b_dvbe;
+
+    // Linearized currents at operating point
+    let i_lin_c = g_cc * v_c + g_cb * v_b + g_ce * v_e;
+    let i_lin_b = g_bc * v_c + g_bb * v_b + g_be * v_e;
+    let i_lin_e = g_ec * v_c + g_eb * v_b + g_ee * v_e;
+
+    // Norton equivalents
+    let i_eq_c = i_c - i_lin_c;
+    let i_eq_b = i_b - i_lin_b;
+    let i_eq_e = i_e - i_lin_e;
+
+    // RHS indices: b_idx[0]=C, b_idx[1]=B, b_idx[2]=E
+    let b_c = bjt_rhs_desc[desc_base + 21u];
+    let b_b = bjt_rhs_desc[desc_base + 22u];
+    let b_e = bjt_rhs_desc[desc_base + 23u];
+
+    if b_c != SENTINEL {
+        bjt_rhs_b[b_c] = bjt_rhs_b[b_c] - i_eq_c;
+    }
+    if b_b != SENTINEL {
+        bjt_rhs_b[b_b] = bjt_rhs_b[b_b] - i_eq_b;
+    }
+    if b_e != SENTINEL {
+        bjt_rhs_b[b_e] = bjt_rhs_b[b_e] - i_eq_e;
+    }
+}
+"#;
+
+/// WGSL shader for assembling MOSFET contributions into MNA matrix and RHS.
+///
+/// Two entry points:
+/// - `assemble_mosfet_matrix_stamp`: Stamps g_m and g_ds into 6 G-matrix entries.
+/// - `assemble_mosfet_rhs_stamp`: Stamps Norton companion currents into RHS vector.
+pub const MOSFET_ASSEMBLE_SHADER: &str = r#"
+// ============================================================
+// MOSFET Assembly Shader
+// ============================================================
+
+const SENTINEL: u32 = 0xFFFFFFFFu;
+
+// --- Matrix stamp: 6 G-matrix entries per MOSFET ---
+
+struct MosfetStampMatParams {
+    num_mosfets: u32,
+}
+
+@group(0) @binding(0) var<storage, read> mosfet_mat_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> mosfet_mat_eval: array<f32>;
+@group(0) @binding(2) var<storage, read_write> mosfet_mat_values: array<f32>;
+@group(0) @binding(3) var<uniform> mosfet_mat_params: MosfetStampMatParams;
+
+@compute @workgroup_size(64)
+fn assemble_mosfet_matrix_stamp(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= mosfet_mat_params.num_mosfets {
+        return;
+    }
+
+    let desc_base = i * 16u;
+    let eval_base = 4u * i;
+
+    let g_m = mosfet_mat_eval[eval_base + 1u];
+    let g_ds = mosfet_mat_eval[eval_base + 2u];
+
+    // Stamp order: [DD, DG, DS, SD, SG, SS]
+    // Drain row: G[D,D] += g_ds, G[D,G] += g_m, G[D,S] += -(g_m + g_ds)
+    // Source row: G[S,D] += -g_ds, G[S,G] += -g_m, G[S,S] += g_m + g_ds
+    var stamps: array<f32, 6>;
+    stamps[0] = g_ds;               // DD
+    stamps[1] = g_m;                // DG
+    stamps[2] = -(g_m + g_ds);      // DS
+    stamps[3] = -g_ds;              // SD
+    stamps[4] = -g_m;               // SG
+    stamps[5] = g_m + g_ds;         // SS
+
+    for (var j = 0u; j < 6u; j = j + 1u) {
+        let pos = mosfet_mat_desc[desc_base + 8u + j];
+        if pos != SENTINEL {
+            mosfet_mat_values[pos] = mosfet_mat_values[pos] + stamps[j];
+        }
+    }
+}
+
+// --- RHS stamp: Norton companion current per MOSFET ---
+
+struct MosfetStampRhsParams {
+    num_mosfets: u32,
+}
+
+@group(0) @binding(0) var<storage, read> mosfet_rhs_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> mosfet_rhs_x: array<f32>;
+@group(0) @binding(2) var<storage, read> mosfet_rhs_eval: array<f32>;
+@group(0) @binding(3) var<storage, read_write> mosfet_rhs_b: array<f32>;
+@group(0) @binding(4) var<uniform> mosfet_rhs_params: MosfetStampRhsParams;
+
+fn mosfet_read_voltage(idx: u32) -> f32 {
+    if idx == SENTINEL {
+        return 0.0;
+    }
+    return mosfet_rhs_x[idx];
+}
+
+@compute @workgroup_size(64)
+fn assemble_mosfet_rhs_stamp(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= mosfet_rhs_params.num_mosfets {
+        return;
+    }
+
+    let desc_base = i * 16u;
+    let eval_base = 4u * i;
+
+    let drain_idx = mosfet_rhs_desc[desc_base + 0u];
+    let source_idx = mosfet_rhs_desc[desc_base + 2u];
+
+    let i_d = mosfet_rhs_eval[eval_base + 0u];  // polarity-adjusted from eval
+    let g_m = mosfet_rhs_eval[eval_base + 1u];
+    let g_ds = mosfet_rhs_eval[eval_base + 2u];
+
+    let gate_idx = mosfet_rhs_desc[desc_base + 1u];
+
+    let v_d = mosfet_read_voltage(drain_idx);
+    let v_g = mosfet_read_voltage(gate_idx);
+    let v_s = mosfet_read_voltage(source_idx);
+
+    // Drain: I_lin = g_ds * V_D + g_m * V_G - (g_m + g_ds) * V_S
+    let i_lin_d = g_ds * v_d + g_m * v_g - (g_m + g_ds) * v_s;
+    let i_eq_d = i_d - i_lin_d;
+
+    // Source: I_S = -I_D, I_lin = -g_ds * V_D - g_m * V_G + (g_m + g_ds) * V_S
+    let i_lin_s = -g_ds * v_d - g_m * v_g + (g_m + g_ds) * v_s;
+    let i_eq_s = -i_d - i_lin_s;
+
+    // RHS indices: b_idx[0]=D, b_idx[1]=S
+    let b_d = mosfet_rhs_desc[desc_base + 14u];
+    let b_s = mosfet_rhs_desc[desc_base + 15u];
+
+    if b_d != SENTINEL {
+        mosfet_rhs_b[b_d] = mosfet_rhs_b[b_d] - i_eq_d;
+    }
+    if b_s != SENTINEL {
+        mosfet_rhs_b[b_s] = mosfet_rhs_b[b_s] - i_eq_s;
+    }
+}
+"#;
+
+/// WGSL shader for BJT voltage limiting during Newton-Raphson iteration.
+///
+/// One invocation per BJT. Clamps V_BE change to +/-2*nf_vt and
+/// V_BC change to +/-2*nr_vt to prevent Newton overshoot.
+pub const BJT_VOLTAGE_LIMIT_SHADER: &str = r#"
+// ============================================================
+// BJT Voltage Limiting Shader
+// ============================================================
+
+struct BjtVoltLimitParams {
+    num_bjts: u32,
+}
+
+@group(0) @binding(0) var<storage, read> bvl_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> bvl_x_old: array<f32>;
+@group(0) @binding(2) var<storage, read_write> bvl_x_new: array<f32>;
+@group(0) @binding(3) var<uniform> bvl_params: BjtVoltLimitParams;
+
+const BVL_SENTINEL: u32 = 0xFFFFFFFFu;
+
+fn bvl_read_old(idx: u32) -> f32 {
+    if idx == BVL_SENTINEL {
+        return 0.0;
+    }
+    return bvl_x_old[idx];
+}
+
+fn bvl_read_new(idx: u32) -> f32 {
+    if idx == BVL_SENTINEL {
+        return 0.0;
+    }
+    return bvl_x_new[idx];
+}
+
+@compute @workgroup_size(64)
+fn bjt_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= bvl_params.num_bjts {
+        return;
+    }
+
+    let base = i * 24u;
+    let collector_idx = bvl_desc[base + 0u];
+    let base_idx = bvl_desc[base + 1u];
+    let emitter_idx = bvl_desc[base + 2u];
+    let nf_vt = bitcast<f32>(bvl_desc[base + 7u]);
+    let nr_vt = bitcast<f32>(bvl_desc[base + 8u]);
+
+    // Per-node voltage-source-constrained flags (words 9-11).
+    // Skip modifying nodes driven by voltage sources.
+    let collector_fixed = bvl_desc[base + 9u];
+    let base_fixed = bvl_desc[base + 10u];
+    let emitter_fixed = bvl_desc[base + 11u];
+
+    // V_BE limiting
+    let vbe_old = bvl_read_old(base_idx) - bvl_read_old(emitter_idx);
+    let vbe_new = bvl_read_new(base_idx) - bvl_read_new(emitter_idx);
+    let delta_vbe = vbe_new - vbe_old;
+    let limit_be = 2.0 * nf_vt;
+
+    if abs(delta_vbe) > limit_be {
+        let scale_be = limit_be / abs(delta_vbe);
+        if base_idx != BVL_SENTINEL && base_fixed == 0u {
+            let old_val = bvl_x_old[base_idx];
+            let delta = bvl_x_new[base_idx] - old_val;
+            bvl_x_new[base_idx] = old_val + delta * scale_be;
+        }
+        if emitter_idx != BVL_SENTINEL && emitter_fixed == 0u {
+            let old_val = bvl_x_old[emitter_idx];
+            let delta = bvl_x_new[emitter_idx] - old_val;
+            bvl_x_new[emitter_idx] = old_val + delta * scale_be;
+        }
+    }
+
+    // V_BC limiting
+    let vbc_old = bvl_read_old(base_idx) - bvl_read_old(collector_idx);
+    let vbc_new = bvl_read_new(base_idx) - bvl_read_new(collector_idx);
+    let delta_vbc = vbc_new - vbc_old;
+    let limit_bc = 2.0 * nr_vt;
+
+    if abs(delta_vbc) > limit_bc {
+        let scale_bc = limit_bc / abs(delta_vbc);
+        if base_idx != BVL_SENTINEL && base_fixed == 0u {
+            let old_val = bvl_x_old[base_idx];
+            let delta = bvl_x_new[base_idx] - old_val;
+            bvl_x_new[base_idx] = old_val + delta * scale_bc;
+        }
+        if collector_idx != BVL_SENTINEL && collector_fixed == 0u {
+            let old_val = bvl_x_old[collector_idx];
+            let delta = bvl_x_new[collector_idx] - old_val;
+            bvl_x_new[collector_idx] = old_val + delta * scale_bc;
+        }
+    }
+}
+"#;
+
+/// WGSL shader for MOSFET voltage limiting during Newton-Raphson iteration.
+///
+/// One invocation per MOSFET. Clamps V_GS and V_DS changes to +/-0.5V
+/// to prevent Newton overshoot.
+pub const MOSFET_VOLTAGE_LIMIT_SHADER: &str = r#"
+// ============================================================
+// MOSFET Voltage Limiting Shader
+// ============================================================
+
+struct MosfetVoltLimitParams {
+    num_mosfets: u32,
+}
+
+@group(0) @binding(0) var<storage, read> mvl_desc: array<u32>;
+@group(0) @binding(1) var<storage, read> mvl_x_old: array<f32>;
+@group(0) @binding(2) var<storage, read_write> mvl_x_new: array<f32>;
+@group(0) @binding(3) var<uniform> mvl_params: MosfetVoltLimitParams;
+
+const MVL_SENTINEL: u32 = 0xFFFFFFFFu;
+
+fn mvl_read_old(idx: u32) -> f32 {
+    if idx == MVL_SENTINEL {
+        return 0.0;
+    }
+    return mvl_x_old[idx];
+}
+
+fn mvl_read_new(idx: u32) -> f32 {
+    if idx == MVL_SENTINEL {
+        return 0.0;
+    }
+    return mvl_x_new[idx];
+}
+
+@compute @workgroup_size(64)
+fn mosfet_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if i >= mvl_params.num_mosfets {
+        return;
+    }
+
+    let base = i * 16u;
+    let drain_idx = mvl_desc[base + 0u];
+    let gate_idx = mvl_desc[base + 1u];
+    let source_idx = mvl_desc[base + 2u];
+
+    // Per-node voltage-source-constrained flags (word 7, packed bits).
+    // bit 0 = drain, bit 1 = gate, bit 2 = source.
+    // Skip modifying nodes driven by voltage sources.
+    let node_fixed_packed = mvl_desc[base + 7u];
+    let drain_fixed = (node_fixed_packed & 1u) != 0u;
+    let gate_fixed = (node_fixed_packed & 2u) != 0u;
+    let source_fixed = (node_fixed_packed & 4u) != 0u;
+
+    // V_GS limiting (clamp to +/-0.5V)
+    let vgs_old = mvl_read_old(gate_idx) - mvl_read_old(source_idx);
+    let vgs_new = mvl_read_new(gate_idx) - mvl_read_new(source_idx);
+    let delta_vgs = vgs_new - vgs_old;
+
+    if abs(delta_vgs) > 0.5 {
+        let scale_gs = 0.5 / abs(delta_vgs);
+        if gate_idx != MVL_SENTINEL && !gate_fixed {
+            let old_val = mvl_x_old[gate_idx];
+            let delta = mvl_x_new[gate_idx] - old_val;
+            mvl_x_new[gate_idx] = old_val + delta * scale_gs;
+        }
+        if source_idx != MVL_SENTINEL && !source_fixed {
+            let old_val = mvl_x_old[source_idx];
+            let delta = mvl_x_new[source_idx] - old_val;
+            mvl_x_new[source_idx] = old_val + delta * scale_gs;
+        }
+    }
+
+    // V_DS limiting (clamp to +/-0.5V)
+    let vds_old = mvl_read_old(drain_idx) - mvl_read_old(source_idx);
+    let vds_new = mvl_read_new(drain_idx) - mvl_read_new(source_idx);
+    let delta_vds = vds_new - vds_old;
+
+    if abs(delta_vds) > 0.5 {
+        let scale_ds = 0.5 / abs(delta_vds);
+        if drain_idx != MVL_SENTINEL && !drain_fixed {
+            let old_val = mvl_x_old[drain_idx];
+            let delta = mvl_x_new[drain_idx] - old_val;
+            mvl_x_new[drain_idx] = old_val + delta * scale_ds;
+        }
+        if source_idx != MVL_SENTINEL && !source_fixed {
+            let old_val = mvl_x_old[source_idx];
+            let delta = mvl_x_new[source_idx] - old_val;
+            mvl_x_new[source_idx] = old_val + delta * scale_ds;
+        }
+    }
+}
+"#;
+
 /// WGSL shader for Newton-Raphson convergence checking and voltage limiting.
 ///
 /// Two entry points:
@@ -825,6 +1464,141 @@ mod tests {
                 panic!(
                     "WGSL parse error in CONVERGENCE_SHADER:\n{}",
                     e.emit_to_string(CONVERGENCE_SHADER)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn bjt_eval_shader_parses() {
+        let result = naga::front::wgsl::parse_str(BJT_EVAL_SHADER);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> =
+                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                assert!(
+                    entry_names.contains(&"bjt_eval"),
+                    "missing entry point: bjt_eval. Found: {entry_names:?}"
+                );
+            }
+            Err(e) => {
+                panic!(
+                    "WGSL parse error in BJT_EVAL_SHADER:\n{}",
+                    e.emit_to_string(BJT_EVAL_SHADER)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mosfet_eval_shader_parses() {
+        let result = naga::front::wgsl::parse_str(MOSFET_EVAL_SHADER);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> =
+                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                assert!(
+                    entry_names.contains(&"mosfet_eval"),
+                    "missing entry point: mosfet_eval. Found: {entry_names:?}"
+                );
+            }
+            Err(e) => {
+                panic!(
+                    "WGSL parse error in MOSFET_EVAL_SHADER:\n{}",
+                    e.emit_to_string(MOSFET_EVAL_SHADER)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn bjt_assemble_shader_parses() {
+        let result = naga::front::wgsl::parse_str(BJT_ASSEMBLE_SHADER);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> =
+                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let expected = ["assemble_bjt_matrix_stamp", "assemble_bjt_rhs_stamp"];
+                for name in &expected {
+                    assert!(
+                        entry_names.contains(name),
+                        "missing entry point: {name}. Found: {entry_names:?}"
+                    );
+                }
+            }
+            Err(e) => {
+                panic!(
+                    "WGSL parse error in BJT_ASSEMBLE_SHADER:\n{}",
+                    e.emit_to_string(BJT_ASSEMBLE_SHADER)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mosfet_assemble_shader_parses() {
+        let result = naga::front::wgsl::parse_str(MOSFET_ASSEMBLE_SHADER);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> =
+                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let expected = [
+                    "assemble_mosfet_matrix_stamp",
+                    "assemble_mosfet_rhs_stamp",
+                ];
+                for name in &expected {
+                    assert!(
+                        entry_names.contains(name),
+                        "missing entry point: {name}. Found: {entry_names:?}"
+                    );
+                }
+            }
+            Err(e) => {
+                panic!(
+                    "WGSL parse error in MOSFET_ASSEMBLE_SHADER:\n{}",
+                    e.emit_to_string(MOSFET_ASSEMBLE_SHADER)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn bjt_voltage_limit_shader_parses() {
+        let result = naga::front::wgsl::parse_str(BJT_VOLTAGE_LIMIT_SHADER);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> =
+                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                assert!(
+                    entry_names.contains(&"bjt_voltage_limit"),
+                    "missing entry point: bjt_voltage_limit. Found: {entry_names:?}"
+                );
+            }
+            Err(e) => {
+                panic!(
+                    "WGSL parse error in BJT_VOLTAGE_LIMIT_SHADER:\n{}",
+                    e.emit_to_string(BJT_VOLTAGE_LIMIT_SHADER)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mosfet_voltage_limit_shader_parses() {
+        let result = naga::front::wgsl::parse_str(MOSFET_VOLTAGE_LIMIT_SHADER);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> =
+                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                assert!(
+                    entry_names.contains(&"mosfet_voltage_limit"),
+                    "missing entry point: mosfet_voltage_limit. Found: {entry_names:?}"
+                );
+            }
+            Err(e) => {
+                panic!(
+                    "WGSL parse error in MOSFET_VOLTAGE_LIMIT_SHADER:\n{}",
+                    e.emit_to_string(MOSFET_VOLTAGE_LIMIT_SHADER)
                 );
             }
         }

@@ -116,6 +116,11 @@ pub fn bicgstab<B: SolverBackend>(
 
         // Check convergence: ||r||
         let r_norm = backend.dot(&r, &r).sqrt();
+        if r_norm.is_nan() || r_norm.is_infinite() {
+            return Err(OhmnivoreError::Solve(
+                "BiCGSTAB diverged: NaN/Inf in residual".into(),
+            ));
+        }
         if r_norm < abs_tol {
             return Ok(iter + 1);
         }

@@ -3,8 +3,8 @@
 //! Solves Gx = b_dc for the DC operating point.
 //! The solution vector x contains node voltages followed by branch currents.
 //!
-//! For linear circuits (no diodes), uses the standard linear solver path.
-//! For nonlinear circuits (with diodes), uses GPU-accelerated Newton-Raphson.
+//! For linear circuits, uses the standard linear solver path.
+//! For nonlinear circuits (with diodes, BJTs, or MOSFETs), uses GPU-accelerated Newton-Raphson.
 
 use crate::compiler::MnaSystem;
 use crate::error::Result;
@@ -13,12 +13,15 @@ use super::DcResult;
 
 /// Run DC operating point analysis.
 ///
-/// 1. Check whether the circuit has nonlinear elements (diode descriptors).
+/// 1. Check whether the circuit has nonlinear elements (diodes, BJTs, MOSFETs).
 /// 2. If linear: solve Gx = b_dc with the provided linear solver.
 /// 3. If nonlinear: use the GPU Newton-Raphson solver.
 /// 4. Map solution indices back to node/branch names.
 pub fn run(system: &MnaSystem, solver: &dyn LinearSolver) -> Result<DcResult> {
-    let x = if !system.diode_descriptors.is_empty() {
+    let x = if !system.diode_descriptors.is_empty()
+        || !system.bjt_descriptors.is_empty()
+        || !system.mosfet_descriptors.is_empty()
+    {
         run_nonlinear(system)?
     } else {
         solver.solve_real(&system.g, &system.b_dc)?
@@ -53,6 +56,8 @@ fn run_nonlinear(system: &MnaSystem) -> Result<Vec<f64>> {
         &col_indices_u32,
         &row_ptrs_u32,
         &system.diode_descriptors,
+        &system.bjt_descriptors,
+        &system.mosfet_descriptors,
         system.size,
         matrix_nnz,
         &NewtonParams::default(),

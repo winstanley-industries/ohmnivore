@@ -45,6 +45,18 @@ pub enum Component {
         nodes: (NodeId, NodeId),
         model: String,
     },
+    /// BJT element: [collector, base, emitter] referencing a named model.
+    Bjt {
+        name: String,
+        nodes: [NodeId; 3],
+        model: String,
+    },
+    /// MOSFET element: [drain, gate, source] referencing a named model.
+    Mosfet {
+        name: String,
+        nodes: [NodeId; 3],
+        model: String,
+    },
 }
 
 /// A diode model with Shockley equation parameters.
@@ -55,6 +67,38 @@ pub struct DiodeModel {
     pub is: f64,
     /// Emission coefficient (default: 1.0)
     pub n: f64,
+}
+
+/// A BJT model with Ebers-Moll parameters.
+#[derive(Debug, Clone)]
+pub struct BjtModel {
+    pub name: String,
+    /// Saturation current (default: 1e-16)
+    pub is: f64,
+    /// Forward current gain (default: 100)
+    pub bf: f64,
+    /// Reverse current gain (default: 1)
+    pub br: f64,
+    /// Forward emission coefficient (default: 1.0)
+    pub nf: f64,
+    /// Reverse emission coefficient (default: 1.0)
+    pub nr: f64,
+    /// true = NPN, false = PNP
+    pub is_npn: bool,
+}
+
+/// A Level-1 MOSFET model with Shichman-Hodges parameters.
+#[derive(Debug, Clone)]
+pub struct MosfetModel {
+    pub name: String,
+    /// Threshold voltage (default: 1.0)
+    pub vto: f64,
+    /// Transconductance parameter (default: 2e-5)
+    pub kp: f64,
+    /// Channel-length modulation (default: 0.0)
+    pub lambda: f64,
+    /// true = NMOS, false = PMOS
+    pub is_nmos: bool,
 }
 
 /// AC sweep type matching SPICE syntax.
@@ -88,4 +132,6 @@ pub struct Circuit {
     pub components: Vec<Component>,
     pub analyses: Vec<Analysis>,
     pub models: Vec<DiodeModel>,
+    pub bjt_models: Vec<BjtModel>,
+    pub mosfet_models: Vec<MosfetModel>,
 }

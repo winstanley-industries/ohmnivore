@@ -8,6 +8,7 @@ use wgpu::util::DeviceExt;
 
 use super::backend::{WgpuBackend, WgpuBuffer};
 use super::gpu_shaders;
+use crate::compiler::{GpuBjtDescriptor, GpuMosfetDescriptor};
 use crate::error::Result;
 
 const WORKGROUP_SIZE: u32 = 64;
@@ -79,6 +80,75 @@ pub trait NonlinearBackend {
         system_size: u32,
     );
 
+    /// Evaluate all BJTs: compute I_C, I_B, and 4 Jacobian derivatives.
+    ///
+    /// Writes 6 floats per BJT into `output`:
+    /// \[I_C, I_B, dI_C/dV_BE, dI_C/dV_BC, dI_B/dV_BE, dI_B/dV_BC\].
+    fn evaluate_bjts(
+        &self,
+        descriptors: &Self::Buffer,
+        solution: &Self::Buffer,
+        output: &Self::Buffer,
+        n_bjts: u32,
+    );
+
+    /// Evaluate all MOSFETs: compute I_D, g_m, g_ds.
+    ///
+    /// Writes 4 floats per MOSFET into `output`: \[I_D, g_m, g_ds, polarity\].
+    fn evaluate_mosfets(
+        &self,
+        descriptors: &Self::Buffer,
+        solution: &Self::Buffer,
+        output: &Self::Buffer,
+        n_mosfets: u32,
+    );
+
+    /// Stamp BJT contributions into the assembled G-matrix and RHS vector.
+    ///
+    /// Does NOT copy base values — assumes they are already copied.
+    #[allow(clippy::too_many_arguments)]
+    fn assemble_bjt_stamps(
+        &self,
+        bjt_output: &Self::Buffer,
+        descriptors: &Self::Buffer,
+        solution: &Self::Buffer,
+        out_values: &Self::Buffer,
+        out_b: &Self::Buffer,
+        n_bjts: u32,
+    );
+
+    /// Stamp MOSFET contributions into the assembled G-matrix and RHS vector.
+    ///
+    /// Does NOT copy base values — assumes they are already copied.
+    #[allow(clippy::too_many_arguments)]
+    fn assemble_mosfet_stamps(
+        &self,
+        mosfet_output: &Self::Buffer,
+        descriptors: &Self::Buffer,
+        solution: &Self::Buffer,
+        out_values: &Self::Buffer,
+        out_b: &Self::Buffer,
+        n_mosfets: u32,
+    );
+
+    /// Apply voltage limiting to BJT junction voltages.
+    fn limit_bjt_voltages(
+        &self,
+        x_old: &Self::Buffer,
+        x_new: &Self::Buffer,
+        descriptors: &Self::Buffer,
+        n_bjts: u32,
+    );
+
+    /// Apply voltage limiting to MOSFET terminal voltages.
+    fn limit_mosfet_voltages(
+        &self,
+        x_old: &Self::Buffer,
+        x_new: &Self::Buffer,
+        descriptors: &Self::Buffer,
+        n_mosfets: u32,
+    );
+
     /// Apply voltage limiting then check convergence of the Newton step.
     ///
     /// Modifies `x_new` in-place (voltage limiting), then computes the max
@@ -107,6 +177,16 @@ struct NonlinearPipelines {
     // Convergence: voltage limit + convergence check
     voltage_limit: wgpu::ComputePipeline,
     convergence_check: wgpu::ComputePipeline,
+    // BJT pipelines
+    bjt_eval: wgpu::ComputePipeline,
+    assemble_bjt_matrix_stamp: wgpu::ComputePipeline,
+    assemble_bjt_rhs_stamp: wgpu::ComputePipeline,
+    bjt_voltage_limit: wgpu::ComputePipeline,
+    // MOSFET pipelines
+    mosfet_eval: wgpu::ComputePipeline,
+    assemble_mosfet_matrix_stamp: wgpu::ComputePipeline,
+    assemble_mosfet_rhs_stamp: wgpu::ComputePipeline,
+    mosfet_voltage_limit: wgpu::ComputePipeline,
 }
 
 impl NonlinearPipelines {
@@ -122,6 +202,30 @@ impl NonlinearPipelines {
         let convergence_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("convergence_shader"),
             source: wgpu::ShaderSource::Wgsl(gpu_shaders::CONVERGENCE_SHADER.into()),
+        });
+        let bjt_eval_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("bjt_eval_shader"),
+            source: wgpu::ShaderSource::Wgsl(gpu_shaders::BJT_EVAL_SHADER.into()),
+        });
+        let bjt_assemble_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("bjt_assemble_shader"),
+            source: wgpu::ShaderSource::Wgsl(gpu_shaders::BJT_ASSEMBLE_SHADER.into()),
+        });
+        let bjt_vlimit_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("bjt_voltage_limit_shader"),
+            source: wgpu::ShaderSource::Wgsl(gpu_shaders::BJT_VOLTAGE_LIMIT_SHADER.into()),
+        });
+        let mosfet_eval_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("mosfet_eval_shader"),
+            source: wgpu::ShaderSource::Wgsl(gpu_shaders::MOSFET_EVAL_SHADER.into()),
+        });
+        let mosfet_assemble_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("mosfet_assemble_shader"),
+            source: wgpu::ShaderSource::Wgsl(gpu_shaders::MOSFET_ASSEMBLE_SHADER.into()),
+        });
+        let mosfet_vlimit_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("mosfet_voltage_limit_shader"),
+            source: wgpu::ShaderSource::Wgsl(gpu_shaders::MOSFET_VOLTAGE_LIMIT_SHADER.into()),
         });
 
         let make = |module: &wgpu::ShaderModule, entry: &str| -> wgpu::ComputePipeline {
@@ -143,12 +247,21 @@ impl NonlinearPipelines {
             assemble_rhs_stamp: make(&assemble_module, "assemble_rhs_stamp"),
             voltage_limit: make(&convergence_module, "voltage_limit"),
             convergence_check: make(&convergence_module, "convergence_check"),
+            bjt_eval: make(&bjt_eval_module, "bjt_eval"),
+            assemble_bjt_matrix_stamp: make(&bjt_assemble_module, "assemble_bjt_matrix_stamp"),
+            assemble_bjt_rhs_stamp: make(&bjt_assemble_module, "assemble_bjt_rhs_stamp"),
+            bjt_voltage_limit: make(&bjt_vlimit_module, "bjt_voltage_limit"),
+            mosfet_eval: make(&mosfet_eval_module, "mosfet_eval"),
+            assemble_mosfet_matrix_stamp: make(&mosfet_assemble_module, "assemble_mosfet_matrix_stamp"),
+            assemble_mosfet_rhs_stamp: make(&mosfet_assemble_module, "assemble_mosfet_rhs_stamp"),
+            mosfet_voltage_limit: make(&mosfet_vlimit_module, "mosfet_voltage_limit"),
         }
     }
 }
 
 /// Holds the lazily-initialized nonlinear pipelines for WgpuBackend.
 pub struct NonlinearState {
+    #[allow(dead_code)]
     pipelines: NonlinearPipelines,
 }
 
@@ -173,6 +286,42 @@ impl WgpuBackend {
         WgpuBuffer {
             buffer,
             n: descriptors.len() * 12,
+        }
+    }
+
+    /// Upload BJT descriptors as a raw u32 storage buffer.
+    pub fn upload_bjt_descriptors(&self, descriptors: &[GpuBjtDescriptor]) -> WgpuBuffer {
+        let data: &[u8] = bytemuck::cast_slice(descriptors);
+        let buffer =
+            self.ctx
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("bjt_descriptors"),
+                    contents: data,
+                    usage: wgpu::BufferUsages::STORAGE,
+                });
+        // 24 u32 words per BJT (96 bytes / 4)
+        WgpuBuffer {
+            buffer,
+            n: descriptors.len() * 24,
+        }
+    }
+
+    /// Upload MOSFET descriptors as a raw u32 storage buffer.
+    pub fn upload_mosfet_descriptors(&self, descriptors: &[GpuMosfetDescriptor]) -> WgpuBuffer {
+        let data: &[u8] = bytemuck::cast_slice(descriptors);
+        let buffer =
+            self.ctx
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("mosfet_descriptors"),
+                    contents: data,
+                    usage: wgpu::BufferUsages::STORAGE,
+                });
+        // 16 u32 words per MOSFET (64 bytes / 4)
+        WgpuBuffer {
+            buffer,
+            n: descriptors.len() * 16,
         }
     }
 
@@ -542,6 +691,402 @@ impl NonlinearBackend for WgpuBackend {
         } else {
             ConvergenceResult::NotConverged { max_diff }
         }
+    }
+
+    fn evaluate_bjts(
+        &self,
+        descriptors: &WgpuBuffer,
+        solution: &WgpuBuffer,
+        output: &WgpuBuffer,
+        n_bjts: u32,
+    ) {
+        let pipelines = self.nonlinear_pipelines();
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+
+        let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(&n_bjts),
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+
+        let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &pipelines.bjt_eval.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: descriptors.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: solution.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: output.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.bjt_eval);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_bjts), 1, 1);
+        }
+        queue.submit(Some(encoder.finish()));
+    }
+
+    fn evaluate_mosfets(
+        &self,
+        descriptors: &WgpuBuffer,
+        solution: &WgpuBuffer,
+        output: &WgpuBuffer,
+        n_mosfets: u32,
+    ) {
+        let pipelines = self.nonlinear_pipelines();
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+
+        let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(&n_mosfets),
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+
+        let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &pipelines.mosfet_eval.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: descriptors.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: solution.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: output.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.mosfet_eval);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_mosfets), 1, 1);
+        }
+        queue.submit(Some(encoder.finish()));
+    }
+
+    fn assemble_bjt_stamps(
+        &self,
+        bjt_output: &WgpuBuffer,
+        descriptors: &WgpuBuffer,
+        solution: &WgpuBuffer,
+        out_values: &WgpuBuffer,
+        out_b: &WgpuBuffer,
+        n_bjts: u32,
+    ) {
+        let pipelines = self.nonlinear_pipelines();
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+
+        // Matrix stamp
+        {
+            let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::bytes_of(&n_bjts),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+            let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &pipelines
+                    .assemble_bjt_matrix_stamp
+                    .get_bind_group_layout(0),
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: descriptors.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: bjt_output.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: out_values.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 3,
+                        resource: params_buf.as_entire_binding(),
+                    },
+                ],
+            });
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.assemble_bjt_matrix_stamp);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_bjts), 1, 1);
+        }
+
+        // RHS stamp
+        {
+            let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::bytes_of(&n_bjts),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+            let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &pipelines.assemble_bjt_rhs_stamp.get_bind_group_layout(0),
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: descriptors.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: solution.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: bjt_output.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 3,
+                        resource: out_b.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 4,
+                        resource: params_buf.as_entire_binding(),
+                    },
+                ],
+            });
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.assemble_bjt_rhs_stamp);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_bjts), 1, 1);
+        }
+
+        queue.submit(Some(encoder.finish()));
+    }
+
+    fn assemble_mosfet_stamps(
+        &self,
+        mosfet_output: &WgpuBuffer,
+        descriptors: &WgpuBuffer,
+        solution: &WgpuBuffer,
+        out_values: &WgpuBuffer,
+        out_b: &WgpuBuffer,
+        n_mosfets: u32,
+    ) {
+        let pipelines = self.nonlinear_pipelines();
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+
+        // Matrix stamp
+        {
+            let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::bytes_of(&n_mosfets),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+            let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &pipelines
+                    .assemble_mosfet_matrix_stamp
+                    .get_bind_group_layout(0),
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: descriptors.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: mosfet_output.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: out_values.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 3,
+                        resource: params_buf.as_entire_binding(),
+                    },
+                ],
+            });
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.assemble_mosfet_matrix_stamp);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_mosfets), 1, 1);
+        }
+
+        // RHS stamp
+        {
+            let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::bytes_of(&n_mosfets),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+            let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &pipelines
+                    .assemble_mosfet_rhs_stamp
+                    .get_bind_group_layout(0),
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: descriptors.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: solution.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: mosfet_output.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 3,
+                        resource: out_b.buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 4,
+                        resource: params_buf.as_entire_binding(),
+                    },
+                ],
+            });
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.assemble_mosfet_rhs_stamp);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_mosfets), 1, 1);
+        }
+
+        queue.submit(Some(encoder.finish()));
+    }
+
+    fn limit_bjt_voltages(
+        &self,
+        x_old: &WgpuBuffer,
+        x_new: &WgpuBuffer,
+        descriptors: &WgpuBuffer,
+        n_bjts: u32,
+    ) {
+        if n_bjts == 0 {
+            return;
+        }
+        let pipelines = self.nonlinear_pipelines();
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+
+        let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(&n_bjts),
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+
+        let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &pipelines.bjt_voltage_limit.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: descriptors.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: x_old.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: x_new.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.bjt_voltage_limit);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_bjts), 1, 1);
+        }
+        queue.submit(Some(encoder.finish()));
+    }
+
+    fn limit_mosfet_voltages(
+        &self,
+        x_old: &WgpuBuffer,
+        x_new: &WgpuBuffer,
+        descriptors: &WgpuBuffer,
+        n_mosfets: u32,
+    ) {
+        if n_mosfets == 0 {
+            return;
+        }
+        let pipelines = self.nonlinear_pipelines();
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+
+        let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(&n_mosfets),
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+
+        let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &pipelines.mosfet_voltage_limit.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: descriptors.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: x_old.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: x_new.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.mosfet_voltage_limit);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_mosfets), 1, 1);
+        }
+        queue.submit(Some(encoder.finish()));
     }
 }
 

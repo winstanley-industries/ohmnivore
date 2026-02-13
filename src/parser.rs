@@ -28,13 +28,22 @@ use nom::IResult;
 use nom::Parser;
 
 use crate::error::{OhmnivoreError, Result};
-use crate::ir::{AcSweepType, Analysis, Circuit, Component, DiodeModel};
+use crate::ir::{AcSweepType, Analysis, BjtModel, Circuit, Component, DiodeModel, MosfetModel};
+
+/// Parsed model type returned by parse_model_command.
+enum ModelType {
+    Diode(DiodeModel),
+    Bjt(BjtModel),
+    Mosfet(MosfetModel),
+}
 
 /// Parse a SPICE netlist string into a Circuit IR.
 pub fn parse(input: &str) -> Result<Circuit> {
     let mut components = Vec::new();
     let mut analyses = Vec::new();
     let mut models = Vec::new();
+    let mut bjt_models = Vec::new();
+    let mut mosfet_models = Vec::new();
 
     for (line_num, raw_line) in input.lines().enumerate() {
         let line = raw_line.trim();
@@ -83,11 +92,25 @@ pub fn parse(input: &str) -> Result<Circuit> {
                     .map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
+            'Q' => {
+                let comp = parse_bjt_line(line)
+                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                components.push(comp);
+            }
+            'M' => {
+                let comp = parse_mosfet_line(line)
+                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                components.push(comp);
+            }
             '.' => {
                 if upper.starts_with(".MODEL") {
                     let model = parse_model_command(line)
                         .map_err(|e| parse_err(line_num, raw_line, &e))?;
-                    models.push(model);
+                    match model {
+                        ModelType::Diode(m) => models.push(m),
+                        ModelType::Bjt(m) => bjt_models.push(m),
+                        ModelType::Mosfet(m) => mosfet_models.push(m),
+                    }
                 } else {
                     let analysis = parse_dot_command(line)
                         .map_err(|e| parse_err(line_num, raw_line, &e))?;
@@ -111,6 +134,8 @@ pub fn parse(input: &str) -> Result<Circuit> {
         components,
         analyses,
         models,
+        bjt_models,
+        mosfet_models,
     })
 }
 
@@ -309,11 +334,76 @@ fn parse_diode_line(line: &str) -> std::result::Result<Component, String> {
 }
 
 // ---------------------------------------------------------------------------
+// BJT parsing
+// ---------------------------------------------------------------------------
+
+/// Parse a BJT line: Qname collector base emitter MODELNAME
+fn parse_bjt_line(line: &str) -> std::result::Result<Component, String> {
+    let (_, (name, _, collector, _, base, _, emitter, _, model_name)) = (
+        element_name,
+        space1,
+        node_id,
+        space1,
+        node_id,
+        space1,
+        node_id,
+        space1,
+        node_id,
+    )
+        .parse(line)
+        .map_err(|_| "failed to parse BJT element".to_string())?;
+
+    Ok(Component::Bjt {
+        name: name.to_string(),
+        nodes: [collector.to_string(), base.to_string(), emitter.to_string()],
+        model: model_name.to_string(),
+    })
+}
+
+// ---------------------------------------------------------------------------
+// MOSFET parsing
+// ---------------------------------------------------------------------------
+
+/// Parse a MOSFET line: Mname drain gate source [bulk] MODELNAME
+fn parse_mosfet_line(line: &str) -> std::result::Result<Component, String> {
+    // Parse: name drain gate source
+    let (rest, (name, _, drain, _, gate, _, source, _)) = (
+        element_name,
+        space1,
+        node_id,
+        space1,
+        node_id,
+        space1,
+        node_id,
+        space0,
+    )
+        .parse(line)
+        .map_err(|_| "failed to parse MOSFET element".to_string())?;
+
+    let rest = rest.trim();
+
+    // Remaining tokens: either "MODEL" or "BULK MODEL"
+    let tokens: Vec<&str> = rest.split_whitespace().collect();
+    let model_name = match tokens.len() {
+        1 => tokens[0],
+        2 => tokens[1], // tokens[0] is bulk, ignored
+        _ => return Err("expected model name (and optional bulk node) after MOSFET terminals".to_string()),
+    };
+
+    Ok(Component::Mosfet {
+        name: name.to_string(),
+        nodes: [drain.to_string(), gate.to_string(), source.to_string()],
+        model: model_name.to_string(),
+    })
+}
+
+// ---------------------------------------------------------------------------
 // .MODEL parsing
 // ---------------------------------------------------------------------------
 
-/// Parse: .MODEL name D(IS=val N=val)
-fn parse_model_command(line: &str) -> std::result::Result<DiodeModel, String> {
+/// Parse: .MODEL name TYPE(params...)
+/// Supports D (diode), NPN/PNP (BJT), NMOS/PMOS (MOSFET).
+fn parse_model_command(line: &str) -> std::result::Result<ModelType, String> {
     // Skip ".MODEL" keyword
     let rest = line.trim();
     let upper = rest.to_uppercase();
@@ -327,35 +417,77 @@ fn parse_model_command(line: &str) -> std::result::Result<DiodeModel, String> {
         .map_err(|_| "expected model name after .MODEL".to_string())?;
     let rest = rest.trim_start();
 
-    // Parse type (only D supported)
+    // Parse type
     let (rest, model_type) = node_id(rest)
-        .map_err(|_| "expected model type (D) after model name".to_string())?;
-    if !model_type.eq_ignore_ascii_case("D") {
-        return Err(format!("unsupported model type '{}', only D is supported", model_type));
-    }
+        .map_err(|_| "expected model type after model name".to_string())?;
     let rest = rest.trim_start();
 
-    // Default parameter values
-    let mut is = 1e-14;
-    let mut n = 1.0;
-
-    // Parse optional parameters in parentheses
-    if rest.starts_with('(') {
+    // Extract params string from parentheses (if any)
+    let params_str = if rest.starts_with('(') {
         let end = rest.find(')').ok_or("missing closing ')' in .MODEL parameters")?;
-        let params_str = &rest[1..end];
-        parse_model_params(params_str, &mut is, &mut n)?;
-    }
+        Some(&rest[1..end])
+    } else {
+        None
+    };
 
-    Ok(DiodeModel {
-        name: model_name.to_string(),
-        is,
-        n,
-    })
+    let model_type_upper = model_type.to_uppercase();
+    match model_type_upper.as_str() {
+        "D" => {
+            let mut is = 1e-14;
+            let mut n = 1.0;
+            if let Some(ps) = params_str {
+                parse_diode_model_params(ps, &mut is, &mut n)?;
+            }
+            Ok(ModelType::Diode(DiodeModel {
+                name: model_name.to_string(),
+                is,
+                n,
+            }))
+        }
+        "NPN" | "PNP" => {
+            let mut is = 1e-16;
+            let mut bf = 100.0;
+            let mut br = 1.0;
+            let mut nf = 1.0;
+            let mut nr = 1.0;
+            if let Some(ps) = params_str {
+                parse_bjt_model_params(ps, &mut is, &mut bf, &mut br, &mut nf, &mut nr)?;
+            }
+            Ok(ModelType::Bjt(BjtModel {
+                name: model_name.to_string(),
+                is,
+                bf,
+                br,
+                nf,
+                nr,
+                is_npn: model_type_upper == "NPN",
+            }))
+        }
+        "NMOS" | "PMOS" => {
+            let mut vto = 1.0;
+            let mut kp = 2e-5;
+            let mut lambda = 0.0;
+            if let Some(ps) = params_str {
+                parse_mosfet_model_params(ps, &mut vto, &mut kp, &mut lambda)?;
+            }
+            Ok(ModelType::Mosfet(MosfetModel {
+                name: model_name.to_string(),
+                vto,
+                kp,
+                lambda,
+                is_nmos: model_type_upper == "NMOS",
+            }))
+        }
+        _ => Err(format!(
+            "unsupported model type '{}', expected D, NPN, PNP, NMOS, or PMOS",
+            model_type
+        )),
+    }
 }
 
-/// Parse key=value parameters from inside .MODEL parentheses.
+/// Parse key=value parameters for diode .MODEL.
 /// Supports IS and N parameters in any order.
-fn parse_model_params(params: &str, is: &mut f64, n: &mut f64) -> std::result::Result<(), String> {
+fn parse_diode_model_params(params: &str, is: &mut f64, n: &mut f64) -> std::result::Result<(), String> {
     for token in params.split_whitespace() {
         let upper = token.to_uppercase();
         if upper.starts_with("IS=") {
@@ -369,7 +501,83 @@ fn parse_model_params(params: &str, is: &mut f64, n: &mut f64) -> std::result::R
                 .map_err(|_| format!("failed to parse N value: {}", original_val))?;
             *n = val;
         } else {
-            return Err(format!("unknown model parameter: {}", token));
+            return Err(format!("unknown diode model parameter: {}", token));
+        }
+    }
+    Ok(())
+}
+
+/// Parse key=value parameters for BJT .MODEL.
+/// Supports IS, BF, BR, NF, NR parameters in any order.
+fn parse_bjt_model_params(
+    params: &str,
+    is: &mut f64,
+    bf: &mut f64,
+    br: &mut f64,
+    nf: &mut f64,
+    nr: &mut f64,
+) -> std::result::Result<(), String> {
+    for token in params.split_whitespace() {
+        let upper = token.to_uppercase();
+        if upper.starts_with("IS=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse IS value: {}", original_val))?;
+            *is = val;
+        } else if upper.starts_with("BF=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse BF value: {}", original_val))?;
+            *bf = val;
+        } else if upper.starts_with("BR=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse BR value: {}", original_val))?;
+            *br = val;
+        } else if upper.starts_with("NF=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse NF value: {}", original_val))?;
+            *nf = val;
+        } else if upper.starts_with("NR=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse NR value: {}", original_val))?;
+            *nr = val;
+        } else {
+            return Err(format!("unknown BJT model parameter: {}", token));
+        }
+    }
+    Ok(())
+}
+
+/// Parse key=value parameters for MOSFET .MODEL.
+/// Supports VTO, KP, LAMBDA parameters in any order.
+fn parse_mosfet_model_params(
+    params: &str,
+    vto: &mut f64,
+    kp: &mut f64,
+    lambda: &mut f64,
+) -> std::result::Result<(), String> {
+    for token in params.split_whitespace() {
+        let upper = token.to_uppercase();
+        if upper.starts_with("VTO=") {
+            let original_val = &token[4..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse VTO value: {}", original_val))?;
+            *vto = val;
+        } else if upper.starts_with("KP=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse KP value: {}", original_val))?;
+            *kp = val;
+        } else if upper.starts_with("LAMBDA=") {
+            let original_val = &token[7..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse LAMBDA value: {}", original_val))?;
+            *lambda = val;
+        } else {
+            return Err(format!("unknown MOSFET model parameter: {}", token));
         }
     }
     Ok(())
@@ -1142,5 +1350,185 @@ R2 3 0 1k
             }
             other => panic!("expected Diode, got {:?}", other),
         }
+    }
+
+    // ---- BJT element tests ----
+
+    #[test]
+    fn test_parse_bjt_basic() {
+        let circuit = parse("Q1 3 2 1 MYBJT").unwrap();
+        assert_eq!(circuit.components.len(), 1);
+        match &circuit.components[0] {
+            Component::Bjt { name, nodes, model } => {
+                assert_eq!(name, "Q1");
+                assert_eq!(nodes, &["3".to_string(), "2".to_string(), "1".to_string()]);
+                assert_eq!(model, "MYBJT");
+            }
+            other => panic!("expected Bjt, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_bjt_lowercase() {
+        let circuit = parse("q1 c b e mybjt").unwrap();
+        assert_eq!(circuit.components.len(), 1);
+        match &circuit.components[0] {
+            Component::Bjt { name, nodes, model } => {
+                assert_eq!(name, "q1");
+                assert_eq!(nodes, &["c".to_string(), "b".to_string(), "e".to_string()]);
+                assert_eq!(model, "mybjt");
+            }
+            other => panic!("expected Bjt, got {:?}", other),
+        }
+    }
+
+    // ---- MOSFET element tests ----
+
+    #[test]
+    fn test_parse_mosfet_basic() {
+        let circuit = parse("M1 3 2 1 MYMOS").unwrap();
+        assert_eq!(circuit.components.len(), 1);
+        match &circuit.components[0] {
+            Component::Mosfet { name, nodes, model } => {
+                assert_eq!(name, "M1");
+                assert_eq!(nodes, &["3".to_string(), "2".to_string(), "1".to_string()]);
+                assert_eq!(model, "MYMOS");
+            }
+            other => panic!("expected Mosfet, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_mosfet_4terminal() {
+        let circuit = parse("M1 3 2 1 0 MYMOS").unwrap();
+        assert_eq!(circuit.components.len(), 1);
+        match &circuit.components[0] {
+            Component::Mosfet { name, nodes, model } => {
+                assert_eq!(name, "M1");
+                assert_eq!(nodes, &["3".to_string(), "2".to_string(), "1".to_string()]);
+                assert_eq!(model, "MYMOS");
+            }
+            other => panic!("expected Mosfet, got {:?}", other),
+        }
+    }
+
+    // ---- BJT .MODEL tests ----
+
+    #[test]
+    fn test_parse_model_npn() {
+        let circuit = parse(".MODEL 2N2222 NPN(IS=1e-14 BF=200 BR=2 NF=1.0 NR=1.0)").unwrap();
+        assert_eq!(circuit.bjt_models.len(), 1);
+        let m = &circuit.bjt_models[0];
+        assert_eq!(m.name, "2N2222");
+        assert!(m.is_npn);
+        assert!((m.is - 1e-14).abs() < 1e-26);
+        assert!((m.bf - 200.0).abs() < 1e-12);
+        assert!((m.br - 2.0).abs() < 1e-12);
+        assert!((m.nf - 1.0).abs() < 1e-12);
+        assert!((m.nr - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_pnp() {
+        let circuit = parse(".MODEL MPNP PNP(IS=1e-14 BF=100)").unwrap();
+        assert_eq!(circuit.bjt_models.len(), 1);
+        let m = &circuit.bjt_models[0];
+        assert_eq!(m.name, "MPNP");
+        assert!(!m.is_npn);
+        assert!((m.is - 1e-14).abs() < 1e-26);
+        assert!((m.bf - 100.0).abs() < 1e-12);
+        assert!((m.br - 1.0).abs() < 1e-12); // default
+        assert!((m.nf - 1.0).abs() < 1e-12); // default
+        assert!((m.nr - 1.0).abs() < 1e-12); // default
+    }
+
+    #[test]
+    fn test_parse_model_npn_defaults() {
+        let circuit = parse(".MODEL Q1 NPN()").unwrap();
+        assert_eq!(circuit.bjt_models.len(), 1);
+        let m = &circuit.bjt_models[0];
+        assert_eq!(m.name, "Q1");
+        assert!(m.is_npn);
+        assert!((m.is - 1e-16).abs() < 1e-28);
+        assert!((m.bf - 100.0).abs() < 1e-12);
+        assert!((m.br - 1.0).abs() < 1e-12);
+        assert!((m.nf - 1.0).abs() < 1e-12);
+        assert!((m.nr - 1.0).abs() < 1e-12);
+    }
+
+    // ---- MOSFET .MODEL tests ----
+
+    #[test]
+    fn test_parse_model_nmos() {
+        let circuit = parse(".MODEL NMOS1 NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)").unwrap();
+        assert_eq!(circuit.mosfet_models.len(), 1);
+        let m = &circuit.mosfet_models[0];
+        assert_eq!(m.name, "NMOS1");
+        assert!(m.is_nmos);
+        assert!((m.vto - 0.7).abs() < 1e-12);
+        assert!((m.kp - 1.1e-4).abs() < 1e-16);
+        assert!((m.lambda - 0.04).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_pmos() {
+        let circuit = parse(".MODEL PMOS1 PMOS(VTO=0.7 KP=4.5e-5 LAMBDA=0.05)").unwrap();
+        assert_eq!(circuit.mosfet_models.len(), 1);
+        let m = &circuit.mosfet_models[0];
+        assert_eq!(m.name, "PMOS1");
+        assert!(!m.is_nmos);
+        assert!((m.vto - 0.7).abs() < 1e-12);
+        assert!((m.kp - 4.5e-5).abs() < 1e-17);
+        assert!((m.lambda - 0.05).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_nmos_defaults() {
+        let circuit = parse(".MODEL M1 NMOS()").unwrap();
+        assert_eq!(circuit.mosfet_models.len(), 1);
+        let m = &circuit.mosfet_models[0];
+        assert_eq!(m.name, "M1");
+        assert!(m.is_nmos);
+        assert!((m.vto - 1.0).abs() < 1e-12);
+        assert!((m.kp - 2e-5).abs() < 1e-17);
+        assert!((m.lambda - 0.0).abs() < 1e-12);
+    }
+
+    // ---- Full netlist with BJT + MOSFET ----
+
+    #[test]
+    fn test_full_netlist_bjt_mosfet() {
+        let netlist = "\
+* BJT and MOSFET test
+V1 vcc 0 DC 5
+R1 vcc 1 10k
+.MODEL 2N2222 NPN(IS=1e-14 BF=200)
+Q1 1 2 0 2N2222
+.MODEL NMOD NMOS(VTO=0.7 KP=1e-4)
+M1 3 2 0 NMOD
+R2 vcc 3 1k
+.DC
+.END
+";
+        let circuit = parse(netlist).unwrap();
+        assert_eq!(circuit.components.len(), 5); // V1, R1, Q1, M1, R2
+        assert_eq!(circuit.bjt_models.len(), 1);
+        assert_eq!(circuit.mosfet_models.len(), 1);
+        assert_eq!(circuit.analyses.len(), 1);
+    }
+
+    // ---- Verify diode model parsing still works ----
+
+    #[test]
+    fn test_parse_diode_model_still_works() {
+        let circuit = parse(".MODEL D1N4148 D(IS=2.52e-9 N=1.752)").unwrap();
+        assert_eq!(circuit.models.len(), 1);
+        let m = &circuit.models[0];
+        assert_eq!(m.name, "D1N4148");
+        assert!((m.is - 2.52e-9).abs() < 1e-21);
+        assert!((m.n - 1.752).abs() < 1e-12);
+        // Ensure BJT/MOSFET vecs are empty
+        assert!(circuit.bjt_models.is_empty());
+        assert!(circuit.mosfet_models.is_empty());
     }
 }

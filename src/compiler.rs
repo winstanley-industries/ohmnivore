@@ -68,6 +68,82 @@ pub struct GpuDiodeDescriptor {
     pub _padding: [u32; 2],
 }
 
+/// GPU-friendly descriptor for a single BJT, matching the WGSL shader layout.
+///
+/// 24 words (u32) per BJT = 96 bytes.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct GpuBjtDescriptor {
+    /// Index of the collector node in the solution vector.
+    /// `u32::MAX` if the collector is ground.
+    pub collector_idx: u32,
+    /// Index of the base node in the solution vector.
+    /// `u32::MAX` if the base is ground.
+    pub base_idx: u32,
+    /// Index of the emitter node in the solution vector.
+    /// `u32::MAX` if the emitter is ground.
+    pub emitter_idx: u32,
+    /// +1.0 for NPN, -1.0 for PNP (f32 bitcast).
+    pub polarity: f32,
+    /// Saturation current I_s (f32 bitcast).
+    pub is_val: f32,
+    /// Forward current gain (f32 bitcast).
+    pub bf: f32,
+    /// Reverse current gain (f32 bitcast).
+    pub br: f32,
+    /// NF * V_T product (f32 bitcast).
+    pub nf_vt: f32,
+    /// NR * V_T product (f32 bitcast).
+    pub nr_vt: f32,
+    /// Per-node voltage-source-constrained flags: [collector, base, emitter].
+    /// 1 if the node is directly driven by a voltage source, 0 otherwise.
+    /// The voltage limiting shader skips modifying constrained nodes.
+    pub node_fixed: [u32; 3],
+    /// CSR value-array indices for the 9 G-matrix stamp positions:
+    /// [CC, CB, CE, BC, BB, BE, EC, EB, EE].
+    /// `u32::MAX` sentinel for ground-related entries.
+    pub g_row_col: [u32; 9],
+    /// RHS vector indices: [C, B, E].
+    /// `u32::MAX` sentinel for ground.
+    pub b_idx: [u32; 3],
+}
+
+/// GPU-friendly descriptor for a single MOSFET, matching the WGSL shader layout.
+///
+/// 16 words (u32) per MOSFET = 64 bytes.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct GpuMosfetDescriptor {
+    /// Index of the drain node in the solution vector.
+    /// `u32::MAX` if the drain is ground.
+    pub drain_idx: u32,
+    /// Index of the gate node in the solution vector.
+    /// `u32::MAX` if the gate is ground.
+    pub gate_idx: u32,
+    /// Index of the source node in the solution vector.
+    /// `u32::MAX` if the source is ground.
+    pub source_idx: u32,
+    /// +1.0 for NMOS, -1.0 for PMOS (f32 bitcast).
+    pub polarity: f32,
+    /// Threshold voltage (f32 bitcast).
+    pub vto: f32,
+    /// Transconductance parameter (f32 bitcast).
+    pub kp: f32,
+    /// Channel-length modulation (f32 bitcast).
+    pub lambda: f32,
+    /// Packed per-node voltage-source-constrained flags.
+    /// bit 0 = drain, bit 1 = gate, bit 2 = source.
+    /// The voltage limiting shader skips modifying constrained nodes.
+    pub node_fixed_packed: u32,
+    /// CSR value-array indices for the 6 G-matrix stamp positions:
+    /// [DD, DG, DS, SD, SG, SS].
+    /// `u32::MAX` sentinel for ground-related entries.
+    pub g_row_col: [u32; 6],
+    /// RHS vector indices: [D, S].
+    /// `u32::MAX` sentinel for ground.
+    pub b_idx: [u32; 2],
+}
+
 /// The compiled MNA system, ready for analysis.
 #[derive(Debug)]
 pub struct MnaSystem {
@@ -88,6 +164,10 @@ pub struct MnaSystem {
     pub branch_names: Vec<String>,
     /// Diode descriptors for nonlinear Newton-Raphson solving on GPU.
     pub diode_descriptors: Vec<GpuDiodeDescriptor>,
+    /// BJT descriptors for nonlinear Newton-Raphson solving on GPU.
+    pub bjt_descriptors: Vec<GpuBjtDescriptor>,
+    /// MOSFET descriptors for nonlinear Newton-Raphson solving on GPU.
+    pub mosfet_descriptors: Vec<GpuMosfetDescriptor>,
 }
 
 /// Returns true if the node identifier represents ground.
@@ -124,16 +204,27 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
     };
 
     for component in &circuit.components {
-        let (n_plus, n_minus) = match component {
+        match component {
+            Component::Bjt { nodes, .. } => {
+                register_node(&nodes[0], &mut node_map, &mut node_names);
+                register_node(&nodes[1], &mut node_map, &mut node_names);
+                register_node(&nodes[2], &mut node_map, &mut node_names);
+            }
+            Component::Mosfet { nodes, .. } => {
+                register_node(&nodes[0], &mut node_map, &mut node_names);
+                register_node(&nodes[1], &mut node_map, &mut node_names);
+                register_node(&nodes[2], &mut node_map, &mut node_names);
+            }
             Component::Resistor { nodes, .. }
             | Component::Capacitor { nodes, .. }
             | Component::Inductor { nodes, .. }
             | Component::VSource { nodes, .. }
             | Component::ISource { nodes, .. }
-            | Component::Diode { nodes, .. } => (&nodes.0, &nodes.1),
-        };
-        register_node(n_plus, &mut node_map, &mut node_names);
-        register_node(n_minus, &mut node_map, &mut node_names);
+            | Component::Diode { nodes, .. } => {
+                register_node(&nodes.0, &mut node_map, &mut node_names);
+                register_node(&nodes.1, &mut node_map, &mut node_names);
+            }
+        }
     }
 
     let n_nodes = node_names.len();
@@ -180,7 +271,33 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
         n_vt: f32,
     }
 
+    /// Intermediate storage for BJT info collected during stamping.
+    struct PendingBjt {
+        collector: Option<usize>,
+        base: Option<usize>,
+        emitter: Option<usize>,
+        polarity: f32,
+        is_val: f32,
+        bf: f32,
+        br: f32,
+        nf_vt: f32,
+        nr_vt: f32,
+    }
+
+    /// Intermediate storage for MOSFET info collected during stamping.
+    struct PendingMosfet {
+        drain: Option<usize>,
+        gate: Option<usize>,
+        source: Option<usize>,
+        polarity: f32,
+        vto: f32,
+        kp: f32,
+        lambda: f32,
+    }
+
     let mut pending_diodes: Vec<PendingDiode> = Vec::new();
+    let mut pending_bjts: Vec<PendingBjt> = Vec::new();
+    let mut pending_mosfets: Vec<PendingMosfet> = Vec::new();
 
     for component in &circuit.components {
         match component {
@@ -354,12 +471,109 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                     }
                 }
             }
+
+            // BJTs are nonlinear — stamp 9 placeholder zeros (3x3 block) into G.
+            Component::Bjt { name, nodes, model } => {
+                let bjt_model = circuit
+                    .bjt_models
+                    .iter()
+                    .find(|m| m.name == *model)
+                    .ok_or_else(|| {
+                        OhmnivoreError::Compile(format!(
+                            "BJT {} references undefined model '{}'",
+                            name, model
+                        ))
+                    })?;
+
+                let nc = node_index(&nodes[0], &node_map);
+                let nb = node_index(&nodes[1], &node_map);
+                let ne = node_index(&nodes[2], &node_map);
+
+                // Stamp 3x3 placeholder zeros for all (row, col) pairs among {C, B, E}
+                let node_indices = [nc, nb, ne];
+                for &row in &node_indices {
+                    for &col in &node_indices {
+                        if let (Some(r), Some(c)) = (row, col) {
+                            g_triplets.push((r, c, 0.0));
+                        }
+                    }
+                }
+
+                let nf_vt = (bjt_model.nf * VT_300K) as f32;
+                let nr_vt = (bjt_model.nr * VT_300K) as f32;
+
+                pending_bjts.push(PendingBjt {
+                    collector: nc,
+                    base: nb,
+                    emitter: ne,
+                    polarity: if bjt_model.is_npn { 1.0f32 } else { -1.0f32 },
+                    is_val: bjt_model.is as f32,
+                    bf: bjt_model.bf as f32,
+                    br: bjt_model.br as f32,
+                    nf_vt,
+                    nr_vt,
+                });
+            }
+
+            // MOSFETs are nonlinear — stamp 6 placeholder zeros (drain & source rows,
+            // drain/gate/source columns, no gate row) into G.
+            Component::Mosfet { name, nodes, model } => {
+                let mosfet_model = circuit
+                    .mosfet_models
+                    .iter()
+                    .find(|m| m.name == *model)
+                    .ok_or_else(|| {
+                        OhmnivoreError::Compile(format!(
+                            "MOSFET {} references undefined model '{}'",
+                            name, model
+                        ))
+                    })?;
+
+                let nd = node_index(&nodes[0], &node_map);
+                let ng = node_index(&nodes[1], &node_map);
+                let ns = node_index(&nodes[2], &node_map);
+
+                // Stamp 6 placeholder zeros: drain row (DD, DG, DS) + source row (SD, SG, SS)
+                let row_nodes = [nd, ns];
+                let col_nodes = [nd, ng, ns];
+                for &row in &row_nodes {
+                    for &col in &col_nodes {
+                        if let (Some(r), Some(c)) = (row, col) {
+                            g_triplets.push((r, c, 0.0));
+                        }
+                    }
+                }
+
+                pending_mosfets.push(PendingMosfet {
+                    drain: nd,
+                    gate: ng,
+                    source: ns,
+                    polarity: if mosfet_model.is_nmos { 1.0f32 } else { -1.0f32 },
+                    vto: mosfet_model.vto as f32,
+                    kp: mosfet_model.kp as f32,
+                    lambda: mosfet_model.lambda as f32,
+                });
+            }
         }
     }
 
     // Step 4: Assemble CSR matrices.
     let g = CsrMatrix::from_triplets(size, size, &g_triplets);
     let c = CsrMatrix::from_triplets(size, size, &c_triplets);
+
+    // Build set of voltage-source-constrained node indices.
+    // The voltage limiting shaders must not modify these nodes.
+    let mut vsource_constrained = std::collections::HashSet::new();
+    for component in &circuit.components {
+        if let Component::VSource { nodes, .. } = component {
+            if let Some(i) = node_index(&nodes.0, &node_map) {
+                vsource_constrained.insert(i);
+            }
+            if let Some(i) = node_index(&nodes.1, &node_map) {
+                vsource_constrained.insert(i);
+            }
+        }
+    }
 
     // Step 5: Resolve CSR value indices for diode descriptors.
     const SENTINEL: u32 = u32::MAX;
@@ -406,6 +620,94 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
         })
         .collect();
 
+    // Step 6: Resolve CSR value indices for BJT descriptors.
+    let bjt_descriptors: Vec<GpuBjtDescriptor> = pending_bjts
+        .iter()
+        .map(|pb| {
+            let collector_idx = pb.collector.map(|i| i as u32).unwrap_or(SENTINEL);
+            let base_idx = pb.base.map(|i| i as u32).unwrap_or(SENTINEL);
+            let emitter_idx = pb.emitter.map(|i| i as u32).unwrap_or(SENTINEL);
+
+            // Resolve 9 G-matrix positions: [CC, CB, CE, BC, BB, BE, EC, EB, EE]
+            let nodes = [pb.collector, pb.base, pb.emitter];
+            let mut g_row_col = [SENTINEL; 9];
+            for (ri, &row) in nodes.iter().enumerate() {
+                for (ci, &col) in nodes.iter().enumerate() {
+                    let idx = ri * 3 + ci;
+                    g_row_col[idx] = row
+                        .zip(col)
+                        .and_then(|(r, c)| g.value_index(r, c))
+                        .map(|v| v as u32)
+                        .unwrap_or(SENTINEL);
+                }
+            }
+
+            let node_fixed = [
+                pb.collector.map_or(0, |i| vsource_constrained.contains(&i) as u32),
+                pb.base.map_or(0, |i| vsource_constrained.contains(&i) as u32),
+                pb.emitter.map_or(0, |i| vsource_constrained.contains(&i) as u32),
+            ];
+
+            GpuBjtDescriptor {
+                collector_idx,
+                base_idx,
+                emitter_idx,
+                polarity: pb.polarity,
+                is_val: pb.is_val,
+                bf: pb.bf,
+                br: pb.br,
+                nf_vt: pb.nf_vt,
+                nr_vt: pb.nr_vt,
+                node_fixed,
+                g_row_col,
+                b_idx: [collector_idx, base_idx, emitter_idx],
+            }
+        })
+        .collect();
+
+    // Step 7: Resolve CSR value indices for MOSFET descriptors.
+    let mosfet_descriptors: Vec<GpuMosfetDescriptor> = pending_mosfets
+        .iter()
+        .map(|pm| {
+            let drain_idx = pm.drain.map(|i| i as u32).unwrap_or(SENTINEL);
+            let gate_idx = pm.gate.map(|i| i as u32).unwrap_or(SENTINEL);
+            let source_idx = pm.source.map(|i| i as u32).unwrap_or(SENTINEL);
+
+            // Resolve 6 G-matrix positions: [DD, DG, DS, SD, SG, SS]
+            let rows = [pm.drain, pm.source];
+            let cols = [pm.drain, pm.gate, pm.source];
+            let mut g_row_col = [SENTINEL; 6];
+            for (ri, &row) in rows.iter().enumerate() {
+                for (ci, &col) in cols.iter().enumerate() {
+                    let idx = ri * 3 + ci;
+                    g_row_col[idx] = row
+                        .zip(col)
+                        .and_then(|(r, c)| g.value_index(r, c))
+                        .map(|v| v as u32)
+                        .unwrap_or(SENTINEL);
+                }
+            }
+
+            let node_fixed_packed =
+                (pm.drain.map_or(0, |i| vsource_constrained.contains(&i) as u32))
+                | (pm.gate.map_or(0, |i| vsource_constrained.contains(&i) as u32) << 1)
+                | (pm.source.map_or(0, |i| vsource_constrained.contains(&i) as u32) << 2);
+
+            GpuMosfetDescriptor {
+                drain_idx,
+                gate_idx,
+                source_idx,
+                polarity: pm.polarity,
+                vto: pm.vto,
+                kp: pm.kp,
+                lambda: pm.lambda,
+                node_fixed_packed,
+                g_row_col,
+                b_idx: [drain_idx, source_idx],
+            }
+        })
+        .collect();
+
     Ok(MnaSystem {
         g,
         c,
@@ -415,6 +717,8 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
         node_names,
         branch_names,
         diode_descriptors,
+        bjt_descriptors,
+        mosfet_descriptors,
     })
 }
 
@@ -429,6 +733,8 @@ mod tests {
             components,
             analyses: vec![],
             models: vec![],
+            bjt_models: vec![],
+            mosfet_models: vec![],
         }
     }
 
@@ -926,6 +1232,8 @@ mod tests {
             components,
             analyses: vec![],
             models,
+            bjt_models: vec![],
+            mosfet_models: vec![],
         }
     }
 
@@ -1196,5 +1504,430 @@ mod tests {
             48,
             "GpuDiodeDescriptor should be 48 bytes (12 x u32)"
         );
+    }
+
+    // --- BJT and MOSFET tests ---
+
+    use crate::ir::{BjtModel, MosfetModel};
+
+    /// Helper: create a circuit with components and all model types.
+    fn circuit_with_all_models(
+        components: Vec<Component>,
+        diode_models: Vec<DiodeModel>,
+        bjt_models: Vec<BjtModel>,
+        mosfet_models: Vec<MosfetModel>,
+    ) -> Circuit {
+        Circuit {
+            components,
+            analyses: vec![],
+            models: diode_models,
+            bjt_models,
+            mosfet_models,
+        }
+    }
+
+    #[test]
+    fn test_bjt_descriptor_size() {
+        assert_eq!(
+            std::mem::size_of::<super::GpuBjtDescriptor>(),
+            96,
+            "GpuBjtDescriptor should be 96 bytes (24 x u32)"
+        );
+    }
+
+    #[test]
+    fn test_mosfet_descriptor_size() {
+        assert_eq!(
+            std::mem::size_of::<super::GpuMosfetDescriptor>(),
+            64,
+            "GpuMosfetDescriptor should be 64 bytes (16 x u32)"
+        );
+    }
+
+    #[test]
+    fn test_single_bjt_descriptor() {
+        // V1(5V) -> node "1", R1(10k) from "1" to "2" (base),
+        // Q1 NPN: collector="3", base="2", emitter="4",
+        // R2(1k) from "3" to "1" (collector load), R3(100) from "4" to "0" (emitter)
+        let circuit = circuit_with_all_models(
+            vec![
+                Component::VSource {
+                    name: "V1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    dc: Some(5.0),
+                    ac: None,
+                },
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "2".into()),
+                    value: 10000.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("1".into(), "3".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R3".into(),
+                    nodes: ("4".into(), "0".into()),
+                    value: 100.0,
+                },
+                Component::Bjt {
+                    name: "Q1".into(),
+                    nodes: ["3".into(), "2".into(), "4".into()],
+                    model: "2N2222".into(),
+                },
+            ],
+            vec![],
+            vec![BjtModel {
+                name: "2N2222".into(),
+                is: 1e-14,
+                bf: 200.0,
+                br: 2.0,
+                nf: 1.0,
+                nr: 1.0,
+                is_npn: true,
+            }],
+            vec![],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.bjt_descriptors.len(), 1);
+
+        let desc = &mna.bjt_descriptors[0];
+        // Nodes: "1"->0, "2"->1, "3"->2, "4"->3
+        assert_eq!(desc.collector_idx, 2); // node "3"
+        assert_eq!(desc.base_idx, 1);      // node "2"
+        assert_eq!(desc.emitter_idx, 3);   // node "4"
+        assert_eq!(desc.polarity, 1.0);    // NPN
+        assert!((desc.is_val - 1e-14_f32).abs() < 1e-20);
+        assert!((desc.bf - 200.0_f32).abs() < 1e-6);
+        assert!((desc.br - 2.0_f32).abs() < 1e-6);
+
+        let expected_nf_vt = (1.0 * 0.02585) as f32;
+        let expected_nr_vt = (1.0 * 0.02585) as f32;
+        assert!((desc.nf_vt - expected_nf_vt).abs() < 1e-6);
+        assert!((desc.nr_vt - expected_nr_vt).abs() < 1e-6);
+
+        // All 9 stamp positions should be valid (all nodes are non-ground)
+        for i in 0..9 {
+            assert_ne!(
+                desc.g_row_col[i],
+                u32::MAX,
+                "g_row_col[{i}] should not be sentinel"
+            );
+        }
+
+        // b_idx should match node indices
+        assert_eq!(desc.b_idx[0], 2); // collector
+        assert_eq!(desc.b_idx[1], 1); // base
+        assert_eq!(desc.b_idx[2], 3); // emitter
+    }
+
+    #[test]
+    fn test_single_mosfet_descriptor() {
+        // V1(5V) -> node "1", M1 NMOS: drain="2", gate="1", source="3",
+        // R1(1k) from "1" to "2" (drain load), R2(100) from "3" to "0"
+        let circuit = circuit_with_all_models(
+            vec![
+                Component::VSource {
+                    name: "V1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    dc: Some(5.0),
+                    ac: None,
+                },
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "2".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("3".into(), "0".into()),
+                    value: 100.0,
+                },
+                Component::Mosfet {
+                    name: "M1".into(),
+                    nodes: ["2".into(), "1".into(), "3".into()],
+                    model: "NMOS1".into(),
+                },
+            ],
+            vec![],
+            vec![],
+            vec![MosfetModel {
+                name: "NMOS1".into(),
+                vto: 0.7,
+                kp: 1.1e-4,
+                lambda: 0.04,
+                is_nmos: true,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.mosfet_descriptors.len(), 1);
+
+        let desc = &mna.mosfet_descriptors[0];
+        // Nodes: "1"->0, "2"->1, "3"->2
+        assert_eq!(desc.drain_idx, 1);  // node "2"
+        assert_eq!(desc.gate_idx, 0);   // node "1"
+        assert_eq!(desc.source_idx, 2); // node "3"
+        assert_eq!(desc.polarity, 1.0); // NMOS
+        assert!((desc.vto - 0.7_f32).abs() < 1e-6);
+        assert!((desc.kp - 1.1e-4_f32).abs() < 1e-10);
+        assert!((desc.lambda - 0.04_f32).abs() < 1e-6);
+
+        // All 6 stamp positions should be valid (all nodes are non-ground)
+        for i in 0..6 {
+            assert_ne!(
+                desc.g_row_col[i],
+                u32::MAX,
+                "g_row_col[{i}] should not be sentinel"
+            );
+        }
+
+        // b_idx
+        assert_eq!(desc.b_idx[0], 1); // drain
+        assert_eq!(desc.b_idx[1], 2); // source
+    }
+
+    #[test]
+    fn test_bjt_to_ground() {
+        // Q1 NPN with emitter to ground
+        // R1 to provide non-ground paths for collector and base
+        let circuit = circuit_with_all_models(
+            vec![
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("2".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Bjt {
+                    name: "Q1".into(),
+                    nodes: ["1".into(), "2".into(), "0".into()],
+                    model: "QMOD".into(),
+                },
+            ],
+            vec![],
+            vec![BjtModel {
+                name: "QMOD".into(),
+                is: 1e-16,
+                bf: 100.0,
+                br: 1.0,
+                nf: 1.0,
+                nr: 1.0,
+                is_npn: true,
+            }],
+            vec![],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.bjt_descriptors.len(), 1);
+
+        let desc = &mna.bjt_descriptors[0];
+        // Nodes: "1"->0, "2"->1
+        assert_eq!(desc.collector_idx, 0);
+        assert_eq!(desc.base_idx, 1);
+        assert_eq!(desc.emitter_idx, u32::MAX); // ground
+
+        // Ground-related G-matrix entries should be sentinel
+        // Layout: [CC, CB, CE, BC, BB, BE, EC, EB, EE]
+        assert_ne!(desc.g_row_col[0], u32::MAX); // CC
+        assert_ne!(desc.g_row_col[1], u32::MAX); // CB
+        assert_eq!(desc.g_row_col[2], u32::MAX); // CE (emitter=ground)
+        assert_ne!(desc.g_row_col[3], u32::MAX); // BC
+        assert_ne!(desc.g_row_col[4], u32::MAX); // BB
+        assert_eq!(desc.g_row_col[5], u32::MAX); // BE (emitter=ground)
+        assert_eq!(desc.g_row_col[6], u32::MAX); // EC (emitter=ground)
+        assert_eq!(desc.g_row_col[7], u32::MAX); // EB (emitter=ground)
+        assert_eq!(desc.g_row_col[8], u32::MAX); // EE (emitter=ground)
+
+        // b_idx: emitter should be sentinel
+        assert_eq!(desc.b_idx[0], 0);         // collector
+        assert_eq!(desc.b_idx[1], 1);         // base
+        assert_eq!(desc.b_idx[2], u32::MAX);  // emitter = ground
+    }
+
+    #[test]
+    fn test_mosfet_to_ground() {
+        // M1 NMOS with source to ground
+        let circuit = circuit_with_all_models(
+            vec![
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("2".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Mosfet {
+                    name: "M1".into(),
+                    nodes: ["1".into(), "2".into(), "0".into()],
+                    model: "MMOD".into(),
+                },
+            ],
+            vec![],
+            vec![],
+            vec![MosfetModel {
+                name: "MMOD".into(),
+                vto: 1.0,
+                kp: 2e-5,
+                lambda: 0.0,
+                is_nmos: true,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.mosfet_descriptors.len(), 1);
+
+        let desc = &mna.mosfet_descriptors[0];
+        // Nodes: "1"->0, "2"->1
+        assert_eq!(desc.drain_idx, 0);
+        assert_eq!(desc.gate_idx, 1);
+        assert_eq!(desc.source_idx, u32::MAX); // ground
+
+        // Layout: [DD, DG, DS, SD, SG, SS]
+        assert_ne!(desc.g_row_col[0], u32::MAX); // DD
+        assert_ne!(desc.g_row_col[1], u32::MAX); // DG
+        assert_eq!(desc.g_row_col[2], u32::MAX); // DS (source=ground)
+        assert_eq!(desc.g_row_col[3], u32::MAX); // SD (source=ground)
+        assert_eq!(desc.g_row_col[4], u32::MAX); // SG (source=ground)
+        assert_eq!(desc.g_row_col[5], u32::MAX); // SS (source=ground)
+
+        // b_idx
+        assert_eq!(desc.b_idx[0], 0);         // drain
+        assert_eq!(desc.b_idx[1], u32::MAX);  // source = ground
+    }
+
+    #[test]
+    fn test_bjt_undefined_model_error() {
+        let circuit = circuit_with_all_models(
+            vec![Component::Bjt {
+                name: "Q1".into(),
+                nodes: ["1".into(), "2".into(), "0".into()],
+                model: "NOMODEL".into(),
+            }],
+            vec![],
+            vec![], // no BJT models defined
+            vec![],
+        );
+
+        let result = compile(&circuit);
+        assert!(result.is_err());
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("undefined model"),
+            "Error should mention undefined model, got: {err_msg}"
+        );
+    }
+
+    #[test]
+    fn test_mosfet_undefined_model_error() {
+        let circuit = circuit_with_all_models(
+            vec![Component::Mosfet {
+                name: "M1".into(),
+                nodes: ["1".into(), "2".into(), "0".into()],
+                model: "NOMODEL".into(),
+            }],
+            vec![],
+            vec![],
+            vec![], // no MOSFET models defined
+        );
+
+        let result = compile(&circuit);
+        assert!(result.is_err());
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("undefined model"),
+            "Error should mention undefined model, got: {err_msg}"
+        );
+    }
+
+    #[test]
+    fn test_mixed_diode_bjt_mosfet() {
+        // Circuit with all three nonlinear device types
+        let circuit = circuit_with_all_models(
+            vec![
+                Component::VSource {
+                    name: "V1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    dc: Some(5.0),
+                    ac: None,
+                },
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "2".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("3".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R3".into(),
+                    nodes: ("4".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R4".into(),
+                    nodes: ("5".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Diode {
+                    name: "D1".into(),
+                    nodes: ("2".into(), "0".into()),
+                    model: "DMOD".into(),
+                },
+                Component::Bjt {
+                    name: "Q1".into(),
+                    nodes: ["3".into(), "2".into(), "4".into()],
+                    model: "QMOD".into(),
+                },
+                Component::Mosfet {
+                    name: "M1".into(),
+                    nodes: ["3".into(), "2".into(), "5".into()],
+                    model: "MMOD".into(),
+                },
+            ],
+            vec![DiodeModel {
+                name: "DMOD".into(),
+                is: 1e-14,
+                n: 1.0,
+            }],
+            vec![BjtModel {
+                name: "QMOD".into(),
+                is: 1e-16,
+                bf: 100.0,
+                br: 1.0,
+                nf: 1.0,
+                nr: 1.0,
+                is_npn: true,
+            }],
+            vec![MosfetModel {
+                name: "MMOD".into(),
+                vto: 0.7,
+                kp: 1.1e-4,
+                lambda: 0.04,
+                is_nmos: true,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.diode_descriptors.len(), 1);
+        assert_eq!(mna.bjt_descriptors.len(), 1);
+        assert_eq!(mna.mosfet_descriptors.len(), 1);
+
+        // Verify the sparsity pattern includes stamps from all devices
+        // 5 non-ground nodes + 1 branch = size 6
+        assert_eq!(mna.node_names.len(), 5);
+        assert_eq!(mna.size, 6);
     }
 }

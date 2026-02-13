@@ -4,7 +4,7 @@
 //! nonlinear system (base G + diode stamps), solve the linear system with
 //! BiCGSTAB, then check convergence with voltage limiting.
 
-use crate::compiler::GpuDiodeDescriptor;
+use crate::compiler::{GpuBjtDescriptor, GpuDiodeDescriptor, GpuMosfetDescriptor};
 use crate::error::{OhmnivoreError, Result};
 
 use super::backend::{SolverBackend, WgpuBackend, WgpuBuffer};
@@ -42,23 +42,44 @@ pub fn newton_solve(
     base_g_values_f32: &[f32],
     base_g_col_indices: &[u32],
     base_g_row_ptrs: &[u32],
-    descriptors: &[GpuDiodeDescriptor],
+    diode_descriptors: &[GpuDiodeDescriptor],
+    bjt_descriptors: &[GpuBjtDescriptor],
+    mosfet_descriptors: &[GpuMosfetDescriptor],
     system_size: usize,
     matrix_nnz: usize,
     params: &NewtonParams,
 ) -> Result<Vec<f64>> {
-    let n_diodes = descriptors.len() as u32;
+    let n_diodes = diode_descriptors.len() as u32;
+    let n_bjts = bjt_descriptors.len() as u32;
+    let n_mosfets = mosfet_descriptors.len() as u32;
 
-    // Upload diode descriptors to GPU
-    let desc_buf = backend.upload_diode_descriptors(
-        // The compiler's GpuDiodeDescriptor has the same layout as nonlinear's
-        bytemuck::cast_slice(descriptors),
-    );
+    // Upload diode descriptors to GPU (minimal buffer if empty to avoid zero-size)
+    let desc_buf = if n_diodes > 0 {
+        backend.upload_diode_descriptors(bytemuck::cast_slice(diode_descriptors))
+    } else {
+        backend.new_buffer(1)
+    };
+
+    // Upload BJT descriptors to GPU (minimal buffer if empty to avoid zero-size)
+    let bjt_desc_buf = if n_bjts > 0 {
+        backend.upload_bjt_descriptors(bjt_descriptors)
+    } else {
+        backend.new_buffer(1)
+    };
+
+    // Upload MOSFET descriptors to GPU (minimal buffer if empty to avoid zero-size)
+    let mosfet_desc_buf = if n_mosfets > 0 {
+        backend.upload_mosfet_descriptors(mosfet_descriptors)
+    } else {
+        backend.new_buffer(1)
+    };
 
     // Create GPU buffers for Newton iteration
     let x_buf = backend.new_buffer(system_size); // current solution (zeros)
     let x_old_buf = backend.new_buffer(system_size); // previous iteration
-    let diode_output_buf = backend.new_buffer(n_diodes as usize * 2); // [i_d, g_d] per diode
+    let diode_output_buf = backend.new_buffer(std::cmp::max(n_diodes as usize * 2, 1));
+    let bjt_output_buf = backend.new_buffer(std::cmp::max(n_bjts as usize * 6, 1));
+    let mosfet_output_buf = backend.new_buffer(std::cmp::max(n_mosfets as usize * 4, 1));
     let out_values_buf = backend.new_buffer(matrix_nnz); // assembled G values
     let out_b_buf = backend.new_buffer(system_size); // assembled RHS
     let result_conv_buf = backend.new_buffer(1); // convergence result scratch
@@ -72,10 +93,22 @@ pub fn newton_solve(
         // Save current solution as x_old
         backend.copy(&x_buf, &x_old_buf);
 
-        // Step 1: Evaluate diodes at current solution
-        backend.evaluate_diodes(&desc_buf, &x_buf, &diode_output_buf, n_diodes);
+        // Step 1a: Evaluate diodes at current solution
+        if n_diodes > 0 {
+            backend.evaluate_diodes(&desc_buf, &x_buf, &diode_output_buf, n_diodes);
+        }
 
-        // Step 2: Assemble nonlinear system (copy base + stamp diode contributions)
+        // Step 1b: Evaluate BJTs at current solution
+        if n_bjts > 0 {
+            backend.evaluate_bjts(&bjt_desc_buf, &x_buf, &bjt_output_buf, n_bjts);
+        }
+
+        // Step 1c: Evaluate MOSFETs at current solution
+        if n_mosfets > 0 {
+            backend.evaluate_mosfets(&mosfet_desc_buf, &x_buf, &mosfet_output_buf, n_mosfets);
+        }
+
+        // Step 2a: Assemble nonlinear system (copy base + stamp diode contributions)
         backend.assemble_nonlinear_system(
             &base_values_buf,
             base_b,
@@ -89,11 +122,43 @@ pub fn newton_solve(
             system_size as u32,
         );
 
+        // Step 2b: Stamp BJT contributions (on top of already-copied base values)
+        if n_bjts > 0 {
+            backend.assemble_bjt_stamps(
+                &bjt_output_buf,
+                &bjt_desc_buf,
+                &x_buf,
+                &out_values_buf,
+                &out_b_buf,
+                n_bjts,
+            );
+        }
+
+        // Step 2c: Stamp MOSFET contributions (on top of already-copied base values)
+        if n_mosfets > 0 {
+            backend.assemble_mosfet_stamps(
+                &mosfet_output_buf,
+                &mosfet_desc_buf,
+                &x_buf,
+                &out_values_buf,
+                &out_b_buf,
+                n_mosfets,
+            );
+        }
+
         // Step 3: Upload assembled G as a new CSR matrix for BiCGSTAB
         // We need to download the assembled values, then re-upload as a proper CSR matrix.
         // The row_ptrs and col_indices don't change, only values do.
         let mut assembled_values = vec![0.0f32; matrix_nnz];
         backend.download_vec(&out_values_buf, &mut assembled_values);
+
+        // Early NaN/Inf detection — avoid expensive BiCGSTAB on corrupt matrices
+        if assembled_values
+            .iter()
+            .any(|v| v.is_nan() || v.is_infinite())
+        {
+            return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
+        }
 
         let assembled_g = backend.upload_matrix(
             &assembled_values,
@@ -185,7 +250,15 @@ pub fn newton_solve(
         // Copy linear solve result into x_buf
         backend.copy(&x_solve_buf, &x_buf);
 
-        // Step 5: Voltage limiting and convergence check
+        // Step 5a: BJT and MOSFET voltage limiting (before convergence check)
+        if n_bjts > 0 {
+            backend.limit_bjt_voltages(&x_old_buf, &x_buf, &bjt_desc_buf, n_bjts);
+        }
+        if n_mosfets > 0 {
+            backend.limit_mosfet_voltages(&x_old_buf, &x_buf, &mosfet_desc_buf, n_mosfets);
+        }
+
+        // Step 5b: Diode voltage limiting and convergence check
         let conv = backend.limit_and_check_convergence(
             &x_old_buf,
             &x_buf,
@@ -201,6 +274,13 @@ pub fn newton_solve(
                 // Download solution to CPU as f64
                 let mut result_f32 = vec![0.0f32; system_size];
                 backend.download_vec(&x_buf, &mut result_f32);
+
+                // GPU NaN detection is unreliable (WGSL NaN comparison is
+                // implementation-defined), so double-check on CPU.
+                if result_f32.iter().any(|v| v.is_nan() || v.is_infinite()) {
+                    return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
+                }
+
                 return Ok(result_f32.iter().map(|&v| v as f64).collect());
             }
             ConvergenceResult::NumericalError => {
@@ -215,6 +295,14 @@ pub fn newton_solve(
     // Did not converge: download and compute final residual for error message
     let mut result_f32 = vec![0.0f32; system_size];
     backend.download_vec(&x_buf, &mut result_f32);
+
+    // Check for NaN/Inf in the final solution
+    if result_f32.iter().any(|v| v.is_nan() || v.is_infinite()) {
+        return Err(OhmnivoreError::NewtonNumericalError {
+            iteration: params.max_iterations,
+        });
+    }
+
     let mut x_old_f32 = vec![0.0f32; system_size];
     backend.download_vec(&x_old_buf, &mut x_old_f32);
 
