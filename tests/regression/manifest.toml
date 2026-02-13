@@ -1,0 +1,48 @@
+[defaults]
+dc_voltage_rel_tol = 0.001
+dc_voltage_abs_tol = 1e-9
+ac_mag_rel_tol = 0.01
+ac_mag_abs_tol = 1e-12
+ac_phase_abs_tol = 1.0
+
+[[circuit]]
+name = "voltage_divider"
+file = "voltage_divider.spice"
+analysis = "dc"
+compare_nodes = ["V(2)"]
+
+[[circuit]]
+name = "current_source_resistor"
+file = "current_source_resistor.spice"
+analysis = "dc"
+compare_nodes = ["V(1)"]
+
+[[circuit]]
+name = "rc_lowpass"
+file = "rc_lowpass.spice"
+analysis = "ac"
+compare_nodes = ["V(2)"]
+
+[[circuit]]
+name = "diode_forward"
+file = "diode_forward.spice"
+analysis = "dc"
+compare_nodes = ["V(2)"]
+dc_voltage_rel_tol = 0.05
+dc_voltage_abs_tol = 0.01
+
+[[circuit]]
+name = "npn_common_emitter"
+file = "npn_common_emitter.spice"
+analysis = "dc"
+compare_nodes = ["V(vc)"]
+dc_voltage_rel_tol = 0.05
+dc_voltage_abs_tol = 0.01
+
+[[circuit]]
+name = "nmos_common_source"
+file = "nmos_common_source.spice"
+analysis = "dc"
+compare_nodes = ["V(drain)"]
+dc_voltage_rel_tol = 0.05
+dc_voltage_abs_tol = 0.01

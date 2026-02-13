@@ -1,0 +1,9 @@
+* NPN Common Emitter
+V1 vcc 0 DC 5
+V2 vb 0 DC 1.0
+R1 vcc vc 1k
+R2 vb base 100k
+.MODEL Q2N2222 NPN(IS=1e-14 BF=200 BR=2 NF=1.0 NR=1.0)
+Q1 vc base 0 Q2N2222
+.DC
+.END

@@ -1,0 +1,7 @@
+* Diode Forward Bias
+V1 1 0 DC 5
+R1 1 2 1k
+.MODEL DMOD D(IS=1e-14 N=1.0)
+D1 2 0 DMOD
+.DC
+.END
