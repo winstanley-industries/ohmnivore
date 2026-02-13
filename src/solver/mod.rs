@@ -3,6 +3,7 @@
 pub mod backend;
 pub mod bicgstab;
 pub mod cpu;
+pub mod ds_backend;
 pub mod ds_shaders;
 pub mod gpu;
 pub mod gpu_shaders;
