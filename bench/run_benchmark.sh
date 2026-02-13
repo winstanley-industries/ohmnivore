@@ -7,6 +7,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CIRCUIT_DIR="$SCRIPT_DIR/circuits"
+STATS_DIR="$SCRIPT_DIR/stats"
 BINARY="$PROJECT_DIR/target/release/ohmnivore"
 GENERATOR="$SCRIPT_DIR/generate_chain.py"
 
@@ -40,6 +41,7 @@ fi
 
 echo "Generating netlists..."
 mkdir -p "$CIRCUIT_DIR"
+mkdir -p "$STATS_DIR"
 for n in "${SIZES[@]}"; do
     python3 "$GENERATOR" "$n"
 done
@@ -90,9 +92,13 @@ for n in "${SIZES[@]}"; do
             continue
         fi
 
-        # GPU
-        time_cmd "$BINARY" "$netlist"
-        gpu_time="$ELAPSED"
+        # GPU (with --stats; stats go to stderr, captured to file)
+        stats_file="$STATS_DIR/inverter_chain_${n}_${analysis}.txt"
+        local_start=$(python3 -c 'import time; print(f"{time.time():.6f}")')
+        "$BINARY" "$netlist" --stats >/dev/null 2>"$stats_file" || true
+        local_end=$(python3 -c 'import time; print(f"{time.time():.6f}")')
+        gpu_time=$(python3 -c "print(f'{$local_end - $local_start:.3f}')")
+        echo "    stats -> $stats_file"
 
         # CPU
         time_cmd "$BINARY" --cpu "$netlist"
