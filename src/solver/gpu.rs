@@ -13,6 +13,7 @@ use wgpu::util::DeviceExt;
 
 use super::backend::{GpuCsrMatrix, SolverBackend, WgpuBackend, WgpuBuffer};
 use super::bicgstab;
+use super::ds_backend::WgpuDsBackend;
 use super::preconditioner;
 
 const MAX_ITERATIONS: u32 = 10000;
@@ -36,18 +37,25 @@ struct VecParams {
 /// GPU-accelerated linear solver using BiCGSTAB.
 pub struct GpuSolver {
     backend: WgpuBackend,
+    ds_backend: WgpuDsBackend,
 }
 
 impl GpuSolver {
     pub fn new() -> Result<Self> {
         Ok(Self {
             backend: WgpuBackend::new()?,
+            ds_backend: WgpuDsBackend::new()?,
         })
     }
 
     /// Get a reference to the underlying backend for reading counters.
     pub fn backend(&self) -> &WgpuBackend {
         &self.backend
+    }
+
+    /// Get a reference to the DS backend.
+    pub fn ds_backend(&self) -> &WgpuDsBackend {
+        &self.ds_backend
     }
 }
 
@@ -111,18 +119,10 @@ impl super::LinearSolver for GpuSolver {
         }
 
         let backend = &self.backend;
+        let ds_backend = &self.ds_backend;
 
-        // Convert matrix to f32
-        let values_f32: Vec<f32> = a.values.iter().map(|&v| v as f32).collect();
         let col_indices_u32: Vec<u32> = a.col_indices.iter().map(|&c| c as u32).collect();
         let row_ptrs_u32: Vec<u32> = a.row_pointers.iter().map(|&r| r as u32).collect();
-        let b_f32: Vec<f32> = b.iter().map(|&v| v as f32).collect();
-
-        // Upload matrix and RHS
-        let gpu_matrix = backend.upload_matrix(&values_f32, &col_indices_u32, &row_ptrs_u32, n);
-        let x_buf = backend.new_buffer(n);
-        let b_buf = backend.new_buffer(n);
-        backend.upload_vec(&b_f32, &b_buf);
 
         // Check if matrix has zero diagonals (MNA matrices with voltage sources/inductors)
         let has_zero_diag = (0..n).any(|row| {
@@ -137,7 +137,16 @@ impl super::LinearSolver for GpuSolver {
         });
 
         if has_zero_diag {
-            // ISAI preconditioner for matrices with zero diagonals
+            // ISAI preconditioner for matrices with zero diagonals — stays on f32 backend
+            let values_f32: Vec<f32> = a.values.iter().map(|&v| v as f32).collect();
+            let b_f32: Vec<f32> = b.iter().map(|&v| v as f32).collect();
+
+            let gpu_matrix =
+                backend.upload_matrix(&values_f32, &col_indices_u32, &row_ptrs_u32, n);
+            let x_buf = backend.new_buffer(n);
+            let b_buf = backend.new_buffer(n);
+            backend.upload_vec(&b_f32, &b_buf);
+
             let isai = preconditioner::compute_isai(a, 0);
             let ml_gpu = upload_csr_f32(backend, &isai.m_l, n);
             let mu_gpu = upload_csr_f32(backend, &isai.m_u, n);
@@ -154,13 +163,24 @@ impl super::LinearSolver for GpuSolver {
                 },
                 n,
             )?;
+
+            let mut result_f32 = vec![0.0f32; n];
+            backend.download_vec(&x_buf, &mut result_f32);
+            Ok(result_f32.iter().map(|&v| v as f64).collect())
         } else {
-            // Jacobi preconditioner: fast path for matrices with nonzero diagonals
-            let mut inv_diag = vec![0.0f32; n];
+            // Jacobi preconditioner with DS backend for full f64 precision
+            let gpu_matrix =
+                ds_backend.upload_matrix_f64(&a.values, &col_indices_u32, &row_ptrs_u32, n);
+            let x_buf = ds_backend.new_buffer(n);
+            let b_buf = ds_backend.new_buffer(n);
+            ds_backend.upload_vec_f64(b, &b_buf);
+
+            // Compute Jacobi inverse diagonal in f64
+            let mut inv_diag = vec![0.0f64; n];
             for (row, diag) in inv_diag.iter_mut().enumerate() {
                 for idx in a.row_pointers[row]..a.row_pointers[row + 1] {
                     if a.col_indices[idx] == row {
-                        let val = a.values[idx] as f32;
+                        let val = a.values[idx];
                         if val.abs() > 1e-30 {
                             *diag = 1.0 / val;
                         }
@@ -168,24 +188,24 @@ impl super::LinearSolver for GpuSolver {
                     }
                 }
             }
-            let inv_diag_buf = backend.upload_storage_buffer(&inv_diag);
+            let inv_diag_buf = ds_backend.upload_storage_buffer_f64(&inv_diag);
 
             bicgstab::bicgstab(
-                backend,
+                ds_backend,
                 &gpu_matrix,
                 &b_buf,
                 &x_buf,
-                |b: &WgpuBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
+                |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
                     b.jacobi_apply(&inv_diag_buf, inp, out);
                 },
                 n,
             )?;
-        }
 
-        // Read back solution
-        let mut result_f32 = vec![0.0f32; n];
-        backend.download_vec(&x_buf, &mut result_f32);
-        Ok(result_f32.iter().map(|&v| v as f64).collect())
+            // Download result as f64
+            let mut result = vec![0.0f64; n];
+            ds_backend.download_vec_f64(&x_buf, &mut result);
+            Ok(result)
+        }
     }
 
     fn solve_complex(&self, a: &CsrMatrix<Complex64>, b: &[Complex64]) -> Result<Vec<Complex64>> {
