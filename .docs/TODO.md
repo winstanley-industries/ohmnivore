@@ -15,7 +15,8 @@
 - [ ] ROCm backend implementing `SolverBackend` + `NonlinearBackend`
 
 ## Analysis
-- [ ] Transient analysis for discrete-time / switching power supply simulation
+- [x] Transient analysis (BE+TRAP with adaptive timestep)
+- [x] ~~BUG: UIC zeros all state variables instead of computing consistent initial conditions~~
 
 ## Input Format
 - [ ] Replace SPICE syntax with a more powerful input format
