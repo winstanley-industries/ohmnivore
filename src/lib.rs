@@ -6,3 +6,4 @@ pub mod output;
 pub mod parser;
 pub mod solver;
 pub mod sparse;
+pub mod stats;

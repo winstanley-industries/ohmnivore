@@ -61,6 +61,7 @@ fn run_nonlinear(system: &MnaSystem) -> Result<Vec<f64>> {
         system.size,
         matrix_nnz,
         &NewtonParams::default(),
+        None,
     )
 }
 

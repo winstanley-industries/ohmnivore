@@ -8,6 +8,7 @@ use ohmnivore::solver::cpu::CpuSolver;
 use ohmnivore::solver::gpu::GpuSolver;
 use ohmnivore::solver::LinearSolver;
 use std::io;
+use std::time::Instant;
 
 /// GPU-accelerated circuit simulation solver
 #[derive(Parser)]
@@ -19,10 +20,21 @@ struct Cli {
     /// Use CPU solver instead of GPU
     #[arg(long)]
     cpu: bool,
+
+    /// Print performance stats to stderr
+    #[arg(long)]
+    stats: bool,
 }
 
 fn main() {
     let cli = Cli::parse();
+
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_writer(std::io::stderr)
+        .init();
+
+    let mut stats = if cli.stats { Some(ohmnivore::stats::Stats::new()) } else { None };
 
     let input = std::fs::read_to_string(&cli.netlist).unwrap_or_else(|e| {
         eprintln!("Error reading {}: {}", cli.netlist, e);
@@ -109,5 +121,9 @@ fn main() {
                 });
             }
         }
+    }
+
+    if let Some(ref stats) = stats {
+        stats.display();
     }
 }
