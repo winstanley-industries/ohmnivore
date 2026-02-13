@@ -1,0 +1,6 @@
+* Pulse through RC filter - transient
+V1 1 0 PULSE(0 5 0 1n 1n 0.5m 1m)
+R1 1 2 1k
+C1 2 0 1u
+.TRAN 10u 1m 0 UIC
+.END

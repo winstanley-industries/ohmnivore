@@ -10,7 +10,8 @@ use ohmnivore::parser;
 use ohmnivore::solver::cpu::CpuSolver;
 
 use self::compare::{
-    compare_ac, compare_dc, format_ac_report, format_dc_report, Tolerances,
+    compare_ac, compare_dc, compare_tran, format_ac_report, format_dc_report, format_tran_report,
+    Tolerances,
 };
 use self::ngspice::{NgspiceBatch, SpiceBackend};
 
@@ -30,6 +31,8 @@ pub struct Defaults {
     pub ac_mag_rel_tol: f64,
     pub ac_mag_abs_tol: f64,
     pub ac_phase_abs_tol: f64,
+    pub tran_voltage_rel_tol: f64,
+    pub tran_voltage_abs_tol: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -43,6 +46,8 @@ pub struct CircuitEntry {
     pub ac_mag_rel_tol: Option<f64>,
     pub ac_mag_abs_tol: Option<f64>,
     pub ac_phase_abs_tol: Option<f64>,
+    pub tran_voltage_rel_tol: Option<f64>,
+    pub tran_voltage_abs_tol: Option<f64>,
 }
 
 // ── Manifest loading ────────────────────────────────────────────
@@ -83,14 +88,32 @@ pub fn run_regression_test(name: &str) {
         .unwrap_or_else(|e| panic!("failed to read {}: {}", spice_path, e));
 
     // Initialize ngspice backend
-    let backend = NgspiceBatch::new()
-        .unwrap_or_else(|e| panic!("ngspice not available: {}", e));
+    let backend = NgspiceBatch::new().unwrap_or_else(|e| panic!("ngspice not available: {}", e));
 
     let spice_path = std::path::Path::new(&spice_path);
 
     match entry.analysis.as_str() {
-        "dc" => run_dc_comparison(entry, &netlist_content, spice_path, &backend, &manifest.defaults),
-        "ac" => run_ac_comparison(entry, &netlist_content, spice_path, &backend, &manifest.defaults),
+        "dc" => run_dc_comparison(
+            entry,
+            &netlist_content,
+            spice_path,
+            &backend,
+            &manifest.defaults,
+        ),
+        "ac" => run_ac_comparison(
+            entry,
+            &netlist_content,
+            spice_path,
+            &backend,
+            &manifest.defaults,
+        ),
+        "tran" => run_tran_comparison(
+            entry,
+            &netlist_content,
+            spice_path,
+            &backend,
+            &manifest.defaults,
+        ),
         other => panic!("unknown analysis type: {}", other),
     }
 }
@@ -133,8 +156,12 @@ fn run_dc_comparison(
 
     // Compare with tolerances (use per-circuit overrides or defaults)
     let tol = Tolerances {
-        rel_tol: entry.dc_voltage_rel_tol.unwrap_or(defaults.dc_voltage_rel_tol),
-        abs_tol: entry.dc_voltage_abs_tol.unwrap_or(defaults.dc_voltage_abs_tol),
+        rel_tol: entry
+            .dc_voltage_rel_tol
+            .unwrap_or(defaults.dc_voltage_rel_tol),
+        abs_tol: entry
+            .dc_voltage_abs_tol
+            .unwrap_or(defaults.dc_voltage_abs_tol),
     };
 
     let results = compare_dc(&ohm_result, &ng_result, &entry.compare_nodes, &tol);
@@ -176,9 +203,8 @@ fn run_ac_comparison(
         })
         .expect("no AC analysis found in netlist");
 
-    let ohm_result =
-        analysis::ac::run(&system, &solver, sweep_type, n_points, f_start, f_stop)
-            .expect("Ohmnivore AC solve failed");
+    let ohm_result = analysis::ac::run(&system, &solver, sweep_type, n_points, f_start, f_stop)
+        .expect("Ohmnivore AC solve failed");
 
     // Run ngspice
     let ng_result = backend
@@ -192,11 +218,82 @@ fn run_ac_comparison(
     };
     let phase_abs_tol = entry.ac_phase_abs_tol.unwrap_or(defaults.ac_phase_abs_tol);
 
-    let results = compare_ac(&ohm_result, &ng_result, &entry.compare_nodes, &mag_tol, phase_abs_tol);
+    let results = compare_ac(
+        &ohm_result,
+        &ng_result,
+        &entry.compare_nodes,
+        &mag_tol,
+        phase_abs_tol,
+    );
     let any_failed = results.iter().any(|r| !r.mag_passed || !r.phase_passed);
 
     if any_failed {
         let report = format_ac_report(&results);
+        panic!(
+            "\n\nRegression test '{}' FAILED:\n\n{}\n",
+            entry.name, report
+        );
+    }
+}
+
+fn run_tran_comparison(
+    entry: &CircuitEntry,
+    netlist: &str,
+    spice_path: &std::path::Path,
+    backend: &dyn SpiceBackend,
+    defaults: &Defaults,
+) {
+    // Run Ohmnivore
+    let circuit = parser::parse(netlist).expect("Ohmnivore parse failed");
+    let system = compiler::compile(&circuit).expect("Ohmnivore compile failed");
+    let solver = CpuSolver::new();
+
+    // Extract .TRAN parameters from parsed circuit
+    let (tstep, tstop, tstart, uic) = circuit
+        .analyses
+        .iter()
+        .find_map(|a| match a {
+            Analysis::Tran {
+                tstep,
+                tstop,
+                tstart,
+                uic,
+            } => Some((*tstep, *tstop, *tstart, *uic)),
+            _ => None,
+        })
+        .expect("no TRAN analysis found in netlist");
+
+    let ohm_result = analysis::transient::run(
+        &system,
+        &solver,
+        tstep,
+        tstop,
+        tstart,
+        uic,
+        &circuit.components,
+    )
+    .expect("Ohmnivore transient solve failed");
+
+    // Run ngspice
+    let ng_result = backend
+        .run_tran(spice_path, &entry.compare_nodes)
+        .expect("ngspice tran run failed");
+
+    // Compare with tolerances
+    let tol = Tolerances {
+        rel_tol: entry
+            .tran_voltage_rel_tol
+            .unwrap_or(defaults.tran_voltage_rel_tol),
+        abs_tol: entry
+            .tran_voltage_abs_tol
+            .unwrap_or(defaults.tran_voltage_abs_tol),
+    };
+
+    let results = compare_tran(&ohm_result, &ng_result, &entry.compare_nodes, &tol);
+    let any_failed = results.iter().any(|r| !r.passed);
+
+    if any_failed {
+        let report = format_tran_report(&results);
         panic!(
             "\n\nRegression test '{}' FAILED:\n\n{}\n",
             entry.name, report

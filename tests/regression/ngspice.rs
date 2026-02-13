@@ -1,5 +1,5 @@
 use num_complex::Complex64;
-use ohmnivore::analysis::{AcResult, DcResult};
+use ohmnivore::analysis::{AcResult, DcResult, TranResult};
 use std::path::Path;
 use std::process::Command;
 
@@ -10,6 +10,7 @@ type AcParseResult = (Vec<f64>, Vec<(String, Vec<Complex64>)>);
 pub trait SpiceBackend {
     fn run_dc(&self, netlist: &Path, nodes: &[String]) -> Result<DcResult, String>;
     fn run_ac(&self, netlist: &Path, nodes: &[String]) -> Result<AcResult, String>;
+    fn run_tran(&self, netlist: &Path, nodes: &[String]) -> Result<TranResult, String>;
 }
 
 /// Runs ngspice in batch mode, parses text output.
@@ -131,9 +132,9 @@ fn parse_dc_output(output: &str, nodes: &[String]) -> Result<Vec<(String, f64)>,
                     let entry = parts[0].to_lowercase();
                     // Match bare name or V(name) format
                     if entry == inner_lower || entry == target_v {
-                        let value: f64 = parts[1]
-                            .parse()
-                            .map_err(|e| format!("Failed to parse DC voltage for {}: {}", node, e))?;
+                        let value: f64 = parts[1].parse().map_err(|e| {
+                            format!("Failed to parse DC voltage for {}: {}", node, e)
+                        })?;
                         results.push((inner.to_string(), value));
                         found = true;
                         break;
@@ -147,10 +148,7 @@ fn parse_dc_output(output: &str, nodes: &[String]) -> Result<Vec<(String, f64)>,
         }
 
         if !found {
-            return Err(format!(
-                "Node {} not found in ngspice DC output",
-                node
-            ));
+            return Err(format!("Node {} not found in ngspice DC output", node));
         }
     }
 
@@ -165,10 +163,7 @@ fn parse_dc_output(output: &str, nodes: &[String]) -> Result<Vec<(String, f64)>,
 /// --------------------------------------------------------------------------------
 /// 0       1.000000e+00    9.999998e-01    -5.729578e-03
 /// ```
-fn parse_ac_output(
-    output: &str,
-    nodes: &[String],
-) -> Result<AcParseResult, String> {
+fn parse_ac_output(output: &str, nodes: &[String]) -> Result<AcParseResult, String> {
     let mut frequencies: Vec<f64> = Vec::new();
     // Map from inner node name (lowercase) -> (original_node_string, mag_col_index, phase_col_index)
     let mut node_col_map: Vec<(String, usize, usize)> = Vec::new();
@@ -223,7 +218,10 @@ fn parse_ac_output(
             continue;
         }
         // Skip repeated header/separator lines
-        if trimmed.starts_with("---") || trimmed.starts_with("Index") || trimmed.starts_with("index") {
+        if trimmed.starts_with("---")
+            || trimmed.starts_with("Index")
+            || trimmed.starts_with("index")
+        {
             continue;
         }
         // Data rows start with a digit (the index column)
@@ -267,6 +265,119 @@ fn parse_ac_output(
     Ok((frequencies, result))
 }
 
+/// Augment a transient netlist: add .print tran v(node) lines before .END.
+fn augment_tran_netlist(content: &str, nodes: &[String]) -> String {
+    let mut lines: Vec<String> = Vec::new();
+    for line in content.lines() {
+        let trimmed = line.trim().to_uppercase();
+        if trimmed == ".END" {
+            for node in nodes {
+                let inner = extract_node_name(node);
+                lines.push(format!(".print tran v({})", inner));
+            }
+            lines.push(line.to_string());
+        } else {
+            lines.push(line.to_string());
+        }
+    }
+    lines.join("\n") + "\n"
+}
+
+/// Parse transient output from ngspice batch mode.
+///
+/// Expected format (same tabular layout as AC but with real values):
+/// ```text
+/// Index   time            v(2)
+/// --------------------------------------------------------------------------------
+/// 0       0.000000e+00    0.000000e+00
+/// 1       1.000000e-05    4.987521e-02
+/// ```
+fn parse_tran_output(
+    output: &str,
+    nodes: &[String],
+) -> Result<(Vec<f64>, Vec<(String, Vec<f64>)>), String> {
+    let mut times: Vec<f64> = Vec::new();
+    let mut node_col_map: Vec<(String, usize)> = Vec::new();
+
+    let lines: Vec<&str> = output.lines().collect();
+    let mut data_start = None;
+    let mut header_cols: Vec<String> = Vec::new();
+
+    for (i, line) in lines.iter().enumerate() {
+        let trimmed = line.trim().to_lowercase();
+        if trimmed.starts_with("index") && trimmed.contains("time") {
+            header_cols = line.split_whitespace().map(|s| s.to_lowercase()).collect();
+            if i + 1 < lines.len() && lines[i + 1].trim().starts_with("---") {
+                data_start = Some(i + 2);
+            } else {
+                data_start = Some(i + 1);
+            }
+            break;
+        }
+    }
+
+    let data_start = data_start.ok_or("Tran output header not found in ngspice output")?;
+
+    for node in nodes {
+        let inner = extract_node_name(node);
+        let inner_lower = inner.to_lowercase();
+        let col_name = format!("v({})", inner_lower);
+
+        let col_idx = header_cols
+            .iter()
+            .position(|c| c == &col_name)
+            .ok_or_else(|| format!("Column {} not found in tran header", col_name))?;
+
+        node_col_map.push((inner.to_string(), col_idx));
+    }
+
+    let mut node_voltages: Vec<Vec<f64>> = vec![Vec::new(); nodes.len()];
+
+    for line in &lines[data_start..] {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if trimmed.starts_with("---")
+            || trimmed.starts_with("Index")
+            || trimmed.starts_with("index")
+        {
+            continue;
+        }
+        if !trimmed.starts_with(|c: char| c.is_ascii_digit()) {
+            continue;
+        }
+        let cols: Vec<&str> = trimmed.split_whitespace().collect();
+        if cols.len() < header_cols.len() {
+            continue;
+        }
+
+        let time: f64 = cols[1]
+            .parse()
+            .map_err(|e| format!("Failed to parse time: {}", e))?;
+        times.push(time);
+
+        for (node_idx, (_node_name, col_idx)) in node_col_map.iter().enumerate() {
+            let val: f64 = cols[*col_idx]
+                .parse()
+                .map_err(|e| format!("Failed to parse tran voltage: {}", e))?;
+            node_voltages[node_idx].push(val);
+        }
+    }
+
+    if times.is_empty() {
+        return Err("No tran data rows found in ngspice output".to_string());
+    }
+
+    let result: Vec<(String, Vec<f64>)> = node_col_map
+        .into_iter()
+        .zip(node_voltages)
+        .map(|((name, _), voltages)| (name, voltages))
+        .collect();
+
+    Ok((times, result))
+}
+
 impl SpiceBackend for NgspiceBatch {
     fn run_dc(&self, netlist: &Path, nodes: &[String]) -> Result<DcResult, String> {
         let content =
@@ -293,6 +404,37 @@ impl SpiceBackend for NgspiceBatch {
         let node_voltages = parse_dc_output(&stdout, nodes)?;
 
         Ok(DcResult {
+            node_voltages,
+            branch_currents: vec![],
+        })
+    }
+
+    fn run_tran(&self, netlist: &Path, nodes: &[String]) -> Result<TranResult, String> {
+        let content =
+            std::fs::read_to_string(netlist).map_err(|e| format!("Failed to read netlist: {e}"))?;
+
+        let augmented = augment_tran_netlist(&content, nodes);
+        let tmp_path = temp_netlist_path(netlist);
+        std::fs::write(&tmp_path, &augmented)
+            .map_err(|e| format!("Failed to write temp netlist: {e}"))?;
+
+        let output = Command::new("ngspice")
+            .args(["-b", tmp_path.to_str().unwrap()])
+            .output()
+            .map_err(|e| format!("Failed to run ngspice: {e}"))?;
+
+        let _ = std::fs::remove_file(&tmp_path);
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("ngspice exited with error:\n{stderr}"));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let (times, node_voltages) = parse_tran_output(&stdout, nodes)?;
+
+        Ok(TranResult {
+            times,
             node_voltages,
             branch_currents: vec![],
         })

@@ -1,0 +1,7 @@
+* RC Voltage Divider Step - transient
+V1 1 0 DC 5
+R1 1 2 1k
+R2 2 0 1k
+C1 2 0 1u
+.TRAN 10u 5m 0 UIC
+.END

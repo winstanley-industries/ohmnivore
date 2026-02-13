@@ -9,4 +9,7 @@ regression::regression_tests!(
     diode_forward,
     npn_common_emitter,
     nmos_common_source,
+    tran_rc_charging,
+    tran_pulse_rc_filter,
+    tran_rl_step,
 );

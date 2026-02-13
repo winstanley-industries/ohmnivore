@@ -1,4 +1,4 @@
-use ohmnivore::analysis::{AcResult, DcResult};
+use ohmnivore::analysis::{AcResult, DcResult, TranResult};
 
 /// Tolerance parameters for comparison.
 pub struct Tolerances {
@@ -211,6 +211,137 @@ pub fn format_ac_report(results: &[AcPointComparison]) -> String {
             r.ohm_phase_deg,
             r.ng_phase_deg,
             r.phase_error_deg
+        ));
+    }
+    s.push_str(&format!(
+        "\n{} of {} points failed.\n",
+        failures.len(),
+        results.len()
+    ));
+    s
+}
+
+/// Result of comparing a single transient time point for one node.
+pub struct TranPointComparison {
+    pub node: String,
+    pub time: f64,
+    pub ohmnivore: f64,
+    pub ngspice: f64,
+    pub abs_error: f64,
+    pub rel_error: f64,
+    pub passed: bool,
+}
+
+/// Linear interpolation of a waveform at a specific time.
+///
+/// Binary-searches for the interval, then linearly interpolates.
+/// Clamps to boundary values for times outside the data range.
+fn interpolate_at(times: &[f64], values: &[f64], t: f64) -> f64 {
+    if times.is_empty() {
+        return 0.0;
+    }
+    if t <= times[0] {
+        return values[0];
+    }
+    if t >= times[times.len() - 1] {
+        return values[values.len() - 1];
+    }
+
+    // Binary search for the interval containing t
+    let idx = match times.binary_search_by(|probe| probe.partial_cmp(&t).unwrap()) {
+        Ok(i) => return values[i], // exact match
+        Err(i) => i,               // t falls between times[i-1] and times[i]
+    };
+
+    let t0 = times[idx - 1];
+    let t1 = times[idx];
+    let v0 = values[idx - 1];
+    let v1 = values[idx];
+
+    let frac = (t - t0) / (t1 - t0);
+    v0 + frac * (v1 - v0)
+}
+
+/// Compare transient results by interpolating Ohmnivore's adaptive-timestep data
+/// at ngspice's regular time grid.
+///
+/// Skips comparison at t=0 (initial conditions may differ slightly).
+pub fn compare_tran(
+    ohm: &TranResult,
+    ng: &TranResult,
+    compare_nodes: &[String],
+    tol: &Tolerances,
+) -> Vec<TranPointComparison> {
+    let mut results = Vec::new();
+
+    for node_spec in compare_nodes {
+        let name = extract_node_name(node_spec);
+
+        let ohm_data = ohm
+            .node_voltages
+            .iter()
+            .find(|(n, _)| n.eq_ignore_ascii_case(&name))
+            .unwrap_or_else(|| panic!("node '{}' not in Ohmnivore tran results", name));
+        let ng_data = ng
+            .node_voltages
+            .iter()
+            .find(|(n, _)| n.eq_ignore_ascii_case(&name))
+            .unwrap_or_else(|| panic!("node '{}' not in ngspice tran results", name));
+
+        for (i, &t) in ng.times.iter().enumerate() {
+            // Skip t=0 — initial conditions may differ
+            if t == 0.0 {
+                continue;
+            }
+
+            let ohm_v = interpolate_at(&ohm.times, &ohm_data.1, t);
+            let ng_v = ng_data.1[i];
+
+            let abs_error = (ohm_v - ng_v).abs();
+            let rel_error = if ng_v.abs() > 1e-15 {
+                abs_error / ng_v.abs()
+            } else {
+                0.0
+            };
+            let passed = within_tolerance(ohm_v, ng_v, tol);
+
+            results.push(TranPointComparison {
+                node: node_spec.clone(),
+                time: t,
+                ohmnivore: ohm_v,
+                ngspice: ng_v,
+                abs_error,
+                rel_error,
+                passed,
+            });
+        }
+    }
+
+    results
+}
+
+/// Format transient comparison failures as a diagnostic table (only show failures).
+pub fn format_tran_report(results: &[TranPointComparison]) -> String {
+    let failures: Vec<_> = results.iter().filter(|r| !r.passed).collect();
+    if failures.is_empty() {
+        return "All tran points passed.\n".to_string();
+    }
+    let mut s = String::new();
+    s.push_str(&format!(
+        "{:<10} {:>12} {:>14} {:>14} {:>12} {:>10}\n",
+        "Node", "Time", "Ohmnivore", "ngspice", "Abs Error", "Rel Error"
+    ));
+    s.push_str(&"-".repeat(76));
+    s.push('\n');
+    for r in &failures {
+        s.push_str(&format!(
+            "{:<10} {:>12.4e} {:>14.6e} {:>14.6e} {:>12.6e} {:>9.4}%\n",
+            r.node,
+            r.time,
+            r.ohmnivore,
+            r.ngspice,
+            r.abs_error,
+            r.rel_error * 100.0
         ));
     }
     s.push_str(&format!(

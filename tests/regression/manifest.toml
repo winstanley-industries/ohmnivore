@@ -4,6 +4,8 @@ dc_voltage_abs_tol = 1e-9
 ac_mag_rel_tol = 0.01
 ac_mag_abs_tol = 1e-12
 ac_phase_abs_tol = 1.0
+tran_voltage_rel_tol = 0.02
+tran_voltage_abs_tol = 0.01
 
 [[circuit]]
 name = "voltage_divider"
@@ -46,3 +48,21 @@ analysis = "dc"
 compare_nodes = ["V(drain)"]
 dc_voltage_rel_tol = 0.05
 dc_voltage_abs_tol = 0.01
+
+[[circuit]]
+name = "tran_rc_charging"
+file = "tran_rc_charging.spice"
+analysis = "tran"
+compare_nodes = ["V(2)"]
+
+[[circuit]]
+name = "tran_pulse_rc_filter"
+file = "tran_pulse_rc_filter.spice"
+analysis = "tran"
+compare_nodes = ["V(2)"]
+
+[[circuit]]
+name = "tran_rl_step"
+file = "tran_rl_step.spice"
+analysis = "tran"
+compare_nodes = ["V(2)"]
