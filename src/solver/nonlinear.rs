@@ -289,6 +289,7 @@ impl WgpuBackend {
         // n is in u32 words (12 words per diode)
         WgpuBuffer {
             buffer,
+            buffer_lo: None,
             n: descriptors.len() * 12,
         }
     }
@@ -307,6 +308,7 @@ impl WgpuBackend {
         // 24 u32 words per BJT (96 bytes / 4)
         WgpuBuffer {
             buffer,
+            buffer_lo: None,
             n: descriptors.len() * 24,
         }
     }
@@ -325,6 +327,7 @@ impl WgpuBackend {
         // 16 u32 words per MOSFET (64 bytes / 4)
         WgpuBuffer {
             buffer,
+            buffer_lo: None,
             n: descriptors.len() * 16,
         }
     }

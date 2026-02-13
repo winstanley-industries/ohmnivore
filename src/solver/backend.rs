@@ -19,6 +19,7 @@ fn workgroup_count(n: u32) -> u32 {
 /// Uploaded CSR matrix stored in GPU buffers.
 pub struct GpuCsrMatrix {
     pub(crate) values: wgpu::Buffer,
+    pub(crate) values_lo: Option<wgpu::Buffer>,
     pub(crate) col_indices: wgpu::Buffer,
     pub(crate) row_pointers: wgpu::Buffer,
     pub(crate) spmv_params: wgpu::Buffer,
@@ -28,6 +29,7 @@ pub struct GpuCsrMatrix {
 /// A GPU buffer wrapping a `wgpu::Buffer` with element count metadata.
 pub struct WgpuBuffer {
     pub(crate) buffer: wgpu::Buffer,
+    pub(crate) buffer_lo: Option<wgpu::Buffer>,
     pub(crate) n: usize,
 }
 
@@ -278,6 +280,7 @@ impl WgpuBackend {
             });
         WgpuBuffer {
             buffer,
+            buffer_lo: None,
             n: data.len(),
         }
     }
@@ -582,7 +585,7 @@ impl SolverBackend for WgpuBackend {
                     | wgpu::BufferUsages::COPY_SRC
                     | wgpu::BufferUsages::COPY_DST,
             });
-        WgpuBuffer { buffer, n }
+        WgpuBuffer { buffer, buffer_lo: None, n }
     }
 
     fn upload_matrix(
@@ -617,6 +620,7 @@ impl SolverBackend for WgpuBackend {
 
         GpuCsrMatrix {
             values: values_buf,
+            values_lo: None,
             col_indices: col_indices_buf,
             row_pointers: row_pointers_buf,
             spmv_params: spmv_params_buf,
