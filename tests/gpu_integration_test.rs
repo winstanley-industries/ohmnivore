@@ -30,7 +30,7 @@ macro_rules! skip_if_no_gpu {
 fn dc_solve(netlist: &str, solver: &dyn LinearSolver) -> analysis::DcResult {
     let circuit = parser::parse(netlist).expect("parse failed");
     let system = compiler::compile(&circuit).expect("compile failed");
-    analysis::dc::run(&system, solver).expect("DC analysis failed")
+    analysis::dc::run(&system, solver, None).expect("DC analysis failed")
 }
 
 /// Helper: parse + compile + DC solve, returning Result for circuits that may fail on GPU.
@@ -40,7 +40,7 @@ fn try_dc_solve(
 ) -> Result<analysis::DcResult, ohmnivore::error::OhmnivoreError> {
     let circuit = parser::parse(netlist).expect("parse failed");
     let system = compiler::compile(&circuit).expect("compile failed");
-    analysis::dc::run(&system, solver)
+    analysis::dc::run(&system, solver, None)
 }
 
 /// Helper: parse + compile + AC solve, returning Result for circuits that may fail on GPU.
@@ -63,7 +63,7 @@ fn try_ac_solve(
             _ => None,
         })
         .expect("no AC analysis in netlist");
-    analysis::ac::run(&system, solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3)
+    analysis::ac::run(&system, solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3, None)
 }
 
 fn find_node_voltage(result: &analysis::DcResult, name: &str) -> f64 {

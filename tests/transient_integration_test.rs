@@ -33,6 +33,7 @@ fn tran_solve(netlist: &str) -> ohmnivore::analysis::TranResult {
         tran_cmd.2,
         tran_cmd.3,
         &circuit.components,
+        None,
     )
     .expect("transient analysis failed")
 }

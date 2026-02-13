@@ -14,6 +14,7 @@ use crate::error::{OhmnivoreError, Result};
 use crate::ir::{Component, TransientFunc};
 use crate::solver::LinearSolver;
 use crate::sparse::CsrMatrix;
+use crate::stats::Stats;
 
 /// Run transient analysis.
 ///
@@ -28,7 +29,9 @@ pub fn run(
     tstart: f64,
     uic: bool,
     components: &[Component],
+    mut stats: Option<&mut Stats>,
 ) -> Result<TranResult> {
+    let _span = tracing::info_span!("transient_analysis", tstop, tstep).entered();
     let n = system.size;
     let h_min = tstep / 10_000.0;
     let h_max = tstep;
@@ -39,7 +42,7 @@ pub fn run(
     let mut x: Vec<f64> = if uic {
         compute_uic_initial_conditions(system, solver, components)?
     } else {
-        let dc_result = super::dc::run(system, solver)?;
+        let dc_result = super::dc::run(system, solver, stats.as_mut().map(|s| &mut **s))?;
         let mut x0 = vec![0.0; n];
         let n_nodes = system.node_names.len();
         for (i, (_, v)) in dc_result.node_voltages.iter().enumerate() {
@@ -95,16 +98,19 @@ pub fn run(
             let a_be = form_companion_matrix(&system.g, &system.c, h, 1.0);
             let b_eff_be = form_companion_rhs_be(&system.c, &x, &b_next, h);
             let x_be = solver.solve_real(&a_be, &b_eff_be)?;
+            if let Some(ref mut s) = stats { s.linear_solves += 1; }
             (x_be.clone(), x_be)
         } else {
             // Solve both TRAP and BE for LTE estimation
             let a_trap = form_companion_matrix(&system.g, &system.c, h, 2.0);
             let b_eff_trap = form_companion_rhs_trap(&system.g, &system.c, &x, &b_next, &b_prev, h);
             let x_trap = solver.solve_real(&a_trap, &b_eff_trap)?;
+            if let Some(ref mut s) = stats { s.linear_solves += 1; }
 
             let a_be = form_companion_matrix(&system.g, &system.c, h, 1.0);
             let b_eff_be = form_companion_rhs_be(&system.c, &x, &b_next, h);
             let x_be = solver.solve_real(&a_be, &b_eff_be)?;
+            if let Some(ref mut s) = stats { s.linear_solves += 1; }
 
             (x_trap, x_be)
         };
@@ -126,6 +132,7 @@ pub fn run(
                     )));
                 }
 
+                if let Some(ref mut s) = stats { s.timesteps_rejected += 1; }
                 // Switch to BE for recovery
                 use_be = true;
                 continue;
@@ -141,6 +148,7 @@ pub fn run(
 
         // Accept step
         consecutive_failures = 0;
+        if let Some(ref mut s) = stats { s.timesteps_accepted += 1; }
         x = x_trap;
         b_prev = b_next;
         t = t_next;

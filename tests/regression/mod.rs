@@ -129,7 +129,7 @@ fn run_dc_comparison(
     let circuit = parser::parse(netlist).expect("Ohmnivore parse failed");
     let system = compiler::compile(&circuit).expect("Ohmnivore compile failed");
     let solver = CpuSolver::new();
-    let ohm_result = match analysis::dc::run(&system, &solver) {
+    let ohm_result = match analysis::dc::run(&system, &solver, None) {
         Ok(result) => result,
         Err(e) => {
             let msg = format!("{e}");
@@ -203,7 +203,7 @@ fn run_ac_comparison(
         })
         .expect("no AC analysis found in netlist");
 
-    let ohm_result = analysis::ac::run(&system, &solver, sweep_type, n_points, f_start, f_stop)
+    let ohm_result = analysis::ac::run(&system, &solver, sweep_type, n_points, f_start, f_stop, None)
         .expect("Ohmnivore AC solve failed");
 
     // Run ngspice
@@ -271,6 +271,7 @@ fn run_tran_comparison(
         tstart,
         uic,
         &circuit.components,
+        None,
     )
     .expect("Ohmnivore transient solve failed");
 

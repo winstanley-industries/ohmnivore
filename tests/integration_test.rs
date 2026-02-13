@@ -14,7 +14,7 @@ fn dc_solve(netlist: &str) -> ohmnivore::analysis::DcResult {
     let circuit = parser::parse(netlist).expect("parse failed");
     let system = compiler::compile(&circuit).expect("compile failed");
     let solver = CpuSolver::new();
-    analysis::dc::run(&system, &solver).expect("DC analysis failed")
+    analysis::dc::run(&system, &solver, None).expect("DC analysis failed")
 }
 
 /// Helper: parse + compile + AC solve
@@ -38,7 +38,7 @@ fn ac_solve(netlist: &str) -> ohmnivore::analysis::AcResult {
         })
         .expect("no AC analysis in netlist");
 
-    analysis::ac::run(&system, &solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3)
+    analysis::ac::run(&system, &solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3, None)
         .expect("AC analysis failed")
 }
 
@@ -294,7 +294,7 @@ fn test_cli_with_fixture_file() {
     let system = compiler::compile(&circuit).expect("compile fixture");
     let solver = CpuSolver::new();
 
-    let dc_result = analysis::dc::run(&system, &solver).expect("DC solve fixture");
+    let dc_result = analysis::dc::run(&system, &solver, None).expect("DC solve fixture");
 
     let v2 = dc_result
         .node_voltages

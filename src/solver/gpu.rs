@@ -44,6 +44,11 @@ impl GpuSolver {
             backend: WgpuBackend::new()?,
         })
     }
+
+    /// Get a reference to the underlying backend for reading counters.
+    pub fn backend(&self) -> &WgpuBackend {
+        &self.backend
+    }
 }
 
 /// Read a GPU buffer back to CPU as f32 values.

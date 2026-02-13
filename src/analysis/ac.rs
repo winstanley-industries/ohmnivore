@@ -15,6 +15,7 @@ use crate::compiler::MnaSystem;
 use crate::error::Result;
 use crate::ir::AcSweepType;
 use crate::solver::LinearSolver;
+use crate::stats::Stats;
 use num_complex::Complex64;
 
 /// Run AC frequency sweep analysis.
@@ -28,11 +29,13 @@ pub fn run(
     n_points: usize,
     f_start: f64,
     f_stop: f64,
+    mut stats: Option<&mut Stats>,
 ) -> Result<AcResult> {
     use crate::sparse::form_complex_matrix;
 
     // Generate frequency points
     let frequencies = generate_frequencies(sweep_type, n_points, f_start, f_stop);
+    let _span = tracing::info_span!("ac_analysis", n_points = frequencies.len()).entered();
     let n_freqs = frequencies.len();
     let n_nodes = system.node_names.len();
 
@@ -54,6 +57,7 @@ pub fn run(
         let omega = 2.0 * std::f64::consts::PI * f;
         let a = form_complex_matrix(&system.g, &system.c, omega);
         let x = solver.solve_complex(&a, &system.b_ac)?;
+        if let Some(ref mut s) = stats { s.linear_solves += 1; }
 
         for (i, (_, voltages)) in node_voltages.iter_mut().enumerate() {
             voltages.push(x[i]);

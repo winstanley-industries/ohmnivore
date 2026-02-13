@@ -41,16 +41,21 @@ fn main() {
         std::process::exit(1);
     });
 
+    let t = Instant::now();
     let circuit = parser::parse(&input).unwrap_or_else(|e| {
         eprintln!("Parse error: {}", e);
         std::process::exit(1);
     });
+    if let Some(ref mut s) = stats { s.add_phase("Parse", t.elapsed()); }
 
+    let t = Instant::now();
     let system = compiler::compile(&circuit).unwrap_or_else(|e| {
         eprintln!("Compile error: {}", e);
         std::process::exit(1);
     });
+    if let Some(ref mut s) = stats { s.add_phase("Compile", t.elapsed()); }
 
+    let t = Instant::now();
     let solver: Box<dyn LinearSolver> = if cli.cpu {
         Box::new(CpuSolver::new())
     } else {
@@ -59,15 +64,18 @@ fn main() {
             std::process::exit(1);
         }))
     };
+    if let Some(ref mut s) = stats { s.add_phase("Solver init", t.elapsed()); }
     let mut stdout = io::stdout();
 
     for analysis_cmd in &circuit.analyses {
         match analysis_cmd {
             Analysis::Dc => {
-                let dc_result = analysis::dc::run(&system, solver.as_ref()).unwrap_or_else(|e| {
+                let t = Instant::now();
+                let dc_result = analysis::dc::run(&system, solver.as_ref(), stats.as_mut()).unwrap_or_else(|e| {
                     eprintln!("DC analysis error: {}", e);
                     std::process::exit(1);
                 });
+                if let Some(ref mut s) = stats { s.add_phase("DC analysis", t.elapsed()); }
                 output::write_dc_csv(&dc_result, &mut stdout).unwrap_or_else(|e| {
                     eprintln!("Output error: {}", e);
                     std::process::exit(1);
@@ -79,6 +87,7 @@ fn main() {
                 f_start,
                 f_stop,
             } => {
+                let t = Instant::now();
                 let ac_result = analysis::ac::run(
                     &system,
                     solver.as_ref(),
@@ -86,11 +95,13 @@ fn main() {
                     *n_points,
                     *f_start,
                     *f_stop,
+                    stats.as_mut(),
                 )
                 .unwrap_or_else(|e| {
                     eprintln!("AC analysis error: {}", e);
                     std::process::exit(1);
                 });
+                if let Some(ref mut s) = stats { s.add_phase("AC analysis", t.elapsed()); }
                 output::write_ac_csv(&ac_result, &mut stdout).unwrap_or_else(|e| {
                     eprintln!("Output error: {}", e);
                     std::process::exit(1);
@@ -102,6 +113,7 @@ fn main() {
                 tstart,
                 uic,
             } => {
+                let t = Instant::now();
                 let tran_result = analysis::transient::run(
                     &system,
                     solver.as_ref(),
@@ -110,11 +122,13 @@ fn main() {
                     *tstart,
                     *uic,
                     &circuit.components,
+                    stats.as_mut(),
                 )
                 .unwrap_or_else(|e| {
                     eprintln!("Transient analysis error: {}", e);
                     std::process::exit(1);
                 });
+                if let Some(ref mut s) = stats { s.add_phase("Transient analysis", t.elapsed()); }
                 output::write_tran_csv(&tran_result, &mut stdout).unwrap_or_else(|e| {
                     eprintln!("Output error: {}", e);
                     std::process::exit(1);
