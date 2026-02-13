@@ -44,8 +44,10 @@ pub fn newton_solve(
     ds_backend: &WgpuDsBackend,
     base_b: &WgpuBuffer,
     base_g_values_f32: &[f32],
+    base_g_values_f64: &[f64],
     base_g_col_indices: &[u32],
     base_g_row_ptrs: &[u32],
+    base_b_f64: &[f64],
     diode_descriptors: &[GpuDiodeDescriptor],
     bjt_descriptors: &[GpuBjtDescriptor],
     mosfet_descriptors: &[GpuMosfetDescriptor],
@@ -170,22 +172,44 @@ pub fn newton_solve(
         // Step 4: Solve the linear system with BiCGSTAB (on DS backend)
         let t = Instant::now();
 
-        // Upload assembled f32 matrix to DS backend (lo = 0, assembly is f32)
-        let assembled_g_ds = ds_backend.upload_matrix(
-            &assembled_values,
+        // Recover f64 precision for assembled matrix.
+        // The GPU assembly produced f32 values = base_f32 + stamps_f32.
+        // We recover: assembled_f64 = base_f64 + (assembled_f32 - base_f32) as f64
+        // This preserves f64 precision for base values (including GMIN = 1e-12)
+        // while keeping f32 precision for nonlinear stamps (which is sufficient).
+        let assembled_f64: Vec<f64> = assembled_values
+            .iter()
+            .zip(base_g_values_f32.iter())
+            .zip(base_g_values_f64.iter())
+            .map(|((&asm, &base_f32), &base_f64)| {
+                base_f64 + (asm as f64 - base_f32 as f64)
+            })
+            .collect();
+
+        let assembled_g_ds = ds_backend.upload_matrix_f64(
+            &assembled_f64,
             base_g_col_indices,
             base_g_row_ptrs,
             system_size,
         );
 
-        // Upload assembled RHS to DS backend
+        // Upload assembled RHS with f64 precision recovery
         let mut rhs_f32 = vec![0.0f32; system_size];
         backend.download_vec(&out_b_buf, &mut rhs_f32);
+        let base_b_f32: Vec<f32> = base_b_f64.iter().map(|&v| v as f32).collect();
+        let rhs_f64: Vec<f64> = rhs_f32
+            .iter()
+            .zip(base_b_f32.iter())
+            .zip(base_b_f64.iter())
+            .map(|((&rhs, &base_f32), &base_f64)| {
+                base_f64 + (rhs as f64 - base_f32 as f64)
+            })
+            .collect();
         let x_solve_ds = ds_backend.new_buffer(system_size);
         let b_solve_ds = ds_backend.new_buffer(system_size);
-        ds_backend.upload_vec(&rhs_f32, &b_solve_ds);
+        ds_backend.upload_vec_f64(&rhs_f64, &b_solve_ds);
 
-        // Compute Jacobi preconditioner from assembled matrix
+        // Compute Jacobi preconditioner from assembled matrix (f64 precision)
         let mut has_zero_diag = false;
         let mut inv_diag_f64 = vec![0.0f64; system_size];
         for row in 0..system_size {
@@ -194,9 +218,9 @@ pub fn newton_solve(
             let mut found = false;
             for idx in start..end {
                 if base_g_col_indices[idx] as usize == row {
-                    let val = assembled_values[idx];
+                    let val = assembled_f64[idx];
                     if val.abs() > 1e-30 {
-                        inv_diag_f64[row] = 1.0 / (val as f64);
+                        inv_diag_f64[row] = 1.0 / val;
                     } else {
                         has_zero_diag = true;
                     }
@@ -210,8 +234,7 @@ pub fn newton_solve(
         }
 
         let bicgstab_iters = if has_zero_diag {
-            // Build a CPU-side CsrMatrix<f64> from the assembled values for ISAI
-            let values_f64: Vec<f64> = assembled_values.iter().map(|&v| v as f64).collect();
+            // Build a CPU-side CsrMatrix<f64> from the f64 assembled values for ISAI
             let col_indices_usize: Vec<usize> =
                 base_g_col_indices.iter().map(|&c| c as usize).collect();
             let row_ptrs_usize: Vec<usize> = base_g_row_ptrs.iter().map(|&r| r as usize).collect();
@@ -219,23 +242,23 @@ pub fn newton_solve(
             let csr_cpu = crate::sparse::CsrMatrix {
                 nrows: system_size,
                 ncols: system_size,
-                values: values_f64,
+                values: assembled_f64.clone(),
                 col_indices: col_indices_usize,
                 row_pointers: row_ptrs_usize,
             };
 
             let isai = preconditioner::compute_isai(&csr_cpu, 0);
 
-            // Upload ISAI factors to DS backend
-            let ml_values: Vec<f32> = isai.m_l.values.iter().map(|&v| v as f32).collect();
+            // Upload ISAI factors to DS backend with full f64 precision
             let ml_cols: Vec<u32> = isai.m_l.col_indices.iter().map(|&c| c as u32).collect();
             let ml_rows: Vec<u32> = isai.m_l.row_pointers.iter().map(|&r| r as u32).collect();
-            let ml_gpu = ds_backend.upload_matrix(&ml_values, &ml_cols, &ml_rows, system_size);
+            let ml_gpu =
+                ds_backend.upload_matrix_f64(&isai.m_l.values, &ml_cols, &ml_rows, system_size);
 
-            let mu_values: Vec<f32> = isai.m_u.values.iter().map(|&v| v as f32).collect();
             let mu_cols: Vec<u32> = isai.m_u.col_indices.iter().map(|&c| c as u32).collect();
             let mu_rows: Vec<u32> = isai.m_u.row_pointers.iter().map(|&r| r as u32).collect();
-            let mu_gpu = ds_backend.upload_matrix(&mu_values, &mu_cols, &mu_rows, system_size);
+            let mu_gpu =
+                ds_backend.upload_matrix_f64(&isai.m_u.values, &mu_cols, &mu_rows, system_size);
 
             let tmp = ds_backend.new_buffer(system_size);
 

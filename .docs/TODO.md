@@ -13,17 +13,36 @@
 
 ## GPU Precision / BiCGSTAB Convergence
 
-The GPU solver uses f32 throughout (wgpu compute shaders). With GMIN=1e-12 on node diagonals and O(1) voltage source stamps, the matrix condition number reaches ~1e12 at Newton iteration 0 (all nonlinear devices off). f32 has ~7 digits of precision, so BiCGSTAB loses all significance in its dot products and breaks down.
+The GPU solver uses DS (double-single) arithmetic (~48-bit mantissa from paired f32s) for BiCGSTAB. With GMIN=1e-12 on node diagonals and O(1) voltage source stamps, the matrix condition number reaches ~1e12 at Newton iteration 0 (all nonlinear devices off).
 
-**Symptoms:** BiCGSTAB breakdown ("omega ~ 0" or "rho ~ 0") on CMOS inverter chains with ~10+ stages. Smaller circuits (1-5 stages) converge because the matrix is small enough for the ISAI preconditioner to compensate.
+**Current state:** DS precision is sufficient for dot products and vector operations. The remaining bottleneck is the **ISAI preconditioner quality** — ISAI(0) sparse approximate inverse is too crude for MNA matrices with condition number ~1e12, causing BiCGSTAB to diverge even with DS arithmetic.
+
+**Symptoms:** BiCGSTAB breakdown or divergence on CMOS inverter chains with ~10+ stages (`bench/circuits/inverter_chain_10_dc.spice`). Smaller circuits (1-5 stages) converge because the ISAI preconditioner compensates.
+
+**What's been fixed (f64 precision plumbing):**
+- [x] DS BiCGSTAB operations (dot, axpy, spmv) with ~48-bit precision
+- [x] Matrix uploaded to DS backend with f64 precision recovery: `assembled_f64 = base_f64 + (assembled_f32 - base_f32)` preserves GMIN=1e-12 exactly in DS (hi,lo) pairs
+- [x] RHS uploaded with same f64 precision recovery
+- [x] ISAI factors uploaded via `upload_matrix_f64` (were previously truncated to f32, defeating the purpose of DS)
+- [x] Jacobi inverse diagonal computed from f64 assembled values
+
+**What still fails:** ISAI(0) preconditioner quality. Debugging progression:
+1. Original f32 ISAI uploads → "rho ~ 0" (dot product underflow)
+2. After f64 ISAI uploads → "NaN/Inf in residual" (divergence — ISAI doesn't reduce condition number enough)
+3. Jacobi-only with row-norm fallback for zero diags → "r_hat.v ~ 0" (Jacobi too weak for κ~1e12)
 
 **Why it matters:** GMIN must be small (1e-12) to avoid perturbing circuit results. Increasing GMIN to 1e-3 fixes convergence but ruins output accuracy.
 
-**Possible fixes:**
+**Possible fixes (preconditioner):**
+- [ ] **CPU-side ILU(0) triangular solve as preconditioner** — compute ILU(0) on CPU (already available in `preconditioner::ilu0`), apply forward/backward substitution on CPU each BiCGSTAB iteration via download→solve→upload. For small matrices (< ~1000), the round-trip cost is negligible. This is the most direct fix.
+- [ ] **ISAI level increase** — ISAI(1) or ISAI(2) captures more fill-in from ILU factorization, improving approximation quality. But may still be insufficient for κ~1e12.
+- [ ] **Hybrid strategy** — CPU ILU solve for first few Newton iterations (worst conditioning, devices off), then switch to GPU ISAI for later iterations (devices on, better conditioning).
+
+**Other approaches:**
 - [ ] f64 GPU compute shaders (requires `wgpu` `shader-f64` feature + hardware support — not universal on Metal/Vulkan)
-- [ ] Mixed-precision Newton: use CPU f64 direct solver for the initial iteration (all devices off, purely linear), then switch to GPU f32 BiCGSTAB for subsequent iterations where device conductances dominate and conditioning is better
+- [ ] Mixed-precision Newton: use CPU f64 direct solver for the initial iteration (all devices off, purely linear), then switch to GPU DS BiCGSTAB for subsequent iterations where device conductances dominate and conditioning is better
+- [ ] GMIN stepping: start with large GMIN (1e-3), solve, reduce GMIN toward 1e-12 using each solution as initial guess
 - [ ] Iterative refinement: solve in f32, compute residual in f64, correct
-- [ ] Better preconditioner that handles the extreme dynamic range (ILU instead of Jacobi/ISAI)
 
 ## GPU Backends
 - [ ] CUDA backend implementing `SolverBackend` + `NonlinearBackend`
