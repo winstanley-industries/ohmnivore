@@ -374,6 +374,7 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                 nodes,
                 dc,
                 ac,
+                tran: _,
             } => {
                 let branch_idx = branch_map[name];
                 let bk = n_nodes + branch_idx;
@@ -447,6 +448,7 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                 nodes,
                 dc,
                 ac,
+                tran: _,
             } => {
                 let ni = node_index(&nodes.0, &node_map);
                 let nj = node_index(&nodes.1, &node_map);
@@ -548,13 +550,23 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                     drain: nd,
                     gate: ng,
                     source: ns,
-                    polarity: if mosfet_model.is_nmos { 1.0f32 } else { -1.0f32 },
+                    polarity: if mosfet_model.is_nmos {
+                        1.0f32
+                    } else {
+                        -1.0f32
+                    },
                     vto: mosfet_model.vto as f32,
                     kp: mosfet_model.kp as f32,
                     lambda: mosfet_model.lambda as f32,
                 });
             }
         }
+    }
+
+    // Ensure G has entries at all positions where C has entries.
+    // This guarantees the companion matrix A = G + alpha*C/h shares G's sparsity pattern.
+    for &(row, col, _) in &c_triplets {
+        g_triplets.push((row, col, 0.0));
     }
 
     // Step 4: Assemble CSR matrices.
@@ -643,9 +655,12 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
             }
 
             let node_fixed = [
-                pb.collector.map_or(0, |i| vsource_constrained.contains(&i) as u32),
-                pb.base.map_or(0, |i| vsource_constrained.contains(&i) as u32),
-                pb.emitter.map_or(0, |i| vsource_constrained.contains(&i) as u32),
+                pb.collector
+                    .map_or(0, |i| vsource_constrained.contains(&i) as u32),
+                pb.base
+                    .map_or(0, |i| vsource_constrained.contains(&i) as u32),
+                pb.emitter
+                    .map_or(0, |i| vsource_constrained.contains(&i) as u32),
             ];
 
             GpuBjtDescriptor {
@@ -688,10 +703,17 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                 }
             }
 
-            let node_fixed_packed =
-                (pm.drain.map_or(0, |i| vsource_constrained.contains(&i) as u32))
-                | (pm.gate.map_or(0, |i| vsource_constrained.contains(&i) as u32) << 1)
-                | (pm.source.map_or(0, |i| vsource_constrained.contains(&i) as u32) << 2);
+            let node_fixed_packed = (pm
+                .drain
+                .map_or(0, |i| vsource_constrained.contains(&i) as u32))
+                | (pm
+                    .gate
+                    .map_or(0, |i| vsource_constrained.contains(&i) as u32)
+                    << 1)
+                | (pm
+                    .source
+                    .map_or(0, |i| vsource_constrained.contains(&i) as u32)
+                    << 2);
 
             GpuMosfetDescriptor {
                 drain_idx,
@@ -782,6 +804,7 @@ mod tests {
                 nodes: ("1".into(), "0".into()),
                 dc: Some(5.0),
                 ac: None,
+                tran: None,
             },
             Component::Resistor {
                 name: "R1".into(),
@@ -844,6 +867,7 @@ mod tests {
                 nodes: ("1".into(), "0".into()),
                 dc: None,
                 ac: Some((1.0, 0.0)),
+                tran: None,
             },
             Component::Resistor {
                 name: "R1".into(),
@@ -922,6 +946,7 @@ mod tests {
             nodes: ("1".into(), "0".into()),
             dc: Some(2.0),
             ac: None,
+            tran: None,
         }]);
 
         let mna = compile(&circuit).unwrap();
@@ -939,6 +964,7 @@ mod tests {
             nodes: ("1".into(), "2".into()),
             dc: Some(3.0),
             ac: Some((1.0, 90.0)),
+            tran: None,
         }]);
 
         let mna = compile(&circuit).unwrap();
@@ -1029,6 +1055,7 @@ mod tests {
             nodes: ("1".into(), "0".into()),
             dc: Some(10.0),
             ac: Some((5.0, 45.0)),
+            tran: None,
         }]);
 
         let mna = compile(&circuit).unwrap();
@@ -1049,6 +1076,7 @@ mod tests {
             nodes: ("1".into(), "2".into()),
             dc: Some(3.0),
             ac: None,
+            tran: None,
         }]);
 
         let mna = compile(&circuit).unwrap();
@@ -1097,6 +1125,7 @@ mod tests {
                 nodes: ("1".into(), "0".into()),
                 dc: Some(1.0),
                 ac: Some((1.0, 0.0)),
+                tran: None,
             },
             Component::Resistor {
                 name: "R1".into(),
@@ -1180,12 +1209,14 @@ mod tests {
                 nodes: ("1".into(), "0".into()),
                 dc: Some(5.0),
                 ac: None,
+                tran: None,
             },
             Component::VSource {
                 name: "V2".into(),
                 nodes: ("2".into(), "0".into()),
                 dc: Some(3.0),
                 ac: None,
+                tran: None,
             },
         ]);
 
@@ -1249,6 +1280,7 @@ mod tests {
                     nodes: ("1".into(), "0".into()),
                     dc: Some(1.0),
                     ac: None,
+                    tran: None,
                 },
                 Component::Diode {
                     name: "D1".into(),
@@ -1287,8 +1319,8 @@ mod tests {
         assert_eq!(desc.g_row_col[3], u32::MAX); // (cathode, anode) = ground
 
         // b_idx
-        assert_eq!(desc.b_idx[0], 0);           // anode
-        assert_eq!(desc.b_idx[1], u32::MAX);    // cathode = ground
+        assert_eq!(desc.b_idx[0], 0); // anode
+        assert_eq!(desc.b_idx[1], u32::MAX); // cathode = ground
     }
 
     #[test]
@@ -1333,7 +1365,11 @@ mod tests {
 
         // All 4 stamp positions should be valid (non-sentinel)
         for i in 0..4 {
-            assert_ne!(desc.g_row_col[i], u32::MAX, "g_row_col[{i}] should not be sentinel");
+            assert_ne!(
+                desc.g_row_col[i],
+                u32::MAX,
+                "g_row_col[{i}] should not be sentinel"
+            );
         }
 
         // G matrix should contain placeholders at all 4 positions
@@ -1486,8 +1522,8 @@ mod tests {
         let mna = compile(&circuit).unwrap();
         let desc = &mna.diode_descriptors[0];
 
-        assert_eq!(desc.anode_idx, u32::MAX);   // ground
-        assert_eq!(desc.cathode_idx, 0);         // node "1" -> idx 0
+        assert_eq!(desc.anode_idx, u32::MAX); // ground
+        assert_eq!(desc.cathode_idx, 0); // node "1" -> idx 0
 
         // Only (cathode, cathode) should have a valid CSR index
         assert_eq!(desc.g_row_col[0], u32::MAX); // (anode, anode) = ground
@@ -1556,6 +1592,7 @@ mod tests {
                     nodes: ("1".into(), "0".into()),
                     dc: Some(5.0),
                     ac: None,
+                    tran: None,
                 },
                 Component::Resistor {
                     name: "R1".into(),
@@ -1597,9 +1634,9 @@ mod tests {
         let desc = &mna.bjt_descriptors[0];
         // Nodes: "1"->0, "2"->1, "3"->2, "4"->3
         assert_eq!(desc.collector_idx, 2); // node "3"
-        assert_eq!(desc.base_idx, 1);      // node "2"
-        assert_eq!(desc.emitter_idx, 3);   // node "4"
-        assert_eq!(desc.polarity, 1.0);    // NPN
+        assert_eq!(desc.base_idx, 1); // node "2"
+        assert_eq!(desc.emitter_idx, 3); // node "4"
+        assert_eq!(desc.polarity, 1.0); // NPN
         assert!((desc.is_val - 1e-14_f32).abs() < 1e-20);
         assert!((desc.bf - 200.0_f32).abs() < 1e-6);
         assert!((desc.br - 2.0_f32).abs() < 1e-6);
@@ -1635,6 +1672,7 @@ mod tests {
                     nodes: ("1".into(), "0".into()),
                     dc: Some(5.0),
                     ac: None,
+                    tran: None,
                 },
                 Component::Resistor {
                     name: "R1".into(),
@@ -1668,8 +1706,8 @@ mod tests {
 
         let desc = &mna.mosfet_descriptors[0];
         // Nodes: "1"->0, "2"->1, "3"->2
-        assert_eq!(desc.drain_idx, 1);  // node "2"
-        assert_eq!(desc.gate_idx, 0);   // node "1"
+        assert_eq!(desc.drain_idx, 1); // node "2"
+        assert_eq!(desc.gate_idx, 0); // node "1"
         assert_eq!(desc.source_idx, 2); // node "3"
         assert_eq!(desc.polarity, 1.0); // NMOS
         assert!((desc.vto - 0.7_f32).abs() < 1e-6);
@@ -1747,9 +1785,9 @@ mod tests {
         assert_eq!(desc.g_row_col[8], u32::MAX); // EE (emitter=ground)
 
         // b_idx: emitter should be sentinel
-        assert_eq!(desc.b_idx[0], 0);         // collector
-        assert_eq!(desc.b_idx[1], 1);         // base
-        assert_eq!(desc.b_idx[2], u32::MAX);  // emitter = ground
+        assert_eq!(desc.b_idx[0], 0); // collector
+        assert_eq!(desc.b_idx[1], 1); // base
+        assert_eq!(desc.b_idx[2], u32::MAX); // emitter = ground
     }
 
     #[test]
@@ -1802,8 +1840,8 @@ mod tests {
         assert_eq!(desc.g_row_col[5], u32::MAX); // SS (source=ground)
 
         // b_idx
-        assert_eq!(desc.b_idx[0], 0);         // drain
-        assert_eq!(desc.b_idx[1], u32::MAX);  // source = ground
+        assert_eq!(desc.b_idx[0], 0); // drain
+        assert_eq!(desc.b_idx[1], u32::MAX); // source = ground
     }
 
     #[test]
@@ -1860,6 +1898,7 @@ mod tests {
                     nodes: ("1".into(), "0".into()),
                     dc: Some(5.0),
                     ac: None,
+                    tran: None,
                 },
                 Component::Resistor {
                     name: "R1".into(),

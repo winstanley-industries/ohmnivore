@@ -28,7 +28,9 @@ use nom::IResult;
 use nom::Parser;
 
 use crate::error::{OhmnivoreError, Result};
-use crate::ir::{AcSweepType, Analysis, BjtModel, Circuit, Component, DiodeModel, MosfetModel};
+use crate::ir::{
+    AcSweepType, Analysis, BjtModel, Circuit, Component, DiodeModel, MosfetModel, TransientFunc,
+};
 
 /// Parsed model type returned by parse_model_command.
 enum ModelType {
@@ -63,23 +65,23 @@ pub fn parse(input: &str) -> Result<Circuit> {
         let first = line.chars().next().unwrap();
         match first.to_ascii_uppercase() {
             'R' => {
-                let comp = parse_rlc_line(line, 'R')
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp =
+                    parse_rlc_line(line, 'R').map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             'C' => {
-                let comp = parse_rlc_line(line, 'C')
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp =
+                    parse_rlc_line(line, 'C').map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             'L' => {
-                let comp = parse_rlc_line(line, 'L')
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp =
+                    parse_rlc_line(line, 'L').map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             'V' => {
-                let comp = parse_source_line(line, true)
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp =
+                    parse_source_line(line, true).map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             'I' => {
@@ -88,32 +90,30 @@ pub fn parse(input: &str) -> Result<Circuit> {
                 components.push(comp);
             }
             'D' => {
-                let comp = parse_diode_line(line)
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp = parse_diode_line(line).map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             'Q' => {
-                let comp = parse_bjt_line(line)
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp = parse_bjt_line(line).map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             'M' => {
-                let comp = parse_mosfet_line(line)
-                    .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                let comp =
+                    parse_mosfet_line(line).map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
             '.' => {
                 if upper.starts_with(".MODEL") {
-                    let model = parse_model_command(line)
-                        .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                    let model =
+                        parse_model_command(line).map_err(|e| parse_err(line_num, raw_line, &e))?;
                     match model {
                         ModelType::Diode(m) => models.push(m),
                         ModelType::Bjt(m) => bjt_models.push(m),
                         ModelType::Mosfet(m) => mosfet_models.push(m),
                     }
                 } else {
-                    let analysis = parse_dot_command(line)
-                        .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                    let analysis =
+                        parse_dot_command(line).map_err(|e| parse_err(line_num, raw_line, &e))?;
                     if let Some(a) = analysis {
                         analyses.push(a);
                     }
@@ -140,7 +140,12 @@ pub fn parse(input: &str) -> Result<Circuit> {
 }
 
 fn parse_err(line_num: usize, raw_line: &str, detail: &str) -> OhmnivoreError {
-    OhmnivoreError::Parse(format!("line {}: {} in: {}", line_num + 1, detail, raw_line))
+    OhmnivoreError::Parse(format!(
+        "line {}: {} in: {}",
+        line_num + 1,
+        detail,
+        raw_line
+    ))
 }
 
 // ---------------------------------------------------------------------------
@@ -224,44 +229,53 @@ fn parse_rlc_line(line: &str, kind: char) -> std::result::Result<Component, Stri
 ///   Vname n+ n- [DC val] [AC mag [phase]]
 fn parse_source_line(line: &str, is_voltage: bool) -> std::result::Result<Component, String> {
     // Parse: name node+ node-
-    let (rest, (name, _, n_plus, _, n_minus, _)) = (
-        element_name,
-        space1,
-        node_id,
-        space1,
-        node_id,
-        space0,
-    )
-        .parse(line)
-        .map_err(|_| "failed to parse source name/nodes".to_string())?;
+    let (rest, (name, _, n_plus, _, n_minus, _)) =
+        (element_name, space1, node_id, space1, node_id, space0)
+            .parse(line)
+            .map_err(|_| "failed to parse source name/nodes".to_string())?;
 
     let rest = rest.trim();
 
-    // Parse optional DC and AC specifications from remaining text
-    let (dc, ac) = parse_source_specs(rest)?;
+    // Parse optional DC, AC, and transient specifications from remaining text
+    let (dc, ac, tran) = parse_source_specs(rest)?;
 
     let name = name.to_string();
     let nodes = (n_plus.to_string(), n_minus.to_string());
 
     if is_voltage {
-        Ok(Component::VSource { name, nodes, dc, ac })
+        Ok(Component::VSource {
+            name,
+            nodes,
+            dc,
+            ac,
+            tran,
+        })
     } else {
-        Ok(Component::ISource { name, nodes, dc, ac })
+        Ok(Component::ISource {
+            name,
+            nodes,
+            dc,
+            ac,
+            tran,
+        })
     }
 }
 
-/// Parse the DC/AC spec portion of a source line.
+/// Parse the DC/AC/transient spec portion of a source line.
 /// Could be:
 ///   (empty)
 ///   DC 5
 ///   AC 1 0
 ///   DC 5 AC 1 0
 ///   5          (bare number treated as DC value)
+///   PULSE(0 5 0 1n 1n 10n 20n)
+///   DC 5 PULSE(0 5 0 1n 1n 10n 20n)
+#[allow(clippy::type_complexity)]
 fn parse_source_specs(
     input: &str,
-) -> std::result::Result<(Option<f64>, Option<(f64, f64)>), String> {
+) -> std::result::Result<(Option<f64>, Option<(f64, f64)>, Option<TransientFunc>), String> {
     if input.is_empty() {
-        return Ok((None, None));
+        return Ok((None, None, None));
     }
 
     let mut rest = input;
@@ -274,12 +288,16 @@ fn parse_source_specs(
         // skip "DC" keyword
         rest = rest[2..].trim_start();
         if !rest.is_empty() && !rest.to_uppercase().starts_with("AC") {
-            let (r, val) = eng_value(rest)
-                .map_err(|_| "failed to parse DC value".to_string())?;
+            let (r, val) = eng_value(rest).map_err(|_| "failed to parse DC value".to_string())?;
             dc = Some(val);
             rest = r.trim_start();
         }
-    } else if !upper.starts_with("AC") {
+    } else if !upper.starts_with("AC")
+        && !upper.starts_with("PULSE")
+        && !upper.starts_with("SIN")
+        && !upper.starts_with("PWL")
+        && !upper.starts_with("EXP")
+    {
         // Bare number — treat as DC value
         if let Ok((r, val)) = eng_value(rest) {
             dc = Some(val);
@@ -291,13 +309,17 @@ fn parse_source_specs(
     let upper = rest.to_uppercase();
     if upper.starts_with("AC") {
         rest = rest[2..].trim_start();
-        let (r, mag) = eng_value(rest)
-            .map_err(|_| "failed to parse AC magnitude".to_string())?;
+        let (r, mag) = eng_value(rest).map_err(|_| "failed to parse AC magnitude".to_string())?;
         rest = r.trim_start();
 
-        let phase = if !rest.is_empty() {
-            let (_, p) = eng_value(rest)
-                .map_err(|_| "failed to parse AC phase".to_string())?;
+        let phase = if !rest.is_empty()
+            && !rest.to_uppercase().starts_with("PULSE")
+            && !rest.to_uppercase().starts_with("SIN")
+            && !rest.to_uppercase().starts_with("PWL")
+            && !rest.to_uppercase().starts_with("EXP")
+        {
+            let (r2, p) = eng_value(rest).map_err(|_| "failed to parse AC phase".to_string())?;
+            rest = r2.trim_start();
             p
         } else {
             0.0
@@ -305,7 +327,104 @@ fn parse_source_specs(
         ac = Some((mag, phase));
     }
 
-    Ok((dc, ac))
+    // Try to parse transient function
+    let rest_upper = rest.to_uppercase();
+    let tran = if rest_upper.starts_with("PULSE") {
+        let inner = extract_parens(rest, "PULSE")?;
+        Some(parse_pulse(inner)?)
+    } else if rest_upper.starts_with("SIN") {
+        let inner = extract_parens(rest, "SIN")?;
+        Some(parse_sin(inner)?)
+    } else if rest_upper.starts_with("PWL") {
+        let inner = extract_parens(rest, "PWL")?;
+        Some(parse_pwl(inner)?)
+    } else if rest_upper.starts_with("EXP") {
+        let inner = extract_parens(rest, "EXP")?;
+        Some(parse_exp(inner)?)
+    } else {
+        None
+    };
+
+    Ok((dc, ac, tran))
+}
+
+/// Extract the content between parentheses after a keyword like "PULSE".
+fn extract_parens<'a>(input: &'a str, keyword: &str) -> std::result::Result<&'a str, String> {
+    let start = input
+        .find('(')
+        .ok_or_else(|| format!("expected '(' after {}", keyword))?;
+    let end = input
+        .find(')')
+        .ok_or_else(|| format!("expected ')' after {}", keyword))?;
+    Ok(&input[start + 1..end])
+}
+
+/// Parse values inside PULSE(...) -- space-separated engineering values.
+fn parse_pulse(inner: &str) -> std::result::Result<TransientFunc, String> {
+    let vals = parse_eng_values(inner)?;
+    if vals.len() < 2 {
+        return Err("PULSE requires at least v1 and v2".to_string());
+    }
+    Ok(TransientFunc::Pulse {
+        v1: vals[0],
+        v2: vals[1],
+        td: vals.get(2).copied().unwrap_or(0.0),
+        tr: vals.get(3).copied().unwrap_or(0.0),
+        tf: vals.get(4).copied().unwrap_or(0.0),
+        pw: vals.get(5).copied().unwrap_or(f64::MAX),
+        per: vals.get(6).copied().unwrap_or(f64::MAX),
+    })
+}
+
+fn parse_sin(inner: &str) -> std::result::Result<TransientFunc, String> {
+    let vals = parse_eng_values(inner)?;
+    if vals.len() < 3 {
+        return Err("SIN requires at least vo, va, and freq".to_string());
+    }
+    Ok(TransientFunc::Sin {
+        vo: vals[0],
+        va: vals[1],
+        freq: vals[2],
+        td: vals.get(3).copied().unwrap_or(0.0),
+        theta: vals.get(4).copied().unwrap_or(0.0),
+    })
+}
+
+fn parse_pwl(inner: &str) -> std::result::Result<TransientFunc, String> {
+    let vals = parse_eng_values(inner)?;
+    if vals.len() < 2 || vals.len() % 2 != 0 {
+        return Err("PWL requires an even number of time-value pairs".to_string());
+    }
+    let pairs: Vec<(f64, f64)> = vals.chunks(2).map(|c| (c[0], c[1])).collect();
+    Ok(TransientFunc::Pwl { pairs })
+}
+
+fn parse_exp(inner: &str) -> std::result::Result<TransientFunc, String> {
+    let vals = parse_eng_values(inner)?;
+    if vals.len() < 2 {
+        return Err("EXP requires at least v1 and v2".to_string());
+    }
+    Ok(TransientFunc::Exp {
+        v1: vals[0],
+        v2: vals[1],
+        td1: vals.get(2).copied().unwrap_or(0.0),
+        tau1: vals.get(3).copied().unwrap_or(f64::MAX),
+        td2: vals.get(4).copied().unwrap_or(f64::MAX),
+        tau2: vals.get(5).copied().unwrap_or(f64::MAX),
+    })
+}
+
+/// Parse a whitespace-separated sequence of engineering values.
+fn parse_eng_values(input: &str) -> std::result::Result<Vec<f64>, String> {
+    let mut values = Vec::new();
+    let mut rest = input.trim();
+    while !rest.is_empty() {
+        let (r, val) =
+            eng_value(rest).map_err(|_| format!("failed to parse value in '{}'", rest))?;
+        values.push(val);
+        rest = r.trim_start();
+    }
+    Ok(values)
 }
 
 // ---------------------------------------------------------------------------
@@ -387,7 +506,11 @@ fn parse_mosfet_line(line: &str) -> std::result::Result<Component, String> {
     let model_name = match tokens.len() {
         1 => tokens[0],
         2 => tokens[1], // tokens[0] is bulk, ignored
-        _ => return Err("expected model name (and optional bulk node) after MOSFET terminals".to_string()),
+        _ => {
+            return Err(
+                "expected model name (and optional bulk node) after MOSFET terminals".to_string(),
+            )
+        }
     };
 
     Ok(Component::Mosfet {
@@ -413,18 +536,20 @@ fn parse_model_command(line: &str) -> std::result::Result<ModelType, String> {
     let rest = rest[6..].trim_start();
 
     // Parse model name
-    let (rest, model_name) = node_id(rest)
-        .map_err(|_| "expected model name after .MODEL".to_string())?;
+    let (rest, model_name) =
+        node_id(rest).map_err(|_| "expected model name after .MODEL".to_string())?;
     let rest = rest.trim_start();
 
     // Parse type
-    let (rest, model_type) = node_id(rest)
-        .map_err(|_| "expected model type after model name".to_string())?;
+    let (rest, model_type) =
+        node_id(rest).map_err(|_| "expected model type after model name".to_string())?;
     let rest = rest.trim_start();
 
     // Extract params string from parentheses (if any)
     let params_str = if rest.starts_with('(') {
-        let end = rest.find(')').ok_or("missing closing ')' in .MODEL parameters")?;
+        let end = rest
+            .find(')')
+            .ok_or("missing closing ')' in .MODEL parameters")?;
         Some(&rest[1..end])
     } else {
         None
@@ -487,7 +612,11 @@ fn parse_model_command(line: &str) -> std::result::Result<ModelType, String> {
 
 /// Parse key=value parameters for diode .MODEL.
 /// Supports IS and N parameters in any order.
-fn parse_diode_model_params(params: &str, is: &mut f64, n: &mut f64) -> std::result::Result<(), String> {
+fn parse_diode_model_params(
+    params: &str,
+    is: &mut f64,
+    n: &mut f64,
+) -> std::result::Result<(), String> {
     for token in params.split_whitespace() {
         let upper = token.to_uppercase();
         if upper.starts_with("IS=") {
@@ -601,6 +730,10 @@ fn parse_dot_command(line: &str) -> std::result::Result<Option<Analysis>, String
         return parse_ac_command(line).map(Some);
     }
 
+    if trimmed.starts_with(".TRAN") {
+        return parse_tran_command(line).map(Some);
+    }
+
     // Ignore unrecognized dot commands (like .TITLE, .PARAM, etc.)
     Ok(None)
 }
@@ -619,13 +752,11 @@ fn parse_ac_command(line: &str) -> std::result::Result<Analysis, String> {
     let rest = rest.trim_start();
 
     // Parse f_start
-    let (rest, f_start) = eng_value(rest)
-        .map_err(|_| "failed to parse AC f_start".to_string())?;
+    let (rest, f_start) = eng_value(rest).map_err(|_| "failed to parse AC f_start".to_string())?;
     let rest = rest.trim_start();
 
     // Parse f_stop
-    let (_, f_stop) = eng_value(rest)
-        .map_err(|_| "failed to parse AC f_stop".to_string())?;
+    let (_, f_stop) = eng_value(rest).map_err(|_| "failed to parse AC f_stop".to_string())?;
 
     Ok(Analysis::Ac {
         sweep_type,
@@ -656,10 +787,43 @@ fn parse_sweep_type(input: &str) -> std::result::Result<(&str, AcSweepType), Str
     Ok((rest, sweep))
 }
 
+/// Parse: .TRAN tstep tstop [tstart] [UIC]
+fn parse_tran_command(line: &str) -> std::result::Result<Analysis, String> {
+    let rest = line[5..].trim_start(); // skip ".TRAN"
+
+    let (rest, tstep) = eng_value(rest).map_err(|_| "failed to parse TRAN tstep".to_string())?;
+    let rest = rest.trim_start();
+
+    let (rest, tstop) = eng_value(rest).map_err(|_| "failed to parse TRAN tstop".to_string())?;
+    let rest = rest.trim_start();
+
+    let mut tstart = 0.0;
+    let mut uic = false;
+
+    if !rest.is_empty() {
+        let upper = rest.to_uppercase();
+        if upper.starts_with("UIC") {
+            uic = true;
+        } else if let Ok((r, val)) = eng_value(rest) {
+            tstart = val;
+            let r = r.trim_start();
+            if r.to_uppercase().starts_with("UIC") {
+                uic = true;
+            }
+        }
+    }
+
+    Ok(Analysis::Tran {
+        tstep,
+        tstop,
+        tstart,
+        uic,
+    })
+}
+
 fn parse_usize(input: &str) -> std::result::Result<(&str, usize), String> {
-    let (rest, digits): (&str, &str) =
-        take_while1(|c: char| c.is_ascii_digit())(input)
-            .map_err(|_: nom::Err<nom::error::Error<&str>>| "expected integer".to_string())?;
+    let (rest, digits): (&str, &str) = take_while1(|c: char| c.is_ascii_digit())(input)
+        .map_err(|_: nom::Err<nom::error::Error<&str>>| "expected integer".to_string())?;
     let n: usize = digits.parse().map_err(|_| "invalid integer".to_string())?;
     Ok((rest, n))
 }
@@ -830,7 +994,13 @@ mod tests {
     fn test_parse_vsource_dc() {
         let circuit = parse("V1 1 0 DC 5").unwrap();
         match &circuit.components[0] {
-            Component::VSource { name, nodes, dc, ac } => {
+            Component::VSource {
+                name,
+                nodes,
+                dc,
+                ac,
+                ..
+            } => {
                 assert_eq!(name, "V1");
                 assert_eq!(nodes, &("1".into(), "0".into()));
                 assert_eq!(*dc, Some(5.0));
@@ -1530,5 +1700,212 @@ R2 vcc 3 1k
         // Ensure BJT/MOSFET vecs are empty
         assert!(circuit.bjt_models.is_empty());
         assert!(circuit.mosfet_models.is_empty());
+    }
+
+    // ---- .TRAN command tests ----
+
+    #[test]
+    fn test_parse_tran_basic() {
+        let circuit = parse(".TRAN 1n 100n").unwrap();
+        assert_eq!(circuit.analyses.len(), 1);
+        match &circuit.analyses[0] {
+            Analysis::Tran {
+                tstep,
+                tstop,
+                tstart,
+                uic,
+            } => {
+                assert!((tstep - 1e-9).abs() < 1e-21);
+                assert!((tstop - 100e-9).abs() < 1e-21);
+                assert!((tstart - 0.0).abs() < 1e-21);
+                assert!(!uic);
+            }
+            other => panic!("expected Tran, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_tran_with_tstart() {
+        let circuit = parse(".TRAN 1n 100n 10n").unwrap();
+        match &circuit.analyses[0] {
+            Analysis::Tran { tstart, .. } => {
+                assert!((tstart - 10e-9).abs() < 1e-21);
+            }
+            other => panic!("expected Tran, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_tran_with_uic() {
+        let circuit = parse(".TRAN 1n 100n UIC").unwrap();
+        match &circuit.analyses[0] {
+            Analysis::Tran { uic, .. } => {
+                assert!(uic);
+            }
+            other => panic!("expected Tran, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_tran_with_tstart_and_uic() {
+        let circuit = parse(".TRAN 1n 100n 10n UIC").unwrap();
+        match &circuit.analyses[0] {
+            Analysis::Tran { tstart, uic, .. } => {
+                assert!((tstart - 10e-9).abs() < 1e-21);
+                assert!(uic);
+            }
+            other => panic!("expected Tran, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_tran_case_insensitive() {
+        let circuit = parse(".tran 1u 1m").unwrap();
+        assert_eq!(circuit.analyses.len(), 1);
+        match &circuit.analyses[0] {
+            Analysis::Tran { tstep, tstop, .. } => {
+                assert!((tstep - 1e-6).abs() < 1e-18);
+                assert!((tstop - 1e-3).abs() < 1e-15);
+            }
+            other => panic!("expected Tran, got {:?}", other),
+        }
+    }
+
+    // ---- Transient source function tests ----
+
+    #[test]
+    fn test_parse_vsource_pulse() {
+        let circuit = parse("V1 1 0 PULSE(0 5 0 1n 1n 10n 20n)").unwrap();
+        match &circuit.components[0] {
+            Component::VSource {
+                tran:
+                    Some(TransientFunc::Pulse {
+                        v1,
+                        v2,
+                        td,
+                        tr,
+                        tf,
+                        pw,
+                        per,
+                    }),
+                ..
+            } => {
+                assert!((v1 - 0.0).abs() < 1e-12);
+                assert!((v2 - 5.0).abs() < 1e-12);
+                assert!((td - 0.0).abs() < 1e-12);
+                assert!((tr - 1e-9).abs() < 1e-21);
+                assert!((tf - 1e-9).abs() < 1e-21);
+                assert!((pw - 10e-9).abs() < 1e-21);
+                assert!((per - 20e-9).abs() < 1e-21);
+            }
+            other => panic!("expected VSource with Pulse, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_vsource_sin() {
+        let circuit = parse("V1 1 0 SIN(0 1 1MEG)").unwrap();
+        match &circuit.components[0] {
+            Component::VSource {
+                tran:
+                    Some(TransientFunc::Sin {
+                        vo,
+                        va,
+                        freq,
+                        td,
+                        theta,
+                    }),
+                ..
+            } => {
+                assert!((vo - 0.0).abs() < 1e-12);
+                assert!((va - 1.0).abs() < 1e-12);
+                assert!((freq - 1e6).abs() < 1.0);
+                assert!((td - 0.0).abs() < 1e-12);
+                assert!((theta - 0.0).abs() < 1e-12);
+            }
+            other => panic!("expected VSource with Sin, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_vsource_pwl() {
+        let circuit = parse("V1 1 0 PWL(0 0 1u 5 2u 5 3u 0)").unwrap();
+        match &circuit.components[0] {
+            Component::VSource {
+                tran: Some(TransientFunc::Pwl { pairs }),
+                ..
+            } => {
+                assert_eq!(pairs.len(), 4);
+                assert!((pairs[0].0 - 0.0).abs() < 1e-12);
+                assert!((pairs[0].1 - 0.0).abs() < 1e-12);
+                assert!((pairs[1].0 - 1e-6).abs() < 1e-18);
+                assert!((pairs[1].1 - 5.0).abs() < 1e-12);
+            }
+            other => panic!("expected VSource with Pwl, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_vsource_exp() {
+        let circuit = parse("V1 1 0 EXP(0 5 0 1u 5u 1u)").unwrap();
+        match &circuit.components[0] {
+            Component::VSource {
+                tran:
+                    Some(TransientFunc::Exp {
+                        v1,
+                        v2,
+                        td1,
+                        tau1,
+                        td2,
+                        tau2,
+                    }),
+                ..
+            } => {
+                assert!((v1 - 0.0).abs() < 1e-12);
+                assert!((v2 - 5.0).abs() < 1e-12);
+                assert!((td1 - 0.0).abs() < 1e-12);
+                assert!((tau1 - 1e-6).abs() < 1e-18);
+                assert!((td2 - 5e-6).abs() < 1e-18);
+                assert!((tau2 - 1e-6).abs() < 1e-18);
+            }
+            other => panic!("expected VSource with Exp, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_vsource_dc_and_pulse() {
+        let circuit = parse("V1 1 0 DC 5 PULSE(0 5 0 1n 1n 10n 20n)").unwrap();
+        match &circuit.components[0] {
+            Component::VSource { dc, tran, .. } => {
+                assert_eq!(*dc, Some(5.0));
+                assert!(tran.is_some());
+            }
+            other => panic!("expected VSource, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_isource_pulse() {
+        let circuit = parse("I1 1 0 PULSE(0 1m 0 1n 1n 50n 100n)").unwrap();
+        match &circuit.components[0] {
+            Component::ISource {
+                tran: Some(TransientFunc::Pulse { v2, .. }),
+                ..
+            } => {
+                assert!((v2 - 1e-3).abs() < 1e-15);
+            }
+            other => panic!("expected ISource with Pulse, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_vsource_no_tran() {
+        let circuit = parse("V1 1 0 DC 5").unwrap();
+        match &circuit.components[0] {
+            Component::VSource { tran, .. } => {
+                assert!(tran.is_none());
+            }
+            other => panic!("expected VSource, got {:?}", other),
+        }
     }
 }

@@ -156,7 +156,9 @@ C1 2 0 1u
         .iter()
         .enumerate()
         .min_by(|(_, a), (_, b)| {
-            ((**a - f_cutoff).abs()).partial_cmp(&((**b - f_cutoff).abs())).unwrap()
+            ((**a - f_cutoff).abs())
+                .partial_cmp(&((**b - f_cutoff).abs()))
+                .unwrap()
         })
         .unwrap()
         .0;
@@ -167,7 +169,11 @@ C1 2 0 1u
 
     // At very high frequency (last point), |V(2)| should be small
     let v2_high = v2_data.last().unwrap().norm();
-    assert!(v2_high < 0.01, "Expected V(2) < 0.01 at high freq, got {}", v2_high);
+    assert!(
+        v2_high < 0.01,
+        "Expected V(2) < 0.01 at high freq, got {}",
+        v2_high
+    );
 }
 
 #[test]
@@ -253,7 +259,13 @@ C1 2 0 1u
     let lines: Vec<&str> = csv.lines().collect();
 
     // Header + 3 data rows
-    assert_eq!(lines.len(), 4, "Expected 4 lines (header + 3 data), got {}: {:?}", lines.len(), lines);
+    assert_eq!(
+        lines.len(),
+        4,
+        "Expected 4 lines (header + 3 data), got {}: {:?}",
+        lines.len(),
+        lines
+    );
 
     // Header should contain Frequency and magnitude/phase columns
     assert!(lines[0].starts_with("Frequency"));

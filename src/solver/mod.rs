@@ -19,9 +19,5 @@ pub trait LinearSolver {
     fn solve_real(&self, a: &CsrMatrix<f64>, b: &[f64]) -> Result<Vec<f64>>;
 
     /// Solve a complex-valued system Ax = b.
-    fn solve_complex(
-        &self,
-        a: &CsrMatrix<Complex64>,
-        b: &[Complex64],
-    ) -> Result<Vec<Complex64>>;
+    fn solve_complex(&self, a: &CsrMatrix<Complex64>, b: &[Complex64]) -> Result<Vec<Complex64>>;
 }

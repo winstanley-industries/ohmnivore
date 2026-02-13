@@ -1,6 +1,6 @@
 //! Results output formatting (CSV).
 
-use crate::analysis::{AcResult, DcResult};
+use crate::analysis::{AcResult, DcResult, TranResult};
 use crate::error::Result;
 use std::io::Write;
 
@@ -53,6 +53,39 @@ pub fn write_ac_csv<W: Write>(result: &AcResult, writer: &mut W) -> Result<()> {
         for (_, currents) in &result.branch_currents {
             let c = currents[fi];
             write!(writer, ",{},{}", c.norm(), c.arg().to_degrees())?;
+        }
+        writeln!(writer)?;
+    }
+    Ok(())
+}
+
+/// Write transient analysis results as CSV.
+///
+/// Format:
+/// ```csv
+/// time,V(1),V(2),I(V1)
+/// 0.0,0.0,0.0,0.0
+/// 1e-9,4.9,2.4,-0.005
+/// ```
+pub fn write_tran_csv<W: Write>(result: &TranResult, writer: &mut W) -> Result<()> {
+    // Header row
+    write!(writer, "time")?;
+    for (name, _) in &result.node_voltages {
+        write!(writer, ",V({})", name)?;
+    }
+    for (name, _) in &result.branch_currents {
+        write!(writer, ",I({})", name)?;
+    }
+    writeln!(writer)?;
+
+    // Data rows
+    for (ti, time) in result.times.iter().enumerate() {
+        write!(writer, "{}", time)?;
+        for (_, voltages) in &result.node_voltages {
+            write!(writer, ",{}", voltages[ti])?;
+        }
+        for (_, currents) in &result.branch_currents {
+            write!(writer, ",{}", currents[ti])?;
         }
         writeln!(writer)?;
     }

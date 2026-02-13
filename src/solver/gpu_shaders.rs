@@ -1364,8 +1364,11 @@ mod tests {
         match result {
             Ok(module) => {
                 // Verify expected entry points exist
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 let expected = [
                     "spmv_real",
                     "spmv_complex",
@@ -1400,8 +1403,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(DIODE_EVAL_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 assert!(
                     entry_names.contains(&"diode_eval"),
                     "missing entry point: diode_eval. Found: {entry_names:?}"
@@ -1421,8 +1427,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(NONLINEAR_ASSEMBLE_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 let expected = [
                     "assemble_matrix_copy",
                     "assemble_matrix_stamp",
@@ -1450,8 +1459,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(CONVERGENCE_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 let expected = ["voltage_limit", "convergence_check"];
                 for name in &expected {
                     assert!(
@@ -1474,8 +1486,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(BJT_EVAL_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 assert!(
                     entry_names.contains(&"bjt_eval"),
                     "missing entry point: bjt_eval. Found: {entry_names:?}"
@@ -1495,8 +1510,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(MOSFET_EVAL_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 assert!(
                     entry_names.contains(&"mosfet_eval"),
                     "missing entry point: mosfet_eval. Found: {entry_names:?}"
@@ -1516,8 +1534,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(BJT_ASSEMBLE_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 let expected = ["assemble_bjt_matrix_stamp", "assemble_bjt_rhs_stamp"];
                 for name in &expected {
                     assert!(
@@ -1540,12 +1561,12 @@ mod tests {
         let result = naga::front::wgsl::parse_str(MOSFET_ASSEMBLE_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
-                let expected = [
-                    "assemble_mosfet_matrix_stamp",
-                    "assemble_mosfet_rhs_stamp",
-                ];
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
+                let expected = ["assemble_mosfet_matrix_stamp", "assemble_mosfet_rhs_stamp"];
                 for name in &expected {
                     assert!(
                         entry_names.contains(name),
@@ -1567,8 +1588,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(BJT_VOLTAGE_LIMIT_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 assert!(
                     entry_names.contains(&"bjt_voltage_limit"),
                     "missing entry point: bjt_voltage_limit. Found: {entry_names:?}"
@@ -1588,8 +1612,11 @@ mod tests {
         let result = naga::front::wgsl::parse_str(MOSFET_VOLTAGE_LIMIT_SHADER);
         match result {
             Ok(module) => {
-                let entry_names: Vec<&str> =
-                    module.entry_points.iter().map(|ep| ep.name.as_str()).collect();
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
                 assert!(
                     entry_names.contains(&"mosfet_voltage_limit"),
                     "missing entry point: mosfet_voltage_limit. Found: {entry_names:?}"

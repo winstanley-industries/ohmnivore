@@ -86,6 +86,30 @@ fn main() {
                     std::process::exit(1);
                 });
             }
+            Analysis::Tran {
+                tstep,
+                tstop,
+                tstart,
+                uic,
+            } => {
+                let tran_result = analysis::transient::run(
+                    &system,
+                    solver.as_ref(),
+                    *tstep,
+                    *tstop,
+                    *tstart,
+                    *uic,
+                    &circuit.components,
+                )
+                .unwrap_or_else(|e| {
+                    eprintln!("Transient analysis error: {}", e);
+                    std::process::exit(1);
+                });
+                output::write_tran_csv(&tran_result, &mut stdout).unwrap_or_else(|e| {
+                    eprintln!("Output error: {}", e);
+                    std::process::exit(1);
+                });
+            }
         }
     }
 }

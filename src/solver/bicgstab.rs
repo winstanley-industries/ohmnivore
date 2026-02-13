@@ -55,9 +55,7 @@ pub fn bicgstab<B: SolverBackend>(
         // rho_new = r_hat . r
         let rho_new = backend.dot(&r_hat, &r);
         if rho_new.abs() < 1e-30 {
-            return Err(OhmnivoreError::Solve(
-                "BiCGSTAB breakdown: rho ~ 0".into(),
-            ));
+            return Err(OhmnivoreError::Solve("BiCGSTAB breakdown: rho ~ 0".into()));
         }
 
         let beta = (rho_new / rho) * (alpha / omega);

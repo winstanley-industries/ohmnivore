@@ -103,11 +103,8 @@ pub fn ilu0<T: IsaiScalar>(a: &CsrMatrix<T>) -> (CsrMatrix<T>, CsrMatrix<T>, Vec
             continue;
         }
 
-        let pivot_upper: Vec<(usize, T)> = rows[j]
-            .iter()
-            .filter(|&&(c, _)| c > j)
-            .copied()
-            .collect();
+        let pivot_upper: Vec<(usize, T)> =
+            rows[j].iter().filter(|&&(c, _)| c > j).copied().collect();
 
         for i in (j + 1)..n {
             let a_ij = find_val(&rows[i], j);
@@ -453,7 +450,6 @@ fn find_val<T: IsaiScalar>(row: &[(usize, T)], col: usize) -> T {
         .unwrap_or_else(T::zero)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -549,7 +545,10 @@ mod tests {
                 assert!(
                     approx_eq(product[i][j], expected, 1e-10),
                     "M_L*L not identity at ({},{}): got {}, expected {}",
-                    i, j, product[i][j], expected,
+                    i,
+                    j,
+                    product[i][j],
+                    expected,
                 );
             }
         }
@@ -565,7 +564,10 @@ mod tests {
                 assert!(
                     approx_eq(product_u[i][j], expected, 1e-10),
                     "M_U*U not identity at ({},{}): got {}, expected {}",
-                    i, j, product_u[i][j], expected,
+                    i,
+                    j,
+                    product_u[i][j],
+                    expected,
                 );
             }
         }
@@ -600,7 +602,10 @@ mod tests {
                 assert!(
                     approx_eq(product[i][j], expected, 1e-10),
                     "M_L*L not identity at ({},{}): got {}, expected {}",
-                    i, j, product[i][j], expected,
+                    i,
+                    j,
+                    product[i][j],
+                    expected,
                 );
             }
         }
@@ -625,8 +630,14 @@ mod tests {
         let u_pat = sparsity_pattern(&u);
 
         // ISAI(0): patterns should match L and U
-        assert_eq!(ml_pat, l_pat, "M_L pattern should match L pattern at level 0");
-        assert_eq!(mu_pat, u_pat, "M_U pattern should match U pattern at level 0");
+        assert_eq!(
+            ml_pat, l_pat,
+            "M_L pattern should match L pattern at level 0"
+        );
+        assert_eq!(
+            mu_pat, u_pat,
+            "M_U pattern should match U pattern at level 0"
+        );
     }
 
     #[test]
@@ -649,8 +660,14 @@ mod tests {
         let l2_pat = symbolic_multiply_pattern(&l, &l);
         let u2_pat = symbolic_multiply_pattern(&u, &u);
 
-        assert_eq!(ml_pat, l2_pat, "M_L pattern should match L^2 pattern at level 1");
-        assert_eq!(mu_pat, u2_pat, "M_U pattern should match U^2 pattern at level 1");
+        assert_eq!(
+            ml_pat, l2_pat,
+            "M_L pattern should match L^2 pattern at level 1"
+        );
+        assert_eq!(
+            mu_pat, u2_pat,
+            "M_U pattern should match U^2 pattern at level 1"
+        );
     }
 
     #[test]

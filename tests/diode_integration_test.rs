@@ -187,10 +187,7 @@ D1 2 0 DMOD
         .1;
 
     // V(1) should be 5.0V (set by voltage source)
-    assert!(
-        (v1 - 5.0).abs() < 0.1,
-        "V(1) = {v1}, expected ~5.0V"
-    );
+    assert!((v1 - 5.0).abs() < 0.1, "V(1) = {v1}, expected ~5.0V");
 
     // V(2) is the diode forward voltage, should be ~0.5-0.8V
     assert!(
@@ -235,8 +232,5 @@ R2 2 0 1k
         .1;
 
     // Standard voltage divider: V(2) = 5.0V
-    assert!(
-        (v2 - 5.0).abs() < 1e-9,
-        "V(2) = {v2}, expected 5.0V"
-    );
+    assert!((v2 - 5.0).abs() < 1e-9, "V(2) = {v2}, expected 5.0V");
 }

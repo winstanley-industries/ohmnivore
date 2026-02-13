@@ -184,11 +184,7 @@ M1 n3 n1 0 MMOD
         1,
         "expected 1 diode descriptor"
     );
-    assert_eq!(
-        system.bjt_descriptors.len(),
-        1,
-        "expected 1 BJT descriptor"
-    );
+    assert_eq!(system.bjt_descriptors.len(), 1, "expected 1 BJT descriptor");
     assert_eq!(
         system.mosfet_descriptors.len(),
         1,
@@ -279,10 +275,7 @@ Q1 vc base 0 QNPN
     let v_base = voltage(&result, "base");
 
     // V(base) = 0V (set by voltage source)
-    assert!(
-        v_base.abs() < 0.1,
-        "V(base) = {v_base}, expected ~0V"
-    );
+    assert!(v_base.abs() < 0.1, "V(base) = {v_base}, expected ~0V");
 
     // BJT in cutoff: no collector current, V(vc) ~ 5V
     assert!(
@@ -485,8 +478,5 @@ R2 2 0 1k
     let v2 = voltage(&result, "2");
 
     // Standard voltage divider: V(2) = 5.0V exactly
-    assert!(
-        (v2 - 5.0).abs() < 1e-9,
-        "V(2) = {v2}, expected 5.0V"
-    );
+    assert!((v2 - 5.0).abs() < 1e-9, "V(2) = {v2}, expected 5.0V");
 }

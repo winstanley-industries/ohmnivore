@@ -31,6 +31,7 @@ pub enum Component {
         nodes: (NodeId, NodeId),
         dc: Option<f64>,
         ac: Option<(f64, f64)>,
+        tran: Option<TransientFunc>,
     },
     /// Independent current source. DC value and/or AC (magnitude, phase_degrees).
     ISource {
@@ -38,6 +39,7 @@ pub enum Component {
         nodes: (NodeId, NodeId),
         dc: Option<f64>,
         ac: Option<(f64, f64)>,
+        tran: Option<TransientFunc>,
     },
     /// Diode element referencing a named model.
     Diode {
@@ -101,6 +103,38 @@ pub struct MosfetModel {
     pub is_nmos: bool,
 }
 
+/// Time-varying source waveform for transient analysis.
+#[derive(Debug, Clone)]
+pub enum TransientFunc {
+    Pulse {
+        v1: f64,
+        v2: f64,
+        td: f64,
+        tr: f64,
+        tf: f64,
+        pw: f64,
+        per: f64,
+    },
+    Sin {
+        vo: f64,
+        va: f64,
+        freq: f64,
+        td: f64,
+        theta: f64,
+    },
+    Pwl {
+        pairs: Vec<(f64, f64)>,
+    },
+    Exp {
+        v1: f64,
+        v2: f64,
+        td1: f64,
+        tau1: f64,
+        td2: f64,
+        tau2: f64,
+    },
+}
+
 /// AC sweep type matching SPICE syntax.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AcSweepType {
@@ -123,6 +157,13 @@ pub enum Analysis {
         n_points: usize,
         f_start: f64,
         f_stop: f64,
+    },
+    /// Transient analysis (.TRAN)
+    Tran {
+        tstep: f64,
+        tstop: f64,
+        tstart: f64,
+        uic: bool,
     },
 }
 

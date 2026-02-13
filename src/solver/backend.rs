@@ -200,12 +200,7 @@ impl WgpuBackend {
     }
 
     /// Apply Jacobi preconditioner on GPU: output[i] = inv_diag[i] * input[i]
-    pub fn jacobi_apply(
-        &self,
-        inv_diag: &WgpuBuffer,
-        input: &WgpuBuffer,
-        output: &WgpuBuffer,
-    ) {
+    pub fn jacobi_apply(&self, inv_diag: &WgpuBuffer, input: &WgpuBuffer, output: &WgpuBuffer) {
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
         let n_u32 = input.n as u32;
@@ -256,14 +251,14 @@ impl WgpuBackend {
 
     /// Upload a read-only f32 storage buffer (e.g. for Jacobi inverse diagonal).
     pub fn upload_storage_buffer(&self, data: &[f32]) -> WgpuBuffer {
-        let buffer =
-            self.ctx
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("storage_readonly"),
-                    contents: bytemuck::cast_slice(data),
-                    usage: wgpu::BufferUsages::STORAGE,
-                });
+        let buffer = self
+            .ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("storage_readonly"),
+                contents: bytemuck::cast_slice(data),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
         WgpuBuffer {
             buffer,
             n: data.len(),
@@ -549,16 +544,16 @@ impl SolverBackend for WgpuBackend {
 
     fn new_buffer(&self, n: usize) -> WgpuBuffer {
         let zeros = vec![0.0f32; n];
-        let buffer =
-            self.ctx
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("backend_buffer"),
-                    contents: bytemuck::cast_slice(&zeros),
-                    usage: wgpu::BufferUsages::STORAGE
-                        | wgpu::BufferUsages::COPY_SRC
-                        | wgpu::BufferUsages::COPY_DST,
-                });
+        let buffer = self
+            .ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("backend_buffer"),
+                contents: bytemuck::cast_slice(&zeros),
+                usage: wgpu::BufferUsages::STORAGE
+                    | wgpu::BufferUsages::COPY_SRC
+                    | wgpu::BufferUsages::COPY_DST,
+            });
         WgpuBuffer { buffer, n }
     }
 

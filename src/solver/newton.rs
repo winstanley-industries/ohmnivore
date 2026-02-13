@@ -188,15 +188,14 @@ pub fn newton_solve(
         }
 
         // Check if any diagonal is zero (needs ISAI)
-        let has_zero_diag = inv_diag.iter().any(|&v| v == 0.0);
+        let has_zero_diag = inv_diag.contains(&0.0);
 
         if has_zero_diag {
             // Build a CPU-side CsrMatrix<f64> from the assembled values for ISAI
             let values_f64: Vec<f64> = assembled_values.iter().map(|&v| v as f64).collect();
             let col_indices_usize: Vec<usize> =
                 base_g_col_indices.iter().map(|&c| c as usize).collect();
-            let row_ptrs_usize: Vec<usize> =
-                base_g_row_ptrs.iter().map(|&r| r as usize).collect();
+            let row_ptrs_usize: Vec<usize> = base_g_row_ptrs.iter().map(|&r| r as usize).collect();
 
             let csr_cpu = crate::sparse::CsrMatrix {
                 nrows: system_size,

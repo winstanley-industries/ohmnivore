@@ -153,6 +153,7 @@ pub trait NonlinearBackend {
     ///
     /// Modifies `x_new` in-place (voltage limiting), then computes the max
     /// absolute difference between old and new solutions.
+    #[allow(clippy::too_many_arguments)]
     fn limit_and_check_convergence(
         &self,
         x_old: &Self::Buffer,
@@ -252,7 +253,10 @@ impl NonlinearPipelines {
             assemble_bjt_rhs_stamp: make(&bjt_assemble_module, "assemble_bjt_rhs_stamp"),
             bjt_voltage_limit: make(&bjt_vlimit_module, "bjt_voltage_limit"),
             mosfet_eval: make(&mosfet_eval_module, "mosfet_eval"),
-            assemble_mosfet_matrix_stamp: make(&mosfet_assemble_module, "assemble_mosfet_matrix_stamp"),
+            assemble_mosfet_matrix_stamp: make(
+                &mosfet_assemble_module,
+                "assemble_mosfet_matrix_stamp",
+            ),
             assemble_mosfet_rhs_stamp: make(&mosfet_assemble_module, "assemble_mosfet_rhs_stamp"),
             mosfet_voltage_limit: make(&mosfet_vlimit_module, "mosfet_voltage_limit"),
         }
@@ -274,14 +278,14 @@ impl WgpuBackend {
     /// Upload diode descriptors as a raw u32 storage buffer.
     pub fn upload_diode_descriptors(&self, descriptors: &[GpuDiodeDescriptor]) -> WgpuBuffer {
         let data: &[u8] = bytemuck::cast_slice(descriptors);
-        let buffer =
-            self.ctx
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("diode_descriptors"),
-                    contents: data,
-                    usage: wgpu::BufferUsages::STORAGE,
-                });
+        let buffer = self
+            .ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("diode_descriptors"),
+                contents: data,
+                usage: wgpu::BufferUsages::STORAGE,
+            });
         // n is in u32 words (12 words per diode)
         WgpuBuffer {
             buffer,
@@ -292,14 +296,14 @@ impl WgpuBackend {
     /// Upload BJT descriptors as a raw u32 storage buffer.
     pub fn upload_bjt_descriptors(&self, descriptors: &[GpuBjtDescriptor]) -> WgpuBuffer {
         let data: &[u8] = bytemuck::cast_slice(descriptors);
-        let buffer =
-            self.ctx
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("bjt_descriptors"),
-                    contents: data,
-                    usage: wgpu::BufferUsages::STORAGE,
-                });
+        let buffer = self
+            .ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("bjt_descriptors"),
+                contents: data,
+                usage: wgpu::BufferUsages::STORAGE,
+            });
         // 24 u32 words per BJT (96 bytes / 4)
         WgpuBuffer {
             buffer,
@@ -310,14 +314,14 @@ impl WgpuBackend {
     /// Upload MOSFET descriptors as a raw u32 storage buffer.
     pub fn upload_mosfet_descriptors(&self, descriptors: &[GpuMosfetDescriptor]) -> WgpuBuffer {
         let data: &[u8] = bytemuck::cast_slice(descriptors);
-        let buffer =
-            self.ctx
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("mosfet_descriptors"),
-                    contents: data,
-                    usage: wgpu::BufferUsages::STORAGE,
-                });
+        let buffer = self
+            .ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("mosfet_descriptors"),
+                contents: data,
+                usage: wgpu::BufferUsages::STORAGE,
+            });
         // 16 u32 words per MOSFET (64 bytes / 4)
         WgpuBuffer {
             buffer,
@@ -817,9 +821,7 @@ impl NonlinearBackend for WgpuBackend {
             });
             let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
-                layout: &pipelines
-                    .assemble_bjt_matrix_stamp
-                    .get_bind_group_layout(0),
+                layout: &pipelines.assemble_bjt_matrix_stamp.get_bind_group_layout(0),
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
@@ -948,9 +950,7 @@ impl NonlinearBackend for WgpuBackend {
             });
             let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
-                layout: &pipelines
-                    .assemble_mosfet_rhs_stamp
-                    .get_bind_group_layout(0),
+                layout: &pipelines.assemble_mosfet_rhs_stamp.get_bind_group_layout(0),
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,

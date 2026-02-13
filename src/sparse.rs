@@ -26,12 +26,7 @@ impl<T> CsrMatrix<T> {
     pub fn value_index(&self, row: usize, col: usize) -> Option<usize> {
         let start = self.row_pointers[row];
         let end = self.row_pointers[row + 1];
-        for i in start..end {
-            if self.col_indices[i] == col {
-                return Some(i);
-            }
-        }
-        None
+        (start..end).find(|&i| self.col_indices[i] == col)
     }
 }
 
@@ -107,9 +102,9 @@ impl<T: Copy + Default + AddAssign> CsrMatrix<T> {
     /// Convert to dense matrix (row-major). For testing and small matrices only.
     pub fn to_dense(&self) -> Vec<Vec<T>> {
         let mut dense = vec![vec![T::default(); self.ncols]; self.nrows];
-        for row in 0..self.nrows {
+        for (row, dense_row) in dense.iter_mut().enumerate().take(self.nrows) {
             for idx in self.row_pointers[row]..self.row_pointers[row + 1] {
-                dense[row][self.col_indices[idx]] = self.values[idx];
+                dense_row[self.col_indices[idx]] = self.values[idx];
             }
         }
         dense
@@ -121,12 +116,12 @@ impl CsrMatrix<f64> {
     pub fn spmv(&self, x: &[f64]) -> Vec<f64> {
         assert_eq!(x.len(), self.ncols, "spmv dimension mismatch");
         let mut y = vec![0.0; self.nrows];
-        for row in 0..self.nrows {
+        for (row, y_val) in y.iter_mut().enumerate().take(self.nrows) {
             let mut sum = 0.0;
             for idx in self.row_pointers[row]..self.row_pointers[row + 1] {
                 sum += self.values[idx] * x[self.col_indices[idx]];
             }
-            y[row] = sum;
+            *y_val = sum;
         }
         y
     }
@@ -137,12 +132,12 @@ impl CsrMatrix<Complex64> {
     pub fn spmv(&self, x: &[Complex64]) -> Vec<Complex64> {
         assert_eq!(x.len(), self.ncols, "spmv dimension mismatch");
         let mut y = vec![Complex64::new(0.0, 0.0); self.nrows];
-        for row in 0..self.nrows {
+        for (row, y_val) in y.iter_mut().enumerate().take(self.nrows) {
             let mut sum = Complex64::new(0.0, 0.0);
             for idx in self.row_pointers[row]..self.row_pointers[row + 1] {
                 sum += self.values[idx] * x[self.col_indices[idx]];
             }
-            y[row] = sum;
+            *y_val = sum;
         }
         y
     }

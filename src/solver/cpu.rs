@@ -24,12 +24,15 @@ impl Default for CpuSolver {
 }
 
 impl super::LinearSolver for CpuSolver {
+    #[allow(clippy::needless_range_loop)]
     fn solve_real(&self, a: &CsrMatrix<f64>, b: &[f64]) -> Result<Vec<f64>> {
         let n = a.nrows;
         if a.ncols != n || b.len() != n {
             return Err(OhmnivoreError::Solve(format!(
                 "dimension mismatch: matrix is {}x{}, rhs length is {}",
-                a.nrows, a.ncols, b.len()
+                a.nrows,
+                a.ncols,
+                b.len()
             )));
         }
         if n == 0 {
@@ -92,16 +95,15 @@ impl super::LinearSolver for CpuSolver {
         Ok(x)
     }
 
-    fn solve_complex(
-        &self,
-        a: &CsrMatrix<Complex64>,
-        b: &[Complex64],
-    ) -> Result<Vec<Complex64>> {
+    #[allow(clippy::needless_range_loop)]
+    fn solve_complex(&self, a: &CsrMatrix<Complex64>, b: &[Complex64]) -> Result<Vec<Complex64>> {
         let n = a.nrows;
         if a.ncols != n || b.len() != n {
             return Err(OhmnivoreError::Solve(format!(
                 "dimension mismatch: matrix is {}x{}, rhs length is {}",
-                a.nrows, a.ncols, b.len()
+                a.nrows,
+                a.ncols,
+                b.len()
             )));
         }
         if n == 0 {
@@ -197,11 +199,8 @@ mod tests {
         // [[2, 1], [5, 7]] * x = [11, 13]
         // det = 14 - 5 = 9
         // x1 = (77 - 13)/9 = 64/9, x2 = (26 - 55)/9 = -29/9
-        let a = CsrMatrix::from_triplets(
-            2,
-            2,
-            &[(0, 0, 2.0), (0, 1, 1.0), (1, 0, 5.0), (1, 1, 7.0)],
-        );
+        let a =
+            CsrMatrix::from_triplets(2, 2, &[(0, 0, 2.0), (0, 1, 1.0), (1, 0, 5.0), (1, 1, 7.0)]);
         let b = vec![11.0, 13.0];
         let x = solver().solve_real(&a, &b).unwrap();
         assert_abs_diff_eq!(x[0], 64.0 / 9.0, epsilon = 1e-12);
@@ -236,16 +235,16 @@ mod tests {
     #[test]
     fn solve_real_singular_matrix() {
         // [[1, 2], [2, 4]] is singular (row2 = 2*row1)
-        let a = CsrMatrix::from_triplets(
-            2,
-            2,
-            &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 2.0), (1, 1, 4.0)],
-        );
+        let a =
+            CsrMatrix::from_triplets(2, 2, &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 2.0), (1, 1, 4.0)]);
         let b = vec![3.0, 6.0];
         let result = solver().solve_real(&a, &b);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("singular"), "expected singular error, got: {err}");
+        assert!(
+            err.contains("singular"),
+            "expected singular error, got: {err}"
+        );
     }
 
     #[test]

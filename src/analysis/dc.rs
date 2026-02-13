@@ -6,10 +6,10 @@
 //! For linear circuits, uses the standard linear solver path.
 //! For nonlinear circuits (with diodes, BJTs, or MOSFETs), uses GPU-accelerated Newton-Raphson.
 
+use super::DcResult;
 use crate::compiler::MnaSystem;
 use crate::error::Result;
 use crate::solver::LinearSolver;
-use super::DcResult;
 
 /// Run DC operating point analysis.
 ///

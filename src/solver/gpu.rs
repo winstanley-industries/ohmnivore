@@ -96,7 +96,8 @@ impl super::LinearSolver for GpuSolver {
         if a.ncols != n || b.len() != n {
             return Err(OhmnivoreError::Solve(format!(
                 "dimension mismatch: matrix is {}x{}, rhs length is {}",
-                a.nrows, a.ncols,
+                a.nrows,
+                a.ncols,
                 b.len()
             )));
         }
@@ -182,16 +183,13 @@ impl super::LinearSolver for GpuSolver {
         Ok(result_f32.iter().map(|&v| v as f64).collect())
     }
 
-    fn solve_complex(
-        &self,
-        a: &CsrMatrix<Complex64>,
-        b: &[Complex64],
-    ) -> Result<Vec<Complex64>> {
+    fn solve_complex(&self, a: &CsrMatrix<Complex64>, b: &[Complex64]) -> Result<Vec<Complex64>> {
         let n = a.nrows;
         if a.ncols != n || b.len() != n {
             return Err(OhmnivoreError::Solve(format!(
                 "dimension mismatch: matrix is {}x{}, rhs length is {}",
-                a.nrows, a.ncols,
+                a.nrows,
+                a.ncols,
                 b.len()
             )));
         }
@@ -205,8 +203,11 @@ impl super::LinearSolver for GpuSolver {
         let n_wg = workgroup_count(n_u32);
 
         // Convert to GPU format: vec2<f32> = [re, im]
-        let values_f32: Vec<[f32; 2]> =
-            a.values.iter().map(|v| [v.re as f32, v.im as f32]).collect();
+        let values_f32: Vec<[f32; 2]> = a
+            .values
+            .iter()
+            .map(|v| [v.re as f32, v.im as f32])
+            .collect();
         let col_indices_u32: Vec<u32> = a.col_indices.iter().map(|&c| c as u32).collect();
         let row_ptrs_u32: Vec<u32> = a.row_pointers.iter().map(|&r| r as u32).collect();
         let b_f32: Vec<[f32; 2]> = b.iter().map(|v| [v.re as f32, v.im as f32]).collect();
@@ -607,10 +608,7 @@ impl super::LinearSolver for GpuSolver {
             if d < 1e-30 {
                 (0.0, 0.0)
             } else {
-                (
-                    (a.0 * b.0 + a.1 * b.1) / d,
-                    (a.1 * b.0 - a.0 * b.1) / d,
-                )
+                ((a.0 * b.0 + a.1 * b.1) / d, (a.1 * b.0 - a.0 * b.1) / d)
             }
         };
         let cmul = |a: (f32, f32), b: (f32, f32)| -> (f32, f32) {
@@ -634,9 +632,7 @@ impl super::LinearSolver for GpuSolver {
         for _iter in 0..MAX_ITERATIONS {
             let rho_new = dispatch_dot(&r_hat_buf, &r_buf);
             if cnorm_sq(rho_new) < 1e-30 {
-                return Err(OhmnivoreError::Solve(
-                    "BiCGSTAB breakdown: rho ~ 0".into(),
-                ));
+                return Err(OhmnivoreError::Solve("BiCGSTAB breakdown: rho ~ 0".into()));
             }
 
             let beta = cmul(cdiv(rho_new, rho), cdiv(alpha, omega));
@@ -752,11 +748,8 @@ mod tests {
             eprintln!("skipping GPU test: no GPU available");
             return;
         };
-        let a = CsrMatrix::from_triplets(
-            2,
-            2,
-            &[(0, 0, 2.0), (0, 1, 1.0), (1, 0, 5.0), (1, 1, 7.0)],
-        );
+        let a =
+            CsrMatrix::from_triplets(2, 2, &[(0, 0, 2.0), (0, 1, 1.0), (1, 0, 5.0), (1, 1, 7.0)]);
         let b = vec![11.0, 13.0];
         let x = solver.solve_real(&a, &b).unwrap();
         let expected_x0 = 64.0 / 9.0;
@@ -881,16 +874,8 @@ mod tests {
         let b = vec![0.0, 0.0, 10.0];
         let x = solver.solve_real(&a, &b).unwrap();
         // V(1) = 10.0, V(2) = 5.0
-        assert!(
-            (x[0] - 10.0).abs() < 0.1,
-            "V(1)={}, expected 10.0",
-            x[0]
-        );
-        assert!(
-            (x[1] - 5.0).abs() < 0.1,
-            "V(2)={}, expected 5.0",
-            x[1]
-        );
+        assert!((x[0] - 10.0).abs() < 0.1, "V(1)={}, expected 10.0", x[0]);
+        assert!((x[1] - 5.0).abs() < 0.1, "V(2)={}, expected 5.0", x[1]);
     }
 
     #[test]
@@ -923,16 +908,8 @@ mod tests {
         let b = vec![0.0, 0.0, 10.0, 5.0];
         let x = solver.solve_real(&a, &b).unwrap();
         // V(1) = 10.0, V(2) = 5.0
-        assert!(
-            (x[0] - 10.0).abs() < 0.1,
-            "V(1)={}, expected 10.0",
-            x[0]
-        );
-        assert!(
-            (x[1] - 5.0).abs() < 0.1,
-            "V(2)={}, expected 5.0",
-            x[1]
-        );
+        assert!((x[0] - 10.0).abs() < 0.1, "V(1)={}, expected 10.0", x[0]);
+        assert!((x[1] - 5.0).abs() < 0.1, "V(2)={}, expected 5.0", x[1]);
         // i_V1 = (V1 - V2) / R = 5mA
         assert!(
             (x[2] - (-0.005)).abs() < 0.001,
@@ -972,7 +949,9 @@ mod tests {
             assert!(
                 (x_cpu[i] - x_gpu[i]).abs() < 0.1,
                 "CPU vs GPU mismatch at [{}]: cpu={}, gpu={}",
-                i, x_cpu[i], x_gpu[i]
+                i,
+                x_cpu[i],
+                x_gpu[i]
             );
         }
     }
@@ -993,12 +972,7 @@ mod tests {
         let a = CsrMatrix::from_triplets(
             2,
             2,
-            &[
-                (0, 0, g1 + g2),
-                (0, 1, -g2),
-                (1, 0, -g2),
-                (1, 1, g2 + g3),
-            ],
+            &[(0, 0, g1 + g2), (0, 1, -g2), (1, 0, -g2), (1, 1, g2 + g3)],
         );
         let b = vec![0.01, 0.0]; // 10mA into node 1
         let x = solver.solve_real(&a, &b).unwrap();
@@ -1007,7 +981,9 @@ mod tests {
             assert!(
                 (ax[i] - b[i]).abs() < 1e-3,
                 "residual at [{}]: ax={}, b={}",
-                i, ax[i], b[i]
+                i,
+                ax[i],
+                b[i]
             );
         }
     }

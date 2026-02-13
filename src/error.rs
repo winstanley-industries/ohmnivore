@@ -23,6 +23,12 @@ pub enum OhmnivoreError {
     #[error("Analysis error: {0}")]
     Analysis(String),
 
+    #[error("Convergence error: {0}")]
+    Convergence(String),
+
+    #[error("Timestep error: {0}")]
+    Timestep(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }

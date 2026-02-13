@@ -10,12 +10,12 @@
 //!   - OCT: logarithmic, n_points per octave
 //!   - LIN: linear, n_points total
 
+use super::AcResult;
 use crate::compiler::MnaSystem;
 use crate::error::Result;
 use crate::ir::AcSweepType;
 use crate::solver::LinearSolver;
 use num_complex::Complex64;
-use super::AcResult;
 
 /// Run AC frequency sweep analysis.
 ///
