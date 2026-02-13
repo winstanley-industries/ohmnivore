@@ -1,8 +1,11 @@
 //! Linear system solvers.
 
+pub mod backend;
+pub mod bicgstab;
 pub mod cpu;
 pub mod gpu;
 pub mod gpu_shaders;
+pub mod preconditioner;
 
 use crate::error::Result;
 use crate::sparse::CsrMatrix;
