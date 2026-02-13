@@ -1,0 +1,8 @@
+pub mod analysis;
+pub mod compiler;
+pub mod error;
+pub mod ir;
+pub mod output;
+pub mod parser;
+pub mod solver;
+pub mod sparse;

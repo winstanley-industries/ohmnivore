@@ -1,0 +1,17 @@
+[package]
+name = "ohmnivore"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nom = "8"
+num-complex = "0.4"
+wgpu = "28"
+pollster = "0.4"
+bytemuck = { version = "1", features = ["derive"] }
+log = "0.4"
+env_logger = "0.11"
+thiserror = "2"
+
+[dev-dependencies]
+approx = "0.5"
