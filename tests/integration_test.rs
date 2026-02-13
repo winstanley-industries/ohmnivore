@@ -69,8 +69,8 @@ R2 2 0 1k
         .unwrap()
         .1;
 
-    assert_abs_diff_eq!(v1, 10.0, epsilon = 1e-9);
-    assert_abs_diff_eq!(v2, 5.0, epsilon = 1e-9);
+    assert_abs_diff_eq!(v1, 10.0, epsilon = 1e-6);
+    assert_abs_diff_eq!(v2, 5.0, epsilon = 1e-6);
 
     // Current through V1: I = V/R_total = 10/2000 = 0.005A
     // Convention: current flows into the positive terminal of the source, so I(V1) is negative
@@ -121,7 +121,7 @@ R2 2 0 2k
         .unwrap()
         .1;
     // V2 = 10 * 2k / (1k + 2k) = 20/3 ≈ 6.667
-    assert_abs_diff_eq!(v2, 20.0 / 3.0, epsilon = 1e-9);
+    assert_abs_diff_eq!(v2, 20.0 / 3.0, epsilon = 1e-6);
 }
 
 // ── AC Tests ──────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ fn test_cli_with_fixture_file() {
         .find(|(n, _)| n == "2")
         .unwrap()
         .1;
-    assert_abs_diff_eq!(v2, 5.0, epsilon = 1e-9);
+    assert_abs_diff_eq!(v2, 5.0, epsilon = 1e-6);
 
     // Also verify CSV output doesn't error
     let mut buf = Vec::new();

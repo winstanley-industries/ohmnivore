@@ -11,6 +11,20 @@
 - [ ] Advanced convergence aids (source stepping, Gmin stepping, continuation methods)
 - [ ] User-configurable convergence parameters via netlist options (`.OPTIONS`)
 
+## GPU Precision / BiCGSTAB Convergence
+
+The GPU solver uses f32 throughout (wgpu compute shaders). With GMIN=1e-12 on node diagonals and O(1) voltage source stamps, the matrix condition number reaches ~1e12 at Newton iteration 0 (all nonlinear devices off). f32 has ~7 digits of precision, so BiCGSTAB loses all significance in its dot products and breaks down.
+
+**Symptoms:** BiCGSTAB breakdown ("omega ~ 0" or "rho ~ 0") on CMOS inverter chains with ~10+ stages. Smaller circuits (1-5 stages) converge because the matrix is small enough for the ISAI preconditioner to compensate.
+
+**Why it matters:** GMIN must be small (1e-12) to avoid perturbing circuit results. Increasing GMIN to 1e-3 fixes convergence but ruins output accuracy.
+
+**Possible fixes:**
+- [ ] f64 GPU compute shaders (requires `wgpu` `shader-f64` feature + hardware support — not universal on Metal/Vulkan)
+- [ ] Mixed-precision Newton: use CPU f64 direct solver for the initial iteration (all devices off, purely linear), then switch to GPU f32 BiCGSTAB for subsequent iterations where device conductances dominate and conditioning is better
+- [ ] Iterative refinement: solve in f32, compute residual in f64, correct
+- [ ] Better preconditioner that handles the extreme dynamic range (ILU instead of Jacobi/ISAI)
+
 ## GPU Backends
 - [ ] CUDA backend implementing `SolverBackend` + `NonlinearBackend`
 - [ ] ROCm backend implementing `SolverBackend` + `NonlinearBackend`

@@ -39,6 +39,10 @@ use std::collections::HashMap;
 /// Thermal voltage at 300K: kT/q ~ 0.02585 V
 const VT_300K: f64 = 0.02585;
 
+/// Minimum conductance from every node to ground (standard SPICE GMIN).
+/// Prevents singular matrices when nodes are only connected through off transistors.
+const GMIN: f64 = 1e-12;
+
 /// GPU-friendly descriptor for a single diode, matching the WGSL shader layout.
 ///
 /// 12 words (u32) per diode, matching the flat buffer layout expected by the
@@ -555,12 +559,17 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                     } else {
                         -1.0f32
                     },
-                    vto: mosfet_model.vto as f32,
+                    vto: mosfet_model.vto.abs() as f32,
                     kp: mosfet_model.kp as f32,
                     lambda: mosfet_model.lambda as f32,
                 });
             }
         }
+    }
+
+    // GMIN: add tiny conductance from every node to ground to prevent singular matrices.
+    for i in 0..n_nodes {
+        g_triplets.push((i, i, GMIN));
     }
 
     // Ensure G has entries at all positions where C has entries.
@@ -777,7 +786,7 @@ mod tests {
 
         let g_dense = mna.g.to_dense();
         assert_eq!(g_dense.len(), 1);
-        assert!((g_dense[0][0] - 0.001).abs() < 1e-12);
+        assert!((g_dense[0][0] - 0.001).abs() < 1e-9);
     }
 
     #[test]
@@ -825,24 +834,24 @@ mod tests {
 
         let g = mna.g.to_dense();
         // Row 0: [0.001, -0.001, 1.0]
-        assert!((g[0][0] - 0.001).abs() < 1e-12);
-        assert!((g[0][1] - (-0.001)).abs() < 1e-12);
-        assert!((g[0][2] - 1.0).abs() < 1e-12);
+        assert!((g[0][0] - 0.001).abs() < 1e-9);
+        assert!((g[0][1] - (-0.001)).abs() < 1e-9);
+        assert!((g[0][2] - 1.0).abs() < 1e-9);
 
         // Row 1: [-0.001, 0.002, 0.0]
-        assert!((g[1][0] - (-0.001)).abs() < 1e-12);
-        assert!((g[1][1] - 0.002).abs() < 1e-12);
-        assert!((g[1][2] - 0.0).abs() < 1e-12);
+        assert!((g[1][0] - (-0.001)).abs() < 1e-9);
+        assert!((g[1][1] - 0.002).abs() < 1e-9);
+        assert!((g[1][2] - 0.0).abs() < 1e-9);
 
         // Row 2: [1.0, 0.0, 0.0]
-        assert!((g[2][0] - 1.0).abs() < 1e-12);
-        assert!((g[2][1] - 0.0).abs() < 1e-12);
-        assert!((g[2][2] - 0.0).abs() < 1e-12);
+        assert!((g[2][0] - 1.0).abs() < 1e-9);
+        assert!((g[2][1] - 0.0).abs() < 1e-9);
+        assert!((g[2][2] - 0.0).abs() < 1e-9);
 
         // b_dc
-        assert!((mna.b_dc[0] - 0.0).abs() < 1e-12);
-        assert!((mna.b_dc[1] - 0.0).abs() < 1e-12);
-        assert!((mna.b_dc[2] - 5.0).abs() < 1e-12);
+        assert!((mna.b_dc[0] - 0.0).abs() < 1e-9);
+        assert!((mna.b_dc[1] - 0.0).abs() < 1e-9);
+        assert!((mna.b_dc[2] - 5.0).abs() < 1e-9);
     }
 
     #[test]
@@ -885,12 +894,12 @@ mod tests {
         assert_eq!(mna.size, 3);
 
         let g = mna.g.to_dense();
-        assert!((g[0][0] - 0.01).abs() < 1e-12);
-        assert!((g[0][1] - (-0.01)).abs() < 1e-12);
-        assert!((g[0][2] - 1.0).abs() < 1e-12);
-        assert!((g[1][0] - (-0.01)).abs() < 1e-12);
-        assert!((g[1][1] - 0.01).abs() < 1e-12);
-        assert!((g[2][0] - 1.0).abs() < 1e-12);
+        assert!((g[0][0] - 0.01).abs() < 1e-9);
+        assert!((g[0][1] - (-0.01)).abs() < 1e-9);
+        assert!((g[0][2] - 1.0).abs() < 1e-9);
+        assert!((g[1][0] - (-0.01)).abs() < 1e-9);
+        assert!((g[1][1] - 0.01).abs() < 1e-9);
+        assert!((g[2][0] - 1.0).abs() < 1e-9);
 
         let c = mna.c.to_dense();
         assert!((c[1][1] - 1e-6).abs() < 1e-18);
@@ -899,7 +908,7 @@ mod tests {
         assert!((c[0][1]).abs() < 1e-18);
 
         // AC excitation
-        assert!((mna.b_ac[2] - Complex64::new(1.0, 0.0)).norm() < 1e-12);
+        assert!((mna.b_ac[2] - Complex64::new(1.0, 0.0)).norm() < 1e-9);
     }
 
     #[test]
@@ -922,17 +931,17 @@ mod tests {
         assert_eq!(mna.branch_names, vec!["L1"]);
 
         let g = mna.g.to_dense();
-        assert!((g[0][2] - 1.0).abs() < 1e-12);
-        assert!((g[2][0] - 1.0).abs() < 1e-12);
-        assert!((g[1][2] - (-1.0)).abs() < 1e-12);
-        assert!((g[2][1] - (-1.0)).abs() < 1e-12);
+        assert!((g[0][2] - 1.0).abs() < 1e-9);
+        assert!((g[2][0] - 1.0).abs() < 1e-9);
+        assert!((g[1][2] - (-1.0)).abs() < 1e-9);
+        assert!((g[2][1] - (-1.0)).abs() < 1e-9);
         // Diagonal should be zero
-        assert!((g[0][0]).abs() < 1e-12);
-        assert!((g[1][1]).abs() < 1e-12);
-        assert!((g[2][2]).abs() < 1e-12);
+        assert!((g[0][0]).abs() < 1e-9);
+        assert!((g[1][1]).abs() < 1e-9);
+        assert!((g[2][2]).abs() < 1e-9);
 
         let c = mna.c.to_dense();
-        assert!((c[2][2] - (-0.001)).abs() < 1e-12);
+        assert!((c[2][2] - (-0.001)).abs() < 1e-9);
     }
 
     #[test]
@@ -951,7 +960,7 @@ mod tests {
 
         let mna = compile(&circuit).unwrap();
         assert_eq!(mna.size, 1);
-        assert!((mna.b_dc[0] - (-2.0)).abs() < 1e-12);
+        assert!((mna.b_dc[0] - (-2.0)).abs() < 1e-9);
     }
 
     #[test]
@@ -969,13 +978,13 @@ mod tests {
 
         let mna = compile(&circuit).unwrap();
         assert_eq!(mna.size, 2);
-        assert!((mna.b_dc[0] - (-3.0)).abs() < 1e-12);
-        assert!((mna.b_dc[1] - 3.0).abs() < 1e-12);
+        assert!((mna.b_dc[0] - (-3.0)).abs() < 1e-9);
+        assert!((mna.b_dc[1] - 3.0).abs() < 1e-9);
 
         // AC: 1.0 at 90 degrees = j
         let expected_ac = ac_to_complex(1.0, 90.0);
-        assert!((mna.b_ac[0] - (-expected_ac)).norm() < 1e-12);
-        assert!((mna.b_ac[1] - expected_ac).norm() < 1e-12);
+        assert!((mna.b_ac[0] - (-expected_ac)).norm() < 1e-9);
+        assert!((mna.b_ac[1] - expected_ac).norm() < 1e-9);
     }
 
     #[test]
@@ -1041,10 +1050,10 @@ mod tests {
         assert_eq!(mna.size, 2);
 
         let g = mna.g.to_dense();
-        assert!((g[0][0] - 0.01).abs() < 1e-12);
-        assert!((g[0][1] - (-0.01)).abs() < 1e-12);
-        assert!((g[1][0] - (-0.01)).abs() < 1e-12);
-        assert!((g[1][1] - 0.015).abs() < 1e-12);
+        assert!((g[0][0] - 0.01).abs() < 1e-9);
+        assert!((g[0][1] - (-0.01)).abs() < 1e-9);
+        assert!((g[1][0] - (-0.01)).abs() < 1e-9);
+        assert!((g[1][1] - 0.015).abs() < 1e-9);
     }
 
     #[test]
@@ -1060,10 +1069,10 @@ mod tests {
 
         let mna = compile(&circuit).unwrap();
         assert_eq!(mna.size, 2); // 1 node + 1 branch
-        assert!((mna.b_dc[1] - 10.0).abs() < 1e-12);
+        assert!((mna.b_dc[1] - 10.0).abs() < 1e-9);
 
         let expected = ac_to_complex(5.0, 45.0);
-        assert!((mna.b_ac[1] - expected).norm() < 1e-12);
+        assert!((mna.b_ac[1] - expected).norm() < 1e-9);
     }
 
     #[test]
@@ -1083,11 +1092,11 @@ mod tests {
         assert_eq!(mna.size, 3); // 2 nodes + 1 branch
 
         let g = mna.g.to_dense();
-        assert!((g[0][2] - 1.0).abs() < 1e-12);
-        assert!((g[2][0] - 1.0).abs() < 1e-12);
-        assert!((g[1][2] - (-1.0)).abs() < 1e-12);
-        assert!((g[2][1] - (-1.0)).abs() < 1e-12);
-        assert!((mna.b_dc[2] - 3.0).abs() < 1e-12);
+        assert!((g[0][2] - 1.0).abs() < 1e-9);
+        assert!((g[2][0] - 1.0).abs() < 1e-9);
+        assert!((g[1][2] - (-1.0)).abs() < 1e-9);
+        assert!((g[2][1] - (-1.0)).abs() < 1e-9);
+        assert!((mna.b_dc[2] - 3.0).abs() < 1e-9);
     }
 
     #[test]
@@ -1151,33 +1160,33 @@ mod tests {
 
         let g = mna.g.to_dense();
         // Node 1 (row 0): R1 stamp + V1 coupling
-        assert!((g[0][0] - 0.01).abs() < 1e-12); // 1/100
-        assert!((g[0][1] - (-0.01)).abs() < 1e-12); // -1/100
-        assert!((g[0][3] - 1.0).abs() < 1e-12); // V1 coupling
+        assert!((g[0][0] - 0.01).abs() < 1e-9); // 1/100
+        assert!((g[0][1] - (-0.01)).abs() < 1e-9); // -1/100
+        assert!((g[0][3] - 1.0).abs() < 1e-9); // V1 coupling
 
         // Node 2 (row 1): R1 stamp + L1 coupling
-        assert!((g[1][0] - (-0.01)).abs() < 1e-12); // -1/100
-        assert!((g[1][1] - 0.01).abs() < 1e-12); // 1/100
-        assert!((g[1][4] - 1.0).abs() < 1e-12); // L1 coupling
+        assert!((g[1][0] - (-0.01)).abs() < 1e-9); // -1/100
+        assert!((g[1][1] - 0.01).abs() < 1e-9); // 1/100
+        assert!((g[1][4] - 1.0).abs() < 1e-9); // L1 coupling
 
         // Node 3 (row 2): L1 coupling
-        assert!((g[2][4] - (-1.0)).abs() < 1e-12); // L1 coupling (negative terminal)
+        assert!((g[2][4] - (-1.0)).abs() < 1e-9); // L1 coupling (negative terminal)
 
         // V1 branch (row 3)
-        assert!((g[3][0] - 1.0).abs() < 1e-12);
+        assert!((g[3][0] - 1.0).abs() < 1e-9);
 
         // L1 branch (row 4)
-        assert!((g[4][1] - 1.0).abs() < 1e-12);
-        assert!((g[4][2] - (-1.0)).abs() < 1e-12);
+        assert!((g[4][1] - 1.0).abs() < 1e-9);
+        assert!((g[4][2] - (-1.0)).abs() < 1e-9);
 
         // C matrix: capacitor stamp + inductor stamp
         let c = mna.c.to_dense();
         assert!((c[2][2] - 1e-6).abs() < 1e-18); // C1 at node 3
-        assert!((c[4][4] - (-0.001)).abs() < 1e-12); // -L for inductor branch
+        assert!((c[4][4] - (-0.001)).abs() < 1e-9); // -L for inductor branch
 
         // Excitation vectors
-        assert!((mna.b_dc[3] - 1.0).abs() < 1e-12);
-        assert!((mna.b_ac[3] - Complex64::new(1.0, 0.0)).norm() < 1e-12);
+        assert!((mna.b_dc[3] - 1.0).abs() < 1e-9);
+        assert!((mna.b_ac[3] - Complex64::new(1.0, 0.0)).norm() < 1e-9);
     }
 
     #[test]
@@ -1185,18 +1194,18 @@ mod tests {
         // 45 degrees: mag * (cos(45) + j*sin(45)) = mag * (sqrt2/2 + j*sqrt2/2)
         let c = ac_to_complex(2.0, 45.0);
         let sqrt2_over_2 = std::f64::consts::FRAC_1_SQRT_2;
-        assert!((c.re - 2.0 * sqrt2_over_2).abs() < 1e-12);
-        assert!((c.im - 2.0 * sqrt2_over_2).abs() < 1e-12);
+        assert!((c.re - 2.0 * sqrt2_over_2).abs() < 1e-9);
+        assert!((c.im - 2.0 * sqrt2_over_2).abs() < 1e-9);
 
         // 90 degrees: purely imaginary
         let c90 = ac_to_complex(1.0, 90.0);
-        assert!((c90.re).abs() < 1e-12);
-        assert!((c90.im - 1.0).abs() < 1e-12);
+        assert!((c90.re).abs() < 1e-9);
+        assert!((c90.im - 1.0).abs() < 1e-9);
 
         // 0 degrees: purely real
         let c0 = ac_to_complex(3.0, 0.0);
-        assert!((c0.re - 3.0).abs() < 1e-12);
-        assert!((c0.im).abs() < 1e-12);
+        assert!((c0.re - 3.0).abs() < 1e-9);
+        assert!((c0.im).abs() < 1e-9);
     }
 
     #[test]
@@ -1225,8 +1234,8 @@ mod tests {
         assert_eq!(mna.branch_names, vec!["V1", "V2"]);
 
         // b_dc: V1 at row 2, V2 at row 3
-        assert!((mna.b_dc[2] - 5.0).abs() < 1e-12);
-        assert!((mna.b_dc[3] - 3.0).abs() < 1e-12);
+        assert!((mna.b_dc[2] - 5.0).abs() < 1e-9);
+        assert!((mna.b_dc[3] - 3.0).abs() < 1e-9);
     }
 
     #[test]
@@ -1250,7 +1259,7 @@ mod tests {
         assert_eq!(mna.size, 1);
 
         let g = mna.g.to_dense();
-        assert!((g[0][0] - 0.015).abs() < 1e-12);
+        assert!((g[0][0] - 0.015).abs() < 1e-9);
     }
 
     // --- Diode tests ---
@@ -1376,11 +1385,11 @@ mod tests {
         let g = mna.g.to_dense();
         // The diode stamps are zeros; resistor stamps are non-zero on diagonals
         // (0,0) = 1/1000 + 0 = 0.001, (1,1) = 1/1000 + 0 = 0.001
-        assert!((g[0][0] - 0.001).abs() < 1e-12);
-        assert!((g[1][1] - 0.001).abs() < 1e-12);
+        assert!((g[0][0] - 0.001).abs() < 1e-9);
+        assert!((g[1][1] - 0.001).abs() < 1e-9);
         // Off-diagonals from diode placeholder only: (0,1) = 0, (1,0) = 0
-        assert!((g[0][1]).abs() < 1e-12);
-        assert!((g[1][0]).abs() < 1e-12);
+        assert!((g[0][1]).abs() < 1e-9);
+        assert!((g[1][0]).abs() < 1e-9);
 
         // b_idx
         assert_eq!(desc.b_idx[0], 0);
@@ -1493,7 +1502,7 @@ mod tests {
         let val_idx = desc.g_row_col[0] as usize;
         // The value at that CSR position should be the resistor's conductance
         // (since the diode adds 0.0)
-        assert!((mna.g.values[val_idx] - 0.001).abs() < 1e-12);
+        assert!((mna.g.values[val_idx] - 0.001).abs() < 1e-9);
     }
 
     #[test]

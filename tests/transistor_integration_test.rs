@@ -456,6 +456,26 @@ M1 drain gate 0 0 NMOD
 }
 
 #[test]
+fn test_cmos_inverter_dc() {
+    let netlist = "\
+* CMOS Inverter - no resistive load
+VDD vdd 0 DC 5
+VIN in 0 DC 5
+.MODEL NMOD NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)
+.MODEL PMOD PMOS(VTO=-0.7 KP=5.5e-5 LAMBDA=0.04)
+MP1 out in vdd vdd PMOD
+MN1 out in 0 0 NMOD
+.DC
+.END
+";
+    let result = try_dc_solve(netlist)
+        .expect("CMOS inverter DC should converge");
+    let v_out = voltage(&result, "out");
+    // VIN=5V (high) -> NMOS ON, PMOS OFF -> out should be near 0V
+    assert!(v_out < 0.5, "V(out) = {v_out}, expected near 0V for CMOS inverter with high input");
+}
+
+#[test]
 fn test_linear_circuit_still_works() {
     let netlist = "\
 V1 1 0 DC 10
@@ -477,6 +497,6 @@ R2 2 0 1k
 
     let v2 = voltage(&result, "2");
 
-    // Standard voltage divider: V(2) = 5.0V exactly
-    assert!((v2 - 5.0).abs() < 1e-9, "V(2) = {v2}, expected 5.0V");
+    // Standard voltage divider: V(2) = 5.0V (GMIN adds ~1e-9 perturbation)
+    assert!((v2 - 5.0).abs() < 1e-6, "V(2) = {v2}, expected 5.0V");
 }

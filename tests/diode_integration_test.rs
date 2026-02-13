@@ -231,6 +231,6 @@ R2 2 0 1k
         .unwrap()
         .1;
 
-    // Standard voltage divider: V(2) = 5.0V
-    assert!((v2 - 5.0).abs() < 1e-9, "V(2) = {v2}, expected 5.0V");
+    // Standard voltage divider: V(2) = 5.0V (GMIN adds ~1e-9 perturbation)
+    assert!((v2 - 5.0).abs() < 1e-6, "V(2) = {v2}, expected 5.0V");
 }

@@ -133,19 +133,11 @@ fn run_dc_comparison(
         Ok(result) => result,
         Err(e) => {
             let msg = format!("{e}");
-            // Skip nonlinear circuits that can't solve (no GPU, Newton divergence)
-            if msg.contains("not converge")
-                || msg.contains("GPU")
-                || msg.contains("no GPU adapter")
-                || msg.contains("diverged")
-            {
-                eprintln!(
-                    "Skipping regression test '{}': Ohmnivore solver: {}",
-                    entry.name, msg
-                );
+            if msg.contains("no GPU adapter") {
+                eprintln!("Skipping '{}': {}", entry.name, msg);
                 return;
             }
-            panic!("Ohmnivore DC solve failed: {e}");
+            panic!("Ohmnivore DC solve failed for '{}': {e}", entry.name);
         }
     };
 
