@@ -10,6 +10,7 @@ use super::DcResult;
 use crate::compiler::MnaSystem;
 use crate::error::Result;
 use crate::solver::LinearSolver;
+use crate::stats::Stats;
 
 /// Run DC operating point analysis.
 ///
@@ -17,13 +18,15 @@ use crate::solver::LinearSolver;
 /// 2. If linear: solve Gx = b_dc with the provided linear solver.
 /// 3. If nonlinear: use the GPU Newton-Raphson solver.
 /// 4. Map solution indices back to node/branch names.
-pub fn run(system: &MnaSystem, solver: &dyn LinearSolver) -> Result<DcResult> {
+pub fn run(system: &MnaSystem, solver: &dyn LinearSolver, mut stats: Option<&mut Stats>) -> Result<DcResult> {
+    let _span = tracing::info_span!("dc_analysis").entered();
     let x = if !system.diode_descriptors.is_empty()
         || !system.bjt_descriptors.is_empty()
         || !system.mosfet_descriptors.is_empty()
     {
-        run_nonlinear(system)?
+        run_nonlinear(system, stats)?
     } else {
+        if let Some(ref mut s) = stats { s.linear_solves += 1; }
         solver.solve_real(&system.g, &system.b_dc)?
     };
 
@@ -31,7 +34,7 @@ pub fn run(system: &MnaSystem, solver: &dyn LinearSolver) -> Result<DcResult> {
 }
 
 /// Run the nonlinear DC path using GPU Newton-Raphson iteration.
-fn run_nonlinear(system: &MnaSystem) -> Result<Vec<f64>> {
+fn run_nonlinear(system: &MnaSystem, stats: Option<&mut Stats>) -> Result<Vec<f64>> {
     use crate::solver::backend::{SolverBackend, WgpuBackend};
     use crate::solver::newton::{newton_solve, NewtonParams};
 
@@ -61,7 +64,7 @@ fn run_nonlinear(system: &MnaSystem) -> Result<Vec<f64>> {
         system.size,
         matrix_nnz,
         &NewtonParams::default(),
-        None,
+        stats,
     )
 }
 

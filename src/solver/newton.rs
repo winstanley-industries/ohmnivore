@@ -6,6 +6,8 @@
 
 use crate::compiler::{GpuBjtDescriptor, GpuDiodeDescriptor, GpuMosfetDescriptor};
 use crate::error::{OhmnivoreError, Result};
+use crate::stats::Stats;
+use std::time::Instant;
 
 use super::backend::{SolverBackend, WgpuBackend, WgpuBuffer};
 use super::bicgstab;
@@ -48,6 +50,7 @@ pub fn newton_solve(
     system_size: usize,
     matrix_nnz: usize,
     params: &NewtonParams,
+    mut stats: Option<&mut Stats>,
 ) -> Result<Vec<f64>> {
     let n_diodes = diode_descriptors.len() as u32;
     let n_bjts = bjt_descriptors.len() as u32;
@@ -90,25 +93,25 @@ pub fn newton_solve(
     let tolerance_f32 = params.abs_tol as f32;
 
     for iter in 0..params.max_iterations {
+        let _span = tracing::debug_span!("newton_iter", iter).entered();
         // Save current solution as x_old
         backend.copy(&x_buf, &x_old_buf);
 
-        // Step 1a: Evaluate diodes at current solution
+        // Step 1a-1c: Device evaluation
+        let t = Instant::now();
         if n_diodes > 0 {
             backend.evaluate_diodes(&desc_buf, &x_buf, &diode_output_buf, n_diodes);
         }
-
-        // Step 1b: Evaluate BJTs at current solution
         if n_bjts > 0 {
             backend.evaluate_bjts(&bjt_desc_buf, &x_buf, &bjt_output_buf, n_bjts);
         }
-
-        // Step 1c: Evaluate MOSFETs at current solution
         if n_mosfets > 0 {
             backend.evaluate_mosfets(&mosfet_desc_buf, &x_buf, &mosfet_output_buf, n_mosfets);
         }
+        if let Some(ref mut s) = stats { s.device_eval += t.elapsed(); }
 
-        // Step 2a: Assemble nonlinear system (copy base + stamp diode contributions)
+        // Step 2a-2c: Assembly
+        let t = Instant::now();
         backend.assemble_nonlinear_system(
             &base_values_buf,
             base_b,
@@ -122,7 +125,6 @@ pub fn newton_solve(
             system_size as u32,
         );
 
-        // Step 2b: Stamp BJT contributions (on top of already-copied base values)
         if n_bjts > 0 {
             backend.assemble_bjt_stamps(
                 &bjt_output_buf,
@@ -134,7 +136,6 @@ pub fn newton_solve(
             );
         }
 
-        // Step 2c: Stamp MOSFET contributions (on top of already-copied base values)
         if n_mosfets > 0 {
             backend.assemble_mosfet_stamps(
                 &mosfet_output_buf,
@@ -145,10 +146,12 @@ pub fn newton_solve(
                 n_mosfets,
             );
         }
+        if let Some(ref mut s) = stats { s.assembly += t.elapsed(); }
 
         // Step 3: Upload assembled G as a new CSR matrix for BiCGSTAB
         // We need to download the assembled values, then re-upload as a proper CSR matrix.
         // The row_ptrs and col_indices don't change, only values do.
+        let t = Instant::now();
         let mut assembled_values = vec![0.0f32; matrix_nnz];
         backend.download_vec(&out_values_buf, &mut assembled_values);
 
@@ -166,8 +169,10 @@ pub fn newton_solve(
             base_g_row_ptrs,
             system_size,
         );
+        if let Some(ref mut s) = stats { s.matrix_dl_ul += t.elapsed(); }
 
         // Step 4: Solve the linear system with BiCGSTAB
+        let t = Instant::now();
         // Zero out x_buf for the linear solve (BiCGSTAB expects zero initial guess)
         let x_solve_buf = backend.new_buffer(system_size);
 
@@ -190,7 +195,7 @@ pub fn newton_solve(
         // Check if any diagonal is zero (needs ISAI)
         let has_zero_diag = inv_diag.contains(&0.0);
 
-        if has_zero_diag {
+        let bicgstab_iters = if has_zero_diag {
             // Build a CPU-side CsrMatrix<f64> from the assembled values for ISAI
             let values_f64: Vec<f64> = assembled_values.iter().map(|&v| v as f64).collect();
             let col_indices_usize: Vec<usize> =
@@ -230,7 +235,7 @@ pub fn newton_solve(
                     b.spmv(&mu_gpu, &tmp, out);
                 },
                 system_size,
-            )?;
+            )?
         } else {
             let inv_diag_buf = backend.upload_storage_buffer(&inv_diag);
 
@@ -243,13 +248,18 @@ pub fn newton_solve(
                     b.jacobi_apply(&inv_diag_buf, inp, out);
                 },
                 system_size,
-            )?;
+            )?
+        };
+        if let Some(ref mut s) = stats {
+            s.linear_solve += t.elapsed();
+            s.bicgstab_iters_per_newton.push(bicgstab_iters as u32);
         }
 
         // Copy linear solve result into x_buf
         backend.copy(&x_solve_buf, &x_buf);
 
         // Step 5a: BJT and MOSFET voltage limiting (before convergence check)
+        let t = Instant::now();
         if n_bjts > 0 {
             backend.limit_bjt_voltages(&x_old_buf, &x_buf, &bjt_desc_buf, n_bjts);
         }
@@ -280,6 +290,14 @@ pub fn newton_solve(
                     return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
                 }
 
+                if let Some(ref mut s) = stats {
+                    s.convergence_check += t.elapsed();
+                    s.newton_iterations = (iter + 1) as u32;
+                    s.gpu_dispatches = backend.dispatch_count();
+                    s.gpu_readbacks = backend.readback_count();
+                }
+
+                tracing::info!(iterations = iter + 1, "Newton converged");
                 return Ok(result_f32.iter().map(|&v| v as f64).collect());
             }
             ConvergenceResult::NumericalError => {
@@ -289,6 +307,7 @@ pub fn newton_solve(
                 // Continue iterating
             }
         }
+        if let Some(ref mut s) = stats { s.convergence_check += t.elapsed(); }
     }
 
     // Did not converge: download and compute final residual for error message

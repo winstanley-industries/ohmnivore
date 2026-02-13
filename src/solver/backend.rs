@@ -323,6 +323,7 @@ impl SolverBackend for WgpuBackend {
     type Buffer = WgpuBuffer;
 
     fn spmv(&self, matrix: &GpuCsrMatrix, x: &WgpuBuffer, y: &WgpuBuffer) {
+        tracing::trace!("gpu_dispatch: spmv_real");
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
         let n_wg = workgroup_count(matrix.n as u32);
@@ -369,6 +370,7 @@ impl SolverBackend for WgpuBackend {
     }
 
     fn dot(&self, x: &WgpuBuffer, y: &WgpuBuffer) -> f64 {
+        tracing::trace!("gpu_dispatch: dot_real + readback");
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
         let n_u32 = x.n as u32;
@@ -432,6 +434,7 @@ impl SolverBackend for WgpuBackend {
     }
 
     fn axpy(&self, alpha: f64, x: &WgpuBuffer, y: &WgpuBuffer) {
+        tracing::trace!("gpu_dispatch: axpy_real");
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
         let n_u32 = x.n as u32;
@@ -478,6 +481,7 @@ impl SolverBackend for WgpuBackend {
     }
 
     fn copy(&self, src: &WgpuBuffer, dst: &WgpuBuffer) {
+        tracing::trace!("gpu_dispatch: copy_real");
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
         let n_u32 = src.n as u32;
@@ -524,6 +528,7 @@ impl SolverBackend for WgpuBackend {
     }
 
     fn scale(&self, alpha: f64, x: &WgpuBuffer) {
+        tracing::trace!("gpu_dispatch: scale_real");
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
         let n_u32 = x.n as u32;
@@ -626,6 +631,7 @@ impl SolverBackend for WgpuBackend {
     }
 
     fn download_vec(&self, buffer: &WgpuBuffer, out: &mut [f32]) {
+        tracing::trace!("gpu_readback: download_vec");
         self.readback_count.set(self.readback_count.get() + 1);
         let result = read_buffer_f32(&self.ctx.device, &self.ctx.queue, &buffer.buffer, buffer.n);
         out[..buffer.n].copy_from_slice(&result);

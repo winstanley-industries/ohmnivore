@@ -25,6 +25,8 @@ pub fn bicgstab<B: SolverBackend>(
     preconditioner_apply: impl Fn(&B, &B::Buffer, &B::Buffer),
     n: usize,
 ) -> Result<usize> {
+    let _span = tracing::debug_span!("bicgstab", n).entered();
+
     // Scratch buffers
     let r = backend.new_buffer(n);
     let r_hat = backend.new_buffer(n);
@@ -87,6 +89,7 @@ pub fn bicgstab<B: SolverBackend>(
         let s_norm = backend.dot(&s, &s).sqrt();
         if s_norm < abs_tol {
             backend.axpy(alpha, &p_hat, x);
+            tracing::debug!(iterations = iter + 1, "BiCGSTAB converged");
             return Ok(iter + 1);
         }
 
@@ -120,6 +123,7 @@ pub fn bicgstab<B: SolverBackend>(
             ));
         }
         if r_norm < abs_tol {
+            tracing::debug!(iterations = iter + 1, "BiCGSTAB converged");
             return Ok(iter + 1);
         }
 

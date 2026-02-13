@@ -13,7 +13,7 @@ fn try_dc_solve(netlist: &str) -> Option<analysis::DcResult> {
     let circuit = parser::parse(netlist).expect("parse failed");
     let system = compiler::compile(&circuit).expect("compile failed");
     let solver = CpuSolver::new();
-    match analysis::dc::run(&system, &solver) {
+    match analysis::dc::run(&system, &solver, None) {
         Ok(result) => Some(result),
         Err(e) => {
             let msg = format!("{e}");
@@ -473,7 +473,7 @@ R2 2 0 1k
     assert!(system.mosfet_descriptors.is_empty());
 
     let solver = CpuSolver::new();
-    let result = analysis::dc::run(&system, &solver).expect("DC analysis failed");
+    let result = analysis::dc::run(&system, &solver, None).expect("DC analysis failed");
 
     let v2 = voltage(&result, "2");
 

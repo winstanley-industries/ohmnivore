@@ -142,7 +142,7 @@ fn try_dc_solve_with_diodes(netlist: &str) -> Option<analysis::DcResult> {
     let solver = CpuSolver::new();
 
     // dc::run will detect diodes and use the GPU Newton path
-    match analysis::dc::run(&system, &solver) {
+    match analysis::dc::run(&system, &solver, None) {
         Ok(result) => Some(result),
         Err(e) => {
             let msg = format!("{e}");
@@ -222,7 +222,7 @@ R2 2 0 1k
     // Should have no diode descriptors
     assert!(system.diode_descriptors.is_empty());
 
-    let result = analysis::dc::run(&system, &solver).expect("DC analysis failed");
+    let result = analysis::dc::run(&system, &solver, None).expect("DC analysis failed");
 
     let v2 = result
         .node_voltages
