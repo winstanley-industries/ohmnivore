@@ -18,6 +18,7 @@
 ## Analysis
 - [x] Transient analysis (BE+TRAP with adaptive timestep)
 - [x] ~~BUG: UIC zeros all state variables instead of computing consistent initial conditions~~
+- [ ] **Nonlinear transient analysis** — transient solver only handles linear circuits; nonlinear elements (MOSFETs, diodes, BJTs) cause singular matrix failures. DC analysis has a `run_nonlinear` path with GPU Newton-Raphson, but `analysis/transient.rs` lacks an equivalent. This blocks the CMOS inverter chain transient benchmark and any transient simulation involving nonlinear devices. Needs Newton-Raphson iteration at each timestep, reusing the existing nonlinear infrastructure from DC.
 
 ## BJT Non-Convergence Investigation
 

@@ -66,3 +66,11 @@ name = "tran_rl_step"
 file = "tran_rl_step.spice"
 analysis = "tran"
 compare_nodes = ["V(2)"]
+
+[[circuit]]
+name = "cmos_inverter_chain_dc"
+file = "cmos_inverter_chain_dc.spice"
+analysis = "dc"
+compare_nodes = ["V(out_10)"]
+dc_voltage_rel_tol = 0.05
+dc_voltage_abs_tol = 0.01

@@ -1,0 +1,37 @@
+* 10-stage CMOS inverter chain - DC
+.MODEL NMOD NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)
+.MODEL PMOD PMOS(VTO=-0.7 KP=5.5e-5 LAMBDA=0.04)
+VDD vdd 0 DC 5
+VIN in 0 DC 5
+* Stage 1
+MP1 out_1 in vdd vdd PMOD
+MN1 out_1 in 0 0 NMOD
+* Stage 2
+MP2 out_2 out_1 vdd vdd PMOD
+MN2 out_2 out_1 0 0 NMOD
+* Stage 3
+MP3 out_3 out_2 vdd vdd PMOD
+MN3 out_3 out_2 0 0 NMOD
+* Stage 4
+MP4 out_4 out_3 vdd vdd PMOD
+MN4 out_4 out_3 0 0 NMOD
+* Stage 5
+MP5 out_5 out_4 vdd vdd PMOD
+MN5 out_5 out_4 0 0 NMOD
+* Stage 6
+MP6 out_6 out_5 vdd vdd PMOD
+MN6 out_6 out_5 0 0 NMOD
+* Stage 7
+MP7 out_7 out_6 vdd vdd PMOD
+MN7 out_7 out_6 0 0 NMOD
+* Stage 8
+MP8 out_8 out_7 vdd vdd PMOD
+MN8 out_8 out_7 0 0 NMOD
+* Stage 9
+MP9 out_9 out_8 vdd vdd PMOD
+MN9 out_9 out_8 0 0 NMOD
+* Stage 10
+MP10 out_10 out_9 vdd vdd PMOD
+MN10 out_10 out_9 0 0 NMOD
+.DC
+.END

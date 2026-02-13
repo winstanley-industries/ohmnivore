@@ -12,4 +12,5 @@ regression::regression_tests!(
     tran_rc_charging,
     tran_pulse_rc_filter,
     tran_rl_step,
+    cmos_inverter_chain_dc,
 );
