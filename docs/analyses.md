@@ -174,12 +174,12 @@ Each time point is a row. All node voltages and branch currents are included.
 
 ## GPU Acceleration
 
-Add the `--gpu` flag to use the GPU solver:
+The GPU solver is used by default. Pass `--cpu` to force the CPU solver:
 
 ```sh
-ohmnivore circuit.spice --gpu
+ohmnivore circuit.spice --cpu
 ```
 
-The GPU solver uses wgpu (Vulkan/Metal/DX12) with BiCGSTAB iteration. It benefits large circuits where the matrix solve dominates runtime. For small circuits, direct LU decomposition on the CPU is faster.
+The GPU solver uses wgpu (Vulkan/Metal/DX12) with BiCGSTAB iteration. It benefits large circuits where the matrix solve dominates runtime. For small circuits, direct LU decomposition on the CPU may be faster.
 
-If ohmnivore finds no compatible GPU, it exits with an error. Omit `--gpu` to fall back to the CPU solver.
+If ohmnivore finds no compatible GPU, it exits with an error. Use `--cpu` to fall back to the CPU solver.

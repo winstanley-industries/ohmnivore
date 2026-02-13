@@ -1,3 +1,4 @@
+use clap::Parser;
 use ohmnivore::analysis;
 use ohmnivore::compiler;
 use ohmnivore::ir::Analysis;
@@ -8,26 +9,23 @@ use ohmnivore::solver::gpu::GpuSolver;
 use ohmnivore::solver::LinearSolver;
 use std::io;
 
+/// GPU-accelerated circuit simulation solver
+#[derive(Parser)]
+#[command(name = "ohmnivore", version)]
+struct Cli {
+    /// SPICE netlist file to simulate
+    netlist: String,
+
+    /// Use CPU solver instead of GPU
+    #[arg(long)]
+    cpu: bool,
+}
+
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() < 2 {
-        eprintln!("Usage: ohmnivore <netlist.spice> [--gpu]");
-        std::process::exit(1);
-    }
+    let cli = Cli::parse();
 
-    let use_gpu = args.iter().any(|a| a == "--gpu");
-
-    let input_file = args
-        .iter()
-        .skip(1)
-        .find(|a| !a.starts_with("--"))
-        .unwrap_or_else(|| {
-            eprintln!("Usage: ohmnivore <netlist.spice> [--gpu]");
-            std::process::exit(1);
-        });
-
-    let input = std::fs::read_to_string(input_file).unwrap_or_else(|e| {
-        eprintln!("Error reading {}: {}", input_file, e);
+    let input = std::fs::read_to_string(&cli.netlist).unwrap_or_else(|e| {
+        eprintln!("Error reading {}: {}", cli.netlist, e);
         std::process::exit(1);
     });
 
@@ -41,13 +39,13 @@ fn main() {
         std::process::exit(1);
     });
 
-    let solver: Box<dyn LinearSolver> = if use_gpu {
+    let solver: Box<dyn LinearSolver> = if cli.cpu {
+        Box::new(CpuSolver::new())
+    } else {
         Box::new(GpuSolver::new().unwrap_or_else(|e| {
             eprintln!("GPU solver error: {}", e);
             std::process::exit(1);
         }))
-    } else {
-        Box::new(CpuSolver::new())
     };
     let mut stdout = io::stdout();
 

@@ -43,14 +43,14 @@ Node 2 sits at 5V -- half the supply, as expected from two equal resistors.
 ## Usage
 
 ```
-ohmnivore <netlist.spice> [--gpu]
+ohmnivore <netlist.spice> [--cpu]
 ```
 
 Ohmnivore writes results to stdout as CSV. Redirect to a file if needed:
 
 ```sh
 ohmnivore circuit.spice > results.csv
-ohmnivore circuit.spice --gpu > results.csv   # use GPU solver
+ohmnivore circuit.spice --cpu > results.csv   # use CPU solver
 ```
 
 ## Supported Elements

@@ -22,7 +22,7 @@ The binary is at `./target/release/ohmnivore`.
 
 ## GPU Support
 
-Ohmnivore uses [wgpu](https://wgpu.rs/) for GPU acceleration, which runs on Vulkan, Metal, and DX12. The `--gpu` flag enables it at runtime; no special build flags are needed.
+Ohmnivore uses [wgpu](https://wgpu.rs/) for GPU acceleration, which runs on Vulkan, Metal, and DX12. GPU is the default solver; no special build flags are needed.
 
 ### macOS
 
@@ -48,7 +48,7 @@ Most modern NVIDIA and AMD drivers include Vulkan support. Intel GPUs use DX12. 
 
 ### CPU Fallback
 
-Without a GPU, omit the `--gpu` flag. The CPU solver uses direct LU decomposition and works everywhere.
+Without a GPU, pass `--cpu` to use the CPU solver. It uses direct LU decomposition and works everywhere.
 
 ## Running Tests
 
