@@ -185,6 +185,56 @@ R2 2 0 1k
     }
 }
 
+// ── DS Precision Tests ───────────────────────────────────────────
+
+/// Test that DS BiCGSTAB handles ill-conditioned matrices where f32 breaks down.
+///
+/// Constructs a 3x3 MNA matrix simulating GMIN=1e-12 with a voltage source:
+///   [GMIN, 0,  1]
+///   [0, GMIN,  0]
+///   [1,    0,  0]
+/// Condition number ~1e12. The DS backend (used by GpuSolver::solve_real for
+/// the Jacobi path) should converge and match the CPU reference.
+#[test]
+fn ds_bicgstab_ill_conditioned_matrix() {
+    skip_if_no_gpu!();
+
+    use ohmnivore::sparse::CsrMatrix;
+
+    let gmin = 1e-12_f64;
+    // MNA matrix: GMIN on diagonals, voltage source stamp
+    let triplets = vec![
+        (0, 0, gmin),
+        (0, 2, 1.0),
+        (1, 1, gmin),
+        (2, 0, 1.0),
+    ];
+    let a = CsrMatrix::from_triplets(3, 3, &triplets);
+    let b = [0.0, 0.0, 5.0]; // V1 = 5V
+
+    // DS path via GpuSolver::solve_real should succeed (Jacobi path uses DS backend)
+    let gpu_solver = GpuSolver::new().unwrap();
+    let gpu_result = gpu_solver.solve_real(&a, &b);
+    assert!(
+        gpu_result.is_ok(),
+        "DS BiCGSTAB should converge on κ~1e12 matrix, got: {:?}",
+        gpu_result.err()
+    );
+    let x = gpu_result.unwrap();
+
+    // Verify against CPU reference
+    let cpu_solver = CpuSolver;
+    let x_ref = cpu_solver.solve_real(&a, &b).unwrap();
+
+    for i in 0..3 {
+        assert!(
+            (x[i] - x_ref[i]).abs() < 1e-4,
+            "DS solution[{}] = {}, CPU reference = {}, diff = {}",
+            i, x[i], x_ref[i], (x[i] - x_ref[i]).abs()
+        );
+    }
+}
+
 // ── AC Tests ──────────────────────────────────────────────────────
 
 #[test]

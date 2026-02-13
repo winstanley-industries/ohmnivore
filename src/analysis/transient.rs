@@ -21,6 +21,7 @@ use crate::stats::Stats;
 /// Solves the circuit from t=0 to t=tstop. Records output starting at t=tstart.
 /// If `uic` is true, starts from zero initial conditions; otherwise computes
 /// a DC operating point first.
+#[allow(clippy::too_many_arguments)]
 pub fn run(
     system: &MnaSystem,
     solver: &dyn LinearSolver,
@@ -42,7 +43,7 @@ pub fn run(
     let mut x: Vec<f64> = if uic {
         compute_uic_initial_conditions(system, solver, components)?
     } else {
-        let dc_result = super::dc::run(system, solver, stats.as_mut().map(|s| &mut **s))?;
+        let dc_result = super::dc::run(system, solver, stats.as_deref_mut())?;
         let mut x0 = vec![0.0; n];
         let n_nodes = system.node_names.len();
         for (i, (_, v)) in dc_result.node_voltages.iter().enumerate() {
