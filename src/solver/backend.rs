@@ -3,6 +3,8 @@
 //! Defines the `SolverBackend` trait for backend-agnostic iterative solvers,
 //! and `WgpuBackend` which implements it using wgpu compute shaders.
 
+use std::cell::Cell;
+
 use crate::error::{OhmnivoreError, Result};
 use wgpu::util::DeviceExt;
 
@@ -190,13 +192,27 @@ impl GpuContext {
 /// Wgpu-based implementation of `SolverBackend`.
 pub struct WgpuBackend {
     pub(crate) ctx: GpuContext,
+    pub(crate) dispatch_count: Cell<u32>,
+    pub(crate) readback_count: Cell<u32>,
 }
 
 impl WgpuBackend {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: GpuContext::new()?,
+            dispatch_count: Cell::new(0),
+            readback_count: Cell::new(0),
         })
+    }
+
+    /// Get total GPU dispatch count since creation.
+    pub fn dispatch_count(&self) -> u32 {
+        self.dispatch_count.get()
+    }
+
+    /// Get total GPU readback count since creation.
+    pub fn readback_count(&self) -> u32 {
+        self.readback_count.get()
     }
 
     /// Apply Jacobi preconditioner on GPU: output[i] = inv_diag[i] * input[i]
@@ -246,6 +262,7 @@ impl WgpuBackend {
             pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_wg, 1, 1);
         }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
         queue.submit(Some(encoder.finish()));
     }
 
@@ -347,6 +364,7 @@ impl SolverBackend for WgpuBackend {
             pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_wg, 1, 1);
         }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
         queue.submit(Some(encoder.finish()));
     }
 
@@ -404,10 +422,12 @@ impl SolverBackend for WgpuBackend {
             pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_wg, 1, 1);
         }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
         queue.submit(Some(encoder.finish()));
 
         // Read back partial sums and reduce on CPU with f64 precision
         let partials = read_buffer_f32(device, queue, &dot_out_buf, n_wg as usize);
+        self.readback_count.set(self.readback_count.get() + 1);
         partials.iter().map(|&v| v as f64).sum()
     }
 
@@ -453,6 +473,7 @@ impl SolverBackend for WgpuBackend {
             pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_wg, 1, 1);
         }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
         queue.submit(Some(encoder.finish()));
     }
 
@@ -498,6 +519,7 @@ impl SolverBackend for WgpuBackend {
             pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_wg, 1, 1);
         }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
         queue.submit(Some(encoder.finish()));
     }
 
@@ -539,6 +561,7 @@ impl SolverBackend for WgpuBackend {
             pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_wg, 1, 1);
         }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
         queue.submit(Some(encoder.finish()));
     }
 
@@ -603,6 +626,7 @@ impl SolverBackend for WgpuBackend {
     }
 
     fn download_vec(&self, buffer: &WgpuBuffer, out: &mut [f32]) {
+        self.readback_count.set(self.readback_count.get() + 1);
         let result = read_buffer_f32(&self.ctx.device, &self.ctx.queue, &buffer.buffer, buffer.n);
         out[..buffer.n].copy_from_slice(&result);
     }
