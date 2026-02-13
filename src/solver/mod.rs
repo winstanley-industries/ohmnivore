@@ -1,6 +1,8 @@
 //! Linear system solvers.
 
 pub mod cpu;
+pub mod gpu;
+pub mod gpu_shaders;
 
 use crate::error::Result;
 use crate::sparse::CsrMatrix;

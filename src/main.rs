@@ -4,17 +4,30 @@ use ohmnivore::ir::Analysis;
 use ohmnivore::output;
 use ohmnivore::parser;
 use ohmnivore::solver::cpu::CpuSolver;
+use ohmnivore::solver::gpu::GpuSolver;
+use ohmnivore::solver::LinearSolver;
 use std::io;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        eprintln!("Usage: ohmnivore <netlist.spice>");
+        eprintln!("Usage: ohmnivore <netlist.spice> [--gpu]");
         std::process::exit(1);
     }
 
-    let input = std::fs::read_to_string(&args[1]).unwrap_or_else(|e| {
-        eprintln!("Error reading {}: {}", args[1], e);
+    let use_gpu = args.iter().any(|a| a == "--gpu");
+
+    let input_file = args
+        .iter()
+        .skip(1)
+        .find(|a| !a.starts_with("--"))
+        .unwrap_or_else(|| {
+            eprintln!("Usage: ohmnivore <netlist.spice> [--gpu]");
+            std::process::exit(1);
+        });
+
+    let input = std::fs::read_to_string(input_file).unwrap_or_else(|e| {
+        eprintln!("Error reading {}: {}", input_file, e);
         std::process::exit(1);
     });
 
@@ -28,13 +41,20 @@ fn main() {
         std::process::exit(1);
     });
 
-    let solver = CpuSolver::new();
+    let solver: Box<dyn LinearSolver> = if use_gpu {
+        Box::new(GpuSolver::new().unwrap_or_else(|e| {
+            eprintln!("GPU solver error: {}", e);
+            std::process::exit(1);
+        }))
+    } else {
+        Box::new(CpuSolver::new())
+    };
     let mut stdout = io::stdout();
 
     for analysis_cmd in &circuit.analyses {
         match analysis_cmd {
             Analysis::Dc => {
-                let dc_result = analysis::dc::run(&system, &solver).unwrap_or_else(|e| {
+                let dc_result = analysis::dc::run(&system, solver.as_ref()).unwrap_or_else(|e| {
                     eprintln!("DC analysis error: {}", e);
                     std::process::exit(1);
                 });
@@ -51,7 +71,7 @@ fn main() {
             } => {
                 let ac_result = analysis::ac::run(
                     &system,
-                    &solver,
+                    solver.as_ref(),
                     *sweep_type,
                     *n_points,
                     *f_start,
