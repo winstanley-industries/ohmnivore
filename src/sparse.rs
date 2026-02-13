@@ -20,6 +20,21 @@ pub struct CsrMatrix<T> {
     pub row_pointers: Vec<usize>,
 }
 
+impl<T> CsrMatrix<T> {
+    /// Find the index in `self.values` for entry at (row, col).
+    /// Returns None if the entry doesn't exist in the sparsity pattern.
+    pub fn value_index(&self, row: usize, col: usize) -> Option<usize> {
+        let start = self.row_pointers[row];
+        let end = self.row_pointers[row + 1];
+        for i in start..end {
+            if self.col_indices[i] == col {
+                return Some(i);
+            }
+        }
+        None
+    }
+}
+
 impl<T: Copy + Default + AddAssign> CsrMatrix<T> {
     /// Create an empty matrix with no non-zero entries.
     pub fn new(nrows: usize, ncols: usize) -> Self {

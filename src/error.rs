@@ -11,6 +11,15 @@ pub enum OhmnivoreError {
     #[error("Solve error: {0}")]
     Solve(String),
 
+    #[error("Newton solver did not converge after {iterations} iterations (max residual: {max_residual:.2e})")]
+    NewtonNotConverged {
+        iterations: usize,
+        max_residual: f64,
+    },
+
+    #[error("Newton solver encountered numerical error at iteration {iteration}")]
+    NewtonNumericalError { iteration: usize },
+
     #[error("Analysis error: {0}")]
     Analysis(String),
 

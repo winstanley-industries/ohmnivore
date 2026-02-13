@@ -39,6 +39,22 @@ pub enum Component {
         dc: Option<f64>,
         ac: Option<(f64, f64)>,
     },
+    /// Diode element referencing a named model.
+    Diode {
+        name: String,
+        nodes: (NodeId, NodeId),
+        model: String,
+    },
+}
+
+/// A diode model with Shockley equation parameters.
+#[derive(Debug, Clone)]
+pub struct DiodeModel {
+    pub name: String,
+    /// Saturation current (default: 1e-14)
+    pub is: f64,
+    /// Emission coefficient (default: 1.0)
+    pub n: f64,
 }
 
 /// AC sweep type matching SPICE syntax.
@@ -71,4 +87,5 @@ pub enum Analysis {
 pub struct Circuit {
     pub components: Vec<Component>,
     pub analyses: Vec<Analysis>,
+    pub models: Vec<DiodeModel>,
 }

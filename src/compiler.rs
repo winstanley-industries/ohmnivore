@@ -36,6 +36,38 @@ use crate::sparse::CsrMatrix;
 use num_complex::Complex64;
 use std::collections::HashMap;
 
+/// Thermal voltage at 300K: kT/q ~ 0.02585 V
+const VT_300K: f64 = 0.02585;
+
+/// GPU-friendly descriptor for a single diode, matching the WGSL shader layout.
+///
+/// 12 words (u32) per diode, matching the flat buffer layout expected by the
+/// diode evaluation and nonlinear assembly shaders.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct GpuDiodeDescriptor {
+    /// Index of the anode node in the solution vector.
+    /// `u32::MAX` if the anode is ground.
+    pub anode_idx: u32,
+    /// Index of the cathode node in the solution vector.
+    /// `u32::MAX` if the cathode is ground.
+    pub cathode_idx: u32,
+    /// Saturation current I_s (f32 bitcast).
+    pub is_val: f32,
+    /// n * V_T product (f32 bitcast).
+    pub n_vt: f32,
+    /// CSR value-array indices for the 4 G-matrix stamp positions:
+    /// [0] = (anode, anode), [1] = (cathode, cathode),
+    /// [2] = (anode, cathode), [3] = (cathode, anode).
+    /// `u32::MAX` sentinel for ground-related entries.
+    pub g_row_col: [u32; 4],
+    /// RHS vector indices: [0] = anode, [1] = cathode.
+    /// `u32::MAX` sentinel for ground.
+    pub b_idx: [u32; 2],
+    /// Padding to align to 12 u32 words (48 bytes).
+    pub _padding: [u32; 2],
+}
+
 /// The compiled MNA system, ready for analysis.
 #[derive(Debug)]
 pub struct MnaSystem {
@@ -54,6 +86,8 @@ pub struct MnaSystem {
     /// Branch variable names in order. Branch k -> component name (e.g., "V1", "L1").
     /// Branch k has matrix index n_nodes + k.
     pub branch_names: Vec<String>,
+    /// Diode descriptors for nonlinear Newton-Raphson solving on GPU.
+    pub diode_descriptors: Vec<GpuDiodeDescriptor>,
 }
 
 /// Returns true if the node identifier represents ground.
@@ -95,7 +129,8 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
             | Component::Capacitor { nodes, .. }
             | Component::Inductor { nodes, .. }
             | Component::VSource { nodes, .. }
-            | Component::ISource { nodes, .. } => (&nodes.0, &nodes.1),
+            | Component::ISource { nodes, .. }
+            | Component::Diode { nodes, .. } => (&nodes.0, &nodes.1),
         };
         register_node(n_plus, &mut node_map, &mut node_names);
         register_node(n_minus, &mut node_map, &mut node_names);
@@ -135,6 +170,17 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
             map.get(node).copied()
         }
     }
+
+    /// Intermediate storage for diode info collected during stamping,
+    /// resolved into GpuDiodeDescriptors after CSR construction.
+    struct PendingDiode {
+        anode: Option<usize>,
+        cathode: Option<usize>,
+        is_val: f32,
+        n_vt: f32,
+    }
+
+    let mut pending_diodes: Vec<PendingDiode> = Vec::new();
 
     for component in &circuit.components {
         match component {
@@ -239,6 +285,46 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
                 }
             }
 
+            // Diodes are nonlinear — stamp placeholder zeros into G for sparsity
+            // pattern so the GPU can write conductance stamps during Newton iteration.
+            Component::Diode { name, nodes, model } => {
+                // Look up the model by name
+                let diode_model = circuit
+                    .models
+                    .iter()
+                    .find(|m| m.name == *model)
+                    .ok_or_else(|| {
+                        OhmnivoreError::Compile(format!(
+                            "Diode {} references undefined model '{}'",
+                            name, model
+                        ))
+                    })?;
+
+                let ni = node_index(&nodes.0, &node_map);
+                let nj = node_index(&nodes.1, &node_map);
+                let n_vt = (diode_model.n * VT_300K) as f32;
+
+                // Add placeholder zeros for 4 stamp positions
+                if let Some(i) = ni {
+                    g_triplets.push((i, i, 0.0)); // (anode, anode)
+                }
+                if let Some(j) = nj {
+                    g_triplets.push((j, j, 0.0)); // (cathode, cathode)
+                }
+                if let (Some(i), Some(j)) = (ni, nj) {
+                    g_triplets.push((i, j, 0.0)); // (anode, cathode)
+                    g_triplets.push((j, i, 0.0)); // (cathode, anode)
+                }
+
+                // Store pending info for post-CSR descriptor construction
+                pending_diodes.push(PendingDiode {
+                    anode: ni,
+                    cathode: nj,
+                    is_val: diode_model.is as f32,
+                    n_vt,
+                });
+            }
+
             Component::ISource {
                 name: _,
                 nodes,
@@ -275,6 +361,51 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
     let g = CsrMatrix::from_triplets(size, size, &g_triplets);
     let c = CsrMatrix::from_triplets(size, size, &c_triplets);
 
+    // Step 5: Resolve CSR value indices for diode descriptors.
+    const SENTINEL: u32 = u32::MAX;
+
+    let diode_descriptors: Vec<GpuDiodeDescriptor> = pending_diodes
+        .iter()
+        .map(|pd| {
+            let anode_idx = pd.anode.map(|i| i as u32).unwrap_or(SENTINEL);
+            let cathode_idx = pd.cathode.map(|j| j as u32).unwrap_or(SENTINEL);
+
+            // Resolve g_row_col: [aa, cc, ac, ca]
+            let g_aa = pd
+                .anode
+                .and_then(|i| g.value_index(i, i))
+                .map(|v| v as u32)
+                .unwrap_or(SENTINEL);
+            let g_cc = pd
+                .cathode
+                .and_then(|j| g.value_index(j, j))
+                .map(|v| v as u32)
+                .unwrap_or(SENTINEL);
+            let g_ac = pd
+                .anode
+                .zip(pd.cathode)
+                .and_then(|(i, j)| g.value_index(i, j))
+                .map(|v| v as u32)
+                .unwrap_or(SENTINEL);
+            let g_ca = pd
+                .anode
+                .zip(pd.cathode)
+                .and_then(|(i, j)| g.value_index(j, i))
+                .map(|v| v as u32)
+                .unwrap_or(SENTINEL);
+
+            GpuDiodeDescriptor {
+                anode_idx,
+                cathode_idx,
+                is_val: pd.is_val,
+                n_vt: pd.n_vt,
+                g_row_col: [g_aa, g_cc, g_ac, g_ca],
+                b_idx: [anode_idx, cathode_idx],
+                _padding: [0; 2],
+            }
+        })
+        .collect();
+
     Ok(MnaSystem {
         g,
         c,
@@ -283,6 +414,7 @@ pub fn compile(circuit: &Circuit) -> Result<MnaSystem> {
         size,
         node_names,
         branch_names,
+        diode_descriptors,
     })
 }
 
@@ -296,6 +428,7 @@ mod tests {
         Circuit {
             components,
             analyses: vec![],
+            models: vec![],
         }
     }
 
@@ -781,5 +914,287 @@ mod tests {
 
         let g = mna.g.to_dense();
         assert!((g[0][0] - 0.015).abs() < 1e-12);
+    }
+
+    // --- Diode tests ---
+
+    use crate::ir::DiodeModel;
+
+    /// Helper: create a circuit with components and models.
+    fn circuit_with_models(components: Vec<Component>, models: Vec<DiodeModel>) -> Circuit {
+        Circuit {
+            components,
+            analyses: vec![],
+            models,
+        }
+    }
+
+    #[test]
+    fn test_single_diode_descriptor() {
+        // V1(1V) -> node "1", D1 from "1" to "0" using model DMOD
+        // Nodes: "1" -> idx 0
+        // Size = 2 (1 node + 1 branch for V1)
+        let circuit = circuit_with_models(
+            vec![
+                Component::VSource {
+                    name: "V1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    dc: Some(1.0),
+                    ac: None,
+                },
+                Component::Diode {
+                    name: "D1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    model: "DMOD".into(),
+                },
+            ],
+            vec![DiodeModel {
+                name: "DMOD".into(),
+                is: 1e-14,
+                n: 1.0,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.diode_descriptors.len(), 1);
+
+        let desc = &mna.diode_descriptors[0];
+        // Anode is node "1" -> idx 0
+        assert_eq!(desc.anode_idx, 0);
+        // Cathode is ground -> sentinel
+        assert_eq!(desc.cathode_idx, u32::MAX);
+        // IS
+        assert!((desc.is_val - 1e-14_f32).abs() < 1e-20);
+        // n_vt = 1.0 * 0.02585
+        let expected_n_vt = (1.0 * 0.02585) as f32;
+        assert!((desc.n_vt - expected_n_vt).abs() < 1e-6);
+
+        // G matrix should have a placeholder zero at (0,0) from the diode
+        // (summed with V1 stamps). The sparsity pattern includes (0,0).
+        assert!(mna.g.value_index(0, 0).is_some());
+        // g_row_col: aa should be valid, cc/ac/ca should be sentinels (ground)
+        assert_ne!(desc.g_row_col[0], u32::MAX); // (anode, anode) exists
+        assert_eq!(desc.g_row_col[1], u32::MAX); // (cathode, cathode) = ground
+        assert_eq!(desc.g_row_col[2], u32::MAX); // (anode, cathode) = ground
+        assert_eq!(desc.g_row_col[3], u32::MAX); // (cathode, anode) = ground
+
+        // b_idx
+        assert_eq!(desc.b_idx[0], 0);           // anode
+        assert_eq!(desc.b_idx[1], u32::MAX);    // cathode = ground
+    }
+
+    #[test]
+    fn test_diode_between_non_ground_nodes() {
+        // D1 from node "1" (anode) to node "2" (cathode), both non-ground.
+        // R1 to provide a path so nodes exist.
+        let circuit = circuit_with_models(
+            vec![
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("2".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Diode {
+                    name: "D1".into(),
+                    nodes: ("1".into(), "2".into()),
+                    model: "DMOD".into(),
+                },
+            ],
+            vec![DiodeModel {
+                name: "DMOD".into(),
+                is: 1e-14,
+                n: 1.5,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.diode_descriptors.len(), 1);
+
+        let desc = &mna.diode_descriptors[0];
+        // Nodes: "1"->0, "2"->1
+        assert_eq!(desc.anode_idx, 0);
+        assert_eq!(desc.cathode_idx, 1);
+
+        let expected_n_vt = (1.5 * 0.02585) as f32;
+        assert!((desc.n_vt - expected_n_vt).abs() < 1e-6);
+
+        // All 4 stamp positions should be valid (non-sentinel)
+        for i in 0..4 {
+            assert_ne!(desc.g_row_col[i], u32::MAX, "g_row_col[{i}] should not be sentinel");
+        }
+
+        // G matrix should contain placeholders at all 4 positions
+        let g = mna.g.to_dense();
+        // The diode stamps are zeros; resistor stamps are non-zero on diagonals
+        // (0,0) = 1/1000 + 0 = 0.001, (1,1) = 1/1000 + 0 = 0.001
+        assert!((g[0][0] - 0.001).abs() < 1e-12);
+        assert!((g[1][1] - 0.001).abs() < 1e-12);
+        // Off-diagonals from diode placeholder only: (0,1) = 0, (1,0) = 0
+        assert!((g[0][1]).abs() < 1e-12);
+        assert!((g[1][0]).abs() < 1e-12);
+
+        // b_idx
+        assert_eq!(desc.b_idx[0], 0);
+        assert_eq!(desc.b_idx[1], 1);
+    }
+
+    #[test]
+    fn test_multiple_diodes_shared_model() {
+        // Two diodes sharing the same model
+        let circuit = circuit_with_models(
+            vec![
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    value: 100.0,
+                },
+                Component::Resistor {
+                    name: "R2".into(),
+                    nodes: ("2".into(), "0".into()),
+                    value: 100.0,
+                },
+                Component::Diode {
+                    name: "D1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    model: "DMOD".into(),
+                },
+                Component::Diode {
+                    name: "D2".into(),
+                    nodes: ("2".into(), "0".into()),
+                    model: "DMOD".into(),
+                },
+            ],
+            vec![DiodeModel {
+                name: "DMOD".into(),
+                is: 1e-12,
+                n: 2.0,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        assert_eq!(mna.diode_descriptors.len(), 2);
+
+        // Both should have the same model parameters
+        let expected_n_vt = (2.0 * 0.02585) as f32;
+        for desc in &mna.diode_descriptors {
+            assert!((desc.is_val - 1e-12_f32).abs() < 1e-18);
+            assert!((desc.n_vt - expected_n_vt).abs() < 1e-6);
+            assert_eq!(desc.cathode_idx, u32::MAX); // ground
+        }
+
+        // Different anode nodes
+        assert_eq!(mna.diode_descriptors[0].anode_idx, 0);
+        assert_eq!(mna.diode_descriptors[1].anode_idx, 1);
+    }
+
+    #[test]
+    fn test_diode_undefined_model_error() {
+        let circuit = circuit_with_models(
+            vec![Component::Diode {
+                name: "D1".into(),
+                nodes: ("1".into(), "0".into()),
+                model: "NOMODEL".into(),
+            }],
+            vec![], // no models defined
+        );
+
+        let result = compile(&circuit);
+        assert!(result.is_err());
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("undefined model"),
+            "Error should mention undefined model, got: {err_msg}"
+        );
+    }
+
+    #[test]
+    fn test_diode_ground_cathode_csr_indices() {
+        // D1 from "1" to ground. Only (anode,anode) stamp should exist.
+        let circuit = circuit_with_models(
+            vec![
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Diode {
+                    name: "D1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    model: "DMOD".into(),
+                },
+            ],
+            vec![DiodeModel {
+                name: "DMOD".into(),
+                is: 1e-14,
+                n: 1.0,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        let desc = &mna.diode_descriptors[0];
+
+        // Only (anode, anode) should have a valid CSR index
+        assert_ne!(desc.g_row_col[0], u32::MAX);
+        assert_eq!(desc.g_row_col[1], u32::MAX);
+        assert_eq!(desc.g_row_col[2], u32::MAX);
+        assert_eq!(desc.g_row_col[3], u32::MAX);
+
+        // Verify the CSR index is correct by checking the value is 0.0
+        // (diode placeholder) summed with the resistor's 0.001
+        let val_idx = desc.g_row_col[0] as usize;
+        // The value at that CSR position should be the resistor's conductance
+        // (since the diode adds 0.0)
+        assert!((mna.g.values[val_idx] - 0.001).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_diode_ground_anode() {
+        // D1 from ground (anode) to "1" (cathode).
+        let circuit = circuit_with_models(
+            vec![
+                Component::Resistor {
+                    name: "R1".into(),
+                    nodes: ("1".into(), "0".into()),
+                    value: 1000.0,
+                },
+                Component::Diode {
+                    name: "D1".into(),
+                    nodes: ("0".into(), "1".into()),
+                    model: "DMOD".into(),
+                },
+            ],
+            vec![DiodeModel {
+                name: "DMOD".into(),
+                is: 1e-14,
+                n: 1.0,
+            }],
+        );
+
+        let mna = compile(&circuit).unwrap();
+        let desc = &mna.diode_descriptors[0];
+
+        assert_eq!(desc.anode_idx, u32::MAX);   // ground
+        assert_eq!(desc.cathode_idx, 0);         // node "1" -> idx 0
+
+        // Only (cathode, cathode) should have a valid CSR index
+        assert_eq!(desc.g_row_col[0], u32::MAX); // (anode, anode) = ground
+        assert_ne!(desc.g_row_col[1], u32::MAX); // (cathode, cathode) valid
+        assert_eq!(desc.g_row_col[2], u32::MAX); // (anode, cathode) = ground
+        assert_eq!(desc.g_row_col[3], u32::MAX); // (cathode, anode) = ground
+    }
+
+    #[test]
+    fn test_diode_descriptor_size() {
+        // Verify GpuDiodeDescriptor is exactly 48 bytes (12 u32 words)
+        assert_eq!(
+            std::mem::size_of::<super::GpuDiodeDescriptor>(),
+            48,
+            "GpuDiodeDescriptor should be 48 bytes (12 x u32)"
+        );
     }
 }

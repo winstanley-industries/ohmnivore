@@ -5,6 +5,8 @@ pub mod bicgstab;
 pub mod cpu;
 pub mod gpu;
 pub mod gpu_shaders;
+pub mod newton;
+pub mod nonlinear;
 pub mod preconditioner;
 
 use crate::error::Result;

@@ -28,12 +28,13 @@ use nom::IResult;
 use nom::Parser;
 
 use crate::error::{OhmnivoreError, Result};
-use crate::ir::{AcSweepType, Analysis, Circuit, Component};
+use crate::ir::{AcSweepType, Analysis, Circuit, Component, DiodeModel};
 
 /// Parse a SPICE netlist string into a Circuit IR.
 pub fn parse(input: &str) -> Result<Circuit> {
     let mut components = Vec::new();
     let mut analyses = Vec::new();
+    let mut models = Vec::new();
 
     for (line_num, raw_line) in input.lines().enumerate() {
         let line = raw_line.trim();
@@ -77,11 +78,22 @@ pub fn parse(input: &str) -> Result<Circuit> {
                     .map_err(|e| parse_err(line_num, raw_line, &e))?;
                 components.push(comp);
             }
-            '.' => {
-                let analysis = parse_dot_command(line)
+            'D' => {
+                let comp = parse_diode_line(line)
                     .map_err(|e| parse_err(line_num, raw_line, &e))?;
-                if let Some(a) = analysis {
-                    analyses.push(a);
+                components.push(comp);
+            }
+            '.' => {
+                if upper.starts_with(".MODEL") {
+                    let model = parse_model_command(line)
+                        .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                    models.push(model);
+                } else {
+                    let analysis = parse_dot_command(line)
+                        .map_err(|e| parse_err(line_num, raw_line, &e))?;
+                    if let Some(a) = analysis {
+                        analyses.push(a);
+                    }
                 }
             }
             _ => {
@@ -98,6 +110,7 @@ pub fn parse(input: &str) -> Result<Circuit> {
     Ok(Circuit {
         components,
         analyses,
+        models,
     })
 }
 
@@ -268,6 +281,98 @@ fn parse_source_specs(
     }
 
     Ok((dc, ac))
+}
+
+// ---------------------------------------------------------------------------
+// Diode parsing
+// ---------------------------------------------------------------------------
+
+/// Parse a diode line: Dname anode cathode MODELNAME
+fn parse_diode_line(line: &str) -> std::result::Result<Component, String> {
+    let (_, (name, _, anode, _, cathode, _, model_name)) = (
+        element_name,
+        space1,
+        node_id,
+        space1,
+        node_id,
+        space1,
+        node_id,
+    )
+        .parse(line)
+        .map_err(|_| "failed to parse diode element".to_string())?;
+
+    Ok(Component::Diode {
+        name: name.to_string(),
+        nodes: (anode.to_string(), cathode.to_string()),
+        model: model_name.to_string(),
+    })
+}
+
+// ---------------------------------------------------------------------------
+// .MODEL parsing
+// ---------------------------------------------------------------------------
+
+/// Parse: .MODEL name D(IS=val N=val)
+fn parse_model_command(line: &str) -> std::result::Result<DiodeModel, String> {
+    // Skip ".MODEL" keyword
+    let rest = line.trim();
+    let upper = rest.to_uppercase();
+    if !upper.starts_with(".MODEL") {
+        return Err("expected .MODEL directive".to_string());
+    }
+    let rest = rest[6..].trim_start();
+
+    // Parse model name
+    let (rest, model_name) = node_id(rest)
+        .map_err(|_| "expected model name after .MODEL".to_string())?;
+    let rest = rest.trim_start();
+
+    // Parse type (only D supported)
+    let (rest, model_type) = node_id(rest)
+        .map_err(|_| "expected model type (D) after model name".to_string())?;
+    if !model_type.eq_ignore_ascii_case("D") {
+        return Err(format!("unsupported model type '{}', only D is supported", model_type));
+    }
+    let rest = rest.trim_start();
+
+    // Default parameter values
+    let mut is = 1e-14;
+    let mut n = 1.0;
+
+    // Parse optional parameters in parentheses
+    if rest.starts_with('(') {
+        let end = rest.find(')').ok_or("missing closing ')' in .MODEL parameters")?;
+        let params_str = &rest[1..end];
+        parse_model_params(params_str, &mut is, &mut n)?;
+    }
+
+    Ok(DiodeModel {
+        name: model_name.to_string(),
+        is,
+        n,
+    })
+}
+
+/// Parse key=value parameters from inside .MODEL parentheses.
+/// Supports IS and N parameters in any order.
+fn parse_model_params(params: &str, is: &mut f64, n: &mut f64) -> std::result::Result<(), String> {
+    for token in params.split_whitespace() {
+        let upper = token.to_uppercase();
+        if upper.starts_with("IS=") {
+            let original_val = &token[3..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse IS value: {}", original_val))?;
+            *is = val;
+        } else if upper.starts_with("N=") {
+            let original_val = &token[2..];
+            let (_, val) = eng_value(original_val)
+                .map_err(|_| format!("failed to parse N value: {}", original_val))?;
+            *n = val;
+        } else {
+            return Err(format!("unknown model parameter: {}", token));
+        }
+    }
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -893,5 +998,149 @@ R2 2 0 2k
     fn test_dot_command_case_insensitive() {
         let circuit = parse(".dc").unwrap();
         assert_eq!(circuit.analyses.len(), 1);
+    }
+
+    // ---- Diode element tests ----
+
+    #[test]
+    fn test_parse_diode_basic() {
+        let circuit = parse("D1 1 2 MYDIODE").unwrap();
+        assert_eq!(circuit.components.len(), 1);
+        match &circuit.components[0] {
+            Component::Diode { name, nodes, model } => {
+                assert_eq!(name, "D1");
+                assert_eq!(nodes, &("1".into(), "2".into()));
+                assert_eq!(model, "MYDIODE");
+            }
+            other => panic!("expected Diode, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_diode_lowercase() {
+        let circuit = parse("d2 anode cathode mymodel").unwrap();
+        assert_eq!(circuit.components.len(), 1);
+        match &circuit.components[0] {
+            Component::Diode { name, nodes, model } => {
+                assert_eq!(name, "d2");
+                assert_eq!(nodes, &("anode".into(), "cathode".into()));
+                assert_eq!(model, "mymodel");
+            }
+            other => panic!("expected Diode, got {:?}", other),
+        }
+    }
+
+    // ---- .MODEL directive tests ----
+
+    #[test]
+    fn test_parse_model_all_params() {
+        let circuit = parse(".MODEL MYDIODE D(IS=1e-14 N=1.0)").unwrap();
+        assert_eq!(circuit.models.len(), 1);
+        let m = &circuit.models[0];
+        assert_eq!(m.name, "MYDIODE");
+        assert!((m.is - 1e-14).abs() < 1e-26);
+        assert!((m.n - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_defaults() {
+        let circuit = parse(".MODEL D1N4148 D()").unwrap();
+        assert_eq!(circuit.models.len(), 1);
+        let m = &circuit.models[0];
+        assert_eq!(m.name, "D1N4148");
+        assert!((m.is - 1e-14).abs() < 1e-26);
+        assert!((m.n - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_no_parens() {
+        // .MODEL with no parameters — uses defaults
+        let circuit = parse(".MODEL SIMPLE D").unwrap();
+        assert_eq!(circuit.models.len(), 1);
+        let m = &circuit.models[0];
+        assert_eq!(m.name, "SIMPLE");
+        assert!((m.is - 1e-14).abs() < 1e-26);
+        assert!((m.n - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_case_insensitive() {
+        let circuit = parse(".model mydiode d(is=2.52e-9 n=1.752)").unwrap();
+        assert_eq!(circuit.models.len(), 1);
+        let m = &circuit.models[0];
+        assert_eq!(m.name, "mydiode");
+        assert!((m.is - 2.52e-9).abs() < 1e-21);
+        assert!((m.n - 1.752).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_param_order_reversed() {
+        let circuit = parse(".MODEL DTEST D(N=1.5 IS=1e-12)").unwrap();
+        let m = &circuit.models[0];
+        assert!((m.is - 1e-12).abs() < 1e-24);
+        assert!((m.n - 1.5).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_parse_model_is_only() {
+        let circuit = parse(".MODEL DTEST D(IS=5e-10)").unwrap();
+        let m = &circuit.models[0];
+        assert!((m.is - 5e-10).abs() < 1e-22);
+        assert!((m.n - 1.0).abs() < 1e-12); // default
+    }
+
+    #[test]
+    fn test_parse_model_n_only() {
+        let circuit = parse(".MODEL DTEST D(N=2.0)").unwrap();
+        let m = &circuit.models[0];
+        assert!((m.is - 1e-14).abs() < 1e-26); // default
+        assert!((m.n - 2.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_multiple_diodes_one_model() {
+        let netlist = "\
+.MODEL DMOD D(IS=1e-14 N=1.0)
+D1 1 2 DMOD
+D2 3 4 DMOD
+D3 5 0 DMOD
+";
+        let circuit = parse(netlist).unwrap();
+        assert_eq!(circuit.models.len(), 1);
+        assert_eq!(circuit.components.len(), 3);
+        for comp in &circuit.components {
+            match comp {
+                Component::Diode { model, .. } => {
+                    assert_eq!(model, "DMOD");
+                }
+                other => panic!("expected Diode, got {:?}", other),
+            }
+        }
+    }
+
+    #[test]
+    fn test_diode_in_full_netlist() {
+        let netlist = "\
+* Diode rectifier
+V1 1 0 DC 5
+R1 1 2 1k
+.MODEL D1N4148 D(IS=2.52e-9 N=1.752)
+D1 2 3 D1N4148
+R2 3 0 1k
+.DC
+.END
+";
+        let circuit = parse(netlist).unwrap();
+        assert_eq!(circuit.components.len(), 4); // V1, R1, D1, R2
+        assert_eq!(circuit.models.len(), 1);
+        assert_eq!(circuit.analyses.len(), 1);
+        match &circuit.components[2] {
+            Component::Diode { name, nodes, model } => {
+                assert_eq!(name, "D1");
+                assert_eq!(nodes, &("2".into(), "3".into()));
+                assert_eq!(model, "D1N4148");
+            }
+            other => panic!("expected Diode, got {:?}", other),
+        }
     }
 }
