@@ -138,6 +138,194 @@ impl WgpuDsBackend {
     pub fn readback_count(&self) -> u32 {
         self.readback_count.get()
     }
+
+    /// Upload an f64 vector to a DS buffer with full precision splitting.
+    pub fn upload_vec_f64(&self, data: &[f64], buffer: &WgpuBuffer) {
+        let hi: Vec<f32> = data.iter().map(|&v| v as f32).collect();
+        let lo: Vec<f32> = data
+            .iter()
+            .zip(hi.iter())
+            .map(|(&v, &h)| (v - h as f64) as f32)
+            .collect();
+        self.queue
+            .write_buffer(&buffer.buffer, 0, bytemuck::cast_slice(&hi));
+        if let Some(ref lo_buf) = buffer.buffer_lo {
+            self.queue
+                .write_buffer(lo_buf, 0, bytemuck::cast_slice(&lo));
+        }
+    }
+
+    /// Download a DS buffer back to CPU as f64 values.
+    pub fn download_vec_f64(&self, buffer: &WgpuBuffer, out: &mut [f64]) {
+        let hi = read_buffer_f32(&self.device, &self.queue, &buffer.buffer, buffer.n);
+        self.readback_count.set(self.readback_count.get() + 1);
+        if let Some(ref lo_buf) = buffer.buffer_lo {
+            let lo = read_buffer_f32(&self.device, &self.queue, lo_buf, buffer.n);
+            self.readback_count.set(self.readback_count.get() + 1);
+            for i in 0..buffer.n {
+                out[i] = ds_to_f64(hi[i], lo[i]);
+            }
+        } else {
+            for i in 0..buffer.n {
+                out[i] = hi[i] as f64;
+            }
+        }
+    }
+
+    /// Upload a CSR matrix from f64 values with DS precision splitting.
+    pub fn upload_matrix_f64(
+        &self,
+        values: &[f64],
+        col_indices: &[u32],
+        row_pointers: &[u32],
+        n: usize,
+    ) -> GpuCsrMatrix {
+        let values_hi: Vec<f32> = values.iter().map(|&v| v as f32).collect();
+        let values_lo: Vec<f32> = values
+            .iter()
+            .zip(values_hi.iter())
+            .map(|(&v, &h)| (v - h as f64) as f32)
+            .collect();
+
+        let values_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_csr_values_hi"),
+                contents: bytemuck::cast_slice(&values_hi),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        let values_lo_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_csr_values_lo"),
+                contents: bytemuck::cast_slice(&values_lo),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        let col_indices_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_csr_col_indices"),
+                contents: bytemuck::cast_slice(col_indices),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        let row_pointers_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_csr_row_ptrs"),
+                contents: bytemuck::cast_slice(row_pointers),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        let spmv_params_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_spmv_params"),
+                contents: bytemuck::bytes_of(&(n as u32)),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+
+        GpuCsrMatrix {
+            values: values_buf,
+            values_lo: Some(values_lo_buf),
+            col_indices: col_indices_buf,
+            row_pointers: row_pointers_buf,
+            spmv_params: spmv_params_buf,
+            n,
+        }
+    }
+
+    /// Upload a read-only DS storage buffer (e.g., Jacobi inverse diagonal).
+    pub fn upload_storage_buffer_f64(&self, data: &[f64]) -> WgpuBuffer {
+        let hi: Vec<f32> = data.iter().map(|&v| v as f32).collect();
+        let lo: Vec<f32> = data
+            .iter()
+            .zip(hi.iter())
+            .map(|(&v, &h)| (v - h as f64) as f32)
+            .collect();
+        let buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_storage_hi"),
+                contents: bytemuck::cast_slice(&hi),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        let buffer_lo = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ds_storage_lo"),
+                contents: bytemuck::cast_slice(&lo),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        WgpuBuffer {
+            buffer,
+            buffer_lo: Some(buffer_lo),
+            n: data.len(),
+        }
+    }
+
+    /// Apply Jacobi preconditioner on GPU using DS arithmetic.
+    pub fn jacobi_apply(&self, inv_diag: &WgpuBuffer, input: &WgpuBuffer, output: &WgpuBuffer) {
+        let n_u32 = input.n as u32;
+        let n_wg = workgroup_count(n_u32);
+
+        let params = DsVecParams {
+            alpha_hi: 0.0,
+            alpha_lo: 0.0,
+            n: n_u32,
+            _pad: 0,
+        };
+        let params_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::bytes_of(&params),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+
+        let bg = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.pipes.jacobi.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: inv_diag.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: inv_diag.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: input.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: input.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: output.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: output.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&self.pipes.jacobi);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(n_wg, 1, 1);
+        }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
+        self.queue.submit(Some(encoder.finish()));
+    }
 }
 
 /// Read a GPU buffer back to CPU as f32 values.
