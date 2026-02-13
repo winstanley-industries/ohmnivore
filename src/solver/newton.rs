@@ -11,6 +11,7 @@ use std::time::Instant;
 
 use super::backend::{SolverBackend, WgpuBackend, WgpuBuffer};
 use super::bicgstab;
+use super::ds_backend::WgpuDsBackend;
 use super::nonlinear::{ConvergenceResult, NonlinearBackend};
 use super::preconditioner;
 
@@ -40,6 +41,7 @@ impl Default for NewtonParams {
 #[allow(clippy::too_many_arguments)]
 pub fn newton_solve(
     backend: &WgpuBackend,
+    ds_backend: &WgpuDsBackend,
     base_b: &WgpuBuffer,
     base_g_values_f32: &[f32],
     base_g_col_indices: &[u32],
@@ -163,37 +165,49 @@ pub fn newton_solve(
             return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
         }
 
-        let assembled_g = backend.upload_matrix(
+        if let Some(ref mut s) = stats { s.matrix_dl_ul += t.elapsed(); }
+
+        // Step 4: Solve the linear system with BiCGSTAB (on DS backend)
+        let t = Instant::now();
+
+        // Upload assembled f32 matrix to DS backend (lo = 0, assembly is f32)
+        let assembled_g_ds = ds_backend.upload_matrix(
             &assembled_values,
             base_g_col_indices,
             base_g_row_ptrs,
             system_size,
         );
-        if let Some(ref mut s) = stats { s.matrix_dl_ul += t.elapsed(); }
 
-        // Step 4: Solve the linear system with BiCGSTAB
-        let t = Instant::now();
-        // Zero out x_buf for the linear solve (BiCGSTAB expects zero initial guess)
-        let x_solve_buf = backend.new_buffer(system_size);
+        // Upload assembled RHS to DS backend
+        let mut rhs_f32 = vec![0.0f32; system_size];
+        backend.download_vec(&out_b_buf, &mut rhs_f32);
+        let x_solve_ds = ds_backend.new_buffer(system_size);
+        let b_solve_ds = ds_backend.new_buffer(system_size);
+        ds_backend.upload_vec(&rhs_f32, &b_solve_ds);
 
         // Compute Jacobi preconditioner from assembled matrix
-        let mut inv_diag = vec![0.0f32; system_size];
+        let mut has_zero_diag = false;
+        let mut inv_diag_f64 = vec![0.0f64; system_size];
         for row in 0..system_size {
             let start = base_g_row_ptrs[row] as usize;
             let end = base_g_row_ptrs[row + 1] as usize;
+            let mut found = false;
             for idx in start..end {
                 if base_g_col_indices[idx] as usize == row {
                     let val = assembled_values[idx];
                     if val.abs() > 1e-30 {
-                        inv_diag[row] = 1.0 / val;
+                        inv_diag_f64[row] = 1.0 / (val as f64);
+                    } else {
+                        has_zero_diag = true;
                     }
+                    found = true;
                     break;
                 }
             }
+            if !found {
+                has_zero_diag = true;
+            }
         }
-
-        // Check if any diagonal is zero (needs ISAI)
-        let has_zero_diag = inv_diag.contains(&0.0);
 
         let bicgstab_iters = if has_zero_diag {
             // Build a CPU-side CsrMatrix<f64> from the assembled values for ISAI
@@ -212,39 +226,39 @@ pub fn newton_solve(
 
             let isai = preconditioner::compute_isai(&csr_cpu, 0);
 
-            // Upload ISAI factors
+            // Upload ISAI factors to DS backend
             let ml_values: Vec<f32> = isai.m_l.values.iter().map(|&v| v as f32).collect();
             let ml_cols: Vec<u32> = isai.m_l.col_indices.iter().map(|&c| c as u32).collect();
             let ml_rows: Vec<u32> = isai.m_l.row_pointers.iter().map(|&r| r as u32).collect();
-            let ml_gpu = backend.upload_matrix(&ml_values, &ml_cols, &ml_rows, system_size);
+            let ml_gpu = ds_backend.upload_matrix(&ml_values, &ml_cols, &ml_rows, system_size);
 
             let mu_values: Vec<f32> = isai.m_u.values.iter().map(|&v| v as f32).collect();
             let mu_cols: Vec<u32> = isai.m_u.col_indices.iter().map(|&c| c as u32).collect();
             let mu_rows: Vec<u32> = isai.m_u.row_pointers.iter().map(|&r| r as u32).collect();
-            let mu_gpu = backend.upload_matrix(&mu_values, &mu_cols, &mu_rows, system_size);
+            let mu_gpu = ds_backend.upload_matrix(&mu_values, &mu_cols, &mu_rows, system_size);
 
-            let tmp = backend.new_buffer(system_size);
+            let tmp = ds_backend.new_buffer(system_size);
 
             bicgstab::bicgstab(
-                backend,
-                &assembled_g,
-                &out_b_buf,
-                &x_solve_buf,
-                |b: &WgpuBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
+                ds_backend,
+                &assembled_g_ds,
+                &b_solve_ds,
+                &x_solve_ds,
+                |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
                     b.spmv(&ml_gpu, inp, &tmp);
                     b.spmv(&mu_gpu, &tmp, out);
                 },
                 system_size,
             )?
         } else {
-            let inv_diag_buf = backend.upload_storage_buffer(&inv_diag);
+            let inv_diag_buf = ds_backend.upload_storage_buffer_f64(&inv_diag_f64);
 
             bicgstab::bicgstab(
-                backend,
-                &assembled_g,
-                &out_b_buf,
-                &x_solve_buf,
-                |b: &WgpuBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
+                ds_backend,
+                &assembled_g_ds,
+                &b_solve_ds,
+                &x_solve_ds,
+                |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
                     b.jacobi_apply(&inv_diag_buf, inp, out);
                 },
                 system_size,
@@ -255,8 +269,10 @@ pub fn newton_solve(
             s.bicgstab_iters_per_newton.push(bicgstab_iters as u32);
         }
 
-        // Copy linear solve result into x_buf
-        backend.copy(&x_solve_buf, &x_buf);
+        // Download DS result as f32 and upload to f32 backend's x_buf
+        let mut solve_result_f32 = vec![0.0f32; system_size];
+        ds_backend.download_vec(&x_solve_ds, &mut solve_result_f32);
+        backend.upload_vec(&solve_result_f32, &x_buf);
 
         // Step 5a: BJT and MOSFET voltage limiting (before convergence check)
         let t = Instant::now();

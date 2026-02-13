@@ -36,9 +36,11 @@ pub fn run(system: &MnaSystem, solver: &dyn LinearSolver, mut stats: Option<&mut
 /// Run the nonlinear DC path using GPU Newton-Raphson iteration.
 fn run_nonlinear(system: &MnaSystem, stats: Option<&mut Stats>) -> Result<Vec<f64>> {
     use crate::solver::backend::{SolverBackend, WgpuBackend};
+    use crate::solver::ds_backend::WgpuDsBackend;
     use crate::solver::newton::{newton_solve, NewtonParams};
 
     let backend = WgpuBackend::new()?;
+    let ds_backend = WgpuDsBackend::new()?;
 
     // Convert base G matrix to f32 CSR for GPU
     let values_f32: Vec<f32> = system.g.values.iter().map(|&v| v as f32).collect();
@@ -54,6 +56,7 @@ fn run_nonlinear(system: &MnaSystem, stats: Option<&mut Stats>) -> Result<Vec<f6
 
     newton_solve(
         &backend,
+        &ds_backend,
         &base_b_buf,
         &values_f32,
         &col_indices_u32,
