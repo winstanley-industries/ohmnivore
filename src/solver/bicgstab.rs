@@ -7,8 +7,24 @@ use crate::error::{OhmnivoreError, Result};
 
 use super::backend::{GpuCsrMatrix, SolverBackend};
 
-const MAX_ITERATIONS: usize = 10_000;
-const TOLERANCE: f64 = 1e-5;
+pub const DEFAULT_MAX_ITERATIONS: usize = 10_000;
+pub const DEFAULT_TOLERANCE: f64 = 1e-5;
+
+/// Runtime controls for BiCGSTAB.
+#[derive(Debug, Clone, Copy)]
+pub struct BiCgStabParams {
+    pub max_iterations: usize,
+    pub tolerance: f64,
+}
+
+impl Default for BiCgStabParams {
+    fn default() -> Self {
+        Self {
+            max_iterations: DEFAULT_MAX_ITERATIONS,
+            tolerance: DEFAULT_TOLERANCE,
+        }
+    }
+}
 
 /// Solve Ax = b using right-preconditioned BiCGSTAB.
 ///
@@ -25,7 +41,39 @@ pub fn bicgstab<B: SolverBackend>(
     preconditioner_apply: impl Fn(&B, &B::Buffer, &B::Buffer),
     n: usize,
 ) -> Result<usize> {
+    bicgstab_with_params(
+        backend,
+        a,
+        b,
+        x,
+        preconditioner_apply,
+        n,
+        BiCgStabParams::default(),
+    )
+}
+
+/// Solve Ax = b using right-preconditioned BiCGSTAB with custom limits.
+pub fn bicgstab_with_params<B: SolverBackend>(
+    backend: &B,
+    a: &GpuCsrMatrix,
+    b: &B::Buffer,
+    x: &B::Buffer,
+    preconditioner_apply: impl Fn(&B, &B::Buffer, &B::Buffer),
+    n: usize,
+    params: BiCgStabParams,
+) -> Result<usize> {
     let _span = tracing::debug_span!("bicgstab", n).entered();
+
+    if params.max_iterations == 0 {
+        return Err(OhmnivoreError::Solve(
+            "BiCGSTAB max_iterations must be > 0".into(),
+        ));
+    }
+    if params.tolerance <= 0.0 || !params.tolerance.is_finite() {
+        return Err(OhmnivoreError::Solve(
+            "BiCGSTAB tolerance must be finite and > 0".into(),
+        ));
+    }
 
     // Scratch buffers
     let r = backend.new_buffer(n);
@@ -47,13 +95,13 @@ pub fn bicgstab<B: SolverBackend>(
         // b is zero, so x = 0 is the solution
         return Ok(0);
     }
-    let abs_tol = TOLERANCE * b_norm;
+    let abs_tol = params.tolerance * b_norm;
 
     let mut rho: f64 = 1.0;
     let mut alpha: f64 = 1.0;
     let mut omega: f64 = 1.0;
 
-    for iter in 0..MAX_ITERATIONS {
+    for iter in 0..params.max_iterations {
         // rho_new = r_hat . r
         let rho_new = backend.dot(&r_hat, &r);
         if rho_new.abs() < 1e-30 {
@@ -134,5 +182,8 @@ pub fn bicgstab<B: SolverBackend>(
         }
     }
 
-    Ok(MAX_ITERATIONS)
+    Err(OhmnivoreError::Solve(format!(
+        "BiCGSTAB did not converge within {} iterations",
+        params.max_iterations
+    )))
 }

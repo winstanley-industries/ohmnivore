@@ -16,9 +16,14 @@ use super::nonlinear::{ConvergenceResult, NonlinearBackend};
 use super::preconditioner;
 
 /// Parameters for the Newton-Raphson iteration.
+#[derive(Clone)]
 pub struct NewtonParams {
     pub max_iterations: usize,
     pub abs_tol: f64,
+    /// Maximum BiCGSTAB iterations for each Newton linear sub-solve.
+    pub bicgstab_max_iterations: usize,
+    /// Optional warm-start: upload this as the initial x instead of zeros.
+    pub initial_guess: Option<Vec<f32>>,
 }
 
 impl Default for NewtonParams {
@@ -26,6 +31,8 @@ impl Default for NewtonParams {
         Self {
             max_iterations: 50,
             abs_tol: 1e-4,
+            bicgstab_max_iterations: bicgstab::DEFAULT_MAX_ITERATIONS,
+            initial_guess: None,
         }
     }
 }
@@ -82,7 +89,10 @@ pub fn newton_solve(
     };
 
     // Create GPU buffers for Newton iteration
-    let x_buf = backend.new_buffer(system_size); // current solution (zeros)
+    let x_buf = backend.new_buffer(system_size);
+    if let Some(ref guess) = params.initial_guess {
+        backend.upload_vec(guess, &x_buf);
+    }
     let x_old_buf = backend.new_buffer(system_size); // previous iteration
     let diode_output_buf = backend.new_buffer(std::cmp::max(n_diodes as usize * 2, 1));
     let bjt_output_buf = backend.new_buffer(std::cmp::max(n_bjts as usize * 6, 1));
@@ -112,7 +122,9 @@ pub fn newton_solve(
         if n_mosfets > 0 {
             backend.evaluate_mosfets(&mosfet_desc_buf, &x_buf, &mosfet_output_buf, n_mosfets);
         }
-        if let Some(ref mut s) = stats { s.device_eval += t.elapsed(); }
+        if let Some(ref mut s) = stats {
+            s.device_eval += t.elapsed();
+        }
 
         // Step 2a-2c: Assembly
         let t = Instant::now();
@@ -150,7 +162,9 @@ pub fn newton_solve(
                 n_mosfets,
             );
         }
-        if let Some(ref mut s) = stats { s.assembly += t.elapsed(); }
+        if let Some(ref mut s) = stats {
+            s.assembly += t.elapsed();
+        }
 
         // Step 3: Upload assembled G as a new CSR matrix for BiCGSTAB
         // We need to download the assembled values, then re-upload as a proper CSR matrix.
@@ -167,7 +181,9 @@ pub fn newton_solve(
             return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
         }
 
-        if let Some(ref mut s) = stats { s.matrix_dl_ul += t.elapsed(); }
+        if let Some(ref mut s) = stats {
+            s.matrix_dl_ul += t.elapsed();
+        }
 
         // Step 4: Solve the linear system with BiCGSTAB (on DS backend)
         let t = Instant::now();
@@ -181,9 +197,7 @@ pub fn newton_solve(
             .iter()
             .zip(base_g_values_f32.iter())
             .zip(base_g_values_f64.iter())
-            .map(|((&asm, &base_f32), &base_f64)| {
-                base_f64 + (asm as f64 - base_f32 as f64)
-            })
+            .map(|((&asm, &base_f32), &base_f64)| base_f64 + (asm as f64 - base_f32 as f64))
             .collect();
 
         let assembled_g_ds = ds_backend.upload_matrix_f64(
@@ -201,9 +215,7 @@ pub fn newton_solve(
             .iter()
             .zip(base_b_f32.iter())
             .zip(base_b_f64.iter())
-            .map(|((&rhs, &base_f32), &base_f64)| {
-                base_f64 + (rhs as f64 - base_f32 as f64)
-            })
+            .map(|((&rhs, &base_f32), &base_f64)| base_f64 + (rhs as f64 - base_f32 as f64))
             .collect();
         let x_solve_ds = ds_backend.new_buffer(system_size);
         let b_solve_ds = ds_backend.new_buffer(system_size);
@@ -232,6 +244,11 @@ pub fn newton_solve(
                 has_zero_diag = true;
             }
         }
+
+        let linear_params = bicgstab::BiCgStabParams {
+            max_iterations: params.bicgstab_max_iterations,
+            tolerance: bicgstab::DEFAULT_TOLERANCE,
+        };
 
         let bicgstab_iters = if has_zero_diag {
             // Build a CPU-side CsrMatrix<f64> from the f64 assembled values for ISAI
@@ -262,7 +279,7 @@ pub fn newton_solve(
 
             let tmp = ds_backend.new_buffer(system_size);
 
-            bicgstab::bicgstab(
+            bicgstab::bicgstab_with_params(
                 ds_backend,
                 &assembled_g_ds,
                 &b_solve_ds,
@@ -272,11 +289,12 @@ pub fn newton_solve(
                     b.spmv(&mu_gpu, &tmp, out);
                 },
                 system_size,
+                linear_params,
             )?
         } else {
             let inv_diag_buf = ds_backend.upload_storage_buffer_f64(&inv_diag_f64);
 
-            bicgstab::bicgstab(
+            bicgstab::bicgstab_with_params(
                 ds_backend,
                 &assembled_g_ds,
                 &b_solve_ds,
@@ -285,6 +303,7 @@ pub fn newton_solve(
                     b.jacobi_apply(&inv_diag_buf, inp, out);
                 },
                 system_size,
+                linear_params,
             )?
         };
         if let Some(ref mut s) = stats {
@@ -346,7 +365,9 @@ pub fn newton_solve(
                 // Continue iterating
             }
         }
-        if let Some(ref mut s) = stats { s.convergence_check += t.elapsed(); }
+        if let Some(ref mut s) = stats {
+            s.convergence_check += t.elapsed();
+        }
     }
 
     // Did not converge: download and compute final residual for error message
