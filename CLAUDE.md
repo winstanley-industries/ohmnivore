@@ -1,6 +1,6 @@
 # Ohmnivore
 
-GPU-accelerated circuit simulation solver. Parses a SPICE-subset netlist, compiles to Modified Nodal Analysis (MNA) matrices, and solves via GPU (wgpu/BiCGSTAB) or CPU (direct LU).
+GPU-accelerated circuit simulation solver. Parses a SPICE-subset netlist, compiles to Modified Nodal Analysis (MNA) matrices, and solves via GPU (wgpu/BiCGSTAB) or CPU (direct LU). Designed to scale to multi-GPU and multi-node clusters via domain decomposition.
 
 ## Architecture
 
@@ -82,6 +82,16 @@ GPU tests require a GPU-capable environment. They will fail in headless CI witho
 - Each element type gets a `Gpu*Descriptor` struct (bytemuck Pod) with CSR value indices for stamp injection
 - Newton-Raphson runs entirely on GPU — evaluation, assembly, and linear solve per iteration
 - Voltage limiting applied per-iteration to improve convergence
+
+### Distributed Solver Vision
+
+Ohmnivore targets multi-GPU and multi-node execution:
+
+- **Domain decomposition**: Circuit graph partitioned across GPUs via METIS (one subdomain per GPU), coordinated by a global Krylov solver (BiCGSTAB/GMRES) with distributed reductions (all-reduce for dot products)
+- **Preconditioning**: Restricted Additive Schwarz (RAS) with 1-layer overlap. Each GPU applies a local ISAI(1) preconditioner to its subdomain. `DistributedPreconditioner` trait abstracts over single-GPU vs. distributed apply
+- **Communication**: `CommunicationBackend` trait abstracting over transport (halo exchange, all-reduce) — MPI first, RoCE (RDMA over Converged Ethernet) planned for low-latency production clusters. Single-process no-op backend for single-GPU
+
+Design the solver traits, preconditioner interfaces, and data structures with this distribution model in mind, even when implementing single-GPU features.
 
 ### Design Documents
 
