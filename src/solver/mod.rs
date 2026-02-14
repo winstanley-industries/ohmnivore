@@ -5,6 +5,7 @@ pub mod bicgstab;
 pub mod comm;
 pub mod cpu;
 pub mod distributed_bicgstab;
+pub mod distributed_newton;
 pub mod distributed_preconditioner;
 pub mod ds_backend;
 pub mod ds_shaders;

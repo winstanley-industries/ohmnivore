@@ -358,3 +358,39 @@ C1 3 0 1u
         }
     }
 }
+
+// ── Distributed Newton Tests ─────────────────────────────────────
+
+#[test]
+fn distributed_newton_single_gpu_cmos_inverter() {
+    skip_if_no_gpu!();
+    // Parse a 2-stage inverter chain (converges with ISAI(1))
+    let netlist = std::fs::read_to_string("bench/circuits/inverter_chain_2_dc.spice")
+        .expect("bench circuit missing");
+    let circuit = parser::parse(&netlist).expect("parse failed");
+    let system = compiler::compile(&circuit).expect("compile failed");
+
+    // Solve via distributed path (single-GPU, SingleProcessComm)
+    let result = ohmnivore::solver::distributed_newton::solve_dc(
+        &system,
+        &ohmnivore::solver::comm::SingleProcessComm,
+    );
+
+    assert!(
+        result.is_ok(),
+        "distributed Newton failed: {:?}",
+        result.err()
+    );
+    let solution = result.unwrap();
+    assert_eq!(solution.len(), system.size);
+
+    // Verify against the standard analysis path
+    let dc_result = analysis::dc::run(&system, &CpuSolver::new(), None)
+        .expect("CPU DC analysis failed");
+    let v_out2 = find_node_voltage(&dc_result, "out_2");
+    // VIN=5V high -> stage1 out=0V -> stage2 out=5V
+    assert!(
+        (v_out2 - 5.0).abs() < 0.5,
+        "V(out_2) = {v_out2}, expected ~5V"
+    );
+}
