@@ -474,6 +474,38 @@ mod tests {
         (a - b).abs() < tol
     }
 
+    /// Multiply two CsrMatrix<f64> via dense intermediaries (test only).
+    fn mat_mul(a: &CsrMatrix<f64>, b: &CsrMatrix<f64>) -> CsrMatrix<f64> {
+        let a_dense = a.to_dense();
+        let b_dense = b.to_dense();
+        let c_dense = dense_matmul(&a_dense, &b_dense);
+        let n = c_dense.len();
+        let m = if n > 0 { c_dense[0].len() } else { 0 };
+        let mut triplets = Vec::new();
+        for i in 0..n {
+            for j in 0..m {
+                if c_dense[i][j].abs() > 1e-30 {
+                    triplets.push((i, j, c_dense[i][j]));
+                }
+            }
+        }
+        CsrMatrix::from_triplets(n, m, &triplets)
+    }
+
+    /// Compute ||M - I||_F (Frobenius distance from identity).
+    fn frobenius_error_from_identity(m: &CsrMatrix<f64>) -> f64 {
+        let dense = m.to_dense();
+        let n = dense.len();
+        let mut sum = 0.0;
+        for i in 0..n {
+            for j in 0..n {
+                let expected = if i == j { 1.0 } else { 0.0 };
+                sum += (dense[i][j] - expected).powi(2);
+            }
+        }
+        sum.sqrt()
+    }
+
     #[test]
     fn test_ilu0_small_matrix() {
         // A = [[4, -1, 0],
@@ -755,6 +787,35 @@ mod tests {
             "ISAI(1) error ({}) should be <= ISAI(0) error ({})",
             err1,
             err0
+        );
+    }
+
+    #[test]
+    fn test_isai1_ill_conditioned_mna() {
+        // 4x4 matrix with GMIN=1e-12 diagonal and voltage source stamp
+        let triplets = vec![
+            (0, 0, 1e-3 + 1e-12), // node conductance + GMIN
+            (0, 1, -1e-3),
+            (0, 3, 1.0),          // voltage source stamp
+            (1, 0, -1e-3),
+            (1, 1, 1e-3 + 1e-12),
+            (2, 2, 1e-12),        // GMIN only
+            (2, 3, -1.0),
+            (3, 0, 1.0),          // voltage source
+            (3, 2, -1.0),
+        ];
+        let a = CsrMatrix::from_triplets(4, 4, &triplets);
+        let isai0 = compute_isai(&a, 0);
+        let isai1 = compute_isai(&a, 1);
+
+        // ISAI(1) should produce M*A closer to identity than ISAI(0).
+        let ma0 = mat_mul(&isai0.m_u, &mat_mul(&isai0.m_l, &a));
+        let ma1 = mat_mul(&isai1.m_u, &mat_mul(&isai1.m_l, &a));
+        let err0 = frobenius_error_from_identity(&ma0);
+        let err1 = frobenius_error_from_identity(&ma1);
+        assert!(
+            err1 < err0,
+            "ISAI(1) error {err1} should be less than ISAI(0) error {err0}"
         );
     }
 }

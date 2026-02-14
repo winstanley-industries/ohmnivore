@@ -247,7 +247,7 @@ pub fn newton_solve(
                 row_pointers: row_ptrs_usize,
             };
 
-            let isai = preconditioner::compute_isai(&csr_cpu, 0);
+            let isai = preconditioner::compute_isai(&csr_cpu, 1);
 
             // Upload ISAI factors to DS backend with full f64 precision
             let ml_cols: Vec<u32> = isai.m_l.col_indices.iter().map(|&c| c as u32).collect();

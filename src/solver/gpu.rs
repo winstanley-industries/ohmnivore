@@ -147,7 +147,7 @@ impl super::LinearSolver for GpuSolver {
             let b_buf = backend.new_buffer(n);
             backend.upload_vec(&b_f32, &b_buf);
 
-            let isai = preconditioner::compute_isai(a, 0);
+            let isai = preconditioner::compute_isai(a, 1);
             let ml_gpu = upload_csr_f32(backend, &isai.m_l, n);
             let mu_gpu = upload_csr_f32(backend, &isai.m_u, n);
             let tmp = backend.new_buffer(n);
