@@ -183,6 +183,59 @@ impl SubdomainMap {
     pub fn local_size(&self) -> usize {
         self.n_owned() + self.n_halo()
     }
+
+    /// Extract the local submatrix from a global CSR matrix.
+    ///
+    /// Rows correspond to all local nodes (owned + halo). Columns are also
+    /// in local indexing. Only entries where both row and column are in the
+    /// local set (owned + halo) are included.
+    pub fn extract_submatrix(&self, global: &CsrMatrix<f64>) -> CsrMatrix<f64> {
+        let local_n = self.local_size();
+        let mut triplets = Vec::new();
+
+        // Iterate over all local nodes (owned + halo)
+        let all_global: Vec<usize> = self
+            .owned_global
+            .iter()
+            .chain(self.halo_global.iter())
+            .copied()
+            .collect();
+
+        for &global_row in &all_global {
+            let local_row = self.global_to_local[&global_row];
+            let start = global.row_pointers[global_row];
+            let end = global.row_pointers[global_row + 1];
+            for idx in start..end {
+                let global_col = global.col_indices[idx];
+                if let Some(&local_col) = self.global_to_local.get(&global_col) {
+                    triplets.push((local_row, local_col, global.values[idx]));
+                }
+            }
+        }
+
+        CsrMatrix::from_triplets(local_n, local_n, &triplets)
+    }
+
+    /// Extract local portion of a global vector (owned + halo entries).
+    pub fn extract_subvector(&self, global: &[f64]) -> Vec<f64> {
+        let mut local = Vec::with_capacity(self.local_size());
+        for &g in &self.owned_global {
+            local.push(global[g]);
+        }
+        for &g in &self.halo_global {
+            local.push(global[g]);
+        }
+        local
+    }
+
+    /// Scatter owned entries of a local vector back to a global vector.
+    ///
+    /// Only writes owned nodes (not halo). Global vector must be pre-allocated.
+    pub fn scatter_to_global(&self, local: &[f64], global: &mut [f64]) {
+        for (local_idx, &global_idx) in self.owned_global.iter().enumerate() {
+            global[global_idx] = local[local_idx];
+        }
+    }
 }
 
 #[cfg(test)]
@@ -279,5 +332,77 @@ mod tests {
         for (i, &global_idx) in map0.halo_global.iter().enumerate() {
             assert_eq!(map0.global_to_local[&global_idx], n_owned + i);
         }
+    }
+
+    #[test]
+    fn extract_submatrix_single_partition() {
+        // Full 3x3 matrix, 1 partition -- submatrix should equal original.
+        let triplets = vec![
+            (0, 0, 2.0),
+            (0, 1, -1.0),
+            (1, 0, -1.0),
+            (1, 1, 3.0),
+            (1, 2, -1.0),
+            (2, 1, -1.0),
+            (2, 2, 2.0),
+        ];
+        let a = CsrMatrix::from_triplets(3, 3, &triplets);
+        let adj = adjacency_from_edges(3, &[(0, 1), (1, 2)]);
+        let parts = vec![0, 0, 0];
+        let map = super::SubdomainMap::build(&adj, &parts, 0, 1);
+        let sub = map.extract_submatrix(&a);
+        assert_eq!(sub.nrows, 3);
+        assert_eq!(sub.ncols, 3);
+        // Verify a known entry
+        let local_r = map.global_to_local[&1];
+        let local_c = map.global_to_local[&1];
+        let idx = sub.value_index(local_r, local_c).unwrap();
+        assert!((sub.values[idx] - 3.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn extract_submatrix_two_partitions() {
+        // Chain: 0-1-2-3, A is tridiagonal.
+        let triplets = vec![
+            (0, 0, 2.0),
+            (0, 1, -1.0),
+            (1, 0, -1.0),
+            (1, 1, 3.0),
+            (1, 2, -1.0),
+            (2, 1, -1.0),
+            (2, 2, 3.0),
+            (2, 3, -1.0),
+            (3, 2, -1.0),
+            (3, 3, 2.0),
+        ];
+        let a = CsrMatrix::from_triplets(4, 4, &triplets);
+        let adj = adjacency_from_edges(4, &[(0, 1), (1, 2), (2, 3)]);
+        let parts = vec![0, 0, 1, 1];
+        let map0 = super::SubdomainMap::build(&adj, &parts, 0, 1);
+
+        // Subdomain 0 owns {0,1}, halo {2} -> 3x3 local matrix
+        let sub = map0.extract_submatrix(&a);
+        assert_eq!(sub.nrows, 3);
+        assert_eq!(sub.ncols, 3);
+    }
+
+    #[test]
+    fn extract_subvector_roundtrip() {
+        let global_b = vec![10.0, 20.0, 30.0, 40.0];
+        let adj = adjacency_from_edges(4, &[(0, 1), (1, 2), (2, 3)]);
+        let parts = vec![0, 0, 1, 1];
+        let map0 = super::SubdomainMap::build(&adj, &parts, 0, 1);
+
+        let local_b = map0.extract_subvector(&global_b);
+        // Owned nodes {0,1} + halo {2} -> 3 entries
+        assert_eq!(local_b.len(), 3);
+
+        // Scatter back and check owned values
+        let mut global_out = vec![0.0; 4];
+        map0.scatter_to_global(&local_b, &mut global_out);
+        assert!((global_out[0] - 10.0).abs() < 1e-12);
+        assert!((global_out[1] - 20.0).abs() < 1e-12);
+        // Halo values should NOT be scattered (they belong to another rank)
+        assert!((global_out[2] - 0.0).abs() < 1e-12);
     }
 }
