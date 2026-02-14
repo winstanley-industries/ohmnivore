@@ -713,21 +713,39 @@ fn mosfet_eval(@builtin(global_invocation_id) gid: vec3<u32>) {
     var g_m: f32 = 0.0;
     var g_ds: f32 = 0.0;
 
+    // Smooth subthreshold transition using softplus function.
+    // Replaces hard cutoff at v_ov=0 with a smooth curve that:
+    // - equals v_ov when v_ov >> VT (active region unchanged)
+    // - decays exponentially to 0 when v_ov << -VT (cutoff)
+    // - transitions smoothly near v_ov=0 (prevents Newton oscillation)
+    let VT: f32 = 0.02585;
     let v_ov = v_gs - vto;
-    if v_ov > 0.0 {
-        if v_ds < v_ov {
-            // Linear region
-            let lam = 1.0 + lambda * v_ds;
-            i_d = kp * (v_ov * v_ds - v_ds * v_ds / 2.0) * lam;
-            g_m = kp * v_ds * lam;
-            g_ds = kp * (v_ov - v_ds) * lam + kp * (v_ov * v_ds - v_ds * v_ds / 2.0) * lambda;
-        } else {
-            // Saturation region
-            let lam = 1.0 + lambda * v_ds;
-            i_d = kp / 2.0 * v_ov * v_ov * lam;
-            g_m = kp * v_ov * lam;
-            g_ds = kp / 2.0 * v_ov * v_ov * lambda;
-        }
+    let arg = v_ov / VT;
+    var v_ov_eff: f32;
+    var sigmoid: f32;
+    if arg > 20.0 {
+        v_ov_eff = v_ov;
+        sigmoid = 1.0;
+    } else if arg < -20.0 {
+        v_ov_eff = VT * exp(arg);
+        sigmoid = exp(arg);
+    } else {
+        v_ov_eff = VT * log(1.0 + exp(arg));
+        sigmoid = 1.0 / (1.0 + exp(-arg));
+    }
+
+    if v_ds < v_ov_eff {
+        // Linear region
+        let lam = 1.0 + lambda * v_ds;
+        i_d = kp * (v_ov_eff * v_ds - v_ds * v_ds / 2.0) * lam;
+        g_m = kp * v_ds * lam * sigmoid;
+        g_ds = kp * (v_ov_eff - v_ds) * lam + kp * (v_ov_eff * v_ds - v_ds * v_ds / 2.0) * lambda;
+    } else {
+        // Saturation region
+        let lam = 1.0 + lambda * v_ds;
+        i_d = kp / 2.0 * v_ov_eff * v_ov_eff * lam;
+        g_m = kp * v_ov_eff * lam * sigmoid;
+        g_ds = kp / 2.0 * v_ov_eff * v_ov_eff * lambda;
     }
 
     let out = 4u * i;

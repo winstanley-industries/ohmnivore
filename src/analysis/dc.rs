@@ -89,6 +89,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
         &backend,
         &ds_backend,
         &base_b_buf,
+        &system.b_dc,
         system,
         &col_indices_u32,
         &row_ptrs_u32,
@@ -100,7 +101,28 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
     ) {
         Ok(x) => return Ok(x),
         Err(e) => {
-            tracing::info!(?e, "Direct Newton failed, falling back to GMIN stepping");
+            tracing::info!(?e, "Direct Newton failed, trying source stepping");
+        }
+    }
+
+    // Source stepping: gradually ramp sources from 0 to full value.
+    // Most robust for MOSFET-heavy circuits (inverter chains, etc.) because
+    // it naturally walks through the threshold transition region.
+    let diag_positions = find_node_diagonal_positions(system);
+
+    match run_source_stepping(
+        &backend,
+        &ds_backend,
+        system,
+        &col_indices_u32,
+        &row_ptrs_u32,
+        matrix_nnz,
+        &diag_positions,
+        stats.as_deref_mut(),
+    ) {
+        Ok(x) => return Ok(x),
+        Err(e) => {
+            tracing::info!(?e, "Source stepping failed, falling back to GMIN stepping");
         }
     }
 
@@ -111,8 +133,6 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
     //
     // Adaptive schedule: try a 1000x jump; if it fails, subdivide with 10x jumps.
     // Intermediate steps use limited Newton iterations to fail fast.
-    let diag_positions = find_node_diagonal_positions(system);
-
     let mut x_prev: Option<Vec<f32>> = None;
     // Adaptive GMIN schedule: try 1000x jumps, subdivide on failure.
     // On success: record the GMIN level and attempt 1000x jump.
@@ -137,6 +157,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
             &backend,
             &ds_backend,
             &base_b_buf,
+            &system.b_dc,
             system,
             &col_indices_u32,
             &row_ptrs_u32,
@@ -147,14 +168,15 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
             stats.as_deref_mut(),
         )
         .or_else(|gpu_err| {
-            // Fallback path: try CPU direct solve for this continuation step
+            // Fallback path: try CPU sparse-LU solve for this continuation step
             // before we subdivide further.
             let mut cpu_params = params.clone();
-            cpu_params.linear_mode = NewtonLinearMode::CpuDirect;
+            cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
             match gmin_newton_step(
                 &backend,
                 &ds_backend,
                 &base_b_buf,
+                &system.b_dc,
                 system,
                 &col_indices_u32,
                 &row_ptrs_u32,
@@ -168,7 +190,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
                     tracing::debug!(
                         ?gpu_err,
                         target_gmin,
-                        "GMIN GPU step failed, CPU direct fallback succeeded"
+                        "GMIN GPU step failed, CPU sparse-LU fallback succeeded"
                     );
                     Ok(x)
                 }
@@ -214,10 +236,11 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
     let mut final_params = NewtonParams::default();
     final_params.initial_guess = x_prev.clone();
 
-    gmin_newton_step(
+    match gmin_newton_step(
         &backend,
         &ds_backend,
         &base_b_buf,
+        &system.b_dc,
         system,
         &col_indices_u32,
         &row_ptrs_u32,
@@ -226,7 +249,30 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
         0.0,
         &final_params,
         stats.as_deref_mut(),
-    )
+    ) {
+        Ok(x) => Ok(x),
+        Err(final_err) => {
+            if let Some(seed) = x_prev {
+                tracing::info!(
+                    ?final_err,
+                    "Final true-GMIN Newton failed, trying pseudo-transient continuation"
+                );
+                run_pseudo_transient_continuation(
+                    &backend,
+                    &ds_backend,
+                    system,
+                    &col_indices_u32,
+                    &row_ptrs_u32,
+                    matrix_nnz,
+                    &diag_positions,
+                    seed,
+                    stats.as_deref_mut(),
+                )
+            } else {
+                Err(final_err)
+            }
+        }
+    }
 }
 
 /// Run a single Newton solve with modified GMIN.
@@ -235,6 +281,7 @@ fn gmin_newton_step(
     backend: &crate::solver::backend::WgpuBackend,
     ds_backend: &crate::solver::ds_backend::WgpuDsBackend,
     base_b_buf: &crate::solver::backend::WgpuBuffer,
+    base_b_f64: &[f64],
     system: &MnaSystem,
     col_indices_u32: &[u32],
     row_ptrs_u32: &[u32],
@@ -262,7 +309,7 @@ fn gmin_newton_step(
         &step_values_f64,
         col_indices_u32,
         row_ptrs_u32,
-        &system.b_dc,
+        base_b_f64,
         &system.diode_descriptors,
         &system.bjt_descriptors,
         &system.mosfet_descriptors,
@@ -271,6 +318,339 @@ fn gmin_newton_step(
         params,
         stats,
     )
+}
+
+/// Recover failed final DC solve with pseudo-transient continuation.
+///
+/// Adds an adaptive diagonal damping term `alpha * I` (node rows only) and
+/// anchors the RHS as `b + alpha * x_prev`, then progressively reduces alpha
+/// toward 0. This creates a homotopy path that is often more robust than a
+/// direct final jump to true GMIN=0.
+#[allow(clippy::too_many_arguments)]
+fn run_pseudo_transient_continuation(
+    backend: &crate::solver::backend::WgpuBackend,
+    ds_backend: &crate::solver::ds_backend::WgpuDsBackend,
+    system: &MnaSystem,
+    col_indices_u32: &[u32],
+    row_ptrs_u32: &[u32],
+    matrix_nnz: usize,
+    diag_positions: &[usize],
+    seed_x: Vec<f32>,
+    mut stats: Option<&mut Stats>,
+) -> Result<Vec<f64>> {
+    use crate::solver::backend::SolverBackend;
+    use crate::solver::newton::{NewtonLinearMode, NewtonParams};
+
+    let n_nodes = system.node_names.len();
+    let damped_b_buf = backend.new_buffer(system.size);
+    let mut x_prev = seed_x;
+
+    // Adaptive alpha schedule: try 100x drops on success, 10x subdivisions on failure.
+    let mut last_good_alpha = 1.0_f64;
+    let mut target_alpha = 1e-1_f64;
+    let mut subdivisions = 0_u32;
+
+    while target_alpha > 1e-8 {
+        let mut step_b_f64 = system.b_dc.clone();
+        for i in 0..n_nodes {
+            step_b_f64[i] += target_alpha * x_prev[i] as f64;
+        }
+        let step_b_f32: Vec<f32> = step_b_f64.iter().map(|&v| v as f32).collect();
+        backend.upload_vec(&step_b_f32, &damped_b_buf);
+
+        let params = NewtonParams {
+            max_iterations: 20,
+            bicgstab_max_iterations: 500,
+            linear_mode: NewtonLinearMode::GpuBicgstab,
+            initial_guess: Some(x_prev.clone()),
+            ..NewtonParams::default()
+        };
+
+        let result = gmin_newton_step(
+            backend,
+            ds_backend,
+            &damped_b_buf,
+            &step_b_f64,
+            system,
+            col_indices_u32,
+            row_ptrs_u32,
+            matrix_nnz,
+            diag_positions,
+            target_alpha,
+            &params,
+            stats.as_deref_mut(),
+        )
+        .or_else(|gpu_err| {
+            let mut cpu_params = params.clone();
+            cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
+            match gmin_newton_step(
+                backend,
+                ds_backend,
+                &damped_b_buf,
+                &step_b_f64,
+                system,
+                col_indices_u32,
+                row_ptrs_u32,
+                matrix_nnz,
+                diag_positions,
+                target_alpha,
+                &cpu_params,
+                stats.as_deref_mut(),
+            ) {
+                Ok(x) => {
+                    tracing::debug!(
+                        ?gpu_err,
+                        target_alpha,
+                        "Pseudo-transient GPU step failed, CPU sparse-LU fallback succeeded"
+                    );
+                    Ok(x)
+                }
+                Err(cpu_err) => {
+                    tracing::debug!(
+                        ?gpu_err,
+                        ?cpu_err,
+                        target_alpha,
+                        "Pseudo-transient step failed on both GPU and CPU fallback"
+                    );
+                    Err(cpu_err)
+                }
+            }
+        });
+
+        match result {
+            Ok(x) => {
+                x_prev = x.iter().map(|&v| v as f32).collect();
+                last_good_alpha = target_alpha;
+                subdivisions = 0;
+                target_alpha *= 1e-2;
+            }
+            Err(e) => {
+                subdivisions += 1;
+                if subdivisions > 7 {
+                    tracing::error!(
+                        "Pseudo-transient continuation exhausted after {subdivisions} subdivisions"
+                    );
+                    return Err(e);
+                }
+                target_alpha = last_good_alpha * 10.0_f64.powi(-(subdivisions as i32));
+                tracing::debug!(
+                    ?e,
+                    target_alpha,
+                    subdivisions,
+                    "Pseudo-transient step failed, subdividing"
+                );
+            }
+        }
+    }
+
+    // Final true-DC solve (alpha = 0) from the latest damped solution.
+    let base_b_f32: Vec<f32> = system.b_dc.iter().map(|&v| v as f32).collect();
+    backend.upload_vec(&base_b_f32, &damped_b_buf);
+
+    let final_params = NewtonParams {
+        max_iterations: 25,
+        bicgstab_max_iterations: 1500,
+        initial_guess: Some(x_prev.clone()),
+        ..NewtonParams::default()
+    };
+
+    gmin_newton_step(
+        backend,
+        ds_backend,
+        &damped_b_buf,
+        &system.b_dc,
+        system,
+        col_indices_u32,
+        row_ptrs_u32,
+        matrix_nnz,
+        diag_positions,
+        0.0,
+        &final_params,
+        stats.as_deref_mut(),
+    )
+    .or_else(|gpu_err| {
+        let mut cpu_params = final_params.clone();
+        cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
+        match gmin_newton_step(
+            backend,
+            ds_backend,
+            &damped_b_buf,
+            &system.b_dc,
+            system,
+            col_indices_u32,
+            row_ptrs_u32,
+            matrix_nnz,
+            diag_positions,
+            0.0,
+            &cpu_params,
+            stats.as_deref_mut(),
+        ) {
+            Ok(x) => {
+                tracing::debug!(
+                    ?gpu_err,
+                    "Final pseudo-transient GPU step failed, CPU sparse-LU fallback succeeded"
+                );
+                Ok(x)
+            }
+            Err(cpu_err) => {
+                tracing::debug!(
+                    ?gpu_err,
+                    ?cpu_err,
+                    "Final pseudo-transient step failed on both GPU and CPU fallback"
+                );
+                Err(cpu_err)
+            }
+        }
+    })
+}
+
+/// Source stepping: gradually ramp all independent sources from 0 to full value.
+///
+/// At each step, the RHS vector is scaled by `alpha` (0 → 1), effectively
+/// reducing all voltage and current sources proportionally. This keeps the
+/// circuit in a well-conditioned regime at each step:
+/// - At low alpha: MOSFETs are in cutoff or weak inversion with small voltages
+/// - Each step uses the previous converged solution as initial guess
+/// - The Jacobian stays well-conditioned because operating points change gradually
+///
+/// This is the standard SPICE fallback when GMIN stepping fails, and is
+/// particularly effective for long MOSFET chains where the gain amplifies
+/// conditioning problems.
+#[allow(clippy::too_many_arguments)]
+fn run_source_stepping(
+    backend: &crate::solver::backend::WgpuBackend,
+    ds_backend: &crate::solver::ds_backend::WgpuDsBackend,
+    system: &MnaSystem,
+    col_indices_u32: &[u32],
+    row_ptrs_u32: &[u32],
+    matrix_nnz: usize,
+    diag_positions: &[usize],
+    mut stats: Option<&mut Stats>,
+) -> Result<Vec<f64>> {
+    use crate::solver::backend::SolverBackend;
+    use crate::solver::newton::{NewtonLinearMode, NewtonParams};
+
+    tracing::info!("Starting source stepping");
+
+    let scaled_b_buf = backend.new_buffer(system.size);
+    let mut x_prev: Option<Vec<f32>> = None;
+
+    // Adaptive source stepping: try large jumps, subdivide on failure.
+    let mut last_good_alpha = 0.0_f64;
+    let mut target_alpha = 0.1_f64;
+    let mut subdivisions = 0_u32;
+
+    while target_alpha <= 1.0 {
+        // Scale the RHS vector by alpha
+        let b_scaled: Vec<f64> = system.b_dc.iter().map(|&v| target_alpha * v).collect();
+        let b_scaled_f32: Vec<f32> = b_scaled.iter().map(|&v| v as f32).collect();
+        backend.upload_vec(&b_scaled_f32, &scaled_b_buf);
+
+        let params = NewtonParams {
+            max_iterations: 50,
+            bicgstab_max_iterations: 500,
+            linear_mode: NewtonLinearMode::GpuBicgstab,
+            initial_guess: x_prev.clone(),
+            ..NewtonParams::default()
+        };
+
+        tracing::debug!(target_alpha, "Source stepping");
+
+        let result = gmin_newton_step(
+            backend,
+            ds_backend,
+            &scaled_b_buf,
+            &b_scaled,
+            system,
+            col_indices_u32,
+            row_ptrs_u32,
+            matrix_nnz,
+            diag_positions,
+            0.0,
+            &params,
+            stats.as_deref_mut(),
+        )
+        .or_else(|gpu_err| {
+            let mut cpu_params = params.clone();
+            cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
+            match gmin_newton_step(
+                backend,
+                ds_backend,
+                &scaled_b_buf,
+                &b_scaled,
+                system,
+                col_indices_u32,
+                row_ptrs_u32,
+                matrix_nnz,
+                diag_positions,
+                0.0,
+                &cpu_params,
+                stats.as_deref_mut(),
+            ) {
+                Ok(x) => {
+                    tracing::debug!(
+                        ?gpu_err,
+                        target_alpha,
+                        "Source stepping GPU failed, CPU sparse-LU fallback succeeded"
+                    );
+                    Ok(x)
+                }
+                Err(cpu_err) => {
+                    tracing::debug!(
+                        ?gpu_err,
+                        ?cpu_err,
+                        target_alpha,
+                        "Source stepping failed on both GPU and CPU fallback"
+                    );
+                    Err(cpu_err)
+                }
+            }
+        });
+
+        match result {
+            Ok(x) => {
+                x_prev = Some(x.iter().map(|&v| v as f32).collect());
+                last_good_alpha = target_alpha;
+                subdivisions = 0;
+                if (target_alpha - 1.0).abs() < 1e-12 {
+                    // We've reached alpha = 1.0, done!
+                    tracing::info!("Source stepping converged");
+                    return Ok(x);
+                }
+                // Adaptive: try a larger step next
+                let step = (target_alpha - last_good_alpha).max(0.1);
+                target_alpha = (target_alpha + step * 2.0).min(1.0);
+            }
+            Err(e) => {
+                subdivisions += 1;
+                if subdivisions > 20 {
+                    tracing::error!(
+                        "Source stepping exhausted after {subdivisions} subdivisions at alpha={target_alpha}"
+                    );
+                    return Err(e);
+                }
+                // Subdivide: try halfway between last good and target
+                target_alpha = last_good_alpha + (target_alpha - last_good_alpha) / 2.0;
+                if target_alpha - last_good_alpha < 1e-6 {
+                    tracing::error!(
+                        "Source stepping stalled at alpha={last_good_alpha}"
+                    );
+                    return Err(e);
+                }
+                tracing::debug!(
+                    ?e,
+                    target_alpha,
+                    subdivisions,
+                    "Source stepping failed, subdividing"
+                );
+            }
+        }
+    }
+
+    // Should not reach here since alpha=1.0 is handled in the loop
+    Err(crate::error::OhmnivoreError::Solve(
+        "Source stepping completed without reaching alpha=1.0".into(),
+    ))
 }
 
 /// Map a solution vector to named node voltages and branch currents.
