@@ -3,6 +3,8 @@
 pub mod backend;
 pub mod bicgstab;
 pub mod comm;
+#[cfg(feature = "distributed")]
+pub mod comm_mpi;
 pub mod cpu;
 pub mod distributed_bicgstab;
 pub mod distributed_newton;

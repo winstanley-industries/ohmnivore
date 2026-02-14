@@ -17,9 +17,11 @@ clap = { version = "4", features = ["derive"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 metis-rs = "0.1"
+mpi = { version = "0.8", optional = true }
 
 [features]
 ngspice-compare = []
+distributed = ["mpi"]
 
 [dev-dependencies]
 approx = "0.5"
