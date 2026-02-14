@@ -58,21 +58,14 @@ fn find_node_diagonal_positions(system: &MnaSystem) -> Vec<usize> {
 /// solve with artificially large GMIN, then progressively reduce it toward the
 /// real value, using each converged solution as the initial guess for the next.
 fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Vec<f64>> {
-    use crate::solver::backend::{SolverBackend, WgpuBackend};
     use crate::solver::ds_backend::WgpuDsBackend;
     use crate::solver::newton::{NewtonLinearMode, NewtonParams};
 
-    let backend = WgpuBackend::new()?;
     let ds_backend = WgpuDsBackend::new()?;
 
     // Convert base G matrix CSR indices to u32 for GPU
     let col_indices_u32: Vec<u32> = system.g.col_indices.iter().map(|&c| c as u32).collect();
     let row_ptrs_u32: Vec<u32> = system.g.row_pointers.iter().map(|&r| r as u32).collect();
-    let b_dc_f32: Vec<f32> = system.b_dc.iter().map(|&v| v as f32).collect();
-
-    // Upload base RHS vector to GPU
-    let base_b_buf = backend.new_buffer(system.size);
-    backend.upload_vec(&b_dc_f32, &base_b_buf);
 
     let matrix_nnz = system.g.values.len();
 
@@ -81,14 +74,14 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
     let direct_params = NewtonParams {
         // Avoid spending excessive time in a doomed direct attempt on large
         // ill-conditioned nonlinear systems; fallback stepping handles those.
-        bicgstab_max_iterations: 1000,
+        // 200 BiCGSTAB iters is enough for well-conditioned circuits while
+        // failing fast on ill-conditioned ones.
+        bicgstab_max_iterations: 200,
         ..NewtonParams::default()
     };
 
     match gmin_newton_step(
-        &backend,
         &ds_backend,
-        &base_b_buf,
         &system.b_dc,
         system,
         &col_indices_u32,
@@ -100,29 +93,60 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
         stats.as_deref_mut(),
     ) {
         Ok(x) => return Ok(x),
-        Err(e) => {
-            tracing::info!(?e, "Direct Newton failed, trying source stepping");
+        Err(gpu_err) => {
+            // GPU f32 precision limits convergence for circuits with very
+            // small currents (e.g., BJTs with Is=1e-14). Fall back to CPU
+            // f64 direct solve before attempting expensive stepping heuristics.
+            tracing::info!(?gpu_err, "Direct GPU Newton failed, trying CPU direct");
+            let mut cpu_params = direct_params.clone();
+            cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
+            // Limit CPU direct attempts — if the circuit didn't converge on GPU,
+            // CPU rarely succeeds with more iterations. Fail fast to reach
+            // continuation methods sooner.
+            cpu_params.max_iterations = 15;
+            match gmin_newton_step(
+                &ds_backend,
+                &system.b_dc,
+                system,
+                &col_indices_u32,
+                &row_ptrs_u32,
+                matrix_nnz,
+                &[],
+                0.0,
+                &cpu_params,
+                stats.as_deref_mut(),
+            ) {
+                Ok(x) => return Ok(x),
+                Err(cpu_err) => {
+                    tracing::info!(
+                        ?cpu_err,
+                        "Direct CPU Newton also failed, trying continuation methods"
+                    );
+                }
+            }
         }
     }
 
     // Source stepping: gradually ramp sources from 0 to full value.
-    // Most robust for MOSFET-heavy circuits (inverter chains, etc.) because
-    // it naturally walks through the threshold transition region.
+    // Only attempt when MOSFETs are present — it's designed for walking
+    // through the MOSFET threshold transition region. Running it on
+    // BJT-only circuits is counterproductive and wastes GPU time.
     let diag_positions = find_node_diagonal_positions(system);
 
-    match run_source_stepping(
-        &backend,
-        &ds_backend,
-        system,
-        &col_indices_u32,
-        &row_ptrs_u32,
-        matrix_nnz,
-        &diag_positions,
-        stats.as_deref_mut(),
-    ) {
-        Ok(x) => return Ok(x),
-        Err(e) => {
-            tracing::info!(?e, "Source stepping failed, falling back to GMIN stepping");
+    if !system.mosfet_descriptors.is_empty() {
+        match run_source_stepping(
+            &ds_backend,
+            system,
+            &col_indices_u32,
+            &row_ptrs_u32,
+            matrix_nnz,
+            &diag_positions,
+            stats.as_deref_mut(),
+        ) {
+            Ok(x) => return Ok(x),
+            Err(e) => {
+                tracing::info!(?e, "Source stepping failed, falling back to GMIN stepping");
+            }
         }
     }
 
@@ -133,7 +157,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
     //
     // Adaptive schedule: try a 1000x jump; if it fails, subdivide with 10x jumps.
     // Intermediate steps use limited Newton iterations to fail fast.
-    let mut x_prev: Option<Vec<f32>> = None;
+    let mut x_prev: Option<Vec<f64>> = None;
     // Adaptive GMIN schedule: try 1000x jumps, subdivide on failure.
     // On success: record the GMIN level and attempt 1000x jump.
     // On failure: try progressively smaller steps (10x) from the last
@@ -154,9 +178,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
         };
 
         let result = gmin_newton_step(
-            &backend,
             &ds_backend,
-            &base_b_buf,
             &system.b_dc,
             system,
             &col_indices_u32,
@@ -173,9 +195,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
             let mut cpu_params = params.clone();
             cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
             match gmin_newton_step(
-                &backend,
                 &ds_backend,
-                &base_b_buf,
                 &system.b_dc,
                 system,
                 &col_indices_u32,
@@ -208,7 +228,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
 
         match result {
             Ok(x) => {
-                x_prev = Some(x.iter().map(|&v| v as f32).collect());
+                x_prev = Some(x);
                 last_good_gmin = target_gmin;
                 subdivisions = 0;
                 // Try 1000x jump
@@ -237,9 +257,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
     final_params.initial_guess = x_prev.clone();
 
     match gmin_newton_step(
-        &backend,
         &ds_backend,
-        &base_b_buf,
         &system.b_dc,
         system,
         &col_indices_u32,
@@ -258,7 +276,6 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
                     "Final true-GMIN Newton failed, trying pseudo-transient continuation"
                 );
                 run_pseudo_transient_continuation(
-                    &backend,
                     &ds_backend,
                     system,
                     &col_indices_u32,
@@ -278,9 +295,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
 /// Run a single Newton solve with modified GMIN.
 #[allow(clippy::too_many_arguments)]
 fn gmin_newton_step(
-    backend: &crate::solver::backend::WgpuBackend,
     ds_backend: &crate::solver::ds_backend::WgpuDsBackend,
-    base_b_buf: &crate::solver::backend::WgpuBuffer,
     base_b_f64: &[f64],
     system: &MnaSystem,
     col_indices_u32: &[u32],
@@ -297,15 +312,11 @@ fn gmin_newton_step(
     for &pos in diag_positions {
         step_values_f64[pos] += extra_gmin;
     }
-    let step_values_f32: Vec<f32> = step_values_f64.iter().map(|&v| v as f32).collect();
 
     tracing::debug!(extra_gmin, "GMIN stepping");
 
     newton_solve(
-        backend,
         ds_backend,
-        base_b_buf,
-        &step_values_f32,
         &step_values_f64,
         col_indices_u32,
         row_ptrs_u32,
@@ -328,21 +339,18 @@ fn gmin_newton_step(
 /// direct final jump to true GMIN=0.
 #[allow(clippy::too_many_arguments)]
 fn run_pseudo_transient_continuation(
-    backend: &crate::solver::backend::WgpuBackend,
     ds_backend: &crate::solver::ds_backend::WgpuDsBackend,
     system: &MnaSystem,
     col_indices_u32: &[u32],
     row_ptrs_u32: &[u32],
     matrix_nnz: usize,
     diag_positions: &[usize],
-    seed_x: Vec<f32>,
+    seed_x: Vec<f64>,
     mut stats: Option<&mut Stats>,
 ) -> Result<Vec<f64>> {
-    use crate::solver::backend::SolverBackend;
     use crate::solver::newton::{NewtonLinearMode, NewtonParams};
 
     let n_nodes = system.node_names.len();
-    let damped_b_buf = backend.new_buffer(system.size);
     let mut x_prev = seed_x;
 
     // Adaptive alpha schedule: try 100x drops on success, 10x subdivisions on failure.
@@ -353,10 +361,8 @@ fn run_pseudo_transient_continuation(
     while target_alpha > 1e-8 {
         let mut step_b_f64 = system.b_dc.clone();
         for i in 0..n_nodes {
-            step_b_f64[i] += target_alpha * x_prev[i] as f64;
+            step_b_f64[i] += target_alpha * x_prev[i];
         }
-        let step_b_f32: Vec<f32> = step_b_f64.iter().map(|&v| v as f32).collect();
-        backend.upload_vec(&step_b_f32, &damped_b_buf);
 
         let params = NewtonParams {
             max_iterations: 20,
@@ -367,9 +373,7 @@ fn run_pseudo_transient_continuation(
         };
 
         let result = gmin_newton_step(
-            backend,
             ds_backend,
-            &damped_b_buf,
             &step_b_f64,
             system,
             col_indices_u32,
@@ -384,9 +388,7 @@ fn run_pseudo_transient_continuation(
             let mut cpu_params = params.clone();
             cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
             match gmin_newton_step(
-                backend,
                 ds_backend,
-                &damped_b_buf,
                 &step_b_f64,
                 system,
                 col_indices_u32,
@@ -419,7 +421,7 @@ fn run_pseudo_transient_continuation(
 
         match result {
             Ok(x) => {
-                x_prev = x.iter().map(|&v| v as f32).collect();
+                x_prev = x;
                 last_good_alpha = target_alpha;
                 subdivisions = 0;
                 target_alpha *= 1e-2;
@@ -444,9 +446,6 @@ fn run_pseudo_transient_continuation(
     }
 
     // Final true-DC solve (alpha = 0) from the latest damped solution.
-    let base_b_f32: Vec<f32> = system.b_dc.iter().map(|&v| v as f32).collect();
-    backend.upload_vec(&base_b_f32, &damped_b_buf);
-
     let final_params = NewtonParams {
         max_iterations: 25,
         bicgstab_max_iterations: 1500,
@@ -455,9 +454,7 @@ fn run_pseudo_transient_continuation(
     };
 
     gmin_newton_step(
-        backend,
         ds_backend,
-        &damped_b_buf,
         &system.b_dc,
         system,
         col_indices_u32,
@@ -472,9 +469,7 @@ fn run_pseudo_transient_continuation(
         let mut cpu_params = final_params.clone();
         cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
         match gmin_newton_step(
-            backend,
             ds_backend,
-            &damped_b_buf,
             &system.b_dc,
             system,
             col_indices_u32,
@@ -518,7 +513,6 @@ fn run_pseudo_transient_continuation(
 /// conditioning problems.
 #[allow(clippy::too_many_arguments)]
 fn run_source_stepping(
-    backend: &crate::solver::backend::WgpuBackend,
     ds_backend: &crate::solver::ds_backend::WgpuDsBackend,
     system: &MnaSystem,
     col_indices_u32: &[u32],
@@ -527,13 +521,11 @@ fn run_source_stepping(
     diag_positions: &[usize],
     mut stats: Option<&mut Stats>,
 ) -> Result<Vec<f64>> {
-    use crate::solver::backend::SolverBackend;
     use crate::solver::newton::{NewtonLinearMode, NewtonParams};
 
     tracing::info!("Starting source stepping");
 
-    let scaled_b_buf = backend.new_buffer(system.size);
-    let mut x_prev: Option<Vec<f32>> = None;
+    let mut x_prev: Option<Vec<f64>> = None;
 
     // Adaptive source stepping: try large jumps, subdivide on failure.
     let mut last_good_alpha = 0.0_f64;
@@ -543,12 +535,13 @@ fn run_source_stepping(
     while target_alpha <= 1.0 {
         // Scale the RHS vector by alpha
         let b_scaled: Vec<f64> = system.b_dc.iter().map(|&v| target_alpha * v).collect();
-        let b_scaled_f32: Vec<f32> = b_scaled.iter().map(|&v| v as f32).collect();
-        backend.upload_vec(&b_scaled_f32, &scaled_b_buf);
 
         let params = NewtonParams {
-            max_iterations: 50,
-            bicgstab_max_iterations: 500,
+            // Intermediate source stepping steps should fail fast: each step
+            // starts from a nearby converged solution, so convergence should be
+            // quick. Long iteration counts just waste time on doomed steps.
+            max_iterations: 30,
+            bicgstab_max_iterations: 200,
             linear_mode: NewtonLinearMode::GpuBicgstab,
             initial_guess: x_prev.clone(),
             ..NewtonParams::default()
@@ -557,9 +550,7 @@ fn run_source_stepping(
         tracing::debug!(target_alpha, "Source stepping");
 
         let result = gmin_newton_step(
-            backend,
             ds_backend,
-            &scaled_b_buf,
             &b_scaled,
             system,
             col_indices_u32,
@@ -573,10 +564,9 @@ fn run_source_stepping(
         .or_else(|gpu_err| {
             let mut cpu_params = params.clone();
             cpu_params.linear_mode = NewtonLinearMode::CpuSparseLu;
+            cpu_params.max_iterations = 15;
             match gmin_newton_step(
-                backend,
                 ds_backend,
-                &scaled_b_buf,
                 &b_scaled,
                 system,
                 col_indices_u32,
@@ -609,7 +599,10 @@ fn run_source_stepping(
 
         match result {
             Ok(x) => {
-                x_prev = Some(x.iter().map(|&v| v as f32).collect());
+                x_prev = Some(x.clone());
+                // Compute step size BEFORE updating last_good_alpha,
+                // otherwise the difference is always 0.
+                let prev_step = target_alpha - last_good_alpha;
                 last_good_alpha = target_alpha;
                 subdivisions = 0;
                 if (target_alpha - 1.0).abs() < 1e-12 {
@@ -618,7 +611,7 @@ fn run_source_stepping(
                     return Ok(x);
                 }
                 // Adaptive: try a larger step next
-                let step = (target_alpha - last_good_alpha).max(0.1);
+                let step = prev_step.max(0.1);
                 target_alpha = (target_alpha + step * 2.0).min(1.0);
             }
             Err(e) => {
@@ -675,4 +668,62 @@ fn map_solution(system: &MnaSystem, x: &[f64]) -> Result<DcResult> {
         node_voltages,
         branch_currents,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::sparse::CsrMatrix;
+    use num_complex::Complex64;
+
+    #[test]
+    fn test_find_node_diagonal_positions() {
+        // Build a 3-node + 1 branch (4×4) system with known CSR structure.
+        // Sparse pattern (row-major):
+        //   row 0: (0,0)=2.0  (0,1)=-1.0
+        //   row 1: (1,0)=-1.0 (1,1)=3.0  (1,2)=-1.0
+        //   row 2: (2,1)=-1.0 (2,2)=2.0  (2,3)=1.0
+        //   row 3: (3,2)=1.0  (3,3)=0.0   (branch row)
+        let values = vec![2.0, -1.0, -1.0, 3.0, -1.0, -1.0, 2.0, 1.0, 1.0, 0.0];
+        let col_indices = vec![0, 1, 0, 1, 2, 1, 2, 3, 2, 3];
+        let row_pointers = vec![0, 2, 5, 8, 10];
+
+        let g = CsrMatrix {
+            nrows: 4,
+            ncols: 4,
+            values,
+            col_indices,
+            row_pointers,
+        };
+
+        let system = MnaSystem {
+            g,
+            c: CsrMatrix {
+                nrows: 4,
+                ncols: 4,
+                values: vec![],
+                col_indices: vec![],
+                row_pointers: vec![0, 0, 0, 0, 0],
+            },
+            b_dc: vec![0.0; 4],
+            b_ac: vec![Complex64::new(0.0, 0.0); 4],
+            size: 4,
+            node_names: vec!["a".into(), "b".into(), "c".into()],
+            branch_names: vec!["V1".into()],
+            diode_descriptors: vec![],
+            bjt_descriptors: vec![],
+            mosfet_descriptors: vec![],
+        };
+
+        let positions = find_node_diagonal_positions(&system);
+
+        // 3 nodes → 3 diagonal positions
+        assert_eq!(positions.len(), 3);
+        // row 0: col_indices[0]=0 → diagonal at value index 0
+        assert_eq!(positions[0], 0);
+        // row 1: col_indices[3]=1 → diagonal at value index 3
+        assert_eq!(positions[1], 3);
+        // row 2: col_indices[6]=2 → diagonal at value index 6
+        assert_eq!(positions[2], 6);
+    }
 }

@@ -27,12 +27,7 @@ pub trait CommunicationBackend: Send + Sync {
     /// indices to send. `local_data` contains the full local vector.
     /// `recv_halo` is filled with received values in the order defined by
     /// the neighbor recv regions.
-    fn halo_exchange(
-        &self,
-        neighbors: &[HaloNeighbor],
-        local_data: &[f64],
-        recv_halo: &mut [f64],
-    );
+    fn halo_exchange(&self, neighbors: &[HaloNeighbor], local_data: &[f64], recv_halo: &mut [f64]);
 
     /// This process's rank (subdomain index).
     fn rank(&self) -> usize;

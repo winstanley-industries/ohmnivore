@@ -63,7 +63,9 @@ fn try_ac_solve(
             _ => None,
         })
         .expect("no AC analysis in netlist");
-    analysis::ac::run(&system, solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3, None)
+    analysis::ac::run(
+        &system, solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3, None,
+    )
 }
 
 fn find_node_voltage(result: &analysis::DcResult, name: &str) -> f64 {
@@ -203,12 +205,7 @@ fn ds_bicgstab_ill_conditioned_matrix() {
 
     let gmin = 1e-12_f64;
     // MNA matrix: GMIN on diagonals, voltage source stamp
-    let triplets = vec![
-        (0, 0, gmin),
-        (0, 2, 1.0),
-        (1, 1, gmin),
-        (2, 0, 1.0),
-    ];
+    let triplets = vec![(0, 0, gmin), (0, 2, 1.0), (1, 1, gmin), (2, 0, 1.0)];
     let a = CsrMatrix::from_triplets(3, 3, &triplets);
     let b = [0.0, 0.0, 5.0]; // V1 = 5V
 
@@ -230,7 +227,10 @@ fn ds_bicgstab_ill_conditioned_matrix() {
         assert!(
             (x[i] - x_ref[i]).abs() < 1e-4,
             "DS solution[{}] = {}, CPU reference = {}, diff = {}",
-            i, x[i], x_ref[i], (x[i] - x_ref[i]).abs()
+            i,
+            x[i],
+            x_ref[i],
+            (x[i] - x_ref[i]).abs()
         );
     }
 }
@@ -385,8 +385,8 @@ fn distributed_newton_single_gpu_cmos_inverter() {
     assert_eq!(solution.len(), system.size);
 
     // Verify against the standard analysis path
-    let dc_result = analysis::dc::run(&system, &CpuSolver::new(), None)
-        .expect("CPU DC analysis failed");
+    let dc_result =
+        analysis::dc::run(&system, &CpuSolver::new(), None).expect("CPU DC analysis failed");
     let v_out2 = find_node_voltage(&dc_result, "out_2");
     // VIN=5V high -> stage1 out=0V -> stage2 out=5V
     assert!(

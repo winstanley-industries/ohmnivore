@@ -661,7 +661,11 @@ impl SolverBackend for WgpuBackend {
                     | wgpu::BufferUsages::COPY_SRC
                     | wgpu::BufferUsages::COPY_DST,
             });
-        WgpuBuffer { buffer, buffer_lo: None, n }
+        WgpuBuffer {
+            buffer,
+            buffer_lo: None,
+            n,
+        }
     }
 
     fn upload_matrix(

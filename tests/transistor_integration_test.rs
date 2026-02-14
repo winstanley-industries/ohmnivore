@@ -4,16 +4,57 @@ use ohmnivore::analysis;
 use ohmnivore::compiler;
 use ohmnivore::parser;
 use ohmnivore::solver::cpu::CpuSolver;
+use std::sync::Once;
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-/// Helper: attempt GPU DC solve, returns None if no GPU available or if the
-/// nonlinear solver is not yet fully wired up for the device types in the circuit.
+static INIT_TRACING: Once = Once::new();
+
+fn init_tracing() {
+    INIT_TRACING.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_env_filter(
+                tracing_subscriber::EnvFilter::try_from_default_env()
+                    .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+            )
+            .with_test_writer()
+            .try_init()
+            .ok();
+    });
+}
+
+/// Default timeout for GPU DC solves. Each test should complete in 1-2 seconds;
+/// 30s is generous enough for slow CI machines but catches real hangs.
+const DC_SOLVE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// Helper: attempt GPU DC solve with a hard timeout.
+/// Returns None if no GPU available or if the nonlinear solver fails gracefully.
+/// Panics if the solve hangs past `DC_SOLVE_TIMEOUT`.
 fn try_dc_solve(netlist: &str) -> Option<analysis::DcResult> {
+    try_dc_solve_with_timeout(netlist, DC_SOLVE_TIMEOUT)
+}
+
+fn try_dc_solve_with_timeout(
+    netlist: &str,
+    timeout: std::time::Duration,
+) -> Option<analysis::DcResult> {
+    init_tracing();
     let circuit = parser::parse(netlist).expect("parse failed");
     let system = compiler::compile(&circuit).expect("compile failed");
     let solver = CpuSolver::new();
-    match analysis::dc::run(&system, &solver, None) {
+
+    // Run the solve on a separate thread so we can enforce a hard timeout.
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let result = analysis::dc::run(&system, &solver, None);
+        let _ = tx.send(result);
+    });
+
+    let solve_result = rx
+        .recv_timeout(timeout)
+        .unwrap_or_else(|_| panic!("DC solve timed out after {timeout:?} — likely hanging"));
+
+    match solve_result {
         Ok(result) => Some(result),
         Err(e) => {
             let msg = format!("{e}");
@@ -388,8 +429,11 @@ M1 n4 n2 0 MMOD
     assert_eq!(system.bjt_descriptors.len(), 1, "expected 1 BJT");
     assert_eq!(system.mosfet_descriptors.len(), 1, "expected 1 MOSFET");
 
-    // GPU end-to-end
-    let Some(result) = try_dc_solve(netlist) else {
+    // GPU end-to-end — mixed circuits with diodes+BJTs+MOSFETs need
+    // source stepping continuation which is slow in debug mode.
+    let Some(result) =
+        try_dc_solve_with_timeout(netlist, std::time::Duration::from_secs(300))
+    else {
         return;
     };
 
@@ -468,11 +512,13 @@ MN1 out in 0 0 NMOD
 .DC
 .END
 ";
-    let result = try_dc_solve(netlist)
-        .expect("CMOS inverter DC should converge");
+    let result = try_dc_solve(netlist).expect("CMOS inverter DC should converge");
     let v_out = voltage(&result, "out");
     // VIN=5V (high) -> NMOS ON, PMOS OFF -> out should be near 0V
-    assert!(v_out < 0.5, "V(out) = {v_out}, expected near 0V for CMOS inverter with high input");
+    assert!(
+        v_out < 0.5,
+        "V(out) = {v_out}, expected near 0V for CMOS inverter with high input"
+    );
 }
 
 #[test]
@@ -499,4 +545,114 @@ R2 2 0 1k
 
     // Standard voltage divider: V(2) = 5.0V (GMIN adds ~1e-9 perturbation)
     assert!((v2 - 5.0).abs() < 1e-6, "V(2) = {v2}, expected 5.0V");
+}
+
+// ── Source Stepping / Smooth MOSFET Model Tests ─────────────────────
+
+#[test]
+fn test_cmos_inverter_chain_10_dc() {
+    // 10-stage CMOS inverter chain — exercises source stepping continuation.
+    // Input = VDD (high) → stage 1 output low → stage 2 output high → ...
+    // Even stages should be high (~VDD), odd stages should be low (~0V).
+    let mut netlist = String::from(
+        "\
+* 10-Stage CMOS Inverter Chain
+VDD vdd 0 DC 5
+VIN in 0 DC 5
+.MODEL NMOD NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)
+.MODEL PMOD PMOS(VTO=-0.7 KP=5.5e-5 LAMBDA=0.04)
+",
+    );
+
+    // Generate 10 inverter stages
+    for i in 0..10 {
+        let input = if i == 0 {
+            "in".to_string()
+        } else {
+            format!("n{}", i - 1)
+        };
+        let output = format!("n{i}");
+        netlist.push_str(&format!(
+            "MP{i} {output} {input} vdd vdd PMOD\n\
+             MN{i} {output} {input} 0 0 NMOD\n"
+        ));
+    }
+    netlist.push_str(".DC\n.END\n");
+
+    // Source stepping continuation for a 10-stage chain needs more time in debug mode.
+    let Some(result) =
+        try_dc_solve_with_timeout(&netlist, std::time::Duration::from_secs(120))
+    else {
+        return;
+    };
+
+    // Verify alternating high/low pattern
+    for i in 0..10 {
+        let node = format!("n{i}");
+        let v = voltage(&result, &node);
+        if i % 2 == 0 {
+            // Odd stage (0-indexed even): input was high → output low
+            assert!(
+                v < 1.0,
+                "V({node}) = {v}, expected near 0V (odd inverter stage)"
+            );
+        } else {
+            // Even stage (0-indexed odd): input was low → output high
+            assert!(
+                v > 4.0,
+                "V({node}) = {v}, expected near 5V (even inverter stage)"
+            );
+        }
+    }
+}
+
+#[test]
+fn test_mosfet_at_threshold_bias() {
+    // NMOS biased exactly at V_GS = VTO — tests smooth transition convergence.
+    let netlist = "\
+* NMOS at threshold
+V1 vdd 0 DC 5
+V2 gate 0 DC 0.7
+R1 vdd drain 10k
+.MODEL NMOD NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)
+M1 drain gate 0 NMOD
+.DC
+.END
+";
+    let Some(result) = try_dc_solve(netlist) else {
+        return;
+    };
+
+    let v_drain = voltage(&result, "drain");
+    // At threshold: small current flows, drain should be near but slightly below VDD
+    assert!(
+        v_drain > 3.0 && v_drain <= 5.01,
+        "V(drain) = {v_drain}, expected near VDD (small current at threshold)"
+    );
+}
+
+#[test]
+fn test_mosfet_subthreshold_current() {
+    // NMOS with V_GS slightly below VTO — smooth model should converge
+    // where hard cutoff might oscillate.
+    let netlist = "\
+* NMOS subthreshold
+V1 vdd 0 DC 5
+V2 gate 0 DC 0.5
+R1 vdd drain 10k
+.MODEL NMOD NMOS(VTO=0.7 KP=1.1e-4 LAMBDA=0.04)
+M1 drain gate 0 NMOD
+.DC
+.END
+";
+    let Some(result) = try_dc_solve(netlist) else {
+        return;
+    };
+
+    let v_drain = voltage(&result, "drain");
+    // Below threshold: negligible current, drain voltage very close to VDD
+    assert!(
+        (v_drain - 5.0).abs() < 0.5,
+        "V(drain) = {v_drain}, expected ~5V (subthreshold, negligible current)"
+    );
 }

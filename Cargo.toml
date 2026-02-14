@@ -18,6 +18,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 metis-rs = "0.1"
 mpi = { version = "0.8", optional = true }
+faer = { version = "0.24", default-features = false, features = ["std", "sparse-linalg"] }
 
 [features]
 ngspice-compare = []

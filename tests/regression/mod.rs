@@ -195,8 +195,10 @@ fn run_ac_comparison(
         })
         .expect("no AC analysis found in netlist");
 
-    let ohm_result = analysis::ac::run(&system, &solver, sweep_type, n_points, f_start, f_stop, None)
-        .expect("Ohmnivore AC solve failed");
+    let ohm_result = analysis::ac::run(
+        &system, &solver, sweep_type, n_points, f_start, f_stop, None,
+    )
+    .expect("Ohmnivore AC solve failed");
 
     // Run ngspice
     let ng_result = backend

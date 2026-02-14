@@ -8,7 +8,7 @@ use wgpu::util::DeviceExt;
 
 use super::backend::{WgpuBackend, WgpuBuffer};
 use super::gpu_shaders;
-use crate::compiler::{GpuBjtDescriptor, GpuMosfetDescriptor};
+use crate::compiler::{GpuBjtDescriptor, GpuDiodeDescriptor, GpuMosfetDescriptor};
 use crate::error::Result;
 
 const WORKGROUP_SIZE: u32 = 64;
@@ -17,28 +17,11 @@ fn workgroup_count(n: u32) -> u32 {
     n.div_ceil(WORKGROUP_SIZE)
 }
 
-/// GPU-side diode descriptor. Layout must exactly match the WGSL flat u32
-/// descriptor format (12 words = 48 bytes per diode).
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct GpuDiodeDescriptor {
-    pub anode_idx: u32,
-    pub cathode_idx: u32,
-    pub is_val: f32,
-    pub n_vt: f32,
-    /// CSR value indices for the 4 G-matrix conductance stamps:
-    /// \[anode,anode\], \[anode,cathode\], \[cathode,anode\], \[cathode,cathode\]
-    pub g_row_col: [u32; 4],
-    /// RHS vector indices for anode and cathode nodes.
-    pub b_idx: [u32; 2],
-    pub _pad: [u32; 2],
-}
-
 /// Result of a Newton-Raphson convergence check.
 #[derive(Debug, Clone)]
 pub enum ConvergenceResult {
     Converged,
-    NotConverged { max_diff: f32 },
+    NotConverged { max_diff: f64 },
     NumericalError,
 }
 
@@ -160,7 +143,7 @@ pub trait NonlinearBackend {
         x_new: &Self::Buffer,
         descriptors: &Self::Buffer,
         result_buf: &Self::Buffer,
-        tolerance: f32,
+        tolerance: f64,
         n_diodes: u32,
         system_size: u32,
     ) -> ConvergenceResult;
@@ -565,10 +548,11 @@ impl NonlinearBackend for WgpuBackend {
         x_new: &WgpuBuffer,
         descriptors: &WgpuBuffer,
         _result_buf: &WgpuBuffer,
-        tolerance: f32,
+        tolerance: f64,
         n_diodes: u32,
         system_size: u32,
     ) -> ConvergenceResult {
+        let tolerance = tolerance as f32;
         let pipelines = self.nonlinear_pipelines();
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
@@ -698,7 +682,9 @@ impl NonlinearBackend for WgpuBackend {
         if max_diff < tolerance {
             ConvergenceResult::Converged
         } else {
-            ConvergenceResult::NotConverged { max_diff }
+            ConvergenceResult::NotConverged {
+                max_diff: max_diff as f64,
+            }
         }
     }
 

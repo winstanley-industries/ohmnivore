@@ -62,12 +62,7 @@ impl CommunicationBackend for MpiComm {
         global
     }
 
-    fn halo_exchange(
-        &self,
-        neighbors: &[HaloNeighbor],
-        local_data: &[f64],
-        recv_halo: &mut [f64],
-    ) {
+    fn halo_exchange(&self, neighbors: &[HaloNeighbor], local_data: &[f64], recv_halo: &mut [f64]) {
         let world = SimpleCommunicator::world();
         let my_rank = world.rank();
 

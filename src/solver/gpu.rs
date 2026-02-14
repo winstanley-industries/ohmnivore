@@ -141,8 +141,7 @@ impl super::LinearSolver for GpuSolver {
             let values_f32: Vec<f32> = a.values.iter().map(|&v| v as f32).collect();
             let b_f32: Vec<f32> = b.iter().map(|&v| v as f32).collect();
 
-            let gpu_matrix =
-                backend.upload_matrix(&values_f32, &col_indices_u32, &row_ptrs_u32, n);
+            let gpu_matrix = backend.upload_matrix(&values_f32, &col_indices_u32, &row_ptrs_u32, n);
             let x_buf = backend.new_buffer(n);
             let b_buf = backend.new_buffer(n);
             backend.upload_vec(&b_f32, &b_buf);

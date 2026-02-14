@@ -1042,11 +1042,11 @@ fn assemble_mosfet_rhs_stamp(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 /// WGSL shader for BJT voltage limiting during Newton-Raphson iteration.
 ///
-/// One invocation per BJT. Clamps V_BE change to +/-2*nf_vt and
-/// V_BC change to +/-2*nr_vt to prevent Newton overshoot.
+/// One invocation per BJT. Uses SPICE3f5 `pnjlim` function with logarithmic
+/// damping for forward-biased junctions. Reverse-biased junctions are not limited.
 pub const BJT_VOLTAGE_LIMIT_SHADER: &str = r#"
 // ============================================================
-// BJT Voltage Limiting Shader
+// BJT Voltage Limiting Shader (SPICE pnjlim)
 // ============================================================
 
 struct BjtVoltLimitParams {
@@ -1074,6 +1074,24 @@ fn bvl_read_new(idx: u32) -> f32 {
     return bvl_x_new[idx];
 }
 
+// SPICE3f5 pnjlim: logarithmic damping for forward-biased PN junctions.
+// vnew/vold are polarity-adjusted so forward bias is positive.
+fn bvl_pnjlim(vnew: f32, vold: f32, vt: f32, vcrit: f32) -> f32 {
+    if vnew > vcrit && abs(vnew - vold) > vt + vt {
+        if vold > 0.0 {
+            let arg = 1.0 + (vnew - vold) / vt;
+            if arg > 0.0 {
+                return vold + vt * (2.0 + log(arg - 2.0));
+            } else {
+                return vcrit;
+            }
+        } else {
+            return vt * log(vnew / vt);
+        }
+    }
+    return vnew;
+}
+
 @compute @workgroup_size(64)
 fn bjt_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
     let i = gid.x;
@@ -1085,52 +1103,60 @@ fn bjt_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
     let collector_idx = bvl_desc[base + 0u];
     let base_idx = bvl_desc[base + 1u];
     let emitter_idx = bvl_desc[base + 2u];
+    let polarity = bitcast<f32>(bvl_desc[base + 3u]);
+    let is_val = bitcast<f32>(bvl_desc[base + 4u]);
     let nf_vt = bitcast<f32>(bvl_desc[base + 7u]);
     let nr_vt = bitcast<f32>(bvl_desc[base + 8u]);
 
-    // Per-node voltage-source-constrained flags (words 9-11).
-    // Skip modifying nodes driven by voltage sources.
     let collector_fixed = bvl_desc[base + 9u];
     let base_fixed = bvl_desc[base + 10u];
     let emitter_fixed = bvl_desc[base + 11u];
 
-    // V_BE limiting
-    let vbe_old = bvl_read_old(base_idx) - bvl_read_old(emitter_idx);
-    let vbe_new = bvl_read_new(base_idx) - bvl_read_new(emitter_idx);
-    let delta_vbe = vbe_new - vbe_old;
-    let limit_be = 2.0 * nf_vt;
+    let sqrt2 = 1.4142135;
+    let vcrit_f = nf_vt * log(nf_vt / (sqrt2 * is_val));
+    let vcrit_r = nr_vt * log(nr_vt / (sqrt2 * is_val));
 
-    if abs(delta_vbe) > limit_be {
-        let scale_be = limit_be / abs(delta_vbe);
-        if base_idx != BVL_SENTINEL && base_fixed == 0u {
-            let old_val = bvl_x_old[base_idx];
-            let delta = bvl_x_new[base_idx] - old_val;
-            bvl_x_new[base_idx] = old_val + delta * scale_be;
-        }
-        if emitter_idx != BVL_SENTINEL && emitter_fixed == 0u {
-            let old_val = bvl_x_old[emitter_idx];
-            let delta = bvl_x_new[emitter_idx] - old_val;
-            bvl_x_new[emitter_idx] = old_val + delta * scale_be;
+    // V_BE limiting (SPICE pnjlim) — polarity-adjusted so forward bias is positive
+    let vbe_old = polarity * (bvl_read_old(base_idx) - bvl_read_old(emitter_idx));
+    let vbe_new = polarity * (bvl_read_new(base_idx) - bvl_read_new(emitter_idx));
+    let vbe_limited = bvl_pnjlim(vbe_new, vbe_old, nf_vt, vcrit_f);
+
+    if vbe_limited != vbe_new {
+        let delta = vbe_new - vbe_old;
+        if abs(delta) > 1e-30 {
+            let scale_be = (vbe_limited - vbe_old) / delta;
+            if base_idx != BVL_SENTINEL && base_fixed == 0u {
+                let old_val = bvl_x_old[base_idx];
+                let d = bvl_x_new[base_idx] - old_val;
+                bvl_x_new[base_idx] = old_val + d * scale_be;
+            }
+            if emitter_idx != BVL_SENTINEL && emitter_fixed == 0u {
+                let old_val = bvl_x_old[emitter_idx];
+                let d = bvl_x_new[emitter_idx] - old_val;
+                bvl_x_new[emitter_idx] = old_val + d * scale_be;
+            }
         }
     }
 
-    // V_BC limiting
-    let vbc_old = bvl_read_old(base_idx) - bvl_read_old(collector_idx);
-    let vbc_new = bvl_read_new(base_idx) - bvl_read_new(collector_idx);
-    let delta_vbc = vbc_new - vbc_old;
-    let limit_bc = 2.0 * nr_vt;
+    // V_BC limiting (SPICE pnjlim)
+    let vbc_old = polarity * (bvl_read_old(base_idx) - bvl_read_old(collector_idx));
+    let vbc_new = polarity * (bvl_read_new(base_idx) - bvl_read_new(collector_idx));
+    let vbc_limited = bvl_pnjlim(vbc_new, vbc_old, nr_vt, vcrit_r);
 
-    if abs(delta_vbc) > limit_bc {
-        let scale_bc = limit_bc / abs(delta_vbc);
-        if base_idx != BVL_SENTINEL && base_fixed == 0u {
-            let old_val = bvl_x_old[base_idx];
-            let delta = bvl_x_new[base_idx] - old_val;
-            bvl_x_new[base_idx] = old_val + delta * scale_bc;
-        }
-        if collector_idx != BVL_SENTINEL && collector_fixed == 0u {
-            let old_val = bvl_x_old[collector_idx];
-            let delta = bvl_x_new[collector_idx] - old_val;
-            bvl_x_new[collector_idx] = old_val + delta * scale_bc;
+    if vbc_limited != vbc_new {
+        let delta = vbc_new - vbc_old;
+        if abs(delta) > 1e-30 {
+            let scale_bc = (vbc_limited - vbc_old) / delta;
+            if base_idx != BVL_SENTINEL && base_fixed == 0u {
+                let old_val = bvl_x_old[base_idx];
+                let d = bvl_x_new[base_idx] - old_val;
+                bvl_x_new[base_idx] = old_val + d * scale_bc;
+            }
+            if collector_idx != BVL_SENTINEL && collector_fixed == 0u {
+                let old_val = bvl_x_old[collector_idx];
+                let d = bvl_x_new[collector_idx] - old_val;
+                bvl_x_new[collector_idx] = old_val + d * scale_bc;
+            }
         }
     }
 }
@@ -1263,8 +1289,8 @@ fn mosfet_voltage_limit_apply(@builtin(global_invocation_id) gid: vec3<u32>) {
 /// WGSL shader for Newton-Raphson convergence checking and voltage limiting.
 ///
 /// Two entry points:
-/// - `voltage_limit`: One invocation per diode. Clamps voltage change to
-///   prevent Newton overshoot (|delta_v| limited to 2*n_vt).
+/// - `voltage_limit`: One invocation per diode. Uses SPICE3f5 `pnjlim`
+///   logarithmic damping for forward-biased junctions. No limiting for reverse bias.
 ///
 /// - `convergence_check`: Parallel reduction computing max|x_new - x_old|.
 ///   Writes 1 to converged flag if max_diff < tolerance, 0 otherwise.
@@ -1274,17 +1300,14 @@ pub const CONVERGENCE_SHADER: &str = r#"
 // Convergence & Voltage Limiting Shader
 // ============================================================
 
-// --- Voltage limiting: clamp Newton step for diode nodes ---
+// --- Voltage limiting: SPICE pnjlim for diode nodes ---
 
 struct VoltLimitParams {
     num_diodes: u32,
 }
 
-// Diode descriptors
 @group(0) @binding(0) var<storage, read> vl_desc: array<u32>;
-// Previous solution
 @group(0) @binding(1) var<storage, read> vl_x_old: array<f32>;
-// New solution (will be modified in place)
 @group(0) @binding(2) var<storage, read_write> vl_x_new: array<f32>;
 @group(0) @binding(3) var<uniform> vl_params: VoltLimitParams;
 
@@ -1304,6 +1327,23 @@ fn vl_read_new(idx: u32) -> f32 {
     return vl_x_new[idx];
 }
 
+// SPICE3f5 pnjlim: logarithmic damping for forward-biased PN junctions.
+fn vl_pnjlim(vnew: f32, vold: f32, vt: f32, vcrit: f32) -> f32 {
+    if vnew > vcrit && abs(vnew - vold) > vt + vt {
+        if vold > 0.0 {
+            let arg = 1.0 + (vnew - vold) / vt;
+            if arg > 0.0 {
+                return vold + vt * (2.0 + log(arg - 2.0));
+            } else {
+                return vcrit;
+            }
+        } else {
+            return vt * log(vnew / vt);
+        }
+    }
+    return vnew;
+}
+
 @compute @workgroup_size(64)
 fn voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
     let i = gid.x;
@@ -1314,27 +1354,30 @@ fn voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
     let base = i * 12u;
     let anode_idx = vl_desc[base + 0u];
     let cathode_idx = vl_desc[base + 1u];
+    let is_val = bitcast<f32>(vl_desc[base + 2u]);
     let n_vt = bitcast<f32>(vl_desc[base + 3u]);
+
+    let sqrt2 = 1.4142135;
+    let vcrit = n_vt * log(n_vt / (sqrt2 * is_val));
 
     let v_old = vl_read_old(anode_idx) - vl_read_old(cathode_idx);
     let v_new = vl_read_new(anode_idx) - vl_read_new(cathode_idx);
-    let delta_v = v_new - v_old;
+    let v_limited = vl_pnjlim(v_new, v_old, n_vt, vcrit);
 
-    let limit = 2.0 * n_vt;
-
-    if abs(delta_v) > limit {
-        // Scale back: new_v = old_v + sign(delta) * limit
-        let scale = limit / abs(delta_v);
-        // Apply the scaling to non-ground nodes only
-        if anode_idx != VL_SENTINEL {
-            let anode_old = vl_x_old[anode_idx];
-            let anode_delta = vl_x_new[anode_idx] - anode_old;
-            vl_x_new[anode_idx] = anode_old + anode_delta * scale;
-        }
-        if cathode_idx != VL_SENTINEL {
-            let cathode_old = vl_x_old[cathode_idx];
-            let cathode_delta = vl_x_new[cathode_idx] - cathode_old;
-            vl_x_new[cathode_idx] = cathode_old + cathode_delta * scale;
+    if v_limited != v_new {
+        let delta = v_new - v_old;
+        if abs(delta) > 1e-30 {
+            let scale = (v_limited - v_old) / delta;
+            if anode_idx != VL_SENTINEL {
+                let anode_old = vl_x_old[anode_idx];
+                let anode_delta = vl_x_new[anode_idx] - anode_old;
+                vl_x_new[anode_idx] = anode_old + anode_delta * scale;
+            }
+            if cathode_idx != VL_SENTINEL {
+                let cathode_old = vl_x_old[cathode_idx];
+                let cathode_delta = vl_x_new[cathode_idx] - cathode_old;
+                vl_x_new[cathode_idx] = cathode_old + cathode_delta * scale;
+            }
         }
     }
 }
@@ -1403,6 +1446,214 @@ fn convergence_check(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// CPU reference implementation of the smooth MOSFET evaluation shader.
+    /// Returns (i_d, g_m, g_ds) matching the GPU shader logic exactly.
+    fn mosfet_eval_reference(
+        v_gs: f32,
+        v_ds: f32,
+        vto: f32,
+        kp: f32,
+        lambda: f32,
+        polarity: f32,
+    ) -> (f32, f32, f32) {
+        let v_gs = polarity * v_gs;
+        let v_ds = polarity * v_ds;
+
+        let vt: f32 = 0.02585;
+        let v_ov = v_gs - vto;
+        let arg = v_ov / vt;
+
+        let (v_ov_eff, sigmoid) = if arg > 20.0 {
+            (v_ov, 1.0_f32)
+        } else if arg < -20.0 {
+            (vt * arg.exp(), arg.exp())
+        } else {
+            (vt * (1.0 + arg.exp()).ln(), 1.0 / (1.0 + (-arg).exp()))
+        };
+
+        let (i_d, g_m, g_ds);
+
+        if v_ds < v_ov_eff {
+            // Linear region
+            let lam = 1.0 + lambda * v_ds;
+            i_d = kp * (v_ov_eff * v_ds - v_ds * v_ds / 2.0) * lam;
+            g_m = kp * v_ds * lam * sigmoid;
+            g_ds = kp * (v_ov_eff - v_ds) * lam
+                + kp * (v_ov_eff * v_ds - v_ds * v_ds / 2.0) * lambda;
+        } else {
+            // Saturation region
+            let lam = 1.0 + lambda * v_ds;
+            i_d = kp / 2.0 * v_ov_eff * v_ov_eff * lam;
+            g_m = kp * v_ov_eff * lam * sigmoid;
+            g_ds = kp / 2.0 * v_ov_eff * v_ov_eff * lambda;
+        }
+
+        (polarity * i_d, g_m, g_ds)
+    }
+
+    #[test]
+    fn test_smooth_mosfet_deep_saturation() {
+        // v_ov >> VT: smooth model should match original hard-cutoff model
+        let vto = 0.7;
+        let kp = 1.1e-4;
+        let lambda = 0.04;
+        let v_gs = 3.0; // v_ov = 2.3, well above VT
+        let v_ds = 5.0; // saturation: v_ds > v_ov
+
+        let (i_d, g_m, g_ds) = mosfet_eval_reference(v_gs, v_ds, vto, kp, lambda, 1.0);
+
+        // Hard-cutoff reference: v_ov_eff ≈ v_ov when v_ov >> VT
+        let v_ov = v_gs - vto;
+        let lam = 1.0 + lambda * v_ds;
+        let i_d_ref = kp / 2.0 * v_ov * v_ov * lam;
+        let g_m_ref = kp * v_ov * lam;
+        let g_ds_ref = kp / 2.0 * v_ov * v_ov * lambda;
+
+        assert!(
+            (i_d - i_d_ref).abs() / i_d_ref < 1e-3,
+            "i_d={i_d}, ref={i_d_ref}"
+        );
+        assert!(
+            (g_m - g_m_ref).abs() / g_m_ref < 1e-3,
+            "g_m={g_m}, ref={g_m_ref}"
+        );
+        assert!(
+            (g_ds - g_ds_ref).abs() / g_ds_ref < 1e-3,
+            "g_ds={g_ds}, ref={g_ds_ref}"
+        );
+    }
+
+    #[test]
+    fn test_smooth_mosfet_deep_cutoff() {
+        // v_ov << -VT: i_d ≈ 0, g_m ≈ 0, g_ds ≈ 0
+        let (i_d, g_m, g_ds) = mosfet_eval_reference(0.0, 3.0, 0.7, 1.1e-4, 0.04, 1.0);
+
+        assert!(i_d.abs() < 1e-10, "i_d={i_d}, expected ≈0 in cutoff");
+        assert!(g_m.abs() < 1e-8, "g_m={g_m}, expected ≈0 in cutoff");
+        assert!(g_ds.abs() < 1e-10, "g_ds={g_ds}, expected ≈0 in cutoff");
+    }
+
+    #[test]
+    fn test_smooth_mosfet_at_threshold() {
+        // v_gs = vto, v_ov = 0 → v_ov_eff = VT*ln(2) ≈ 0.0179
+        let vt: f32 = 0.02585;
+        let (i_d, g_m, _g_ds) = mosfet_eval_reference(0.7, 3.0, 0.7, 1.1e-4, 0.04, 1.0);
+
+        // Should be non-zero but small
+        let v_ov_eff = vt * 2.0_f32.ln();
+        let expected_id = 1.1e-4 / 2.0 * v_ov_eff * v_ov_eff * (1.0 + 0.04 * 3.0);
+        assert!(i_d > 0.0, "i_d should be positive at threshold");
+        assert!(
+            (i_d - expected_id).abs() / expected_id < 0.01,
+            "i_d={i_d}, expected={expected_id}"
+        );
+        assert!(g_m > 0.0, "g_m should be positive at threshold");
+    }
+
+    #[test]
+    fn test_smooth_mosfet_continuity_across_threshold() {
+        // Sample v_gs from vto-0.1 to vto+0.1, verify i_d is monotonically increasing
+        let vto = 0.7_f32;
+        let mut prev_id = f32::NEG_INFINITY;
+        for i in 0..=20 {
+            let v_gs = (vto - 0.1) + (i as f32) * 0.01;
+            let (i_d, _, _) = mosfet_eval_reference(v_gs, 3.0, vto, 1.1e-4, 0.04, 1.0);
+            assert!(
+                i_d >= prev_id,
+                "i_d not monotonic at v_gs={v_gs}: {i_d} < {prev_id}"
+            );
+            prev_id = i_d;
+        }
+    }
+
+    #[test]
+    fn test_smooth_mosfet_linear_region() {
+        // v_ds < v_ov_eff → linear region
+        let vto = 0.7;
+        let kp = 1.1e-4;
+        let lambda = 0.04;
+        let v_gs = 3.0; // v_ov = 2.3
+        let v_ds = 0.5; // well below v_ov_eff ≈ 2.3
+
+        let (i_d, g_m, g_ds) = mosfet_eval_reference(v_gs, v_ds, vto, kp, lambda, 1.0);
+
+        // Hard-cutoff linear region reference
+        let v_ov = v_gs - vto;
+        let lam = 1.0 + lambda * v_ds;
+        let i_d_ref = kp * (v_ov * v_ds - v_ds * v_ds / 2.0) * lam;
+        let g_m_ref = kp * v_ds * lam; // sigmoid ≈ 1 for deep ON
+        let g_ds_ref =
+            kp * (v_ov - v_ds) * lam + kp * (v_ov * v_ds - v_ds * v_ds / 2.0) * lambda;
+
+        assert!(
+            (i_d - i_d_ref).abs() / i_d_ref < 1e-3,
+            "linear i_d={i_d}, ref={i_d_ref}"
+        );
+        assert!(
+            (g_m - g_m_ref).abs() / g_m_ref < 1e-3,
+            "linear g_m={g_m}, ref={g_m_ref}"
+        );
+        assert!(
+            (g_ds - g_ds_ref).abs() / g_ds_ref < 1e-3,
+            "linear g_ds={g_ds}, ref={g_ds_ref}"
+        );
+    }
+
+    #[test]
+    fn test_smooth_mosfet_sigmoid_derivative_consistency() {
+        // Verify g_m ≈ d(i_d)/d(v_gs) via finite differences
+        let vto = 0.7;
+        let kp = 1.1e-4;
+        let lambda = 0.04;
+        let v_ds = 3.0;
+        let dv = 1e-4_f32;
+
+        for v_gs in [0.5, 0.7, 0.9, 1.5, 2.5] {
+            let (i_d_plus, _, _) =
+                mosfet_eval_reference(v_gs + dv, v_ds, vto, kp, lambda, 1.0);
+            let (i_d_minus, _, _) =
+                mosfet_eval_reference(v_gs - dv, v_ds, vto, kp, lambda, 1.0);
+            let (_, g_m, _) = mosfet_eval_reference(v_gs, v_ds, vto, kp, lambda, 1.0);
+
+            let g_m_fd = (i_d_plus - i_d_minus) / (2.0 * dv);
+            let rel_err = if g_m_fd.abs() > 1e-10 {
+                (g_m - g_m_fd).abs() / g_m_fd.abs()
+            } else {
+                (g_m - g_m_fd).abs()
+            };
+            assert!(
+                rel_err < 0.01,
+                "g_m mismatch at v_gs={v_gs}: g_m={g_m}, fd={g_m_fd}, rel_err={rel_err}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_smooth_mosfet_pmos_polarity() {
+        // PMOS: polarity=-1, V_SG > |VTO| should conduct
+        let vto = 0.7; // PMOS VTO is positive in Shichman-Hodges convention
+        let kp = 5.5e-5;
+        let lambda = 0.04;
+
+        // Source at VDD=5, gate at 3 → physical V_SG=2V
+        // With polarity=-1: v_gs = -1*(3-5) = 2, v_ds = -1*(drain-5)
+        // Let drain be at 1V → v_ds = -1*(1-5) = 4
+        let v_gs_physical = 3.0 - 5.0; // -2.0
+        let v_ds_physical = 1.0 - 5.0; // -4.0
+
+        let (i_d, g_m, g_ds) =
+            mosfet_eval_reference(v_gs_physical, v_ds_physical, vto, kp, lambda, -1.0);
+
+        // Current should flow source→drain (negative polarity means i_d < 0 in terms
+        // of the physical drain current direction, but polarity*i_d gives the stamped
+        // value). The returned i_d already has polarity applied.
+        // For PMOS conducting: physical current flows from source to drain,
+        // meaning conventional current into the drain node from outside is negative.
+        assert!(i_d < 0.0, "PMOS i_d={i_d}, expected < 0 (current sink)");
+        assert!(g_m > 0.0, "PMOS g_m={g_m}, expected > 0");
+        assert!(g_ds > 0.0, "PMOS g_ds={g_ds}, expected > 0");
+    }
 
     /// Validate that the WGSL shader source parses without errors.
     /// Uses naga's WGSL frontend directly so this works without a GPU.

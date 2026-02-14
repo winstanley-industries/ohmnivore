@@ -7,24 +7,18 @@
 //! DS primitives (TwoSum, TwoProd) rely on IEEE 754 rounding guarantees
 //! for f32 add/sub/mul/fma, which WGSL provides.
 
-/// DS linear algebra shaders: spmv, dot, axpy, scale, copy, jacobi.
+/// DS primitive functions: two_sum, two_prod, ds_add, ds_mul, ds_sub, ds_exp,
+/// ds_div, ds_abs, ds_max, ds_from_f32, ds_neg.
 ///
-/// Entry points:
-/// - `spmv_ds`: y = A * x (CSR, DS precision)
-/// - `dot_ds`: partial dot product reduction (DS precision)
-/// - `axpy_ds`: y = alpha * x + y (DS precision)
-/// - `scale_ds`: x = alpha * x (DS precision)
-/// - `copy_ds`: y = x (DS copy, both hi and lo)
-/// - `jacobi_ds`: z = inv_diag * r (DS element-wise multiply)
-pub const DS_SHADER_SOURCE: &str = r#"
+/// Shared by both linear algebra shaders (spmv, dot, axpy, etc.) and
+/// nonlinear shaders (device eval, assembly, voltage limiting, convergence).
+pub const DS_PRIMITIVES: &str = r#"
 // ============================================================
-// Double-Single (DS) Arithmetic GPU Compute Shaders
+// Double-Single (DS) Arithmetic Primitives
 // ============================================================
 //
 // DS representation: value ≈ hi + lo (two f32s give ~48-bit mantissa)
 // Primitives: TwoSum (Knuth), TwoProd (via fma)
-
-// --- DS Primitives ---
 
 // Error-free addition: s + err = a + b exactly
 fn two_sum(a: f32, b: f32) -> vec2<f32> {
@@ -55,6 +49,81 @@ fn ds_mul(a_hi: f32, a_lo: f32, b_hi: f32, b_lo: f32) -> vec2<f32> {
     return two_sum(p.x, e);
 }
 
+// DS subtract: (a_hi + a_lo) - (b_hi + b_lo)
+fn ds_sub(a_hi: f32, a_lo: f32, b_hi: f32, b_lo: f32) -> vec2<f32> {
+    return ds_add(a_hi, a_lo, -b_hi, -b_lo);
+}
+
+// DS negate
+fn ds_neg(a_hi: f32, a_lo: f32) -> vec2<f32> {
+    return vec2(-a_hi, -a_lo);
+}
+
+// DS from single f32
+fn ds_from_f32(v: f32) -> vec2<f32> {
+    return vec2(v, 0.0);
+}
+
+// DS absolute value
+fn ds_abs(a_hi: f32, a_lo: f32) -> vec2<f32> {
+    if a_hi < 0.0 || (a_hi == 0.0 && a_lo < 0.0) {
+        return vec2(-a_hi, -a_lo);
+    }
+    return vec2(a_hi, a_lo);
+}
+
+// DS max: returns the larger of two DS values
+fn ds_max(a_hi: f32, a_lo: f32, b_hi: f32, b_lo: f32) -> vec2<f32> {
+    if a_hi > b_hi || (a_hi == b_hi && a_lo > b_lo) {
+        return vec2(a_hi, a_lo);
+    }
+    return vec2(b_hi, b_lo);
+}
+
+// DS compare: returns true if a > b
+fn ds_gt(a_hi: f32, a_lo: f32, b_hi: f32, b_lo: f32) -> bool {
+    return a_hi > b_hi || (a_hi == b_hi && a_lo > b_lo);
+}
+
+// DS compare: returns true if a < b
+fn ds_lt(a_hi: f32, a_lo: f32, b_hi: f32, b_lo: f32) -> bool {
+    return a_hi < b_hi || (a_hi == b_hi && a_lo < b_lo);
+}
+
+// DS exp: exp(x_hi + x_lo) ≈ exp(x_hi) * (1 + x_lo)
+// First-order correction is sufficient for DS precision since x_lo << 1.
+// Clamps argument to [-80, 80] to avoid inf/nan.
+fn ds_exp(x_hi: f32, x_lo: f32) -> vec2<f32> {
+    let clamped_hi = clamp(x_hi, -80.0, 80.0);
+    // If we clamped, zero out lo to avoid nonsense correction
+    var eff_lo = x_lo;
+    if clamped_hi != x_hi {
+        eff_lo = 0.0;
+    }
+    let e_hi = exp(clamped_hi);
+    // exp(hi + lo) = exp(hi) * exp(lo) ≈ exp(hi) * (1 + lo) for small lo
+    // Result: hi_part = e_hi, correction = e_hi * eff_lo
+    let p = two_prod(e_hi, eff_lo);
+    return two_sum(e_hi + p.x, p.y);
+}
+
+// DS division: (a_hi + a_lo) / (b_hi + b_lo)
+// Uses Newton refinement: q0 = a_hi/b_hi, then correct residual.
+fn ds_div(a_hi: f32, a_lo: f32, b_hi: f32, b_lo: f32) -> vec2<f32> {
+    let q0 = a_hi / b_hi;
+    // residual = a - q0 * b
+    let prod = ds_mul(q0, 0.0, b_hi, b_lo);
+    let r = ds_sub(a_hi, a_lo, prod.x, prod.y);
+    // correction
+    let q1 = r.x / b_hi;
+    return two_sum(q0, q1);
+}
+"#;
+
+/// DS linear algebra shader body (without primitives).
+///
+/// Entry points: spmv_ds, dot_ds, axpy_ds, scale_ds, copy_ds, jacobi_ds.
+const DS_LINEAR_BODY: &str = r#"
 // --- SpMV DS: y = A * x ---
 
 struct SpmvParams {
@@ -230,13 +299,24 @@ fn jacobi_ds(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 "#;
 
+/// Concatenated DS primitives + linear algebra body.
+/// This is the full shader source used by the DS linear solver backend.
+pub static DS_SHADER_SOURCE: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| format!("{}\n{}", DS_PRIMITIVES, DS_LINEAR_BODY));
+
+/// Build a complete DS shader by concatenating DS_PRIMITIVES with a shader body.
+pub fn ds_shader(body: &str) -> String {
+    format!("{}\n{}", DS_PRIMITIVES, body)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn ds_shader_parses_successfully() {
-        let result = naga::front::wgsl::parse_str(DS_SHADER_SOURCE);
+        let source = &*DS_SHADER_SOURCE;
+        let result = naga::front::wgsl::parse_str(source);
         match result {
             Ok(module) => {
                 let entry_names: Vec<&str> = module
@@ -260,7 +340,25 @@ mod tests {
                 }
             }
             Err(e) => {
-                panic!("DS WGSL parse error:\n{}", e.emit_to_string(DS_SHADER_SOURCE));
+                panic!(
+                    "DS WGSL parse error:\n{}",
+                    e.emit_to_string(source)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ds_primitives_parse_standalone() {
+        // DS_PRIMITIVES alone has no entry points but should parse as valid WGSL.
+        let result = naga::front::wgsl::parse_str(DS_PRIMITIVES);
+        match result {
+            Ok(_) => {}
+            Err(e) => {
+                panic!(
+                    "DS_PRIMITIVES parse error:\n{}",
+                    e.emit_to_string(DS_PRIMITIVES)
+                );
             }
         }
     }

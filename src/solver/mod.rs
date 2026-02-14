@@ -10,6 +10,7 @@ pub mod distributed_bicgstab;
 pub mod distributed_newton;
 pub mod distributed_preconditioner;
 pub mod ds_backend;
+pub mod ds_nonlinear_shaders;
 pub mod ds_shaders;
 pub mod gpu;
 pub mod gpu_shaders;
@@ -17,6 +18,7 @@ pub mod newton;
 pub mod nonlinear;
 pub mod partition;
 pub mod preconditioner;
+pub mod sparse_direct;
 
 use crate::error::Result;
 use crate::sparse::CsrMatrix;

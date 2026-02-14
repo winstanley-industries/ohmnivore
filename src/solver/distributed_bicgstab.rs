@@ -66,9 +66,7 @@ pub fn distributed_bicgstab<B: SolverBackend>(
     for iter in 0..MAX_ITERATIONS {
         let rho_new = comm.all_reduce_sum(backend.dot_n(&r_hat, &r, n_owned));
         if rho_new.abs() < 1e-30 {
-            return Err(OhmnivoreError::Solve(
-                "BiCGSTAB breakdown: rho ~ 0".into(),
-            ));
+            return Err(OhmnivoreError::Solve("BiCGSTAB breakdown: rho ~ 0".into()));
         }
 
         let beta = (rho_new / rho) * (alpha / omega);
@@ -161,7 +159,9 @@ pub fn distributed_bicgstab_solve(
     if a.ncols != n || b.len() != n {
         return Err(OhmnivoreError::Solve(format!(
             "dimension mismatch: matrix is {}x{}, rhs length is {}",
-            a.nrows, a.ncols, b.len()
+            a.nrows,
+            a.ncols,
+            b.len()
         )));
     }
     if n == 0 {
@@ -258,10 +258,7 @@ mod tests {
         };
 
         for (r, e) in result.iter().zip(reference.iter()) {
-            assert!(
-                (r - e).abs() < 1e-3,
-                "mismatch: got {r}, expected {e}"
-            );
+            assert!((r - e).abs() < 1e-3, "mismatch: got {r}, expected {e}");
         }
     }
 }

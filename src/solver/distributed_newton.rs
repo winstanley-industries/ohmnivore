@@ -46,29 +46,18 @@ pub fn solve_dc(system: &MnaSystem, comm: &dyn CommunicationBackend) -> Result<V
 
 /// Nonlinear single-GPU path: delegates to the existing GPU Newton-Raphson.
 fn solve_nonlinear_single_gpu(system: &MnaSystem) -> Result<Vec<f64>> {
-    use super::backend::SolverBackend;
-    use super::backend::WgpuBackend;
     use super::ds_backend::WgpuDsBackend;
     use super::newton::{newton_solve, NewtonParams};
 
-    let backend = WgpuBackend::new()?;
     let ds_backend = WgpuDsBackend::new()?;
 
-    let values_f32: Vec<f32> = system.g.values.iter().map(|&v| v as f32).collect();
     let col_indices_u32: Vec<u32> = system.g.col_indices.iter().map(|&c| c as u32).collect();
     let row_ptrs_u32: Vec<u32> = system.g.row_pointers.iter().map(|&r| r as u32).collect();
-    let b_dc_f32: Vec<f32> = system.b_dc.iter().map(|&v| v as f32).collect();
-
-    let base_b_buf = backend.new_buffer(system.size);
-    backend.upload_vec(&b_dc_f32, &base_b_buf);
 
     let matrix_nnz = system.g.values.len();
 
     newton_solve(
-        &backend,
         &ds_backend,
-        &base_b_buf,
-        &values_f32,
         &system.g.values,
         &col_indices_u32,
         &row_ptrs_u32,
@@ -196,9 +185,7 @@ fn solve_local_ds(
         &gpu_matrix,
         &b_buf,
         &x_buf,
-        |b: &WgpuDsBackend,
-         inp: &super::backend::WgpuBuffer,
-         out: &super::backend::WgpuBuffer| {
+        |b: &WgpuDsBackend, inp: &super::backend::WgpuBuffer, out: &super::backend::WgpuBuffer| {
             b.spmv(&ml_gpu, inp, &tmp);
             b.spmv(&mu_gpu, &tmp, out);
         },
@@ -353,14 +340,13 @@ D1 2 0 DMOD
     #[test]
     fn distributed_newton_bench_circuit() {
         // Test with a bench circuit (5-stage inverter chain)
-        let netlist =
-            match std::fs::read_to_string("bench/circuits/inverter_chain_5_dc.spice") {
-                Ok(s) => s,
-                Err(_) => {
-                    eprintln!("skipping: bench circuit not found");
-                    return;
-                }
-            };
+        let netlist = match std::fs::read_to_string("bench/circuits/inverter_chain_5_dc.spice") {
+            Ok(s) => s,
+            Err(_) => {
+                eprintln!("skipping: bench circuit not found");
+                return;
+            }
+        };
         let circuit = crate::parser::parse(&netlist).expect("parse failed");
         let system = crate::compiler::compile(&circuit).expect("compile failed");
 
@@ -383,12 +369,20 @@ D1 2 0 DMOD
 
         struct TwoRankComm;
         impl CommunicationBackend for TwoRankComm {
-            fn all_reduce_sum(&self, local: f64) -> f64 { local }
-            fn all_reduce_max(&self, local: f64) -> f64 { local }
+            fn all_reduce_sum(&self, local: f64) -> f64 {
+                local
+            }
+            fn all_reduce_max(&self, local: f64) -> f64 {
+                local
+            }
             fn halo_exchange(&self, _: &[HaloNeighbor], _: &[f64], _: &mut [f64]) {}
             fn all_reduce_sum_vec(&self, _: &mut [f64]) {}
-            fn rank(&self) -> usize { 0 }
-            fn num_ranks(&self) -> usize { 2 }
+            fn rank(&self) -> usize {
+                0
+            }
+            fn num_ranks(&self) -> usize {
+                2
+            }
             fn barrier(&self) {}
         }
 
@@ -405,9 +399,6 @@ D1 2 0 DMOD
 
         let comm = TwoRankComm;
         let result = solve_dc(&system, &comm);
-        assert!(
-            result.is_err(),
-            "multi-rank nonlinear should error"
-        );
+        assert!(result.is_err(), "multi-rank nonlinear should error");
     }
 }

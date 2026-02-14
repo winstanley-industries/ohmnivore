@@ -796,12 +796,12 @@ mod tests {
         let triplets = vec![
             (0, 0, 1e-3 + 1e-12), // node conductance + GMIN
             (0, 1, -1e-3),
-            (0, 3, 1.0),          // voltage source stamp
+            (0, 3, 1.0), // voltage source stamp
             (1, 0, -1e-3),
             (1, 1, 1e-3 + 1e-12),
-            (2, 2, 1e-12),        // GMIN only
+            (2, 2, 1e-12), // GMIN only
             (2, 3, -1.0),
-            (3, 0, 1.0),          // voltage source
+            (3, 0, 1.0), // voltage source
             (3, 2, -1.0),
         ];
         let a = CsrMatrix::from_triplets(4, 4, &triplets);

@@ -95,8 +95,7 @@ impl SubdomainMap {
         }
 
         // Halo = expanded set minus owned.
-        let mut halo_global: Vec<usize> =
-            all_nodes.difference(&owned_set).copied().collect();
+        let mut halo_global: Vec<usize> = all_nodes.difference(&owned_set).copied().collect();
         halo_global.sort();
 
         // Build global->local mapping: owned first, halo after.
@@ -114,10 +113,7 @@ impl SubdomainMap {
         let mut neighbor_map: HashMap<usize, Vec<usize>> = HashMap::new();
         for &halo_node in &halo_global {
             let halo_rank = parts[halo_node];
-            neighbor_map
-                .entry(halo_rank)
-                .or_default()
-                .push(halo_node);
+            neighbor_map.entry(halo_rank).or_default().push(halo_node);
         }
 
         let mut neighbor_ranks: Vec<usize> = neighbor_map.keys().copied().collect();
@@ -133,14 +129,10 @@ impl SubdomainMap {
             let halo_nodes = &neighbor_map[&nbr_rank];
 
             // recv_indices: where halo nodes from this neighbor sit in local indexing
-            let recv: Vec<usize> = halo_nodes
-                .iter()
-                .map(|&g| global_to_local[&g])
-                .collect();
+            let recv: Vec<usize> = halo_nodes.iter().map(|&g| global_to_local[&g]).collect();
 
             // send_indices: our owned boundary nodes adjacent to this neighbor's partition
-            let nbr_owned: HashSet<usize> =
-                (0..n).filter(|&i| parts[i] == nbr_rank).collect();
+            let nbr_owned: HashSet<usize> = (0..n).filter(|&i| parts[i] == nbr_rank).collect();
             let mut send_set = HashSet::new();
             for &owned_node in &owned_global {
                 let start = adjacency.row_pointers[owned_node];

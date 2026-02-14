@@ -71,22 +71,48 @@ impl Stats {
 
         if self.newton_iterations > 0 {
             eprintln!("  Newton iterations:      {}", self.newton_iterations);
-            eprintln!("    Device eval:          {:>8.3}s", self.device_eval.as_secs_f64());
-            eprintln!("    Assembly:             {:>8.3}s", self.assembly.as_secs_f64());
-            eprintln!("    Matrix DL/UL:         {:>8.3}s", self.matrix_dl_ul.as_secs_f64());
-            eprintln!("    Linear solve:         {:>8.3}s", self.linear_solve.as_secs_f64());
+            eprintln!(
+                "    Device eval:          {:>8.3}s",
+                self.device_eval.as_secs_f64()
+            );
+            eprintln!(
+                "    Assembly:             {:>8.3}s",
+                self.assembly.as_secs_f64()
+            );
+            eprintln!(
+                "    Matrix DL/UL:         {:>8.3}s",
+                self.matrix_dl_ul.as_secs_f64()
+            );
+            eprintln!(
+                "    Linear solve:         {:>8.3}s",
+                self.linear_solve.as_secs_f64()
+            );
             if !self.bicgstab_iters_per_newton.is_empty() {
-                let avg: f64 = self.bicgstab_iters_per_newton.iter().map(|&i| i as f64).sum::<f64>()
+                let avg: f64 = self
+                    .bicgstab_iters_per_newton
+                    .iter()
+                    .map(|&i| i as f64)
+                    .sum::<f64>()
                     / self.bicgstab_iters_per_newton.len() as f64;
-                let iters_str: Vec<String> = self.bicgstab_iters_per_newton.iter().map(|i| i.to_string()).collect();
+                let iters_str: Vec<String> = self
+                    .bicgstab_iters_per_newton
+                    .iter()
+                    .map(|i| i.to_string())
+                    .collect();
                 eprintln!("      BiCGSTAB iters:     {}", iters_str.join(" / "));
                 eprintln!("      BiCGSTAB avg:       {:.1}", avg);
             }
-            eprintln!("    Convergence check:    {:>8.3}s", self.convergence_check.as_secs_f64());
+            eprintln!(
+                "    Convergence check:    {:>8.3}s",
+                self.convergence_check.as_secs_f64()
+            );
         }
 
         if self.timesteps_accepted > 0 || self.timesteps_rejected > 0 {
-            eprintln!("  Timesteps:              accepted={}  rejected={}", self.timesteps_accepted, self.timesteps_rejected);
+            eprintln!(
+                "  Timesteps:              accepted={}  rejected={}",
+                self.timesteps_accepted, self.timesteps_rejected
+            );
         }
 
         if self.linear_solves > 0 {

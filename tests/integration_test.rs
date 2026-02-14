@@ -38,8 +38,10 @@ fn ac_solve(netlist: &str) -> ohmnivore::analysis::AcResult {
         })
         .expect("no AC analysis in netlist");
 
-    analysis::ac::run(&system, &solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3, None)
-        .expect("AC analysis failed")
+    analysis::ac::run(
+        &system, &solver, ac_cmd.0, ac_cmd.1, ac_cmd.2, ac_cmd.3, None,
+    )
+    .expect("AC analysis failed")
 }
 
 // ── DC Tests ──────────────────────────────────────────────────────

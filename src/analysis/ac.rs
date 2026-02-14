@@ -57,7 +57,9 @@ pub fn run(
         let omega = 2.0 * std::f64::consts::PI * f;
         let a = form_complex_matrix(&system.g, &system.c, omega);
         let x = solver.solve_complex(&a, &system.b_ac)?;
-        if let Some(ref mut s) = stats { s.linear_solves += 1; }
+        if let Some(ref mut s) = stats {
+            s.linear_solves += 1;
+        }
 
         for (i, (_, voltages)) in node_voltages.iter_mut().enumerate() {
             voltages.push(x[i]);

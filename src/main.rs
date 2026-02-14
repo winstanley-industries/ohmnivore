@@ -34,7 +34,11 @@ fn main() {
         .with_writer(std::io::stderr)
         .init();
 
-    let mut stats = if cli.stats { Some(ohmnivore::stats::Stats::new()) } else { None };
+    let mut stats = if cli.stats {
+        Some(ohmnivore::stats::Stats::new())
+    } else {
+        None
+    };
 
     let input = std::fs::read_to_string(&cli.netlist).unwrap_or_else(|e| {
         eprintln!("Error reading {}: {}", cli.netlist, e);
@@ -46,14 +50,18 @@ fn main() {
         eprintln!("Parse error: {}", e);
         std::process::exit(1);
     });
-    if let Some(ref mut s) = stats { s.add_phase("Parse", t.elapsed()); }
+    if let Some(ref mut s) = stats {
+        s.add_phase("Parse", t.elapsed());
+    }
 
     let t = Instant::now();
     let system = compiler::compile(&circuit).unwrap_or_else(|e| {
         eprintln!("Compile error: {}", e);
         std::process::exit(1);
     });
-    if let Some(ref mut s) = stats { s.add_phase("Compile", t.elapsed()); }
+    if let Some(ref mut s) = stats {
+        s.add_phase("Compile", t.elapsed());
+    }
 
     let t = Instant::now();
     let solver: Box<dyn LinearSolver> = if cli.cpu {
@@ -64,18 +72,23 @@ fn main() {
             std::process::exit(1);
         }))
     };
-    if let Some(ref mut s) = stats { s.add_phase("Solver init", t.elapsed()); }
+    if let Some(ref mut s) = stats {
+        s.add_phase("Solver init", t.elapsed());
+    }
     let mut stdout = io::stdout();
 
     for analysis_cmd in &circuit.analyses {
         match analysis_cmd {
             Analysis::Dc => {
                 let t = Instant::now();
-                let dc_result = analysis::dc::run(&system, solver.as_ref(), stats.as_mut()).unwrap_or_else(|e| {
-                    eprintln!("DC analysis error: {}", e);
-                    std::process::exit(1);
-                });
-                if let Some(ref mut s) = stats { s.add_phase("DC analysis", t.elapsed()); }
+                let dc_result = analysis::dc::run(&system, solver.as_ref(), stats.as_mut())
+                    .unwrap_or_else(|e| {
+                        eprintln!("DC analysis error: {}", e);
+                        std::process::exit(1);
+                    });
+                if let Some(ref mut s) = stats {
+                    s.add_phase("DC analysis", t.elapsed());
+                }
                 output::write_dc_csv(&dc_result, &mut stdout).unwrap_or_else(|e| {
                     eprintln!("Output error: {}", e);
                     std::process::exit(1);
@@ -101,7 +114,9 @@ fn main() {
                     eprintln!("AC analysis error: {}", e);
                     std::process::exit(1);
                 });
-                if let Some(ref mut s) = stats { s.add_phase("AC analysis", t.elapsed()); }
+                if let Some(ref mut s) = stats {
+                    s.add_phase("AC analysis", t.elapsed());
+                }
                 output::write_ac_csv(&ac_result, &mut stdout).unwrap_or_else(|e| {
                     eprintln!("Output error: {}", e);
                     std::process::exit(1);
@@ -128,7 +143,9 @@ fn main() {
                     eprintln!("Transient analysis error: {}", e);
                     std::process::exit(1);
                 });
-                if let Some(ref mut s) = stats { s.add_phase("Transient analysis", t.elapsed()); }
+                if let Some(ref mut s) = stats {
+                    s.add_phase("Transient analysis", t.elapsed());
+                }
                 output::write_tran_csv(&tran_result, &mut stdout).unwrap_or_else(|e| {
                     eprintln!("Output error: {}", e);
                     std::process::exit(1);
