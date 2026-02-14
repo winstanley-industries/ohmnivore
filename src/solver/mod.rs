@@ -2,6 +2,7 @@
 
 pub mod backend;
 pub mod bicgstab;
+pub mod comm;
 pub mod cpu;
 pub mod ds_backend;
 pub mod ds_shaders;
