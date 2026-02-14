@@ -32,10 +32,11 @@ pub fn distributed_bicgstab<B: SolverBackend>(
     x: &B::Buffer,
     preconditioner_apply: impl Fn(&B, &B::Buffer, &B::Buffer),
     halo_sync: impl Fn(&B::Buffer),
+    n_owned: usize,
     n_total: usize,
     comm: &dyn CommunicationBackend,
 ) -> Result<usize> {
-    let _span = tracing::debug_span!("distributed_bicgstab", n_total).entered();
+    let _span = tracing::debug_span!("distributed_bicgstab", n_owned, n_total).entered();
 
     let r = backend.new_buffer(n_total);
     let r_hat = backend.new_buffer(n_total);
@@ -50,8 +51,8 @@ pub fn distributed_bicgstab<B: SolverBackend>(
     backend.copy(b, &r);
     backend.copy(b, &r_hat);
 
-    // ||b|| via distributed dot (sum local partials, all_reduce)
-    let local_b_sq = backend.dot(&r, &r);
+    // ||b|| via distributed dot (sum local partials over owned entries, all_reduce)
+    let local_b_sq = backend.dot_n(&r, &r, n_owned);
     let b_norm = comm.all_reduce_sum(local_b_sq).sqrt();
     if b_norm < 1e-30 {
         return Ok(0);
@@ -63,7 +64,7 @@ pub fn distributed_bicgstab<B: SolverBackend>(
     let mut omega: f64 = 1.0;
 
     for iter in 0..MAX_ITERATIONS {
-        let rho_new = comm.all_reduce_sum(backend.dot(&r_hat, &r));
+        let rho_new = comm.all_reduce_sum(backend.dot_n(&r_hat, &r, n_owned));
         if rho_new.abs() < 1e-30 {
             return Err(OhmnivoreError::Solve(
                 "BiCGSTAB breakdown: rho ~ 0".into(),
@@ -84,7 +85,7 @@ pub fn distributed_bicgstab<B: SolverBackend>(
         halo_sync(&p_hat);
         backend.spmv(a, &p_hat, &v);
 
-        let r_hat_dot_v = comm.all_reduce_sum(backend.dot(&r_hat, &v));
+        let r_hat_dot_v = comm.all_reduce_sum(backend.dot_n(&r_hat, &v, n_owned));
         if r_hat_dot_v.abs() < 1e-30 {
             return Err(OhmnivoreError::Solve(
                 "BiCGSTAB breakdown: r_hat.v ~ 0".into(),
@@ -96,7 +97,7 @@ pub fn distributed_bicgstab<B: SolverBackend>(
         backend.copy(&r, &s);
         backend.axpy(-alpha, &v, &s);
 
-        let s_norm = comm.all_reduce_sum(backend.dot(&s, &s)).sqrt();
+        let s_norm = comm.all_reduce_sum(backend.dot_n(&s, &s, n_owned)).sqrt();
         if s_norm < abs_tol {
             backend.axpy(alpha, &p_hat, x);
             tracing::debug!(iterations = iter + 1, "distributed BiCGSTAB converged");
@@ -108,8 +109,8 @@ pub fn distributed_bicgstab<B: SolverBackend>(
         halo_sync(&s_hat);
         backend.spmv(a, &s_hat, &t);
 
-        let t_dot_s = comm.all_reduce_sum(backend.dot(&t, &s));
-        let t_dot_t = comm.all_reduce_sum(backend.dot(&t, &t));
+        let t_dot_s = comm.all_reduce_sum(backend.dot_n(&t, &s, n_owned));
+        let t_dot_t = comm.all_reduce_sum(backend.dot_n(&t, &t, n_owned));
         if t_dot_t.abs() < 1e-30 {
             return Err(OhmnivoreError::Solve(
                 "BiCGSTAB breakdown: ||t|| ~ 0".into(),
@@ -125,7 +126,7 @@ pub fn distributed_bicgstab<B: SolverBackend>(
         backend.copy(&s, &r);
         backend.axpy(-omega, &t, &r);
 
-        let r_norm = comm.all_reduce_sum(backend.dot(&r, &r)).sqrt();
+        let r_norm = comm.all_reduce_sum(backend.dot_n(&r, &r, n_owned)).sqrt();
         if r_norm.is_nan() || r_norm.is_infinite() {
             return Err(OhmnivoreError::Solve(
                 "BiCGSTAB diverged: NaN/Inf in residual".into(),
@@ -194,6 +195,7 @@ pub fn distributed_bicgstab_solve(
 
     let tmp = backend.new_buffer(n);
 
+    // Single-process: n_owned == n_total == n
     distributed_bicgstab(
         &backend,
         &gpu_matrix,
@@ -208,6 +210,7 @@ pub fn distributed_bicgstab_solve(
         |_buf| {
             // No-op halo sync for single-process
         },
+        n,
         n,
         comm,
     )?;

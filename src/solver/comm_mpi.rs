@@ -69,21 +69,29 @@ impl CommunicationBackend for MpiComm {
         recv_halo: &mut [f64],
     ) {
         let world = SimpleCommunicator::world();
+        let my_rank = world.rank();
 
-        // TODO: Use non-blocking MPI_Isend/MPI_Irecv to avoid potential deadlocks
-        // when two neighbors both send before receiving.
+        // Use rank-based ordering to avoid deadlock: the lower-ranked process
+        // sends first, the higher-ranked receives first.
         for nbr in neighbors {
             let send_data: Vec<f64> = nbr.send_indices.iter().map(|&i| local_data[i]).collect();
-            let dest = world.process_at_rank(nbr.rank as i32);
-
-            // Send our boundary data to this neighbor.
-            dest.send(&send_data[..]);
-
-            // Receive their boundary data.
+            let peer = world.process_at_rank(nbr.rank as i32);
             let recv_slice = &mut recv_halo[nbr.recv_start..nbr.recv_start + nbr.recv_count];
-            let (received, _status) = world.any_process().receive_vec::<f64>();
-            recv_slice.copy_from_slice(&received);
+
+            if my_rank < nbr.rank as i32 {
+                peer.send(&send_data[..]);
+                peer.receive_into(recv_slice);
+            } else {
+                peer.receive_into(recv_slice);
+                peer.send(&send_data[..]);
+            }
         }
+    }
+
+    fn all_reduce_sum_vec(&self, local: &mut [f64]) {
+        let world = SimpleCommunicator::world();
+        let send = local.to_vec();
+        world.all_reduce_into(&send[..], local, SystemOperation::sum());
     }
 
     fn rank(&self) -> usize {

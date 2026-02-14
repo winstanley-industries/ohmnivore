@@ -52,15 +52,8 @@ impl DistributedPreconditioner for RasIsaiPreconditioner {
         // Step 1: Halo exchange -- update halo entries of input from neighbors.
         let mut synced_input = input.to_vec();
 
-        // Gather owned boundary values to send.
-        let mut all_send = Vec::new();
-        for send_idxs in &map.send_indices {
-            for &idx in send_idxs {
-                all_send.push(synced_input[idx]);
-            }
-        }
-
-        // Exchange with neighbors.
+        // Exchange with neighbors: halo_exchange gathers send values internally
+        // using send_indices into the full local vector.
         let total_recv: usize = map.recv_indices.iter().map(|v| v.len()).sum();
         let mut recv_buf = vec![0.0; total_recv];
 
@@ -76,7 +69,7 @@ impl DistributedPreconditioner for RasIsaiPreconditioner {
             })
             .collect();
 
-        comm.halo_exchange(&neighbors, &all_send, &mut recv_buf);
+        comm.halo_exchange(&neighbors, &synced_input, &mut recv_buf);
 
         // Scatter received values into halo positions.
         let mut recv_offset = 0;

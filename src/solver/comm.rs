@@ -40,6 +40,13 @@ pub trait CommunicationBackend: Send + Sync {
     /// Total number of ranks (subdomains).
     fn num_ranks(&self) -> usize;
 
+    /// Element-wise sum of a vector across all ranks, in place.
+    ///
+    /// Each rank contributes its local values (zeros for non-owned positions).
+    /// After the call, every rank holds the global sum. Used for reassembling
+    /// a distributed solution vector.
+    fn all_reduce_sum_vec(&self, local: &mut [f64]);
+
     /// Synchronization barrier.
     fn barrier(&self);
 }
@@ -66,6 +73,10 @@ impl CommunicationBackend for SingleProcessComm {
         _recv_halo: &mut [f64],
     ) {
         // Single process: no neighbors, nothing to exchange.
+    }
+
+    fn all_reduce_sum_vec(&self, _local: &mut [f64]) {
+        // Single process: vector is already complete.
     }
 
     fn rank(&self) -> usize {

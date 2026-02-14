@@ -1,34 +1,22 @@
 //! Multi-process distributed solver tests.
 //!
 //! These tests require MPI and the `distributed` feature flag.
-//! Run with: mpirun -n 1 cargo test --features distributed --test distributed_test
+//! Run with: mpirun -n 2 cargo test --features distributed --test distributed_test
 //!
 //! Without MPI installed, these tests are excluded from the default build.
 
 #![cfg(feature = "distributed")]
 
-use ohmnivore::solver::comm::CommunicationBackend;
 use ohmnivore::solver::comm_mpi::MpiComm;
 use ohmnivore::solver::distributed_newton;
 
 #[test]
-fn distributed_voltage_divider_single_rank() {
-    // Verify the MPI backend works in the degenerate single-process case.
+fn distributed_voltage_divider() {
+    // Verify the distributed solver works with any number of MPI ranks.
     // Run with: mpirun -n 1 cargo test --features distributed --test distributed_test
-    //
-    // Multi-rank distributed linear solve is not yet implemented (the
-    // distributed BiCGSTAB needs per-rank owned/halo vector partitioning
-    // and real halo exchange). Skip if launched with more than 1 rank.
+    //       or: mpirun -n 2 cargo test --features distributed --test distributed_test
     let _universe = mpi::initialize().expect("MPI init failed");
     let comm = MpiComm::new();
-
-    if comm.num_ranks() > 1 {
-        eprintln!(
-            "skipping: multi-rank distributed linear solve not yet implemented \
-             (run with mpirun -n 1)"
-        );
-        return;
-    }
 
     let netlist = "\
 V1 1 0 DC 10

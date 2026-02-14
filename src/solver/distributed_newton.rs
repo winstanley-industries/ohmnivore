@@ -85,12 +85,9 @@ fn solve_nonlinear_single_gpu(system: &MnaSystem) -> Result<Vec<f64>> {
 
 /// Linear circuit path: distributed BiCGSTAB + RAS ISAI(1).
 ///
-/// Currently supports single-rank only (the full matrix is solved on one GPU
-/// via distributed BiCGSTAB with SingleProcessComm or single-rank MPI).
-///
-/// Multi-rank distributed linear solve requires per-rank owned/halo vector
-/// partitioning with real halo exchange in the BiCGSTAB loop — not yet
-/// implemented.
+/// Each rank partitions the circuit graph, extracts its local submatrix and
+/// subvector (owned + halo), solves cooperatively via distributed BiCGSTAB,
+/// then reassembles the global solution via all-reduce.
 fn solve_linear_distributed(
     system: &MnaSystem,
     comm: &dyn CommunicationBackend,
@@ -103,28 +100,20 @@ fn solve_linear_distributed(
         return Ok(Vec::new());
     }
 
-    if comm.num_ranks() > 1 {
-        return Err(OhmnivoreError::Solve(
-            "multi-rank distributed linear solve is not yet implemented: \
-             the distributed BiCGSTAB needs per-rank owned/halo vector \
-             partitioning and real halo exchange"
-                .into(),
-        ));
-    }
-
+    let num_ranks = comm.num_ranks();
     let rank = comm.rank();
 
     // Build adjacency graph from MNA matrix sparsity pattern.
     let adj = build_adjacency(&system.g);
 
-    // Single-rank: one partition covering the full matrix.
+    // Partition into num_ranks parts.
     let partitioner = MetisPartitioner;
-    let parts = partitioner.partition(&adj, 1);
+    let parts = partitioner.partition(&adj, num_ranks);
 
     // Build subdomain map for this rank.
     let map = SubdomainMap::build(&adj, &parts, rank, 1);
 
-    // Extract local submatrix and subvector (== full matrix for single rank).
+    // Extract local submatrix and subvector.
     let local_a = map.extract_submatrix(&system.g);
     let local_b = map.extract_subvector(&system.b_dc);
 
@@ -132,11 +121,18 @@ fn solve_linear_distributed(
     let ras = RasIsaiPreconditioner::new(&local_a, &map, 1);
 
     // Solve using distributed BiCGSTAB with DS backend for f64 precision.
-    let local_x = solve_local_ds(&local_a, &local_b, &ras, comm)?;
+    let local_x = solve_local_ds(&local_a, &local_b, &map, &ras, comm)?;
 
     // Scatter owned entries back to global solution.
     let mut global_x = vec![0.0; n];
     map.scatter_to_global(&local_x, &mut global_x);
+
+    // For multi-rank: combine disjoint owned contributions from all ranks.
+    // Each rank has zeros for non-owned positions, so element-wise sum yields
+    // the full solution.
+    if num_ranks > 1 {
+        comm.all_reduce_sum_vec(&mut global_x);
+    }
 
     Ok(global_x)
 }
@@ -146,13 +142,16 @@ fn solve_linear_distributed(
 fn solve_local_ds(
     local_a: &crate::sparse::CsrMatrix<f64>,
     local_b: &[f64],
+    map: &super::partition::SubdomainMap,
     ras: &super::distributed_preconditioner::RasIsaiPreconditioner,
     comm: &dyn CommunicationBackend,
 ) -> Result<Vec<f64>> {
     use super::backend::SolverBackend;
+    use super::comm::HaloNeighbor;
     use super::ds_backend::WgpuDsBackend;
 
-    let n = local_a.nrows;
+    let n_total = local_a.nrows;
+    let n_owned = map.n_owned();
 
     let ds_backend = WgpuDsBackend::new()?;
 
@@ -160,23 +159,37 @@ fn solve_local_ds(
     let row_ptrs_u32: Vec<u32> = local_a.row_pointers.iter().map(|&r| r as u32).collect();
 
     let gpu_matrix =
-        ds_backend.upload_matrix_f64(&local_a.values, &col_indices_u32, &row_ptrs_u32, n);
-    let x_buf = ds_backend.new_buffer(n);
-    let b_buf = ds_backend.new_buffer(n);
+        ds_backend.upload_matrix_f64(&local_a.values, &col_indices_u32, &row_ptrs_u32, n_total);
+    let x_buf = ds_backend.new_buffer(n_total);
+    let b_buf = ds_backend.new_buffer(n_total);
     ds_backend.upload_vec_f64(local_b, &b_buf);
 
     // Upload ISAI factors to DS backend.
     let ml = &ras.local_isai.m_l;
     let ml_cols: Vec<u32> = ml.col_indices.iter().map(|&c| c as u32).collect();
     let ml_rows: Vec<u32> = ml.row_pointers.iter().map(|&r| r as u32).collect();
-    let ml_gpu = ds_backend.upload_matrix_f64(&ml.values, &ml_cols, &ml_rows, n);
+    let ml_gpu = ds_backend.upload_matrix_f64(&ml.values, &ml_cols, &ml_rows, n_total);
 
     let mu = &ras.local_isai.m_u;
     let mu_cols: Vec<u32> = mu.col_indices.iter().map(|&c| c as u32).collect();
     let mu_rows: Vec<u32> = mu.row_pointers.iter().map(|&r| r as u32).collect();
-    let mu_gpu = ds_backend.upload_matrix_f64(&mu.values, &mu_cols, &mu_rows, n);
+    let mu_gpu = ds_backend.upload_matrix_f64(&mu.values, &mu_cols, &mu_rows, n_total);
 
-    let tmp = ds_backend.new_buffer(n);
+    let tmp = ds_backend.new_buffer(n_total);
+
+    // Pre-build neighbor list for halo exchange (used by halo_sync closure).
+    let neighbors: Vec<HaloNeighbor> = map
+        .neighbor_ranks
+        .iter()
+        .enumerate()
+        .map(|(i, &rank)| HaloNeighbor {
+            rank,
+            send_indices: map.send_indices[i].clone(),
+            recv_start: map.recv_indices[..i].iter().map(|v| v.len()).sum(),
+            recv_count: map.recv_indices[i].len(),
+        })
+        .collect();
+    let total_recv: usize = map.recv_indices.iter().map(|v| v.len()).sum();
 
     super::distributed_bicgstab::distributed_bicgstab(
         &ds_backend,
@@ -189,16 +202,38 @@ fn solve_local_ds(
             b.spmv(&ml_gpu, inp, &tmp);
             b.spmv(&mu_gpu, &tmp, out);
         },
-        |_buf| {
-            // Halo sync: no-op for single process.
-            // Multi-process would exchange boundary values here.
+        |buf| {
+            if neighbors.is_empty() {
+                return; // No neighbors, no halo exchange needed.
+            }
+
+            // Download buffer from GPU to CPU.
+            let mut local_vec = vec![0.0f64; n_total];
+            ds_backend.download_vec_f64(buf, &mut local_vec);
+
+            // MPI halo exchange: send owned boundary values, receive halo values.
+            let mut recv_buf = vec![0.0; total_recv];
+            comm.halo_exchange(&neighbors, &local_vec, &mut recv_buf);
+
+            // Scatter received values into halo positions.
+            let mut recv_offset = 0;
+            for recv_idxs in &map.recv_indices {
+                for &idx in recv_idxs {
+                    local_vec[idx] = recv_buf[recv_offset];
+                    recv_offset += 1;
+                }
+            }
+
+            // Upload back to GPU.
+            ds_backend.upload_vec_f64(&local_vec, buf);
         },
-        n,
+        n_owned,
+        n_total,
         comm,
     )?;
 
     // Download result as f64.
-    let mut result = vec![0.0f64; n];
+    let mut result = vec![0.0f64; n_total];
     ds_backend.download_vec_f64(&x_buf, &mut result);
     Ok(result)
 }
@@ -351,6 +386,7 @@ D1 2 0 DMOD
             fn all_reduce_sum(&self, local: f64) -> f64 { local }
             fn all_reduce_max(&self, local: f64) -> f64 { local }
             fn halo_exchange(&self, _: &[HaloNeighbor], _: &[f64], _: &mut [f64]) {}
+            fn all_reduce_sum_vec(&self, _: &mut [f64]) {}
             fn rank(&self) -> usize { 0 }
             fn num_ranks(&self) -> usize { 2 }
             fn barrier(&self) {}

@@ -610,6 +610,97 @@ impl SolverBackend for WgpuDsBackend {
         sum
     }
 
+    fn dot_n(&self, x: &WgpuBuffer, y: &WgpuBuffer, n: usize) -> f64 {
+        if n == x.n {
+            return self.dot(x, y);
+        }
+        let n_u32 = n as u32;
+        let n_wg = workgroup_count(n_u32);
+
+        let out_size = (n_wg as usize * std::mem::size_of::<f32>()) as u64;
+        let dot_out_hi = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("ds_dot_out_hi_n"),
+            size: out_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+        let dot_out_lo = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("ds_dot_out_lo_n"),
+            size: out_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let params = DsVecParams {
+            alpha_hi: 0.0,
+            alpha_lo: 0.0,
+            n: n_u32,
+            _pad: 0,
+        };
+        let params_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::bytes_of(&params),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+
+        let bg = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.pipes.dot.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: x.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: x.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: y.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: y.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: dot_out_hi.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: dot_out_lo.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&self.pipes.dot);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(n_wg, 1, 1);
+        }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
+        self.queue.submit(Some(encoder.finish()));
+
+        let partials_hi = read_buffer_f32(&self.device, &self.queue, &dot_out_hi, n_wg as usize);
+        let partials_lo = read_buffer_f32(&self.device, &self.queue, &dot_out_lo, n_wg as usize);
+        self.readback_count.set(self.readback_count.get() + 1);
+
+        let mut sum = 0.0f64;
+        for i in 0..n_wg as usize {
+            sum += ds_to_f64(partials_hi[i], partials_lo[i]);
+        }
+        sum
+    }
+
     fn axpy(&self, alpha: f64, x: &WgpuBuffer, y: &WgpuBuffer) {
         let n_u32 = x.n as u32;
         let n_wg = workgroup_count(n_u32);

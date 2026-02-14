@@ -57,6 +57,16 @@ pub trait SolverBackend {
     /// Dot product: returns x . y as f64 for precision.
     fn dot(&self, x: &Self::Buffer, y: &Self::Buffer) -> f64;
 
+    /// Dot product over the first `n` elements only.
+    ///
+    /// Used in distributed solvers where buffers contain owned + halo entries
+    /// but dot products must only sum over owned entries (0..n) to avoid
+    /// double-counting overlap nodes across ranks.
+    fn dot_n(&self, x: &Self::Buffer, y: &Self::Buffer, n: usize) -> f64 {
+        let _ = n;
+        self.dot(x, y)
+    }
+
     /// AXPY: y = alpha * x + y (in-place on y)
     fn axpy(&self, alpha: f64, x: &Self::Buffer, y: &Self::Buffer);
 
@@ -431,6 +441,72 @@ impl SolverBackend for WgpuBackend {
         queue.submit(Some(encoder.finish()));
 
         // Read back partial sums and reduce on CPU with f64 precision
+        let partials = read_buffer_f32(device, queue, &dot_out_buf, n_wg as usize);
+        self.readback_count.set(self.readback_count.get() + 1);
+        partials.iter().map(|&v| v as f64).sum()
+    }
+
+    fn dot_n(&self, x: &WgpuBuffer, y: &WgpuBuffer, n: usize) -> f64 {
+        if n == x.n {
+            return self.dot(x, y);
+        }
+        tracing::trace!("gpu_dispatch: dot_real_n + readback");
+        let device = &self.ctx.device;
+        let queue = &self.ctx.queue;
+        let n_u32 = n as u32;
+        let n_wg = workgroup_count(n_u32);
+
+        let dot_out_size = (n_wg as usize * std::mem::size_of::<f32>()) as u64;
+        let dot_out_buf = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("dot_out_n"),
+            size: dot_out_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let params = VecParams {
+            alpha_re: 0.0,
+            alpha_im: 0.0,
+            n: n_u32,
+            _pad: 0,
+        };
+        let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(&params),
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+        let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.ctx.dot_real_pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: x.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: y.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: dot_out_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+        let mut encoder = device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&self.ctx.dot_real_pipeline);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(n_wg, 1, 1);
+        }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
+        queue.submit(Some(encoder.finish()));
+
         let partials = read_buffer_f32(device, queue, &dot_out_buf, n_wg as usize);
         self.readback_count.set(self.readback_count.get() + 1);
         partials.iter().map(|&v| v as f64).sum()
