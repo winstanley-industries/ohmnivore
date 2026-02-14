@@ -666,6 +666,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "metis-rs"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dfe65544c5a5c7c205f58e03279ccbc37e1d0d827fbb4868c548f98ea4012686"
+
+[[package]]
 name = "naga"
 version = "28.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -755,6 +761,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "metis-rs",
  "naga",
  "nom",
  "num-complex",

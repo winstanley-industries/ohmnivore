@@ -4,12 +4,14 @@ pub mod backend;
 pub mod bicgstab;
 pub mod comm;
 pub mod cpu;
+pub mod distributed_bicgstab;
 pub mod ds_backend;
 pub mod ds_shaders;
 pub mod gpu;
 pub mod gpu_shaders;
 pub mod newton;
 pub mod nonlinear;
+pub mod partition;
 pub mod preconditioner;
 
 use crate::error::Result;
