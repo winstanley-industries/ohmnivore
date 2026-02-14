@@ -2,7 +2,7 @@
 
 A GPU-accelerated SPICE circuit simulator. Write a netlist, run an analysis, get results as CSV.
 
-Ohmnivore parses a subset of SPICE netlists, builds Modified Nodal Analysis (MNA) matrices, and solves them on the GPU (wgpu/BiCGSTAB) or CPU (direct LU). It runs DC operating point, AC frequency sweep, and transient analyses.
+Ohmnivore parses a subset of SPICE netlists, builds Modified Nodal Analysis (MNA) matrices, and solves them on the GPU (wgpu/BiCGSTAB) or CPU (direct LU). It runs DC operating point, AC frequency sweep, and transient analyses. The solver architecture supports multi-GPU and multi-node execution via domain decomposition with RAS preconditioning and MPI communication.
 
 ## Quick Start
 
@@ -86,8 +86,18 @@ ohmnivore examples/voltage_divider.spice
 ohmnivore examples/rc_lowpass.spice > lowpass.csv
 ```
 
+## Distributed / Multi-GPU
+
+Ohmnivore can partition circuits across multiple GPUs via METIS graph decomposition. Each GPU solves its subdomain with a local ISAI(1) preconditioner, coordinated by a global BiCGSTAB solver. Enable MPI support:
+
+```sh
+cargo build --release --features distributed
+```
+
+This requires an MPI installation (e.g., OpenMPI). See the [Installation Guide](docs/installation.md) for details.
+
 ## Documentation
 
-- **[Installation Guide](docs/installation.md)** -- building from source, GPU setup, platform notes
+- **[Installation Guide](docs/installation.md)** -- building from source, GPU setup, MPI, platform notes
 - **[Netlist Format](docs/netlist-format.md)** -- component syntax, models, node naming, transient sources
 - **[Analysis Types](docs/analyses.md)** -- DC, AC, and transient analysis with worked examples

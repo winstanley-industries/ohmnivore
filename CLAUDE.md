@@ -16,7 +16,7 @@ Netlist (.spice) -> Parser (nom) -> Circuit IR -> MNA Compiler -> Solver -> Anal
 | `ir` | Circuit intermediate representation (components, analyses, models) |
 | `compiler` | Builds MNA G/C matrices and b vectors in CSR sparse format |
 | `sparse` | Generic CSR sparse matrix (f64 and Complex64) |
-| `solver/` | Linear solvers (CPU direct, GPU BiCGSTAB) and nonlinear Newton-Raphson |
+| `solver/` | Linear solvers (CPU direct, GPU BiCGSTAB), nonlinear Newton-Raphson, distributed RAS |
 | `analysis/` | DC operating point and AC frequency sweep engines |
 | `output` | CSV result formatting |
 | `error` | `OhmnivoreError` enum via `thiserror`, project-wide `Result<T>` alias |
@@ -26,6 +26,9 @@ Netlist (.spice) -> Parser (nom) -> Circuit IR -> MNA Compiler -> Solver -> Anal
 - `LinearSolver` — main interface (`solve_real`, `solve_complex`)
 - `SolverBackend` — GPU-agnostic vector/matrix ops (SpMV, dot, AXPY)
 - `NonlinearBackend` — GPU-resident diode/BJT/MOSFET evaluation for Newton-Raphson
+- `CommunicationBackend` — inter-process communication (all-reduce, halo exchange). Implementations: `SingleProcessComm` (no-op), `MpiComm` (behind `distributed` feature)
+- `Partitioner` — graph partitioning for domain decomposition. Implementation: `MetisPartitioner` (via `metis-rs`)
+- `DistributedPreconditioner` — distributed preconditioner apply with halo exchange. Implementation: `RasIsaiPreconditioner` (local ISAI(1) per subdomain)
 
 ### GPU Details
 
@@ -44,7 +47,15 @@ cargo test --test integration_test                   # linear circuit integratio
 cargo test --test diode_integration_test             # diode tests only
 cargo test --test transistor_integration_test        # BJT/MOSFET tests only
 cargo test --test gpu_integration_test               # GPU-specific tests only
+cargo test --test distributed_test --features distributed  # MPI distributed tests (requires MPI)
 ```
+
+### Feature Flags
+
+| Feature | Purpose |
+|---|---|
+| `ngspice-compare` | Enable ngspice regression tests |
+| `distributed` | Enable MPI communication backend (`MpiComm`) for multi-GPU/multi-node |
 
 GPU tests require a GPU-capable environment. They will fail in headless CI without a compatible adapter.
 
@@ -83,15 +94,17 @@ GPU tests require a GPU-capable environment. They will fail in headless CI witho
 - Newton-Raphson runs entirely on GPU — evaluation, assembly, and linear solve per iteration
 - Voltage limiting applied per-iteration to improve convergence
 
-### Distributed Solver Vision
+### Distributed Solver
 
-Ohmnivore targets multi-GPU and multi-node execution:
+Ohmnivore supports multi-GPU and multi-node execution via domain decomposition:
 
-- **Domain decomposition**: Circuit graph partitioned across GPUs via METIS (one subdomain per GPU), coordinated by a global Krylov solver (BiCGSTAB/GMRES) with distributed reductions (all-reduce for dot products)
-- **Preconditioning**: Restricted Additive Schwarz (RAS) with 1-layer overlap. Each GPU applies a local ISAI(1) preconditioner to its subdomain. `DistributedPreconditioner` trait abstracts over single-GPU vs. distributed apply
-- **Communication**: `CommunicationBackend` trait abstracting over transport (halo exchange, all-reduce) — MPI first, RoCE (RDMA over Converged Ethernet) planned for low-latency production clusters. Single-process no-op backend for single-GPU
+- **Partitioning**: `solver/partition.rs` — METIS graph partitioning (`MetisPartitioner`) with `SubdomainMap` providing 1-layer overlap, global-to-local index mapping, and submatrix/subvector extraction
+- **Communication**: `solver/comm.rs` — `CommunicationBackend` trait (all-reduce sum/max, halo exchange, barrier). `SingleProcessComm` (no-op) for single-GPU. `solver/comm_mpi.rs` — `MpiComm` behind `distributed` feature flag
+- **Distributed BiCGSTAB**: `solver/distributed_bicgstab.rs` — BiCGSTAB with `all_reduce_sum` for dot products, halo exchange before SpMV and preconditioner apply
+- **RAS Preconditioner**: `solver/distributed_preconditioner.rs` — Restricted Additive Schwarz with local ISAI(1) per subdomain. Halo exchange → local ISAI SpMVs → restrict to owned nodes
+- **Newton-Raphson**: `solver/distributed_newton.rs` — `solve_dc` routing through distributed BiCGSTAB + RAS for linear circuits, existing `newton_solve` for nonlinear single-GPU
 
-Design the solver traits, preconditioner interfaces, and data structures with this distribution model in mind, even when implementing single-GPU features.
+Single-GPU degenerates to one subdomain with no-op communication. RoCE (RDMA) backend planned for low-latency production clusters.
 
 ### Design Documents
 

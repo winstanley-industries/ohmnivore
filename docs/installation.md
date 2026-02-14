@@ -50,6 +50,28 @@ Most modern NVIDIA and AMD drivers include Vulkan support. Intel GPUs use DX12. 
 
 Without a GPU, pass `--cpu` to use the CPU solver. It uses direct LU decomposition and works everywhere.
 
+## Distributed / Multi-GPU (Optional)
+
+For multi-GPU or multi-node execution, build with the `distributed` feature flag. This requires an MPI installation.
+
+### Install MPI
+
+- **macOS**: `brew install open-mpi`
+- **Ubuntu/Debian**: `sudo apt install libopenmpi-dev openmpi-bin`
+- **Fedora/RHEL**: `sudo dnf install openmpi-devel` (then `module load mpi/openmpi-x86_64`)
+
+### Build with MPI
+
+```sh
+cargo build --release --features distributed
+```
+
+### Run Distributed Tests
+
+```sh
+mpirun -n 2 cargo test --features distributed --test distributed_test
+```
+
 ## Running Tests
 
 ```sh
@@ -64,4 +86,10 @@ To run ngspice regression tests (requires `ngspice` in PATH):
 
 ```sh
 cargo test --features ngspice-compare
+```
+
+To run distributed MPI tests (requires MPI):
+
+```sh
+mpirun -n 2 cargo test --features distributed --test distributed_test
 ```
