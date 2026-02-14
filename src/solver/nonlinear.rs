@@ -187,7 +187,8 @@ struct NonlinearPipelines {
     mosfet_eval: wgpu::ComputePipeline,
     assemble_mosfet_matrix_stamp: wgpu::ComputePipeline,
     assemble_mosfet_rhs_stamp: wgpu::ComputePipeline,
-    mosfet_voltage_limit: wgpu::ComputePipeline,
+    mosfet_voltage_limit_reduce: wgpu::ComputePipeline,
+    mosfet_voltage_limit_apply: wgpu::ComputePipeline,
 }
 
 impl NonlinearPipelines {
@@ -258,7 +259,8 @@ impl NonlinearPipelines {
                 "assemble_mosfet_matrix_stamp",
             ),
             assemble_mosfet_rhs_stamp: make(&mosfet_assemble_module, "assemble_mosfet_rhs_stamp"),
-            mosfet_voltage_limit: make(&mosfet_vlimit_module, "mosfet_voltage_limit"),
+            mosfet_voltage_limit_reduce: make(&mosfet_vlimit_module, "mosfet_voltage_limit_reduce"),
+            mosfet_voltage_limit_apply: make(&mosfet_vlimit_module, "mosfet_voltage_limit_apply"),
         }
     }
 }
@@ -1053,15 +1055,43 @@ impl NonlinearBackend for WgpuBackend {
         let device = &self.ctx.device;
         let queue = &self.ctx.queue;
 
+        let Ok(n_nodes) = u32::try_from(x_new.n) else {
+            return;
+        };
+
+        const SCALE_ONE: u32 = 1_000_000;
+        let node_scale_init = vec![SCALE_ONE; x_new.n];
+        let node_scale_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mosfet_node_limit_scale"),
+            contents: bytemuck::cast_slice(&node_scale_init),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+
+        #[repr(C)]
+        #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+        struct MosfetVoltLimitParams {
+            num_mosfets: u32,
+            n_nodes: u32,
+            _pad0: u32,
+            _pad1: u32,
+        }
+        let params = MosfetVoltLimitParams {
+            num_mosfets: n_mosfets,
+            n_nodes,
+            _pad0: 0,
+            _pad1: 0,
+        };
         let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: None,
-            contents: bytemuck::bytes_of(&n_mosfets),
+            contents: bytemuck::bytes_of(&params),
             usage: wgpu::BufferUsages::UNIFORM,
         });
 
-        let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let bg_reduce = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
-            layout: &pipelines.mosfet_voltage_limit.get_bind_group_layout(0),
+            layout: &pipelines
+                .mosfet_voltage_limit_reduce
+                .get_bind_group_layout(0),
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
@@ -1077,6 +1107,38 @@ impl NonlinearBackend for WgpuBackend {
                 },
                 wgpu::BindGroupEntry {
                     binding: 3,
+                    resource: node_scale_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: params_buf.as_entire_binding(),
+                },
+            ],
+        });
+        let bg_apply = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &pipelines
+                .mosfet_voltage_limit_apply
+                .get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: descriptors.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: x_old.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: x_new.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: node_scale_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
                     resource: params_buf.as_entire_binding(),
                 },
             ],
@@ -1085,9 +1147,15 @@ impl NonlinearBackend for WgpuBackend {
         let mut encoder = device.create_command_encoder(&Default::default());
         {
             let mut pass = encoder.begin_compute_pass(&Default::default());
-            pass.set_pipeline(&pipelines.mosfet_voltage_limit);
-            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.set_pipeline(&pipelines.mosfet_voltage_limit_reduce);
+            pass.set_bind_group(0, Some(&bg_reduce), &[]);
             pass.dispatch_workgroups(workgroup_count(n_mosfets), 1, 1);
+        }
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&pipelines.mosfet_voltage_limit_apply);
+            pass.set_bind_group(0, Some(&bg_apply), &[]);
+            pass.dispatch_workgroups(workgroup_count(n_nodes), 1, 1);
         }
         queue.submit(Some(encoder.finish()));
     }

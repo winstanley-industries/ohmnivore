@@ -1120,8 +1120,9 @@ fn bjt_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 /// WGSL shader for MOSFET voltage limiting during Newton-Raphson iteration.
 ///
-/// One invocation per MOSFET. Clamps V_GS and V_DS changes to +/-0.5V
-/// to prevent Newton overshoot.
+/// Uses a race-free two-pass scheme:
+/// 1) per-MOSFET reduction computes per-node minimum scale via atomicMin
+/// 2) per-node apply scales x_new using the reduced factor
 pub const MOSFET_VOLTAGE_LIMIT_SHADER: &str = r#"
 // ============================================================
 // MOSFET Voltage Limiting Shader
@@ -1129,14 +1130,20 @@ pub const MOSFET_VOLTAGE_LIMIT_SHADER: &str = r#"
 
 struct MosfetVoltLimitParams {
     num_mosfets: u32,
+    n_nodes: u32,
+    _pad0: u32,
+    _pad1: u32,
 }
 
 @group(0) @binding(0) var<storage, read> mvl_desc: array<u32>;
 @group(0) @binding(1) var<storage, read> mvl_x_old: array<f32>;
 @group(0) @binding(2) var<storage, read_write> mvl_x_new: array<f32>;
-@group(0) @binding(3) var<uniform> mvl_params: MosfetVoltLimitParams;
+@group(0) @binding(3) var<storage, read_write> mvl_node_scale: array<atomic<u32>>;
+@group(0) @binding(4) var<uniform> mvl_params: MosfetVoltLimitParams;
 
 const MVL_SENTINEL: u32 = 0xFFFFFFFFu;
+const MVL_SCALE_ONE: u32 = 1000000u;
+const MVL_STEP_LIMIT: f32 = 0.5;
 
 fn mvl_read_old(idx: u32) -> f32 {
     if idx == MVL_SENTINEL {
@@ -1152,8 +1159,14 @@ fn mvl_read_new(idx: u32) -> f32 {
     return mvl_x_new[idx];
 }
 
+fn mvl_scale_to_encoded(delta_v: f32, limit: f32) -> u32 {
+    let scale = limit / abs(delta_v);
+    let encoded = u32(scale * f32(MVL_SCALE_ONE));
+    return max(encoded, 1u);
+}
+
 @compute @workgroup_size(64)
-fn mosfet_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
+fn mosfet_voltage_limit_reduce(@builtin(global_invocation_id) gid: vec3<u32>) {
     let i = gid.x;
     if i >= mvl_params.num_mosfets {
         return;
@@ -1177,17 +1190,13 @@ fn mosfet_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
     let vgs_new = mvl_read_new(gate_idx) - mvl_read_new(source_idx);
     let delta_vgs = vgs_new - vgs_old;
 
-    if abs(delta_vgs) > 0.5 {
-        let scale_gs = 0.5 / abs(delta_vgs);
+    if abs(delta_vgs) > MVL_STEP_LIMIT {
+        let scale_gs = mvl_scale_to_encoded(delta_vgs, MVL_STEP_LIMIT);
         if gate_idx != MVL_SENTINEL && !gate_fixed {
-            let old_val = mvl_x_old[gate_idx];
-            let delta = mvl_x_new[gate_idx] - old_val;
-            mvl_x_new[gate_idx] = old_val + delta * scale_gs;
+            atomicMin(&mvl_node_scale[gate_idx], scale_gs);
         }
         if source_idx != MVL_SENTINEL && !source_fixed {
-            let old_val = mvl_x_old[source_idx];
-            let delta = mvl_x_new[source_idx] - old_val;
-            mvl_x_new[source_idx] = old_val + delta * scale_gs;
+            atomicMin(&mvl_node_scale[source_idx], scale_gs);
         }
     }
 
@@ -1196,19 +1205,40 @@ fn mosfet_voltage_limit(@builtin(global_invocation_id) gid: vec3<u32>) {
     let vds_new = mvl_read_new(drain_idx) - mvl_read_new(source_idx);
     let delta_vds = vds_new - vds_old;
 
-    if abs(delta_vds) > 0.5 {
-        let scale_ds = 0.5 / abs(delta_vds);
+    if abs(delta_vds) > MVL_STEP_LIMIT {
+        let scale_ds = mvl_scale_to_encoded(delta_vds, MVL_STEP_LIMIT);
         if drain_idx != MVL_SENTINEL && !drain_fixed {
-            let old_val = mvl_x_old[drain_idx];
-            let delta = mvl_x_new[drain_idx] - old_val;
-            mvl_x_new[drain_idx] = old_val + delta * scale_ds;
+            atomicMin(&mvl_node_scale[drain_idx], scale_ds);
         }
         if source_idx != MVL_SENTINEL && !source_fixed {
-            let old_val = mvl_x_old[source_idx];
-            let delta = mvl_x_new[source_idx] - old_val;
-            mvl_x_new[source_idx] = old_val + delta * scale_ds;
+            atomicMin(&mvl_node_scale[source_idx], scale_ds);
         }
     }
+}
+
+@compute @workgroup_size(64)
+fn mosfet_voltage_limit_apply(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let node_idx = gid.x;
+    if node_idx >= mvl_params.n_nodes {
+        return;
+    }
+
+    // Keep descriptor binding active for a stable bind-group layout across
+    // both limiter entry points.
+    let keep_layout_word = mvl_desc[0u];
+    if keep_layout_word == 0xFFFFFFFEu && node_idx == 0u {
+        return;
+    }
+
+    let scale_encoded = atomicLoad(&mvl_node_scale[node_idx]);
+    if scale_encoded >= MVL_SCALE_ONE {
+        return;
+    }
+
+    let scale = f32(scale_encoded) / f32(MVL_SCALE_ONE);
+    let old_val = mvl_x_old[node_idx];
+    let delta = mvl_x_new[node_idx] - old_val;
+    mvl_x_new[node_idx] = old_val + delta * scale;
 }
 "#;
 
@@ -1617,10 +1647,13 @@ mod tests {
                     .iter()
                     .map(|ep| ep.name.as_str())
                     .collect();
-                assert!(
-                    entry_names.contains(&"mosfet_voltage_limit"),
-                    "missing entry point: mosfet_voltage_limit. Found: {entry_names:?}"
-                );
+                let expected = ["mosfet_voltage_limit_reduce", "mosfet_voltage_limit_apply"];
+                for name in &expected {
+                    assert!(
+                        entry_names.contains(name),
+                        "missing entry point: {name}. Found: {entry_names:?}"
+                    );
+                }
             }
             Err(e) => {
                 panic!(
