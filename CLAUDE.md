@@ -47,7 +47,7 @@ cargo test --test integration_test                   # linear circuit integratio
 cargo test --test diode_integration_test             # diode tests only
 cargo test --test transistor_integration_test        # BJT/MOSFET tests only
 cargo test --test gpu_integration_test               # GPU-specific tests only
-cargo test --test distributed_test --features distributed  # MPI distributed tests (requires MPI)
+mpirun -n 1 cargo test --features distributed --test distributed_test  # MPI distributed tests (requires MPI)
 ```
 
 ### Feature Flags

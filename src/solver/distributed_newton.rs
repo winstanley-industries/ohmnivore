@@ -85,9 +85,12 @@ fn solve_nonlinear_single_gpu(system: &MnaSystem) -> Result<Vec<f64>> {
 
 /// Linear circuit path: distributed BiCGSTAB + RAS ISAI(1).
 ///
-/// Partitions the MNA matrix via METIS, builds per-rank SubdomainMaps with
-/// 1-layer overlap, computes local ISAI(1), and solves via distributed
-/// BiCGSTAB.
+/// Currently supports single-rank only (the full matrix is solved on one GPU
+/// via distributed BiCGSTAB with SingleProcessComm or single-rank MPI).
+///
+/// Multi-rank distributed linear solve requires per-rank owned/halo vector
+/// partitioning with real halo exchange in the BiCGSTAB loop — not yet
+/// implemented.
 fn solve_linear_distributed(
     system: &MnaSystem,
     comm: &dyn CommunicationBackend,
@@ -100,20 +103,28 @@ fn solve_linear_distributed(
         return Ok(Vec::new());
     }
 
-    let num_ranks = comm.num_ranks();
+    if comm.num_ranks() > 1 {
+        return Err(OhmnivoreError::Solve(
+            "multi-rank distributed linear solve is not yet implemented: \
+             the distributed BiCGSTAB needs per-rank owned/halo vector \
+             partitioning and real halo exchange"
+                .into(),
+        ));
+    }
+
     let rank = comm.rank();
 
     // Build adjacency graph from MNA matrix sparsity pattern.
     let adj = build_adjacency(&system.g);
 
-    // Partition the graph.
+    // Single-rank: one partition covering the full matrix.
     let partitioner = MetisPartitioner;
-    let parts = partitioner.partition(&adj, num_ranks);
+    let parts = partitioner.partition(&adj, 1);
 
     // Build subdomain map for this rank.
     let map = SubdomainMap::build(&adj, &parts, rank, 1);
 
-    // Extract local submatrix and subvector.
+    // Extract local submatrix and subvector (== full matrix for single rank).
     let local_a = map.extract_submatrix(&system.g);
     let local_b = map.extract_subvector(&system.b_dc);
 
@@ -126,14 +137,6 @@ fn solve_linear_distributed(
     // Scatter owned entries back to global solution.
     let mut global_x = vec![0.0; n];
     map.scatter_to_global(&local_x, &mut global_x);
-
-    // For multi-rank, all ranks would contribute their owned entries
-    // via all-reduce-sum (each rank contributes zeros for non-owned nodes).
-    if num_ranks > 1 {
-        for v in &mut global_x {
-            *v = comm.all_reduce_sum(*v);
-        }
-    }
 
     Ok(global_x)
 }

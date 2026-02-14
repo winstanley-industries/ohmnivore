@@ -69,7 +69,7 @@ cargo build --release --features distributed
 ### Run Distributed Tests
 
 ```sh
-mpirun -n 2 cargo test --features distributed --test distributed_test
+mpirun -n 1 cargo test --features distributed --test distributed_test
 ```
 
 ## Running Tests
@@ -91,5 +91,5 @@ cargo test --features ngspice-compare
 To run distributed MPI tests (requires MPI):
 
 ```sh
-mpirun -n 2 cargo test --features distributed --test distributed_test
+mpirun -n 1 cargo test --features distributed --test distributed_test
 ```
