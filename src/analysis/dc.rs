@@ -60,7 +60,7 @@ fn find_node_diagonal_positions(system: &MnaSystem) -> Vec<usize> {
 fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Vec<f64>> {
     use crate::solver::backend::{SolverBackend, WgpuBackend};
     use crate::solver::ds_backend::WgpuDsBackend;
-    use crate::solver::newton::NewtonParams;
+    use crate::solver::newton::{NewtonLinearMode, NewtonParams};
 
     let backend = WgpuBackend::new()?;
     let ds_backend = WgpuDsBackend::new()?;
@@ -128,6 +128,7 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
             // Intermediate continuation steps should fail fast if the linear
             // subproblem is too ill-conditioned for the current GMIN level.
             bicgstab_max_iterations: 300,
+            linear_mode: NewtonLinearMode::GpuBicgstab,
             initial_guess: x_prev.clone(),
             ..NewtonParams::default()
         };
@@ -144,7 +145,44 @@ fn run_nonlinear(system: &MnaSystem, mut stats: Option<&mut Stats>) -> Result<Ve
             target_gmin,
             &params,
             stats.as_deref_mut(),
-        );
+        )
+        .or_else(|gpu_err| {
+            // Fallback path: try CPU direct solve for this continuation step
+            // before we subdivide further.
+            let mut cpu_params = params.clone();
+            cpu_params.linear_mode = NewtonLinearMode::CpuDirect;
+            match gmin_newton_step(
+                &backend,
+                &ds_backend,
+                &base_b_buf,
+                system,
+                &col_indices_u32,
+                &row_ptrs_u32,
+                matrix_nnz,
+                &diag_positions,
+                target_gmin,
+                &cpu_params,
+                stats.as_deref_mut(),
+            ) {
+                Ok(x) => {
+                    tracing::debug!(
+                        ?gpu_err,
+                        target_gmin,
+                        "GMIN GPU step failed, CPU direct fallback succeeded"
+                    );
+                    Ok(x)
+                }
+                Err(cpu_err) => {
+                    tracing::debug!(
+                        ?gpu_err,
+                        ?cpu_err,
+                        target_gmin,
+                        "GMIN step failed on both GPU and CPU fallback"
+                    );
+                    Err(cpu_err)
+                }
+            }
+        });
 
         match result {
             Ok(x) => {
