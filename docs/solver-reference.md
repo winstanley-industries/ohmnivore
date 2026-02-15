@@ -173,7 +173,7 @@ When direct Newton-Raphson fails (ill-conditioned Jacobian, poor initial guess),
 
 ```mermaid
 flowchart TD
-    A[Direct Newton<br/>GPU BiCGSTAB, 200 iters] -->|fail| B[Direct Newton<br/>CPU Sparse LU, 15 iters]
+    A[Direct Newton 50 iters<br/>GPU BiCGSTAB sub-solve] -->|fail| B[Direct Newton 15 iters<br/>CPU Sparse LU sub-solve]
     B -->|fail| C{MOSFETs<br/>present?}
     C -->|yes| D[Source Stepping<br/>ramp sources 0→1]
     C -->|no| E[GMIN Stepping]
@@ -452,6 +452,8 @@ flowchart TD
 | `src/compiler.rs` | SPICE → MNA matrices + device descriptors | CPU |
 | `src/analysis/dc.rs` | DC operating point orchestration + convergence cascade | CPU |
 | `src/analysis/ac.rs` | AC frequency sweep | CPU |
+| `src/analysis/transient.rs` | Transient (time-domain) analysis — BE/TRAP integration with adaptive timestep | CPU |
+| `src/analysis/transient_source.rs` | Transient source waveform evaluation (PULSE, SIN, PWL, EXP) | CPU |
 | `src/solver/mod.rs` | `LinearSolver` trait definition | — |
 | `src/solver/newton.rs` | Newton-Raphson iteration loop | GPU (DS) + CPU |
 | `src/solver/bicgstab.rs` | Right-preconditioned BiCGSTAB | Generic (`SolverBackend`) |
