@@ -11,9 +11,11 @@ use std::time::Instant;
 
 use super::backend::{SolverBackend, WgpuBuffer};
 use super::bicgstab;
-use super::ds_backend::WgpuDsBackend;
+use super::ds_backend::{self, WgpuDsBackend};
 use super::nonlinear::{ConvergenceResult, NonlinearBackend};
 use super::preconditioner;
+
+const WORKGROUP_SIZE: usize = 64;
 
 /// Linear solve mode for each Newton iteration.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Default)]
@@ -117,6 +119,37 @@ pub fn newton_solve(
     let base_b_buf = ds_backend.new_buffer(system_size);
     ds_backend.upload_vec_f64(base_b_f64, &base_b_buf);
 
+    // For small systems, use the fused BiCGSTAB kernel which runs the entire
+    // iterative solve in a single GPU dispatch (no CPU-GPU sync per iteration).
+    let use_fused = params.linear_mode == NewtonLinearMode::GpuBicgstab
+        && system_size <= WORKGROUP_SIZE;
+
+    // Upload CSR structure once for the fused kernel (reused across Newton iters).
+    let gpu_col_indices = if use_fused {
+        Some(ds_backend.upload_buffer_u32(base_g_col_indices))
+    } else {
+        None
+    };
+    let gpu_row_ptrs = if use_fused {
+        Some(ds_backend.upload_buffer_u32(base_g_row_ptrs))
+    } else {
+        None
+    };
+
+    // Pre-allocate solution buffer and params for the fused kernel
+    // so we don't re-create them every Newton iteration.
+    let fused_x_solve = if use_fused {
+        Some(ds_backend.new_buffer(system_size))
+    } else {
+        None
+    };
+    let fused_bicgstab_params = ds_backend::BicgstabFusedParams {
+        n: system_size as u32,
+        max_iters: params.bicgstab_max_iterations as u32,
+        tol_hi: bicgstab::DEFAULT_TOLERANCE as f32,
+        tol_lo: (bicgstab::DEFAULT_TOLERANCE - (bicgstab::DEFAULT_TOLERANCE as f32) as f64) as f32,
+    };
+
     for iter in 0..params.max_iterations {
         let _span = tracing::debug_span!("newton_iter", iter).entered();
 
@@ -178,176 +211,219 @@ pub fn newton_solve(
             s.assembly += t.elapsed();
         }
 
-        // Step 3: Download assembled matrix as f64 for NaN check + preconditioner
+        // Step 3+4: Linear solve
         let t = Instant::now();
-        let mut assembled_f64 = vec![0.0f64; matrix_nnz];
-        ds_backend.download_vec_f64(&out_values_buf, &mut assembled_f64);
+        let bicgstab_iters = if use_fused {
+            // Fused path: solve entirely on GPU in a single dispatch.
+            // No matrix download needed — Jacobi preconditioner computed
+            // on GPU, NaN detected via BiCGSTAB breakdown.
+            // Zero out the pre-allocated solution buffer for a fresh solve.
+            let fused_x = fused_x_solve.as_ref().unwrap();
+            let zeros = vec![0.0f32; system_size];
+            ds_backend.upload_vec(&zeros, fused_x);
 
-        if assembled_f64
-            .iter()
-            .any(|v| v.is_nan() || v.is_infinite())
-        {
-            return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
-        }
+            let result = ds_backend.bicgstab_fused_solve(
+                &out_values_buf,
+                gpu_col_indices.as_ref().unwrap(),
+                gpu_row_ptrs.as_ref().unwrap(),
+                &out_b_buf,
+                fused_x,
+                &fused_bicgstab_params,
+            );
 
-        if let Some(ref mut s) = stats {
-            s.matrix_dl_ul += t.elapsed();
-        }
-
-        // Step 4: Solve the linear system
-        let t = Instant::now();
-        let col_indices_usize: Vec<usize> =
-            base_g_col_indices.iter().map(|&c| c as usize).collect();
-        let row_ptrs_usize: Vec<usize> = base_g_row_ptrs.iter().map(|&r| r as usize).collect();
-        let csr_cpu = crate::sparse::CsrMatrix {
-            nrows: system_size,
-            ncols: system_size,
-            values: assembled_f64.clone(),
-            col_indices: col_indices_usize,
-            row_pointers: row_ptrs_usize,
-        };
-
-        let bicgstab_iters = match params.linear_mode {
-            NewtonLinearMode::CpuSparseLu => {
-                let mut rhs_f64 = vec![0.0f64; system_size];
-                ds_backend.download_vec_f64(&out_b_buf, &mut rhs_f64);
-
-                let solve_result = match crate::solver::sparse_direct::solve_real_sparse_lu(
-                    &csr_cpu, &rhs_f64,
-                ) {
-                    Ok(x) => {
-                        let has_unsafe_scale = x
-                            .iter()
-                            .any(|v| !v.is_finite() || v.abs() > f32::MAX as f64);
-                        if has_unsafe_scale {
-                            Err(crate::error::OhmnivoreError::Solve(
-                                "sparse LU produced out-of-range solution".into(),
-                            ))
-                        } else {
-                            Ok(x)
-                        }
-                    }
-                    Err(e) => Err(e),
+            match result {
+                ds_backend::BicgstabFusedResult::Converged { iterations } => {
+                    ds_backend.copy(fused_x, &x_buf);
+                    Some(iterations as usize)
                 }
-                .or_else(|sparse_err| {
-                    tracing::debug!(
-                        ?sparse_err,
-                        "CPU sparse-LU failed, retrying dense CPU direct solve"
-                    );
-                    let cpu_solver = crate::solver::cpu::CpuSolver::new();
-                    crate::solver::LinearSolver::solve_real(&cpu_solver, &csr_cpu, &rhs_f64)
-                })?;
-
-                ds_backend.upload_vec_f64(&solve_result, &x_buf);
-                None
+                ds_backend::BicgstabFusedResult::NotConverged { iterations } => {
+                    return Err(OhmnivoreError::Solve(format!(
+                        "BiCGSTAB did not converge within {iterations} iterations"
+                    )));
+                }
+                ds_backend::BicgstabFusedResult::Breakdown { iterations } => {
+                    return Err(OhmnivoreError::Solve(format!(
+                        "BiCGSTAB breakdown at iteration {iterations}"
+                    )));
+                }
+                ds_backend::BicgstabFusedResult::NaN { iterations } => {
+                    return Err(OhmnivoreError::NewtonNumericalError { iteration: iterations as usize });
+                }
             }
-            NewtonLinearMode::CpuDirect => {
-                let mut rhs_f64 = vec![0.0f64; system_size];
-                ds_backend.download_vec_f64(&out_b_buf, &mut rhs_f64);
+        } else {
+            // Original path: download matrix for NaN check + preconditioner.
+            let mut assembled_f64 = vec![0.0f64; matrix_nnz];
+            ds_backend.download_vec_f64(&out_values_buf, &mut assembled_f64);
 
-                let cpu_solver = crate::solver::cpu::CpuSolver::new();
-                let solve_result =
-                    crate::solver::LinearSolver::solve_real(&cpu_solver, &csr_cpu, &rhs_f64)?;
-                ds_backend.upload_vec_f64(&solve_result, &x_buf);
-                None
+            if assembled_f64
+                .iter()
+                .any(|v| v.is_nan() || v.is_infinite())
+            {
+                return Err(OhmnivoreError::NewtonNumericalError { iteration: iter });
             }
-            NewtonLinearMode::GpuBicgstab => {
-                let assembled_g_ds = ds_backend.upload_matrix_f64(
-                    &assembled_f64,
-                    base_g_col_indices,
-                    base_g_row_ptrs,
-                    system_size,
-                );
 
-                let x_solve_ds = ds_backend.new_buffer(system_size);
+            if let Some(ref mut s) = stats {
+                s.matrix_dl_ul += t.elapsed();
+            }
 
-                // Compute preconditioner from assembled matrix (f64 precision)
-                let mut has_zero_diag = false;
-                let mut inv_diag_f64 = vec![0.0f64; system_size];
-                for row in 0..system_size {
-                    let start = base_g_row_ptrs[row] as usize;
-                    let end = base_g_row_ptrs[row + 1] as usize;
-                    let mut found = false;
-                    for idx in start..end {
-                        if base_g_col_indices[idx] as usize == row {
-                            let val = assembled_f64[idx];
-                            if val.abs() > 1e-30 {
-                                inv_diag_f64[row] = 1.0 / val;
-                            } else {
-                                has_zero_diag = true;
+            let col_indices_usize: Vec<usize> =
+                base_g_col_indices.iter().map(|&c| c as usize).collect();
+            let row_ptrs_usize: Vec<usize> =
+                base_g_row_ptrs.iter().map(|&r| r as usize).collect();
+            let csr_cpu = crate::sparse::CsrMatrix {
+                nrows: system_size,
+                ncols: system_size,
+                values: assembled_f64.clone(),
+                col_indices: col_indices_usize,
+                row_pointers: row_ptrs_usize,
+            };
+
+            match params.linear_mode {
+                NewtonLinearMode::CpuSparseLu => {
+                    let mut rhs_f64 = vec![0.0f64; system_size];
+                    ds_backend.download_vec_f64(&out_b_buf, &mut rhs_f64);
+
+                    let solve_result =
+                        match crate::solver::sparse_direct::solve_real_sparse_lu(
+                            &csr_cpu, &rhs_f64,
+                        ) {
+                            Ok(x) => {
+                                let has_unsafe_scale = x
+                                    .iter()
+                                    .any(|v| !v.is_finite() || v.abs() > f32::MAX as f64);
+                                if has_unsafe_scale {
+                                    Err(crate::error::OhmnivoreError::Solve(
+                                        "sparse LU produced out-of-range solution".into(),
+                                    ))
+                                } else {
+                                    Ok(x)
+                                }
                             }
-                            found = true;
-                            break;
+                            Err(e) => Err(e),
+                        }
+                        .or_else(|sparse_err| {
+                            tracing::debug!(
+                                ?sparse_err,
+                                "CPU sparse-LU failed, retrying dense CPU direct solve"
+                            );
+                            let cpu_solver = crate::solver::cpu::CpuSolver::new();
+                            crate::solver::LinearSolver::solve_real(
+                                &cpu_solver, &csr_cpu, &rhs_f64,
+                            )
+                        })?;
+
+                    ds_backend.upload_vec_f64(&solve_result, &x_buf);
+                    None
+                }
+                NewtonLinearMode::CpuDirect => {
+                    let mut rhs_f64 = vec![0.0f64; system_size];
+                    ds_backend.download_vec_f64(&out_b_buf, &mut rhs_f64);
+
+                    let cpu_solver = crate::solver::cpu::CpuSolver::new();
+                    let solve_result = crate::solver::LinearSolver::solve_real(
+                        &cpu_solver, &csr_cpu, &rhs_f64,
+                    )?;
+                    ds_backend.upload_vec_f64(&solve_result, &x_buf);
+                    None
+                }
+                NewtonLinearMode::GpuBicgstab => {
+                    // Large system: use per-iteration BiCGSTAB
+                    let assembled_g_ds = ds_backend.upload_matrix_f64(
+                        &assembled_f64,
+                        base_g_col_indices,
+                        base_g_row_ptrs,
+                        system_size,
+                    );
+
+                    let x_solve_ds = ds_backend.new_buffer(system_size);
+
+                    let mut has_zero_diag = false;
+                    let mut inv_diag_f64 = vec![0.0f64; system_size];
+                    for row in 0..system_size {
+                        let start = base_g_row_ptrs[row] as usize;
+                        let end = base_g_row_ptrs[row + 1] as usize;
+                        let mut found = false;
+                        for idx in start..end {
+                            if base_g_col_indices[idx] as usize == row {
+                                let val = assembled_f64[idx];
+                                if val.abs() > 1e-30 {
+                                    inv_diag_f64[row] = 1.0 / val;
+                                } else {
+                                    has_zero_diag = true;
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if !found {
+                            has_zero_diag = true;
                         }
                     }
-                    if !found {
-                        has_zero_diag = true;
-                    }
+
+                    let linear_params = bicgstab::BiCgStabParams {
+                        max_iterations: params.bicgstab_max_iterations,
+                        tolerance: bicgstab::DEFAULT_TOLERANCE,
+                    };
+
+                    let iters = if has_zero_diag {
+                        let isai = preconditioner::compute_isai(&csr_cpu, 1);
+
+                        let ml_cols: Vec<u32> =
+                            isai.m_l.col_indices.iter().map(|&c| c as u32).collect();
+                        let ml_rows: Vec<u32> =
+                            isai.m_l.row_pointers.iter().map(|&r| r as u32).collect();
+                        let ml_gpu = ds_backend.upload_matrix_f64(
+                            &isai.m_l.values,
+                            &ml_cols,
+                            &ml_rows,
+                            system_size,
+                        );
+
+                        let mu_cols: Vec<u32> =
+                            isai.m_u.col_indices.iter().map(|&c| c as u32).collect();
+                        let mu_rows: Vec<u32> =
+                            isai.m_u.row_pointers.iter().map(|&r| r as u32).collect();
+                        let mu_gpu = ds_backend.upload_matrix_f64(
+                            &isai.m_u.values,
+                            &mu_cols,
+                            &mu_rows,
+                            system_size,
+                        );
+
+                        let tmp = ds_backend.new_buffer(system_size);
+
+                        bicgstab::bicgstab_with_params(
+                            ds_backend,
+                            &assembled_g_ds,
+                            &out_b_buf,
+                            &x_solve_ds,
+                            |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
+                                b.spmv(&ml_gpu, inp, &tmp);
+                                b.spmv(&mu_gpu, &tmp, out);
+                            },
+                            system_size,
+                            linear_params,
+                        )?
+                    } else {
+                        let inv_diag_buf =
+                            ds_backend.upload_storage_buffer_f64(&inv_diag_f64);
+
+                        bicgstab::bicgstab_with_params(
+                            ds_backend,
+                            &assembled_g_ds,
+                            &out_b_buf,
+                            &x_solve_ds,
+                            |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
+                                b.jacobi_apply(&inv_diag_buf, inp, out);
+                            },
+                            system_size,
+                            linear_params,
+                        )?
+                    };
+
+                    ds_backend.copy(&x_solve_ds, &x_buf);
+                    Some(iters)
                 }
-
-                let linear_params = bicgstab::BiCgStabParams {
-                    max_iterations: params.bicgstab_max_iterations,
-                    tolerance: bicgstab::DEFAULT_TOLERANCE,
-                };
-
-                let iters = if has_zero_diag {
-                    let isai = preconditioner::compute_isai(&csr_cpu, 1);
-
-                    let ml_cols: Vec<u32> =
-                        isai.m_l.col_indices.iter().map(|&c| c as u32).collect();
-                    let ml_rows: Vec<u32> =
-                        isai.m_l.row_pointers.iter().map(|&r| r as u32).collect();
-                    let ml_gpu = ds_backend.upload_matrix_f64(
-                        &isai.m_l.values,
-                        &ml_cols,
-                        &ml_rows,
-                        system_size,
-                    );
-
-                    let mu_cols: Vec<u32> =
-                        isai.m_u.col_indices.iter().map(|&c| c as u32).collect();
-                    let mu_rows: Vec<u32> =
-                        isai.m_u.row_pointers.iter().map(|&r| r as u32).collect();
-                    let mu_gpu = ds_backend.upload_matrix_f64(
-                        &isai.m_u.values,
-                        &mu_cols,
-                        &mu_rows,
-                        system_size,
-                    );
-
-                    let tmp = ds_backend.new_buffer(system_size);
-
-                    bicgstab::bicgstab_with_params(
-                        ds_backend,
-                        &assembled_g_ds,
-                        &out_b_buf,
-                        &x_solve_ds,
-                        |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
-                            b.spmv(&ml_gpu, inp, &tmp);
-                            b.spmv(&mu_gpu, &tmp, out);
-                        },
-                        system_size,
-                        linear_params,
-                    )?
-                } else {
-                    let inv_diag_buf = ds_backend.upload_storage_buffer_f64(&inv_diag_f64);
-
-                    bicgstab::bicgstab_with_params(
-                        ds_backend,
-                        &assembled_g_ds,
-                        &out_b_buf,
-                        &x_solve_ds,
-                        |b: &WgpuDsBackend, inp: &WgpuBuffer, out: &WgpuBuffer| {
-                            b.jacobi_apply(&inv_diag_buf, inp, out);
-                        },
-                        system_size,
-                        linear_params,
-                    )?
-                };
-
-                // Copy solution on GPU (no CPU round-trip)
-                ds_backend.copy(&x_solve_ds, &x_buf);
-                Some(iters)
             }
         };
 

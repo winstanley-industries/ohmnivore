@@ -53,6 +53,26 @@ struct DsPipelines {
     scale: wgpu::ComputePipeline,
     copy: wgpu::ComputePipeline,
     jacobi: wgpu::ComputePipeline,
+    bicgstab_fused: wgpu::ComputePipeline,
+}
+
+/// Uniform parameters for the fused BiCGSTAB kernel.
+#[repr(C)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct BicgstabFusedParams {
+    pub n: u32,
+    pub max_iters: u32,
+    pub tol_hi: f32,
+    pub tol_lo: f32,
+}
+
+/// Result from the fused BiCGSTAB kernel.
+#[derive(Debug)]
+pub enum BicgstabFusedResult {
+    Converged { iterations: u32 },
+    NotConverged { iterations: u32 },
+    Breakdown { iterations: u32 },
+    NaN { iterations: u32 },
 }
 
 /// Double-single precision wgpu backend.
@@ -92,7 +112,12 @@ impl WgpuDsBackend {
             .request_device(&wgpu::DeviceDescriptor {
                 label: Some("ohmnivore_ds_gpu"),
                 required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::default(),
+                required_limits: wgpu::Limits {
+                    // Fused BiCGSTAB kernel uses 9 storage buffers (DS pairs +
+                    // CSR indices + result). Default limit is 8.
+                    max_storage_buffers_per_shader_stage: 10,
+                    ..wgpu::Limits::default()
+                },
                 ..Default::default()
             })
             .await
@@ -114,6 +139,14 @@ impl WgpuDsBackend {
             })
         };
 
+        // Fused BiCGSTAB uses a separate shader module (different bindings).
+        let fused_shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("ohmnivore_bicgstab_fused"),
+            source: wgpu::ShaderSource::Wgsl(
+                ds_shaders::DS_BICGSTAB_FUSED_SOURCE.as_str().into(),
+            ),
+        });
+
         let pipes = DsPipelines {
             spmv: make_pipeline("spmv_ds"),
             dot: make_pipeline("dot_ds"),
@@ -121,6 +154,16 @@ impl WgpuDsBackend {
             scale: make_pipeline("scale_ds"),
             copy: make_pipeline("copy_ds"),
             jacobi: make_pipeline("jacobi_ds"),
+            bicgstab_fused: device.create_compute_pipeline(
+                &wgpu::ComputePipelineDescriptor {
+                    label: Some("bicgstab_fused"),
+                    layout: None,
+                    module: &fused_shader_module,
+                    entry_point: Some("bicgstab_fused"),
+                    compilation_options: Default::default(),
+                    cache: None,
+                },
+            ),
         };
 
         Ok(Self {
@@ -329,6 +372,153 @@ impl WgpuDsBackend {
         self.dispatch_count.set(self.dispatch_count.get() + 1);
         self.queue.submit(Some(encoder.finish()));
     }
+    /// Upload a raw u32 slice to a GPU storage buffer.
+    pub fn upload_buffer_u32(&self, data: &[u32]) -> wgpu::Buffer {
+        self.device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("u32_storage"),
+                contents: bytemuck::cast_slice(data),
+                usage: wgpu::BufferUsages::STORAGE,
+            })
+    }
+
+    /// Run the fused BiCGSTAB kernel for small systems (N ≤ 64).
+    ///
+    /// Solves A*x = b entirely in a single GPU dispatch. The Jacobi
+    /// preconditioner is computed internally from the matrix diagonal.
+    /// Returns the result status; the solution is written to `x_buf`.
+    pub fn bicgstab_fused_solve(
+        &self,
+        a_values_buf: &WgpuBuffer,
+        col_indices_buf: &wgpu::Buffer,
+        row_ptrs_buf: &wgpu::Buffer,
+        b_buf: &WgpuBuffer,
+        x_buf: &WgpuBuffer,
+        params: &BicgstabFusedParams,
+    ) -> BicgstabFusedResult {
+        let params_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("bicgstab_fused_params"),
+                contents: bytemuck::bytes_of(params),
+                usage: wgpu::BufferUsages::UNIFORM,
+            });
+
+        // Result buffer: [converged_status, iteration_count]
+        let result_buf = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("bicgstab_fused_result"),
+                contents: bytemuck::cast_slice(&[0u32, 0u32]),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            });
+
+        let bg = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bicgstab_fused_bg"),
+            layout: &self.pipes.bicgstab_fused.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: a_values_buf.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: a_values_buf.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: col_indices_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: row_ptrs_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: b_buf.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: b_buf.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: x_buf.buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 7,
+                    resource: x_buf.buffer_lo.as_ref().unwrap().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 8,
+                    resource: params_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 9,
+                    resource: result_buf.as_entire_binding(),
+                },
+            ],
+        });
+
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            let mut pass = encoder.begin_compute_pass(&Default::default());
+            pass.set_pipeline(&self.pipes.bicgstab_fused);
+            pass.set_bind_group(0, Some(&bg), &[]);
+            pass.dispatch_workgroups(1, 1, 1);
+        }
+        self.dispatch_count.set(self.dispatch_count.get() + 1);
+        self.queue.submit(Some(encoder.finish()));
+
+        // Read back the 2-element u32 result buffer.
+        let result_data = read_buffer_u32(&self.device, &self.queue, &result_buf, 2);
+        self.readback_count.set(self.readback_count.get() + 1);
+        let status = result_data[0];
+        let iters = result_data[1];
+
+        match status {
+            1 => BicgstabFusedResult::Converged { iterations: iters },
+            2 => BicgstabFusedResult::Breakdown { iterations: iters },
+            3 => BicgstabFusedResult::NaN { iterations: iters },
+            _ => BicgstabFusedResult::NotConverged { iterations: iters },
+        }
+    }
+}
+
+/// Read a GPU buffer back to CPU as u32 values.
+fn read_buffer_u32(
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    src: &wgpu::Buffer,
+    count: usize,
+) -> Vec<u32> {
+    let size = (count * std::mem::size_of::<u32>()) as u64;
+    let staging = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("u32_read_staging"),
+        size,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = device.create_command_encoder(&Default::default());
+    encoder.copy_buffer_to_buffer(src, 0, &staging, 0, size);
+    queue.submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    let (sender, receiver) = std::sync::mpsc::channel();
+    slice.map_async(wgpu::MapMode::Read, move |r| {
+        sender.send(r).unwrap();
+    });
+    let _ = device.poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
+    receiver.recv().unwrap().unwrap();
+
+    let data = slice.get_mapped_range();
+    let result: Vec<u32> = bytemuck::cast_slice(&data).to_vec();
+    drop(data);
+    staging.unmap();
+    result
 }
 
 /// Read a GPU buffer back to CPU as f32 values.

@@ -309,6 +309,429 @@ pub fn ds_shader(body: &str) -> String {
     format!("{}\n{}", DS_PRIMITIVES, body)
 }
 
+/// Fused BiCGSTAB shader: runs the entire iterative solve in a single
+/// workgroup (N ≤ 64). Eliminates all CPU-GPU synchronization overhead
+/// by performing dot product reductions in shared memory instead of
+/// readbacks.
+const DS_BICGSTAB_FUSED_BODY: &str = r#"
+struct BicgstabParams {
+    n: u32,
+    max_iters: u32,
+    tol_hi: f32,
+    tol_lo: f32,
+}
+
+@group(0) @binding(0) var<storage, read> a_val_hi: array<f32>;
+@group(0) @binding(1) var<storage, read> a_val_lo: array<f32>;
+@group(0) @binding(2) var<storage, read> a_col: array<u32>;
+@group(0) @binding(3) var<storage, read> a_row: array<u32>;
+@group(0) @binding(4) var<storage, read> rhs_hi: array<f32>;
+@group(0) @binding(5) var<storage, read> rhs_lo: array<f32>;
+@group(0) @binding(6) var<storage, read_write> sol_hi: array<f32>;
+@group(0) @binding(7) var<storage, read_write> sol_lo: array<f32>;
+@group(0) @binding(8) var<uniform> bp: BicgstabParams;
+@group(0) @binding(9) var<storage, read_write> bresult: array<u32>;
+
+// Shared memory for SpMV vector exchange and dot product reduction.
+var<workgroup> sh_hi: array<f32, 64>;
+var<workgroup> sh_lo: array<f32, 64>;
+
+@compute @workgroup_size(64)
+fn bicgstab_fused(@builtin(local_invocation_id) lid: vec3<u32>) {
+    let tid = lid.x;
+    let n = bp.n;
+
+    // Compute Jacobi inverse diagonal from matrix diagonal.
+    var inv_d_hi: f32 = 0.0;
+    var inv_d_lo: f32 = 0.0;
+    if tid < n {
+        let rs = a_row[tid];
+        let re = a_row[tid + 1u];
+        for (var idx = rs; idx < re; idx++) {
+            if a_col[idx] == tid {
+                let dh = a_val_hi[idx];
+                let dl = a_val_lo[idx];
+                if abs(dh) > 1e-30 {
+                    let inv = ds_div(1.0, 0.0, dh, dl);
+                    inv_d_hi = inv.x;
+                    inv_d_lo = inv.y;
+                }
+                break;
+            }
+        }
+    }
+
+    // Initialize: x = 0, r = b, r_hat = b, p = 0, v = 0.
+    var my_x_hi: f32 = 0.0;
+    var my_x_lo: f32 = 0.0;
+    var my_r_hi: f32 = 0.0;
+    var my_r_lo: f32 = 0.0;
+    var my_rh_hi: f32 = 0.0;
+    var my_rh_lo: f32 = 0.0;
+    var my_p_hi: f32 = 0.0;
+    var my_p_lo: f32 = 0.0;
+    var my_v_hi: f32 = 0.0;
+    var my_v_lo: f32 = 0.0;
+
+    if tid < n {
+        my_r_hi = rhs_hi[tid];
+        my_r_lo = rhs_lo[tid];
+        my_rh_hi = my_r_hi;
+        my_rh_lo = my_r_lo;
+    }
+
+    // ||b||^2 for relative tolerance.
+    var prod: vec2<f32>;
+    if tid < n {
+        prod = ds_mul(my_r_hi, my_r_lo, my_r_hi, my_r_lo);
+    } else {
+        prod = vec2(0.0, 0.0);
+    }
+    sh_hi[tid] = prod.x;
+    sh_lo[tid] = prod.y;
+    workgroupBarrier();
+    var stride = 32u;
+    while stride > 0u {
+        if tid < stride {
+            let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+            sh_hi[tid] = s.x;
+            sh_lo[tid] = s.y;
+        }
+        workgroupBarrier();
+        stride /= 2u;
+    }
+    let bnorm_hi = sh_hi[0];
+    let bnorm_lo = sh_lo[0];
+    workgroupBarrier();
+
+    if bnorm_hi == 0.0 && bnorm_lo == 0.0 {
+        if tid < n { sol_hi[tid] = 0.0; sol_lo[tid] = 0.0; }
+        if tid == 0u { bresult[0] = 1u; bresult[1] = 0u; }
+        return;
+    }
+
+    let tol_sq = ds_mul(bp.tol_hi, bp.tol_lo, bp.tol_hi, bp.tol_lo);
+    let thresh = ds_mul(tol_sq.x, tol_sq.y, bnorm_hi, bnorm_lo);
+
+    var rho_hi: f32 = 1.0;
+    var rho_lo: f32 = 0.0;
+    var alpha_hi: f32 = 1.0;
+    var alpha_lo: f32 = 0.0;
+    var omega_hi: f32 = 1.0;
+    var omega_lo: f32 = 0.0;
+
+    for (var iter = 0u; iter < bp.max_iters; iter++) {
+        // rho_new = dot(r_hat, r)
+        if tid < n {
+            prod = ds_mul(my_rh_hi, my_rh_lo, my_r_hi, my_r_lo);
+        } else {
+            prod = vec2(0.0, 0.0);
+        }
+        sh_hi[tid] = prod.x;
+        sh_lo[tid] = prod.y;
+        workgroupBarrier();
+        stride = 32u;
+        while stride > 0u {
+            if tid < stride {
+                let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+                sh_hi[tid] = s.x;
+                sh_lo[tid] = s.y;
+            }
+            workgroupBarrier();
+            stride /= 2u;
+        }
+        let rn_hi = sh_hi[0];
+        let rn_lo = sh_lo[0];
+        workgroupBarrier();
+
+        if abs(rn_hi) < 1e-30 && abs(rn_lo) < 1e-30 {
+            if tid < n { sol_hi[tid] = my_x_hi; sol_lo[tid] = my_x_lo; }
+            if tid == 0u { bresult[0] = 2u; bresult[1] = iter; }
+            return;
+        }
+
+        // beta = (rho_new / rho) * (alpha / omega)
+        let bp1 = ds_div(rn_hi, rn_lo, rho_hi, rho_lo);
+        let bp2 = ds_div(alpha_hi, alpha_lo, omega_hi, omega_lo);
+        let beta = ds_mul(bp1.x, bp1.y, bp2.x, bp2.y);
+        rho_hi = rn_hi;
+        rho_lo = rn_lo;
+
+        // p = r + beta * (p - omega * v)
+        if tid < n {
+            let ov = ds_mul(omega_hi, omega_lo, my_v_hi, my_v_lo);
+            let pov = ds_sub(my_p_hi, my_p_lo, ov.x, ov.y);
+            let bp3 = ds_mul(beta.x, beta.y, pov.x, pov.y);
+            let np = ds_add(my_r_hi, my_r_lo, bp3.x, bp3.y);
+            my_p_hi = np.x;
+            my_p_lo = np.y;
+        }
+
+        // p_hat = M^{-1} * p (Jacobi)
+        var ph_hi: f32 = 0.0;
+        var ph_lo: f32 = 0.0;
+        if tid < n {
+            let ph = ds_mul(inv_d_hi, inv_d_lo, my_p_hi, my_p_lo);
+            ph_hi = ph.x;
+            ph_lo = ph.y;
+        }
+
+        // v = A * p_hat (SpMV via shared memory)
+        sh_hi[tid] = ph_hi;
+        sh_lo[tid] = ph_lo;
+        workgroupBarrier();
+        my_v_hi = 0.0;
+        my_v_lo = 0.0;
+        if tid < n {
+            let rs = a_row[tid];
+            let re = a_row[tid + 1u];
+            for (var idx = rs; idx < re; idx++) {
+                let c = a_col[idx];
+                let mp = ds_mul(a_val_hi[idx], a_val_lo[idx], sh_hi[c], sh_lo[c]);
+                let sa = ds_add(my_v_hi, my_v_lo, mp.x, mp.y);
+                my_v_hi = sa.x;
+                my_v_lo = sa.y;
+            }
+        }
+        workgroupBarrier();
+
+        // alpha = rho / dot(r_hat, v)
+        if tid < n {
+            prod = ds_mul(my_rh_hi, my_rh_lo, my_v_hi, my_v_lo);
+        } else {
+            prod = vec2(0.0, 0.0);
+        }
+        sh_hi[tid] = prod.x;
+        sh_lo[tid] = prod.y;
+        workgroupBarrier();
+        stride = 32u;
+        while stride > 0u {
+            if tid < stride {
+                let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+                sh_hi[tid] = s.x;
+                sh_lo[tid] = s.y;
+            }
+            workgroupBarrier();
+            stride /= 2u;
+        }
+        let rhv_hi = sh_hi[0];
+        let rhv_lo = sh_lo[0];
+        workgroupBarrier();
+
+        if abs(rhv_hi) < 1e-30 && abs(rhv_lo) < 1e-30 {
+            if tid < n { sol_hi[tid] = my_x_hi; sol_lo[tid] = my_x_lo; }
+            if tid == 0u { bresult[0] = 2u; bresult[1] = iter; }
+            return;
+        }
+
+        let na = ds_div(rho_hi, rho_lo, rhv_hi, rhv_lo);
+        alpha_hi = na.x;
+        alpha_lo = na.y;
+
+        // s = r - alpha * v
+        var my_s_hi: f32 = 0.0;
+        var my_s_lo: f32 = 0.0;
+        if tid < n {
+            let av = ds_mul(alpha_hi, alpha_lo, my_v_hi, my_v_lo);
+            let ns = ds_sub(my_r_hi, my_r_lo, av.x, av.y);
+            my_s_hi = ns.x;
+            my_s_lo = ns.y;
+        }
+
+        // Early convergence: ||s||^2
+        if tid < n {
+            prod = ds_mul(my_s_hi, my_s_lo, my_s_hi, my_s_lo);
+        } else {
+            prod = vec2(0.0, 0.0);
+        }
+        sh_hi[tid] = prod.x;
+        sh_lo[tid] = prod.y;
+        workgroupBarrier();
+        stride = 32u;
+        while stride > 0u {
+            if tid < stride {
+                let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+                sh_hi[tid] = s.x;
+                sh_lo[tid] = s.y;
+            }
+            workgroupBarrier();
+            stride /= 2u;
+        }
+        let sn_hi = sh_hi[0];
+        let sn_lo = sh_lo[0];
+        workgroupBarrier();
+
+        if ds_lt(sn_hi, sn_lo, thresh.x, thresh.y) {
+            if tid < n {
+                let ap = ds_mul(alpha_hi, alpha_lo, ph_hi, ph_lo);
+                let nx = ds_add(my_x_hi, my_x_lo, ap.x, ap.y);
+                sol_hi[tid] = nx.x;
+                sol_lo[tid] = nx.y;
+            }
+            if tid == 0u { bresult[0] = 1u; bresult[1] = iter + 1u; }
+            return;
+        }
+
+        // s_hat = M^{-1} * s (Jacobi)
+        var sh2_hi: f32 = 0.0;
+        var sh2_lo: f32 = 0.0;
+        if tid < n {
+            let sh2 = ds_mul(inv_d_hi, inv_d_lo, my_s_hi, my_s_lo);
+            sh2_hi = sh2.x;
+            sh2_lo = sh2.y;
+        }
+
+        // t = A * s_hat (SpMV)
+        sh_hi[tid] = sh2_hi;
+        sh_lo[tid] = sh2_lo;
+        workgroupBarrier();
+        var my_t_hi: f32 = 0.0;
+        var my_t_lo: f32 = 0.0;
+        if tid < n {
+            let rs = a_row[tid];
+            let re = a_row[tid + 1u];
+            for (var idx = rs; idx < re; idx++) {
+                let c = a_col[idx];
+                let mp = ds_mul(a_val_hi[idx], a_val_lo[idx], sh_hi[c], sh_lo[c]);
+                let sa = ds_add(my_t_hi, my_t_lo, mp.x, mp.y);
+                my_t_hi = sa.x;
+                my_t_lo = sa.y;
+            }
+        }
+        workgroupBarrier();
+
+        // omega = dot(t, s) / dot(t, t)
+        if tid < n {
+            prod = ds_mul(my_t_hi, my_t_lo, my_s_hi, my_s_lo);
+        } else {
+            prod = vec2(0.0, 0.0);
+        }
+        sh_hi[tid] = prod.x;
+        sh_lo[tid] = prod.y;
+        workgroupBarrier();
+        stride = 32u;
+        while stride > 0u {
+            if tid < stride {
+                let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+                sh_hi[tid] = s.x;
+                sh_lo[tid] = s.y;
+            }
+            workgroupBarrier();
+            stride /= 2u;
+        }
+        let ts_hi = sh_hi[0];
+        let ts_lo = sh_lo[0];
+        workgroupBarrier();
+
+        if tid < n {
+            prod = ds_mul(my_t_hi, my_t_lo, my_t_hi, my_t_lo);
+        } else {
+            prod = vec2(0.0, 0.0);
+        }
+        sh_hi[tid] = prod.x;
+        sh_lo[tid] = prod.y;
+        workgroupBarrier();
+        stride = 32u;
+        while stride > 0u {
+            if tid < stride {
+                let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+                sh_hi[tid] = s.x;
+                sh_lo[tid] = s.y;
+            }
+            workgroupBarrier();
+            stride /= 2u;
+        }
+        let tt_hi = sh_hi[0];
+        let tt_lo = sh_lo[0];
+        workgroupBarrier();
+
+        if abs(tt_hi) < 1e-30 && abs(tt_lo) < 1e-30 {
+            // t ≈ 0: accept x + alpha*p_hat
+            if tid < n {
+                let ap = ds_mul(alpha_hi, alpha_lo, ph_hi, ph_lo);
+                let nx = ds_add(my_x_hi, my_x_lo, ap.x, ap.y);
+                sol_hi[tid] = nx.x;
+                sol_lo[tid] = nx.y;
+            }
+            if tid == 0u { bresult[0] = 1u; bresult[1] = iter + 1u; }
+            return;
+        }
+
+        let nw = ds_div(ts_hi, ts_lo, tt_hi, tt_lo);
+        omega_hi = nw.x;
+        omega_lo = nw.y;
+
+        // x = x + alpha * p_hat + omega * s_hat
+        if tid < n {
+            let ap = ds_mul(alpha_hi, alpha_lo, ph_hi, ph_lo);
+            let os = ds_mul(omega_hi, omega_lo, sh2_hi, sh2_lo);
+            let nx1 = ds_add(my_x_hi, my_x_lo, ap.x, ap.y);
+            let nx2 = ds_add(nx1.x, nx1.y, os.x, os.y);
+            my_x_hi = nx2.x;
+            my_x_lo = nx2.y;
+        }
+
+        // r = s - omega * t
+        if tid < n {
+            let ot = ds_mul(omega_hi, omega_lo, my_t_hi, my_t_lo);
+            let nr = ds_sub(my_s_hi, my_s_lo, ot.x, ot.y);
+            my_r_hi = nr.x;
+            my_r_lo = nr.y;
+        }
+
+        // Convergence: ||r||^2
+        if tid < n {
+            prod = ds_mul(my_r_hi, my_r_lo, my_r_hi, my_r_lo);
+        } else {
+            prod = vec2(0.0, 0.0);
+        }
+        sh_hi[tid] = prod.x;
+        sh_lo[tid] = prod.y;
+        workgroupBarrier();
+        stride = 32u;
+        while stride > 0u {
+            if tid < stride {
+                let s = ds_add(sh_hi[tid], sh_lo[tid], sh_hi[tid + stride], sh_lo[tid + stride]);
+                sh_hi[tid] = s.x;
+                sh_lo[tid] = s.y;
+            }
+            workgroupBarrier();
+            stride /= 2u;
+        }
+        let rn2_hi = sh_hi[0];
+        let rn2_lo = sh_lo[0];
+        workgroupBarrier();
+
+        // NaN check
+        if rn2_hi != rn2_hi {
+            if tid < n { sol_hi[tid] = my_x_hi; sol_lo[tid] = my_x_lo; }
+            if tid == 0u { bresult[0] = 3u; bresult[1] = iter; }
+            return;
+        }
+
+        if ds_lt(rn2_hi, rn2_lo, thresh.x, thresh.y) {
+            if tid < n { sol_hi[tid] = my_x_hi; sol_lo[tid] = my_x_lo; }
+            if tid == 0u { bresult[0] = 1u; bresult[1] = iter + 1u; }
+            return;
+        }
+
+        if abs(omega_hi) < 1e-30 && abs(omega_lo) < 1e-30 {
+            if tid < n { sol_hi[tid] = my_x_hi; sol_lo[tid] = my_x_lo; }
+            if tid == 0u { bresult[0] = 2u; bresult[1] = iter; }
+            return;
+        }
+    }
+
+    // Not converged
+    if tid < n { sol_hi[tid] = my_x_hi; sol_lo[tid] = my_x_lo; }
+    if tid == 0u { bresult[0] = 0u; bresult[1] = bp.max_iters; }
+}
+"#;
+
+/// Full source for the fused BiCGSTAB shader (DS primitives + fused body).
+pub static DS_BICGSTAB_FUSED_SOURCE: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| ds_shader(DS_BICGSTAB_FUSED_BODY));
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -342,6 +765,31 @@ mod tests {
             Err(e) => {
                 panic!(
                     "DS WGSL parse error:\n{}",
+                    e.emit_to_string(source)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ds_bicgstab_fused_parses_successfully() {
+        let source = &*DS_BICGSTAB_FUSED_SOURCE;
+        let result = naga::front::wgsl::parse_str(source);
+        match result {
+            Ok(module) => {
+                let entry_names: Vec<&str> = module
+                    .entry_points
+                    .iter()
+                    .map(|ep| ep.name.as_str())
+                    .collect();
+                assert!(
+                    entry_names.contains(&"bicgstab_fused"),
+                    "missing entry point: bicgstab_fused. Found: {entry_names:?}"
+                );
+            }
+            Err(e) => {
+                panic!(
+                    "Fused BiCGSTAB WGSL parse error:\n{}",
                     e.emit_to_string(source)
                 );
             }
