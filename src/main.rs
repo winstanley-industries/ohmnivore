@@ -8,7 +8,55 @@ use ohmnivore::solver::cpu::CpuSolver;
 use ohmnivore::solver::gpu::GpuSolver;
 use ohmnivore::solver::LinearSolver;
 use std::io;
+use std::sync::OnceLock;
 use std::time::Instant;
+
+/// Defers GPU device + pipeline creation until the solver is actually called.
+/// For nonlinear DC circuits the solver is never invoked, so this avoids
+/// wasting ~30ms on GPU init.
+struct LazyGpuSolver {
+    inner: OnceLock<GpuSolver>,
+}
+
+impl LazyGpuSolver {
+    fn new() -> Self {
+        Self {
+            inner: OnceLock::new(),
+        }
+    }
+}
+
+impl LinearSolver for LazyGpuSolver {
+    fn solve_real(
+        &self,
+        a: &ohmnivore::sparse::CsrMatrix<f64>,
+        b: &[f64],
+    ) -> ohmnivore::error::Result<Vec<f64>> {
+        self.inner
+            .get_or_init(|| {
+                GpuSolver::new().unwrap_or_else(|e| {
+                    eprintln!("GPU solver error: {}", e);
+                    std::process::exit(1);
+                })
+            })
+            .solve_real(a, b)
+    }
+
+    fn solve_complex(
+        &self,
+        a: &ohmnivore::sparse::CsrMatrix<num_complex::Complex64>,
+        b: &[num_complex::Complex64],
+    ) -> ohmnivore::error::Result<Vec<num_complex::Complex64>> {
+        self.inner
+            .get_or_init(|| {
+                GpuSolver::new().unwrap_or_else(|e| {
+                    eprintln!("GPU solver error: {}", e);
+                    std::process::exit(1);
+                })
+            })
+            .solve_complex(a, b)
+    }
+}
 
 /// GPU-accelerated circuit simulation solver
 #[derive(Parser)]
@@ -67,10 +115,7 @@ fn main() {
     let solver: Box<dyn LinearSolver> = if cli.cpu {
         Box::new(CpuSolver::new())
     } else {
-        Box::new(GpuSolver::new().unwrap_or_else(|e| {
-            eprintln!("GPU solver error: {}", e);
-            std::process::exit(1);
-        }))
+        Box::new(LazyGpuSolver::new())
     };
     if let Some(ref mut s) = stats {
         s.add_phase("Solver init", t.elapsed());
