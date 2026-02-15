@@ -84,6 +84,7 @@ pub struct WgpuDsBackend {
     device: wgpu::Device,
     queue: wgpu::Queue,
     pipes: DsPipelines,
+    nl_pipes: DsNonlinearPipelines,
     dispatch_count: Cell<u32>,
     readback_count: Cell<u32>,
 }
@@ -166,10 +167,13 @@ impl WgpuDsBackend {
             ),
         };
 
+        let nl_pipes = DsNonlinearPipelines::new(&device);
+
         Ok(Self {
             device,
             queue,
             pipes,
+            nl_pipes,
             dispatch_count: Cell::new(0),
             readback_count: Cell::new(0),
         })
@@ -1179,10 +1183,6 @@ fn read_buffer_u32_ds(
 }
 
 impl WgpuDsBackend {
-    fn nonlinear_pipelines(&self) -> DsNonlinearPipelines {
-        DsNonlinearPipelines::new(&self.device)
-    }
-
     /// Create a flat storage buffer without hi/lo split (for interleaved DS eval outputs).
     pub fn new_buffer_flat(&self, n: usize) -> WgpuBuffer {
         let zeros = vec![0.0f32; n];
@@ -1276,7 +1276,7 @@ impl NonlinearBackend for WgpuDsBackend {
         output: &WgpuBuffer,
         n_diodes: u32,
     ) {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let params_buf = self
             .device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -1337,7 +1337,7 @@ impl NonlinearBackend for WgpuDsBackend {
         matrix_nnz: u32,
         system_size: u32,
     ) {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         // Pass 1a: copy base matrix values (DS)
@@ -1535,7 +1535,7 @@ impl NonlinearBackend for WgpuDsBackend {
         output: &WgpuBuffer,
         n_bjts: u32,
     ) {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let params_buf = self
             .device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -1589,7 +1589,7 @@ impl NonlinearBackend for WgpuDsBackend {
         output: &WgpuBuffer,
         n_mosfets: u32,
     ) {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let params_buf = self
             .device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -1646,7 +1646,7 @@ impl NonlinearBackend for WgpuDsBackend {
         out_b: &WgpuBuffer,
         n_bjts: u32,
     ) {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         // Matrix stamp
@@ -1757,7 +1757,7 @@ impl NonlinearBackend for WgpuDsBackend {
         out_b: &WgpuBuffer,
         n_mosfets: u32,
     ) {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         // Matrix stamp
@@ -1870,7 +1870,7 @@ impl NonlinearBackend for WgpuDsBackend {
         if n_bjts == 0 {
             return;
         }
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let params_buf = self
             .device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -1931,7 +1931,7 @@ impl NonlinearBackend for WgpuDsBackend {
         if n_mosfets == 0 {
             return;
         }
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
 
         let Ok(n_nodes) = u32::try_from(x_new.n) else {
             return;
@@ -2070,7 +2070,7 @@ impl NonlinearBackend for WgpuDsBackend {
         n_diodes: u32,
         system_size: u32,
     ) -> ConvergenceResult {
-        let pipes = self.nonlinear_pipelines();
+        let pipes = &self.nl_pipes;
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         // Pass 1: voltage limiting (diodes)
