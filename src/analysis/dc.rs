@@ -610,9 +610,12 @@ fn run_source_stepping(
                     tracing::info!("Source stepping converged");
                     return Ok(x);
                 }
-                // Adaptive: try a larger step next
-                let step = prev_step.max(0.1);
-                target_alpha = (target_alpha + step * 2.0).min(1.0);
+                // Adaptive: grow step geometrically from the last successful
+                // step size.  The old `prev_step.max(0.1)` floor forced huge
+                // jumps after small subdivision successes, causing repeated
+                // overshoot + subdivision storms.  Doubling the actual
+                // successful step lets the algorithm smoothly ramp up.
+                target_alpha = (target_alpha + prev_step * 2.0).min(1.0);
             }
             Err(e) => {
                 subdivisions += 1;
