@@ -2,6 +2,10 @@
 
 Ohmnivore runs three analysis types: DC operating point, AC frequency sweep, and transient. A dot command in the netlist requests each analysis.
 
+> **Migration note:** The active C++ Phase 2B path executes only linear RLCVI `.DC`/`.OP` and `.AC`
+> on the dense FP64 CPU correctness solver. The transient, nonlinear, GPU, and CLI-option details
+> below remain legacy Rust reference material.
+
 All results print to stdout as CSV.
 
 ## DC Operating Point
@@ -79,6 +83,16 @@ Sweeps a frequency range and reports magnitude and phase at each node. Sources w
 .AC OCT npoints fstart fstop    * logarithmic, npoints per octave
 .AC LIN npoints fstart fstop    * linear, npoints total
 ```
+
+On the C++ Phase 2B path, all frequencies must be finite and positive with `fstop > fstart`.
+DEC/OCT require a positive points-per-decade/octave value and emit the start, geometric interior
+grid, and exact stop once (`ceil(npoints * log_base(fstop/fstart)) + 1` total rows). LIN requires at
+least two points, emits exactly `npoints` rows, and includes both endpoints. Sweeps are strictly
+increasing and limited to one million generated points.
+If the requested density cannot be represented without duplicate FP64 frequencies, the C++ path
+returns a typed error instead of silently reducing the point count. CSV text fields containing
+commas, quotes, or line breaks use standard doubled-quote escaping; ordinary identifiers retain
+the legacy unquoted schema.
 
 **Example -- RC low-pass filter:**
 

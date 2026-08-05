@@ -34,7 +34,8 @@ TEST(Phase1ParserTest, PreservesComponentsAndEngineeringValues) {
       std::get_if<VoltageSource>(&parsed.value().components[0]);
   ASSERT_NE(source, nullptr);
   EXPECT_EQ(source->name, "V1");
-  EXPECT_DOUBLE_EQ(source->dc_volts, 10.0);
+  ASSERT_TRUE(source->dc_volts.has_value());
+  EXPECT_DOUBLE_EQ(*source->dc_volts, 10.0);
 
   const auto *resistor = std::get_if<Resistor>(&parsed.value().components[1]);
   ASSERT_NE(resistor, nullptr);

@@ -8,10 +8,10 @@
 
 namespace ohmnivore {
 
-// Phase 2A recognizes RLC elements, independent voltage/current sources with
-// DC values, .DC/.OP, .PRINT as a compatibility no-op, and .END. AC,
-// transient, nonlinear, and other SPICE forms are rejected explicitly rather
-// than weakened.
+// Phase 2B recognizes RLC elements, independent voltage/current sources with
+// DC and/or small-signal AC specifications, .DC/.OP, .AC, .PRINT as a
+// compatibility no-op, and .END. Transient, nonlinear, and other SPICE forms
+// are rejected explicitly rather than weakened.
 [[nodiscard]] Result<Circuit> ParseNetlist(std::string_view input);
 
 } // namespace ohmnivore

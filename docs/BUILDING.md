@@ -22,10 +22,19 @@ bazel test //...
 bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 
-The current C++ execution surface is `.DC`/`.OP` operating-point analysis for resistors,
-capacitors, inductors, and independent voltage/current sources with DC values. Capacitors are open
-and inductors are ideal shorts in the operating-point solve. Their dynamic stamps are retained in
-the compiled `C` matrix, but AC and transient execution remain unsupported.
+The current C++ execution surface is `.DC`/`.OP` operating-point analysis and deterministic linear
+`.AC DEC|OCT|LIN` analysis for resistors, capacitors, inductors, and independent voltage/current
+sources. Sources accept a bare DC value, `DC value`, `AC magnitude [phase_degrees]`, or a DC form
+followed by an AC form. Capacitors are open and inductors are ideal shorts at DC; AC solves
+`(G + j * 2*pi*f*C)x = b_ac` through the temporary dense complex FP64 CPU correctness path.
+
+AC point counts and frequencies are validated before execution. LIN requires at least two total
+points and includes the requested endpoints. DEC/OCT require a positive points-per-interval value,
+emit their geometric grid from the exact start, and include the exact stop once. Every sweep must
+have finite positive frequencies with `stop > start`, and generated sweeps are limited to one
+million points. A requested grid that cannot be represented as strictly increasing FP64 values is
+rejected instead of silently dropping points. Transient analysis and waveform sources remain typed
+unsupported errors.
 
 Use `bazel lint --fix` to apply supported formatting fixes. Individual language checks are
 available with `--only cpp`, `--only python`, `--only shell`, and `--only starlark`.

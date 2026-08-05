@@ -138,10 +138,36 @@ production sparse-direct dependency, add nonlinear devices, add CUDA circuit ker
 dispatch, introduce mixed precision, or add distributed solving. The Rust implementation remains
 unchanged as a behavioral reference.
 
+## Phase 2B: Deterministic linear AC CPU correctness path
+
+Phase 2B extends only the linear FP64 CPU semantic layer. It adds:
+
+- optional DC and typed AC magnitude/phase specifications for independent voltage and current
+  sources, including bare DC, `DC value`, AC-only, and combined DC/AC forms;
+- strict full-token source parsing, rejection of sources without either specification, and typed
+  unsupported errors for recognized transient waveforms;
+- validated `.AC DEC|OCT|LIN points start stop` analysis IR with positive frequencies,
+  `stop > start`, positive logarithmic density, at least two LIN points, and a one-million-point
+  generated-sweep limit;
+- deterministic inclusive frequency generation: LIN has exactly the declared total count, and
+  DEC/OCT have `ceil(points * log_base(stop/start)) + 1` points with the exact stop included once;
+  grids that would collapse distinct requested points in FP64 are rejected;
+- a deterministic complex AC right-hand side and canonical `A(omega) = G + j * omega * C`
+  formation that merges independent canonical G/C CSR patterns;
+- a temporary dense `std::complex<double>` partial-pivoting CPU correctness solve;
+- CPU AC orchestration plus legacy-compatible magnitude/phase CSV ordering; and
+- focused parser, exact matrix/RHS, frequency, malformed-solver, analytic RC/RL/RLC, CSV, and DC
+  preservation tests.
+
+Phase 2B does not add transient execution or waveform sources, nonlinear devices, a production
+sparse-direct dependency, CUDA circuit kernels or solver dispatch, mixed precision, or distributed
+solving. Analytic FP64 solutions provide acceptance for this slice. A separately checksum-pinned
+hermetic ngspice harness remains required before any ngspice differential-acceptance claim.
+
 ## Follow-up phases
 
-1. Complete and differentially accept the remaining linear CPU path: AC/transient excitation and
-   execution, associated orchestration/CSV behavior, and the ngspice comparison harness.
+1. Complete and differentially accept the remaining linear CPU path: transient excitation and
+   execution plus the checksum-pinned hermetic ngspice comparison harness.
 2. Select the hermetic sparse-direct FP64 CPU oracle using circuit-representative correctness and
    performance evidence.
 3. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear

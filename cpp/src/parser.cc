@@ -3,6 +3,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstddef>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -42,6 +43,19 @@ namespace {
 }
 
 [[nodiscard]] Result<double> ParseEngineeringValue(std::string_view token) {
+  const std::string original(token);
+  if (!token.empty() && token.front() == '+') {
+    if (token.size() == 1 || token[1] == '+' || token[1] == '-') {
+      return Result<double>::Fail(
+          ErrorCode::kParse, "invalid engineering value '" + original + "'");
+    }
+    token.remove_prefix(1);
+  }
+  if (token.empty()) {
+    return Result<double>::Fail(ErrorCode::kParse,
+                                "invalid engineering value '" + original + "'");
+  }
+
   double value = 0.0;
   const char *begin = token.data();
   const char *end = token.data() + token.size();
@@ -49,8 +63,7 @@ namespace {
       std::from_chars(begin, end, value, std::chars_format::general);
   if (parsed.ec != std::errc{} || parsed.ptr == begin) {
     return Result<double>::Fail(ErrorCode::kParse,
-                                "invalid engineering value '" +
-                                    std::string(token) + "'");
+                                "invalid engineering value '" + original + "'");
   }
 
   const std::string suffix = Upper(std::string_view(parsed.ptr, end));
@@ -74,16 +87,14 @@ namespace {
   } else if (suffix == "F") {
     multiplier = 1e-15;
   } else if (!suffix.empty()) {
-    return Result<double>::Fail(ErrorCode::kParse,
-                                "unknown engineering suffix in '" +
-                                    std::string(token) + "'");
+    return Result<double>::Fail(
+        ErrorCode::kParse, "unknown engineering suffix in '" + original + "'");
   }
 
   value *= multiplier;
   if (!std::isfinite(value)) {
-    return Result<double>::Fail(ErrorCode::kParse,
-                                "non-finite engineering value '" +
-                                    std::string(token) + "'");
+    return Result<double>::Fail(
+        ErrorCode::kParse, "non-finite engineering value '" + original + "'");
   }
   return Result<double>::Ok(value);
 }
@@ -162,72 +173,195 @@ ParseInductor(const std::vector<std::string> &tokens) {
   const auto is_waveform = [&](std::string_view keyword) {
     return upper == keyword || upper.starts_with(std::string(keyword) + "(");
   };
-  return upper == "AC" || is_waveform("PULSE") || is_waveform("SIN") ||
-         is_waveform("PWL") || is_waveform("EXP");
+  return is_waveform("PULSE") || is_waveform("SIN") || is_waveform("PWL") ||
+         is_waveform("EXP");
 }
 
-[[nodiscard]] Result<double>
-ParseDcSourceValue(const std::vector<std::string> &tokens,
-                   std::string_view source_kind) {
+struct SourceSpecifications {
+  std::optional<double> dc;
+  std::optional<AcSourceSpecification> ac;
+};
+
+[[nodiscard]] Result<SourceSpecifications>
+ParseSourceSpecifications(const std::vector<std::string> &tokens,
+                          std::string_view source_kind) {
   for (std::size_t index = 3; index < tokens.size(); ++index) {
     if (IsUnsupportedSourceToken(tokens[index])) {
-      return Result<double>::Fail(ErrorCode::kUnsupported,
-                                  "phase 2A " + std::string(source_kind) +
-                                      " sources support DC values only");
+      return Result<SourceSpecifications>::Fail(
+          ErrorCode::kUnsupported, "phase 2B does not support transient " +
+                                       std::string(source_kind) +
+                                       "-source waveforms");
     }
   }
 
-  const std::string syntax = std::string(source_kind) + "-source syntax is: " +
-                             (source_kind == "voltage" ? "V" : "I") +
-                             "name n+ n- [DC] value";
-  if (tokens.size() != 4 && tokens.size() != 5) {
-    return Result<double>::Fail(ErrorCode::kParse, syntax);
+  const std::string syntax =
+      std::string(source_kind) +
+      "-source syntax is: " + (source_kind == "voltage" ? "V" : "I") +
+      "name n+ n- ([DC] value [AC magnitude [phase_degrees]] | AC "
+      "magnitude [phase_degrees])";
+  if (tokens.size() <= 3) {
+    return Result<SourceSpecifications>::Fail(
+        ErrorCode::kParse, std::string(source_kind) +
+                               " source requires a DC and/or AC specification");
   }
 
-  std::size_t value_index = 3;
-  if (tokens.size() == 5) {
-    if (Upper(tokens[3]) != "DC") {
-      return Result<double>::Fail(ErrorCode::kParse, syntax);
+  SourceSpecifications specifications;
+  std::size_t index = 3;
+  if (Upper(tokens[index]) == "DC") {
+    ++index;
+    if (index >= tokens.size()) {
+      return Result<SourceSpecifications>::Fail(ErrorCode::kParse, syntax);
     }
-    value_index = 4;
-  } else if (Upper(tokens[3]) == "DC") {
-    return Result<double>::Fail(ErrorCode::kParse, syntax);
+    auto dc = ParseEngineeringValue(tokens[index]);
+    if (!dc.ok()) {
+      return Result<SourceSpecifications>::Fail(dc.error().code,
+                                                dc.error().message);
+    }
+    specifications.dc = dc.value();
+    ++index;
+  } else if (Upper(tokens[index]) != "AC") {
+    auto dc = ParseEngineeringValue(tokens[index]);
+    if (!dc.ok()) {
+      return Result<SourceSpecifications>::Fail(dc.error().code,
+                                                dc.error().message);
+    }
+    specifications.dc = dc.value();
+    ++index;
   }
 
-  auto parsed = ParseEngineeringValue(tokens[value_index]);
-  if (!parsed.ok()) {
-    return Result<double>::Fail(parsed.error().code, parsed.error().message);
+  if (index < tokens.size() && Upper(tokens[index]) == "AC") {
+    ++index;
+    if (index >= tokens.size()) {
+      return Result<SourceSpecifications>::Fail(ErrorCode::kParse, syntax);
+    }
+    auto magnitude = ParseEngineeringValue(tokens[index]);
+    if (!magnitude.ok()) {
+      return Result<SourceSpecifications>::Fail(magnitude.error().code,
+                                                magnitude.error().message);
+    }
+    if (magnitude.value() < 0.0) {
+      return Result<SourceSpecifications>::Fail(
+          ErrorCode::kParse, "AC source magnitude must not be negative");
+    }
+    ++index;
+
+    double phase_degrees = 0.0;
+    if (index < tokens.size()) {
+      auto phase = ParseEngineeringValue(tokens[index]);
+      if (!phase.ok()) {
+        return Result<SourceSpecifications>::Fail(phase.error().code,
+                                                  phase.error().message);
+      }
+      phase_degrees = phase.value();
+      ++index;
+    }
+    specifications.ac = AcSourceSpecification{.magnitude = magnitude.value(),
+                                              .phase_degrees = phase_degrees};
   }
-  return parsed;
+
+  if (index != tokens.size()) {
+    return Result<SourceSpecifications>::Fail(ErrorCode::kParse, syntax);
+  }
+  if (!specifications.dc.has_value() && !specifications.ac.has_value()) {
+    return Result<SourceSpecifications>::Fail(
+        ErrorCode::kParse, std::string(source_kind) +
+                               " source requires a DC and/or AC specification");
+  }
+  return Result<SourceSpecifications>::Ok(std::move(specifications));
 }
 
 [[nodiscard]] Result<Component>
 ParseVoltageSource(const std::vector<std::string> &tokens) {
-  auto dc_value = ParseDcSourceValue(tokens, "voltage");
-  if (!dc_value.ok()) {
-    return Result<Component>::Fail(dc_value.error().code,
-                                   dc_value.error().message);
+  auto specifications = ParseSourceSpecifications(tokens, "voltage");
+  if (!specifications.ok()) {
+    return Result<Component>::Fail(specifications.error().code,
+                                   specifications.error().message);
   }
   return Result<Component>::Ok(VoltageSource{
       .name = tokens[0],
       .positive_node = tokens[1],
       .negative_node = tokens[2],
-      .dc_volts = dc_value.value(),
+      .dc_volts = specifications.value().dc,
+      .ac = specifications.value().ac,
   });
 }
 
 [[nodiscard]] Result<Component>
 ParseCurrentSource(const std::vector<std::string> &tokens) {
-  auto dc_value = ParseDcSourceValue(tokens, "current");
-  if (!dc_value.ok()) {
-    return Result<Component>::Fail(dc_value.error().code,
-                                   dc_value.error().message);
+  auto specifications = ParseSourceSpecifications(tokens, "current");
+  if (!specifications.ok()) {
+    return Result<Component>::Fail(specifications.error().code,
+                                   specifications.error().message);
   }
   return Result<Component>::Ok(CurrentSource{
       .name = tokens[0],
       .positive_node = tokens[1],
       .negative_node = tokens[2],
-      .dc_amperes = dc_value.value(),
+      .dc_amperes = specifications.value().dc,
+      .ac = specifications.value().ac,
+  });
+}
+
+[[nodiscard]] Result<Analysis>
+ParseAcAnalysis(const std::vector<std::string> &tokens) {
+  constexpr std::string_view kSyntax =
+      ".AC syntax is: .AC DEC|OCT|LIN points start_frequency "
+      "stop_frequency";
+  if (tokens.size() != 5) {
+    return Result<Analysis>::Fail(ErrorCode::kParse, std::string(kSyntax));
+  }
+
+  AcSweepType sweep_type;
+  const std::string sweep = Upper(tokens[1]);
+  if (sweep == "DEC") {
+    sweep_type = AcSweepType::kDec;
+  } else if (sweep == "OCT") {
+    sweep_type = AcSweepType::kOct;
+  } else if (sweep == "LIN") {
+    sweep_type = AcSweepType::kLin;
+  } else {
+    return Result<Analysis>::Fail(ErrorCode::kParse,
+                                  ".AC sweep type must be DEC, OCT, or LIN");
+  }
+
+  std::size_t points = 0;
+  const char *points_begin = tokens[2].data();
+  const char *points_end = points_begin + tokens[2].size();
+  const auto parsed_points = std::from_chars(points_begin, points_end, points);
+  if (parsed_points.ec != std::errc{} || parsed_points.ptr != points_end ||
+      points == 0) {
+    return Result<Analysis>::Fail(ErrorCode::kParse,
+                                  ".AC points must be a positive integer");
+  }
+  if (sweep_type == AcSweepType::kLin && points < 2) {
+    return Result<Analysis>::Fail(
+        ErrorCode::kParse,
+        ".AC LIN requires at least two points to include both endpoints");
+  }
+
+  auto start = ParseEngineeringValue(tokens[3]);
+  if (!start.ok()) {
+    return Result<Analysis>::Fail(start.error().code, start.error().message);
+  }
+  auto stop = ParseEngineeringValue(tokens[4]);
+  if (!stop.ok()) {
+    return Result<Analysis>::Fail(stop.error().code, stop.error().message);
+  }
+  if (start.value() <= 0.0 || stop.value() <= 0.0) {
+    return Result<Analysis>::Fail(ErrorCode::kParse,
+                                  ".AC frequencies must be greater than zero");
+  }
+  if (stop.value() <= start.value()) {
+    return Result<Analysis>::Fail(
+        ErrorCode::kParse,
+        ".AC stop frequency must be greater than start frequency");
+  }
+
+  return Result<Analysis>::Ok(AcAnalysis{
+      .sweep_type = sweep_type,
+      .points = points,
+      .start_frequency_hz = start.value(),
+      .stop_frequency_hz = stop.value(),
   });
 }
 
@@ -256,7 +390,7 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       break;
     }
     if (upper == ".DC" || upper == ".OP") {
-      circuit.analyses.push_back(Analysis::kDc);
+      circuit.analyses.push_back(DcAnalysis{});
       continue;
     }
     // The CLI emits every solved variable, so the legacy .PRINT selection is
@@ -264,14 +398,24 @@ Result<Circuit> ParseNetlist(std::string_view input) {
     if (upper.starts_with(".PRINT ")) {
       continue;
     }
+    const std::vector<std::string> tokens = SplitWhitespace(line);
+    if (!tokens.empty() && Upper(tokens.front()) == ".AC") {
+      auto analysis = ParseAcAnalysis(tokens);
+      if (!analysis.ok()) {
+        return Result<Circuit>::Fail(
+            analysis.error().code,
+            WithLine(line_number, analysis.error().message));
+      }
+      circuit.analyses.push_back(analysis.TakeValue());
+      continue;
+    }
     if (line.front() == '.') {
       return Result<Circuit>::Fail(
           ErrorCode::kUnsupported,
-          WithLine(line_number, "phase 2A does not support directive '" +
+          WithLine(line_number, "phase 2B does not support directive '" +
                                     std::string(line) + "'"));
     }
 
-    const std::vector<std::string> tokens = SplitWhitespace(line);
     if (tokens.empty()) {
       continue;
     }
@@ -295,8 +439,8 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       }
       return Result<Component>::Fail(
           ErrorCode::kUnsupported,
-          "phase 2A supports RLC elements and independent DC voltage/current "
-          "sources only");
+          "phase 2B supports RLC elements and independent DC/AC "
+          "voltage/current sources only");
     }();
     if (!component.ok()) {
       return Result<Circuit>::Fail(

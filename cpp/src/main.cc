@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  auto result = ohmnivore::SimulateDcToCsv(netlist);
+  auto result = ohmnivore::SimulateToCsv(netlist);
   if (!result.ok()) {
     std::cerr << ohmnivore::ErrorCodeName(result.error().code)
               << " error: " << result.error().message << '\n';

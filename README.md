@@ -9,30 +9,38 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ Phase 2A path is intentionally limited to the linear-device CPU semantic foundation. It
+The C++ Phase 2B path is intentionally limited to deterministic linear DC and AC analysis on the
+FP64 CPU correctness path. It
 provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
 - typed domain errors at library boundaries;
 - resistor, capacitor, inductor, and independent voltage/current-source parsing, with sources
-  restricted to bare DC values or `DC value` forms and passive values required to be positive;
-- `.DC`/`.OP` operating-point execution, with `.PRINT` accepted as a compatibility no-op because
-  the CLI emits every solved variable;
+  accepting a bare DC value, `DC value`, `AC magnitude [phase_degrees]`, or a DC form followed by
+  an AC form; every source must specify DC and/or AC, and passive values must be positive;
+- `.DC`/`.OP` operating-point and validated `.AC DEC|OCT|LIN` execution, with `.PRINT` accepted as
+  a compatibility no-op because the CLI emits every solved variable;
 - insertion-ordered Circuit IR, deterministic non-ground node order, and one interleaved
   insertion-ordered voltage-source/inductor branch sequence;
-- deterministic CSR conductance (`G`) and dynamic (`C`) matrices plus the DC right-hand side;
+- deterministic independent CSR conductance (`G`) and dynamic (`C`) matrices plus real DC and
+  complex AC right-hand sides;
 - canonical current-source, capacitor, and inductor MNA stamps, including capacitor-open and
   inductor-short operating-point behavior;
-- a deterministic dense FP64 CPU reference solve on `G` for `.DC`/`.OP`;
-- the legacy DC CSV schema; and
+- deterministic dense real and complex FP64 partial-pivoting CPU reference solves for
+  `.DC`/`.OP` and `A(omega) = G + j * omega * C`;
+- inclusive, strictly increasing AC frequency grids: LIN emits exactly its total point count,
+  while DEC/OCT use points per decade/octave and include the exact stop frequency once;
+- the legacy DC and AC CSV schemas; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-AC and transient execution, AC/transient source forms, nonlinear devices, production sparse-direct
-solver selection, CUDA circuit kernels or solver dispatch, mixed precision, and distributed
-solving have not yet been ported. Bare `.DC` is an operating-point request; DC source sweeps are not
-executed. Unsupported input is rejected explicitly, malformed input is reported separately, and
-the Rust implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity
-is accepted.
+Transient execution and waveform sources, nonlinear devices, production sparse-direct solver
+selection, CUDA circuit kernels or solver dispatch, mixed precision, and distributed solving have
+not yet been ported. Bare `.DC` is an operating-point request; DC source sweeps are not executed.
+Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
+implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
+accepted. Phase 2B uses analytic FP64 circuit solutions for acceptance; a separately
+checksum-pinned hermetic ngspice differential harness remains a gate and no ngspice differential
+claim is made here.
 
 ## Build and test the C++ path
 

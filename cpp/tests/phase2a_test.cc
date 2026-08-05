@@ -44,14 +44,16 @@ I1 0 out 2m
   const auto *voltage =
       std::get_if<VoltageSource>(&parsed.value().components[3]);
   ASSERT_NE(voltage, nullptr);
-  EXPECT_DOUBLE_EQ(voltage->dc_volts, 5.0);
+  ASSERT_TRUE(voltage->dc_volts.has_value());
+  EXPECT_DOUBLE_EQ(*voltage->dc_volts, 5.0);
 
   const auto *current =
       std::get_if<CurrentSource>(&parsed.value().components[4]);
   ASSERT_NE(current, nullptr);
   EXPECT_EQ(current->positive_node, "0");
   EXPECT_EQ(current->negative_node, "out");
-  EXPECT_DOUBLE_EQ(current->dc_amperes, 2e-3);
+  ASSERT_TRUE(current->dc_amperes.has_value());
+  EXPECT_DOUBLE_EQ(*current->dc_amperes, 2e-3);
 }
 
 TEST(Phase2AParserTest, ClassifiesMalformedAndUnsupportedSources) {
@@ -66,11 +68,7 @@ TEST(Phase2AParserTest, ClassifiesMalformedAndUnsupportedSources) {
        .expected_code = ErrorCode::kParse},
       {.netlist = "V1 1 0 SINUSOIDAL\n.OP\n",
        .expected_code = ErrorCode::kParse},
-      {.netlist = "I1 1 0 AC 1 0\n.OP\n",
-       .expected_code = ErrorCode::kUnsupported},
       {.netlist = "V1 1 0 PULSE(0 5 0 1n 1n 1u 2u)\n.OP\n",
-       .expected_code = ErrorCode::kUnsupported},
-      {.netlist = "I1 1 0 DC 1m AC 1 0\n.OP\n",
        .expected_code = ErrorCode::kUnsupported},
   };
 
@@ -164,8 +162,9 @@ TEST(Phase2ACompilerTest, AppliesCurrentSourceRhsSignBetweenNodes) {
       .components = {CurrentSource{.name = "I1",
                                    .positive_node = "plus",
                                    .negative_node = "minus",
-                                   .dc_amperes = 3.0}},
-      .analyses = {Analysis::kDc},
+                                   .dc_amperes = 3.0,
+                                   .ac = {}}},
+      .analyses = {DcAnalysis{}},
   };
   auto compiled = CompileMna(circuit);
   ASSERT_TRUE(compiled.ok()) << compiled.error().message;
@@ -181,11 +180,13 @@ TEST(Phase2ACompilerTest, TreatsSameNodePassiveAndCurrentDevicesAsNoOps) {
               CurrentSource{.name = "Ibase",
                             .positive_node = "0",
                             .negative_node = "n",
-                            .dc_amperes = 1.0},
+                            .dc_amperes = 1.0,
+                            .ac = {}},
               CurrentSource{.name = "Iself",
                             .positive_node = "n",
                             .negative_node = "n",
-                            .dc_amperes = 1e16},
+                            .dc_amperes = 1e16,
+                            .ac = {}},
               Resistor{.name = "Rbase",
                        .positive_node = "n",
                        .negative_node = "0",
@@ -203,7 +204,7 @@ TEST(Phase2ACompilerTest, TreatsSameNodePassiveAndCurrentDevicesAsNoOps) {
                         .negative_node = "n",
                         .capacitance_farads = 1e20},
           },
-      .analyses = {Analysis::kDc},
+      .analyses = {DcAnalysis{}},
   };
   auto compiled = CompileMna(circuit);
   ASSERT_TRUE(compiled.ok()) << compiled.error().message;
@@ -223,7 +224,7 @@ TEST(Phase2ACompilerTest, RejectsInvalidDirectIrWithTypedCompileError) {
                               .positive_node = "1",
                               .negative_node = "0",
                               .inductance_henries = -1.0}},
-      .analyses = {Analysis::kDc},
+      .analyses = {DcAnalysis{}},
   };
   auto compiled = CompileMna(circuit);
   ASSERT_FALSE(compiled.ok());
@@ -237,7 +238,8 @@ TEST(Phase2ACompilerTest, RejectsNonfiniteAccumulatedMatricesAndRhs) {
               VoltageSource{.name = "V1",
                             .positive_node = "n",
                             .negative_node = "0",
-                            .dc_volts = 1.0},
+                            .dc_volts = 1.0,
+                            .ac = {}},
               Capacitor{.name = "C1",
                         .positive_node = "n",
                         .negative_node = "0",
@@ -247,7 +249,7 @@ TEST(Phase2ACompilerTest, RejectsNonfiniteAccumulatedMatricesAndRhs) {
                         .negative_node = "0",
                         .capacitance_farads = 1e308},
           },
-      .analyses = {Analysis::kDc},
+      .analyses = {DcAnalysis{}},
   };
   auto compiled_capacitors = CompileMna(capacitor_overflow);
   ASSERT_FALSE(compiled_capacitors.ok());
@@ -261,17 +263,19 @@ TEST(Phase2ACompilerTest, RejectsNonfiniteAccumulatedMatricesAndRhs) {
               CurrentSource{.name = "I1",
                             .positive_node = "0",
                             .negative_node = "n",
-                            .dc_amperes = 1e308},
+                            .dc_amperes = 1e308,
+                            .ac = {}},
               CurrentSource{.name = "I2",
                             .positive_node = "0",
                             .negative_node = "n",
-                            .dc_amperes = 1e308},
+                            .dc_amperes = 1e308,
+                            .ac = {}},
               Resistor{.name = "R1",
                        .positive_node = "n",
                        .negative_node = "0",
                        .resistance_ohms = 1.0},
           },
-      .analyses = {Analysis::kDc},
+      .analyses = {DcAnalysis{}},
   };
   auto compiled_rhs = CompileMna(rhs_overflow);
   ASSERT_FALSE(compiled_rhs.ok());

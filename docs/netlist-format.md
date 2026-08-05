@@ -2,6 +2,12 @@
 
 Ohmnivore reads SPICE-subset netlists. This document covers the supported syntax.
 
+> **Migration note:** The detailed nonlinear and transient forms below describe the legacy Rust
+> prototype. The active C++ Phase 2B parser supports only positive R/L/C devices; independent V/I
+> sources in bare DC, `DC value`, `AC magnitude [phase_degrees]`, or DC-then-AC form; `.DC`, `.OP`,
+> `.AC DEC|OCT|LIN`, `.PRINT`, and `.END`. A source without DC or AC is malformed. Recognized
+> PULSE/SIN/PWL/EXP waveforms and `.TRAN` remain typed unsupported errors.
+
 ## Structure
 
 A netlist is a plain text file with one statement per line:
