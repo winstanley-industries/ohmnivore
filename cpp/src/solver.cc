@@ -22,17 +22,28 @@ Result<std::vector<double>> SolveCpuReference(const CsrMatrix &matrix,
     return Result<std::vector<double>>::Fail(ErrorCode::kSolve,
                                              "invalid CSR structure");
   }
+  if (matrix.row_offsets.front() != 0) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kSolve, "CSR row offsets must start at zero");
+  }
   for (std::size_t row = 0; row < matrix.rows; ++row) {
     if (matrix.row_offsets[row] > matrix.row_offsets[row + 1] ||
         matrix.row_offsets[row + 1] > matrix.values.size()) {
       return Result<std::vector<double>>::Fail(ErrorCode::kSolve,
                                                "invalid CSR row offsets");
     }
-  }
-  for (std::size_t column : matrix.column_indices) {
-    if (column >= matrix.columns) {
-      return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, "CSR column index is outside the matrix");
+    for (std::size_t index = matrix.row_offsets[row];
+         index < matrix.row_offsets[row + 1]; ++index) {
+      if (matrix.column_indices[index] >= matrix.columns) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kSolve, "CSR column index is outside the matrix");
+      }
+      if (index > matrix.row_offsets[row] &&
+          matrix.column_indices[index - 1] >= matrix.column_indices[index]) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kSolve,
+            "CSR columns must be strictly increasing within each row");
+      }
     }
   }
 

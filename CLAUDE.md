@@ -10,10 +10,11 @@ migrating to a C++20 core with a CUDA-first backend and hermetic Bazel toolchain
 implementation is retained as a behavioral reference, not the target architecture for new solver
 development.
 
-Phase 1 is deliberately bounded to resistors, independent DC voltage sources, `.DC`/`.OP`, Circuit
-IR, CSR MNA compilation, an FP64 CPU reference solve, CSV output, and a CUDA platform smoke test.
-Do not pull additional SPICE elements, nonlinear work, CUDA solver kernels, or distributed solving
-into Phase 1.
+Phase 2A is deliberately bounded to resistors, capacitors, inductors, independent DC voltage and
+current sources, `.DC`/`.OP`, Circuit IR, deterministic CSR `G`/`C` plus the DC right-hand side, the
+dense FP64 CPU reference solve, CSV output, and the existing CUDA platform smoke test. Do not pull
+AC or transient execution, nonlinear work, production sparse-direct selection, CUDA circuit
+kernels, mixed precision, or distributed solving into Phase 2A.
 
 Before changing the C++ path:
 
@@ -35,6 +36,15 @@ bazel test --config=asan //...
 bazel test --config=ubsan //...
 bazel test --lockfile_mode=error //...
 bazel test --config=cuda //:cuda_smoke_test
+git diff --check
+```
+
+Verify the declared CUDA/sanitizer incompatibility with explicit targets so it is an analysis
+failure rather than a skipped test-suite member:
+
+```sh
+bazel build --config=cuda --config=asan //cuda:smoke_test
+bazel build --config=cuda --config=ubsan //cuda:smoke_test
 ```
 
 The architecture and commands below describe the legacy Rust prototype unless stated otherwise.

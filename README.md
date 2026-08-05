@@ -9,21 +9,30 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The first C++ phase is intentionally narrow. It provides:
+The C++ Phase 2A path is intentionally limited to the linear-device CPU semantic foundation. It
+provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
 - typed domain errors at library boundaries;
-- resistor and independent DC voltage-source parsing, with `.PRINT` accepted as a compatibility
-  no-op because the CLI emits every solved variable;
-- insertion-ordered Circuit IR and CSR MNA compilation;
-- a deterministic FP64 CPU reference solve for `.DC`/`.OP`;
+- resistor, capacitor, inductor, and independent voltage/current-source parsing, with sources
+  restricted to bare DC values or `DC value` forms and passive values required to be positive;
+- `.DC`/`.OP` operating-point execution, with `.PRINT` accepted as a compatibility no-op because
+  the CLI emits every solved variable;
+- insertion-ordered Circuit IR, deterministic non-ground node order, and one interleaved
+  insertion-ordered voltage-source/inductor branch sequence;
+- deterministic CSR conductance (`G`) and dynamic (`C`) matrices plus the DC right-hand side;
+- canonical current-source, capacitor, and inductor MNA stamps, including capacitor-open and
+  inductor-short operating-point behavior;
+- a deterministic dense FP64 CPU reference solve on `G` for `.DC`/`.OP`;
 - the legacy DC CSV schema; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-Capacitors, inductors, current sources, nonlinear devices, AC, transient analysis, CUDA solver
-kernels, and distributed solving have not yet been ported. Unsupported input is rejected
-explicitly. The Rust implementation remains in `src/` and `tests/` as a behavioral reference
-until C++ parity is accepted.
+AC and transient execution, AC/transient source forms, nonlinear devices, production sparse-direct
+solver selection, CUDA circuit kernels or solver dispatch, mixed precision, and distributed
+solving have not yet been ported. Bare `.DC` is an operating-point request; DC source sweeps are not
+executed. Unsupported input is rejected explicitly, malformed input is reported separately, and
+the Rust implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity
+is accepted.
 
 ## Build and test the C++ path
 

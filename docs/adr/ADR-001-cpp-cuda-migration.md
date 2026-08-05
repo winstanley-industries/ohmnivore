@@ -115,10 +115,33 @@ git diff --check
 CUDA plus LLVM sanitizer configurations are rejected at Bazel analysis time. CPU sanitizer gates
 and the CUDA smoke gate are separate claims.
 
+## Phase 2A: Linear-device CPU semantic foundation
+
+Phase 2A extends the CPU semantic layer without opening AC, transient, sparse-solver selection, or
+CUDA circuit execution. It adds:
+
+- capacitor, inductor, and independent DC current-source Circuit IR and parsing alongside the
+  existing resistor and independent DC voltage source;
+- strict bare-value and `DC value` source forms, with malformed and recognized-but-unsupported
+  source forms reported by distinct typed errors;
+- deterministic insertion-ordered non-ground nodes and a single component-order branch sequence
+  shared by voltage sources and inductors;
+- independent deterministic CSR `G` and `C` matrices plus `b_dc`;
+- current-source RHS orientation, capacitor dynamic stamps with open-circuit DC behavior, and
+  inductor incidence plus `-L` dynamic stamps with short-circuit DC behavior;
+- `.DC`/`.OP` operating-point execution for RLCVI netlists through the existing dense FP64 CPU
+  correctness path; and
+- focused parser, exact-CSR, ordering, malformed-CSR, and analytic operating-point tests.
+
+Phase 2A does not execute AC or transient analysis, admit AC/transient source forms, select a
+production sparse-direct dependency, add nonlinear devices, add CUDA circuit kernels or solver
+dispatch, introduce mixed precision, or add distributed solving. The Rust implementation remains
+unchanged as a behavioral reference.
+
 ## Follow-up phases
 
-1. Port and differentially accept the complete linear CPU path: parser/IR/CSR, RLCVI stamps, DC,
-   AC, transient, CSV, and ngspice harness.
+1. Complete and differentially accept the remaining linear CPU path: AC/transient excitation and
+   execution, associated orchestration/CSV behavior, and the ngspice comparison harness.
 2. Select the hermetic sparse-direct FP64 CPU oracle using circuit-representative correctness and
    performance evidence.
 3. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear

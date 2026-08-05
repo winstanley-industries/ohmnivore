@@ -112,39 +112,122 @@ ParseResistor(const std::vector<std::string> &tokens) {
 }
 
 [[nodiscard]] Result<Component>
-ParseVoltageSource(const std::vector<std::string> &tokens) {
-  if (tokens.size() < 3 || tokens.size() > 5) {
+ParseCapacitor(const std::vector<std::string> &tokens) {
+  if (tokens.size() != 4) {
     return Result<Component>::Fail(
-        ErrorCode::kParse, "voltage-source syntax is: Vname n+ n- [DC] value");
+        ErrorCode::kParse, "capacitor syntax is: Cname n+ n- capacitance");
+  }
+  auto capacitance = ParseEngineeringValue(tokens[3]);
+  if (!capacitance.ok()) {
+    return Result<Component>::Fail(capacitance.error().code,
+                                   capacitance.error().message);
+  }
+  if (capacitance.value() <= 0.0) {
+    return Result<Component>::Fail(ErrorCode::kParse,
+                                   "capacitance must be greater than zero");
+  }
+  return Result<Component>::Ok(Capacitor{
+      .name = tokens[0],
+      .positive_node = tokens[1],
+      .negative_node = tokens[2],
+      .capacitance_farads = capacitance.value(),
+  });
+}
+
+[[nodiscard]] Result<Component>
+ParseInductor(const std::vector<std::string> &tokens) {
+  if (tokens.size() != 4) {
+    return Result<Component>::Fail(
+        ErrorCode::kParse, "inductor syntax is: Lname n+ n- inductance");
+  }
+  auto inductance = ParseEngineeringValue(tokens[3]);
+  if (!inductance.ok()) {
+    return Result<Component>::Fail(inductance.error().code,
+                                   inductance.error().message);
+  }
+  if (inductance.value() <= 0.0) {
+    return Result<Component>::Fail(ErrorCode::kParse,
+                                   "inductance must be greater than zero");
+  }
+  return Result<Component>::Ok(Inductor{
+      .name = tokens[0],
+      .positive_node = tokens[1],
+      .negative_node = tokens[2],
+      .inductance_henries = inductance.value(),
+  });
+}
+
+[[nodiscard]] bool IsUnsupportedSourceToken(std::string_view token) {
+  const std::string upper = Upper(token);
+  const auto is_waveform = [&](std::string_view keyword) {
+    return upper == keyword || upper.starts_with(std::string(keyword) + "(");
+  };
+  return upper == "AC" || is_waveform("PULSE") || is_waveform("SIN") ||
+         is_waveform("PWL") || is_waveform("EXP");
+}
+
+[[nodiscard]] Result<double>
+ParseDcSourceValue(const std::vector<std::string> &tokens,
+                   std::string_view source_kind) {
+  for (std::size_t index = 3; index < tokens.size(); ++index) {
+    if (IsUnsupportedSourceToken(tokens[index])) {
+      return Result<double>::Fail(ErrorCode::kUnsupported,
+                                  "phase 2A " + std::string(source_kind) +
+                                      " sources support DC values only");
+    }
   }
 
-  double dc_volts = 0.0;
-  if (tokens.size() == 4) {
-    auto parsed = ParseEngineeringValue(tokens[3]);
-    if (!parsed.ok()) {
-      return Result<Component>::Fail(parsed.error().code,
-                                     parsed.error().message);
-    }
-    dc_volts = parsed.value();
-  } else if (tokens.size() == 5) {
+  const std::string syntax = std::string(source_kind) + "-source syntax is: " +
+                             (source_kind == "voltage" ? "V" : "I") +
+                             "name n+ n- [DC] value";
+  if (tokens.size() != 4 && tokens.size() != 5) {
+    return Result<double>::Fail(ErrorCode::kParse, syntax);
+  }
+
+  std::size_t value_index = 3;
+  if (tokens.size() == 5) {
     if (Upper(tokens[3]) != "DC") {
-      return Result<Component>::Fail(
-          ErrorCode::kUnsupported,
-          "phase 1 voltage sources support DC values only");
+      return Result<double>::Fail(ErrorCode::kParse, syntax);
     }
-    auto parsed = ParseEngineeringValue(tokens[4]);
-    if (!parsed.ok()) {
-      return Result<Component>::Fail(parsed.error().code,
-                                     parsed.error().message);
-    }
-    dc_volts = parsed.value();
+    value_index = 4;
+  } else if (Upper(tokens[3]) == "DC") {
+    return Result<double>::Fail(ErrorCode::kParse, syntax);
   }
 
+  auto parsed = ParseEngineeringValue(tokens[value_index]);
+  if (!parsed.ok()) {
+    return Result<double>::Fail(parsed.error().code, parsed.error().message);
+  }
+  return parsed;
+}
+
+[[nodiscard]] Result<Component>
+ParseVoltageSource(const std::vector<std::string> &tokens) {
+  auto dc_value = ParseDcSourceValue(tokens, "voltage");
+  if (!dc_value.ok()) {
+    return Result<Component>::Fail(dc_value.error().code,
+                                   dc_value.error().message);
+  }
   return Result<Component>::Ok(VoltageSource{
       .name = tokens[0],
       .positive_node = tokens[1],
       .negative_node = tokens[2],
-      .dc_volts = dc_volts,
+      .dc_volts = dc_value.value(),
+  });
+}
+
+[[nodiscard]] Result<Component>
+ParseCurrentSource(const std::vector<std::string> &tokens) {
+  auto dc_value = ParseDcSourceValue(tokens, "current");
+  if (!dc_value.ok()) {
+    return Result<Component>::Fail(dc_value.error().code,
+                                   dc_value.error().message);
+  }
+  return Result<Component>::Ok(CurrentSource{
+      .name = tokens[0],
+      .positive_node = tokens[1],
+      .negative_node = tokens[2],
+      .dc_amperes = dc_value.value(),
   });
 }
 
@@ -184,7 +267,7 @@ Result<Circuit> ParseNetlist(std::string_view input) {
     if (line.front() == '.') {
       return Result<Circuit>::Fail(
           ErrorCode::kUnsupported,
-          WithLine(line_number, "phase 1 does not support directive '" +
+          WithLine(line_number, "phase 2A does not support directive '" +
                                     std::string(line) + "'"));
     }
 
@@ -198,12 +281,22 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       if (kind == 'R') {
         return ParseResistor(tokens);
       }
+      if (kind == 'C') {
+        return ParseCapacitor(tokens);
+      }
+      if (kind == 'L') {
+        return ParseInductor(tokens);
+      }
       if (kind == 'V') {
         return ParseVoltageSource(tokens);
       }
+      if (kind == 'I') {
+        return ParseCurrentSource(tokens);
+      }
       return Result<Component>::Fail(
-          ErrorCode::kUnsupported, "phase 1 supports resistor and independent "
-                                   "DC voltage-source elements only");
+          ErrorCode::kUnsupported,
+          "phase 2A supports RLC elements and independent DC voltage/current "
+          "sources only");
     }();
     if (!component.ok()) {
       return Result<Circuit>::Fail(

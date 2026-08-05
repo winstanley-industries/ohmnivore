@@ -43,7 +43,7 @@ TEST(Phase1ParserTest, PreservesComponentsAndEngineeringValues) {
 }
 
 TEST(Phase1ParserTest, RejectsUnsupportedElementsExplicitly) {
-  auto parsed = ParseNetlist("C1 1 0 1u\n.DC\n.END\n");
+  auto parsed = ParseNetlist("D1 1 0 DDEFAULT\n.DC\n.END\n");
   ASSERT_FALSE(parsed.ok());
   EXPECT_EQ(parsed.error().code, ErrorCode::kUnsupported);
   EXPECT_NE(parsed.error().message.find("line 1"), std::string::npos);

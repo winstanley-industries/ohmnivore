@@ -22,6 +22,11 @@ bazel test //...
 bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 
+The current C++ execution surface is `.DC`/`.OP` operating-point analysis for resistors,
+capacitors, inductors, and independent voltage/current sources with DC values. Capacitors are open
+and inductors are ideal shorts in the operating-point solve. Their dynamic stamps are retained in
+the compiled `C` matrix, but AC and transient execution remain unsupported.
+
 Use `bazel lint --fix` to apply supported formatting fixes. Individual language checks are
 available with `--only cpp`, `--only python`, `--only shell`, and `--only starlark`.
 
@@ -35,8 +40,16 @@ bazel test --config=ubsan //...
 ```
 
 CUDA targets are explicitly incompatible with either sanitizer configuration because the CUDA
-host/device/driver boundary cannot be instrumented end to end by those LLVM runtimes. Bazel rejects
-the combination rather than producing a partial sanitizer claim.
+host/device/driver boundary cannot be instrumented end to end by those LLVM runtimes. Verify the
+analysis-time rejection by requesting the CUDA target directly:
+
+```sh
+bazel build --config=cuda --config=asan //cuda:smoke_test
+bazel build --config=cuda --config=ubsan //cuda:smoke_test
+```
+
+Both commands must fail during Bazel analysis as incompatible. A wildcard or test-suite request
+can skip an incompatible test and is not evidence of rejection.
 
 ## CUDA smoke test
 

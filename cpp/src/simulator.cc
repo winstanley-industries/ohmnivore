@@ -40,7 +40,7 @@ Result<DcResult> SimulateDc(std::string_view netlist) {
   }
   if (!has_dc) {
     return Result<DcResult>::Fail(ErrorCode::kUnsupported,
-                                  "phase 1 requires a .DC or .OP analysis");
+                                  "phase 2A requires a .DC or .OP analysis");
   }
 
   auto compiled = CompileMna(circuit);

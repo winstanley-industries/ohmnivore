@@ -8,9 +8,9 @@
 
 namespace ohmnivore {
 
-// Phase 1 correctness path. This dense partial-pivoting implementation is
-// intentionally bounded to the vertical slice and will be replaced by the
-// selected hermetic sparse-direct FP64 oracle in a later phase.
+// Phase 2A correctness path. This dense partial-pivoting implementation is
+// intentionally temporary and will be replaced by the selected hermetic
+// sparse-direct FP64 oracle in a later phase.
 [[nodiscard]] Result<std::vector<double>>
 SolveCpuReference(const CsrMatrix &matrix, const std::vector<double> &rhs);
 

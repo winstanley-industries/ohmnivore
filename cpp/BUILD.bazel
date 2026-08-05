@@ -55,3 +55,18 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "phase2a_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase2a_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+    ],
+)

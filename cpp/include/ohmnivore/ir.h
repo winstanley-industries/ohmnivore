@@ -14,6 +14,20 @@ struct Resistor {
   double resistance_ohms;
 };
 
+struct Capacitor {
+  std::string name;
+  std::string positive_node;
+  std::string negative_node;
+  double capacitance_farads;
+};
+
+struct Inductor {
+  std::string name;
+  std::string positive_node;
+  std::string negative_node;
+  double inductance_henries;
+};
+
 struct VoltageSource {
   std::string name;
   std::string positive_node;
@@ -21,7 +35,15 @@ struct VoltageSource {
   double dc_volts;
 };
 
-using Component = std::variant<Resistor, VoltageSource>;
+struct CurrentSource {
+  std::string name;
+  std::string positive_node;
+  std::string negative_node;
+  double dc_amperes;
+};
+
+using Component =
+    std::variant<Resistor, Capacitor, Inductor, VoltageSource, CurrentSource>;
 
 enum class Analysis {
   kDc,

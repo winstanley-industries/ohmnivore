@@ -14,6 +14,7 @@ inline constexpr double kGminSiemens = 1e-12;
 
 struct MnaSystem {
   CsrMatrix g;
+  CsrMatrix c;
   std::vector<double> b_dc;
   std::vector<std::string> node_names;
   std::vector<std::string> branch_names;
