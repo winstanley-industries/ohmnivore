@@ -1,0 +1,6 @@
+* Phase 2C hermetic ngspice acceptance: UIC RC charging
+V1 in 0 DC 5
+R1 in out 1k
+C1 out 0 1u
+.TRAN 10u 5m 0 UIC
+.END

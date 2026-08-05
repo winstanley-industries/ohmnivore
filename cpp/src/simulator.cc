@@ -16,6 +16,7 @@
 #include "ohmnivore/ir.h"
 #include "ohmnivore/parser.h"
 #include "ohmnivore/solver.h"
+#include "ohmnivore/transient.h"
 
 namespace ohmnivore {
 namespace {
@@ -121,6 +122,44 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
   return Result<AcResult>::Ok(std::move(result));
 }
 
+[[nodiscard]] Result<TranResult> RunTransient(const MnaSystem &system,
+                                              const TranAnalysis &analysis) {
+  auto integrated = RunTransientAnalysis(system, analysis);
+  if (!integrated.ok()) {
+    return Result<TranResult>::Fail(integrated.error().code,
+                                    integrated.error().message);
+  }
+
+  TranResult result;
+  result.times_seconds = integrated.value().times_seconds;
+  for (const std::string &name : system.node_names) {
+    result.node_voltages.emplace_back(name, std::vector<double>{});
+    result.node_voltages.back().second.reserve(result.times_seconds.size());
+  }
+  for (const std::string &name : system.branch_names) {
+    result.branch_currents.emplace_back(name, std::vector<double>{});
+    result.branch_currents.back().second.reserve(result.times_seconds.size());
+  }
+
+  for (const std::vector<double> &state : integrated.value().states) {
+    if (state.size() != system.node_names.size() + system.branch_names.size()) {
+      return Result<TranResult>::Fail(
+          ErrorCode::kSolve,
+          "transient state dimensions disagree with the compiled system");
+    }
+    for (std::size_t index = 0; index < result.node_voltages.size(); ++index) {
+      result.node_voltages[index].second.push_back(state[index]);
+    }
+    const std::size_t branch_offset = system.node_names.size();
+    for (std::size_t index = 0; index < result.branch_currents.size();
+         ++index) {
+      result.branch_currents[index].second.push_back(
+          state[branch_offset + index]);
+    }
+  }
+  return Result<TranResult>::Ok(std::move(result));
+}
+
 [[nodiscard]] Result<std::string> FormatDcCsv(const DcResult &result) {
   std::string csv = "Variable,Value\n";
   const auto append_row = [&](std::string variable,
@@ -205,6 +244,54 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
         return columns;
       }
       csv += columns.TakeValue();
+    }
+    csv += "\n";
+  }
+  return Result<std::string>::Ok(std::move(csv));
+}
+
+[[nodiscard]] Result<std::string> FormatTransientCsv(const TranResult &result) {
+  std::string csv = "time";
+  for (const auto &[name, values] : result.node_voltages) {
+    if (values.size() != result.times_seconds.size()) {
+      return Result<std::string>::Fail(
+          ErrorCode::kIo,
+          "transient node waveform length does not match the time grid");
+    }
+    csv += "," + EscapeCsvField("V(" + name + ")");
+  }
+  for (const auto &[name, values] : result.branch_currents) {
+    if (values.size() != result.times_seconds.size()) {
+      return Result<std::string>::Fail(
+          ErrorCode::kIo,
+          "transient branch waveform length does not match the time grid");
+    }
+    csv += "," + EscapeCsvField("I(" + name + ")");
+  }
+  csv += "\n";
+
+  for (std::size_t time_index = 0; time_index < result.times_seconds.size();
+       ++time_index) {
+    auto time = FormatDouble(result.times_seconds[time_index]);
+    if (!time.ok()) {
+      return time;
+    }
+    csv += time.TakeValue();
+    for (const auto &[unused, values] : result.node_voltages) {
+      static_cast<void>(unused);
+      auto value = FormatDouble(values[time_index]);
+      if (!value.ok()) {
+        return value;
+      }
+      csv += "," + value.TakeValue();
+    }
+    for (const auto &[unused, values] : result.branch_currents) {
+      static_cast<void>(unused);
+      auto value = FormatDouble(values[time_index]);
+      if (!value.ok()) {
+        return value;
+      }
+      csv += "," + value.TakeValue();
     }
     csv += "\n";
   }
@@ -408,6 +495,43 @@ Result<std::string> SimulateAcToCsv(std::string_view netlist) {
   return FormatAcCsv(simulated.value());
 }
 
+Result<TranResult> SimulateTransient(std::string_view netlist) {
+  auto parsed = ParseNetlist(netlist);
+  if (!parsed.ok()) {
+    return Result<TranResult>::Fail(parsed.error().code,
+                                    parsed.error().message);
+  }
+  Circuit circuit = parsed.TakeValue();
+  const TranAnalysis *requested_analysis = nullptr;
+  for (const Analysis &analysis : circuit.analyses) {
+    if (const auto *transient = std::get_if<TranAnalysis>(&analysis)) {
+      requested_analysis = transient;
+      break;
+    }
+  }
+  if (requested_analysis == nullptr) {
+    return Result<TranResult>::Fail(
+        ErrorCode::kUnsupported,
+        "transient simulation requires a .TRAN analysis");
+  }
+
+  auto compiled = CompileMna(circuit);
+  if (!compiled.ok()) {
+    return Result<TranResult>::Fail(compiled.error().code,
+                                    compiled.error().message);
+  }
+  return RunTransient(compiled.value(), *requested_analysis);
+}
+
+Result<std::string> SimulateTransientToCsv(std::string_view netlist) {
+  auto simulated = SimulateTransient(netlist);
+  if (!simulated.ok()) {
+    return Result<std::string>::Fail(simulated.error().code,
+                                     simulated.error().message);
+  }
+  return FormatTransientCsv(simulated.value());
+}
+
 Result<std::string> SimulateToCsv(std::string_view netlist) {
   auto parsed = ParseNetlist(netlist);
   if (!parsed.ok()) {
@@ -418,7 +542,7 @@ Result<std::string> SimulateToCsv(std::string_view netlist) {
   if (circuit.analyses.empty()) {
     return Result<std::string>::Fail(
         ErrorCode::kUnsupported,
-        "simulation requires a .DC, .OP, or .AC analysis");
+        "simulation requires a .DC, .OP, .AC, or .TRAN analysis");
   }
 
   auto compiled = CompileMna(circuit);
@@ -438,12 +562,21 @@ Result<std::string> SimulateToCsv(std::string_view netlist) {
         }
         return FormatDcCsv(simulated.value());
       }
-      auto simulated = RunAc(compiled.value(), std::get<AcAnalysis>(analysis));
+      if (const auto *ac = std::get_if<AcAnalysis>(&analysis)) {
+        auto simulated = RunAc(compiled.value(), *ac);
+        if (!simulated.ok()) {
+          return Result<std::string>::Fail(simulated.error().code,
+                                           simulated.error().message);
+        }
+        return FormatAcCsv(simulated.value());
+      }
+      auto simulated =
+          RunTransient(compiled.value(), std::get<TranAnalysis>(analysis));
       if (!simulated.ok()) {
         return Result<std::string>::Fail(simulated.error().code,
                                          simulated.error().message);
       }
-      return FormatAcCsv(simulated.value());
+      return FormatTransientCsv(simulated.value());
     }();
     if (!table.ok()) {
       return table;

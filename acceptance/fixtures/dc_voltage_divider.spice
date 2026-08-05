@@ -1,0 +1,7 @@
+* Phase 2C hermetic ngspice acceptance: linear DC voltage divider
+V1 in 0 DC 10
+R1 in out 1k
+R2 out 0 1k
+I1 out 0 DC 1m
+.OP
+.END

@@ -1,0 +1,7 @@
+diff --git a/src/spicelib/devices/hicum2/Makefile.in b/src/spicelib/devices/hicum2/Makefile.in
+index 286f476bd..5f9a4e8ea 100644
+--- a/src/spicelib/devices/hicum2/Makefile.in
++++ b/src/spicelib/devices/hicum2/Makefile.in
+@@ -433 +433 @@
+-	$(AM_V_CXXLD)$(CXXLINK)  $(libhicum2_la_OBJECTS) $(libhicum2_la_LIBADD) $(LIBS)
++	$(AM_V_CCLD)$(LINK)  $(libhicum2_la_OBJECTS) $(libhicum2_la_LIBADD) $(LIBS)

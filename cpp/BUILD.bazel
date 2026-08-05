@@ -18,6 +18,8 @@ cc_library(
         "src/parser.cc",
         "src/simulator.cc",
         "src/solver.cc",
+        "src/transient.cc",
+        "src/waveform.cc",
     ],
     hdrs = [
         "include/ohmnivore/compiler.h",
@@ -27,6 +29,8 @@ cc_library(
         "include/ohmnivore/solver.h",
         "include/ohmnivore/sparse.h",
         "include/ohmnivore/status.h",
+        "include/ohmnivore/transient.h",
+        "include/ohmnivore/waveform.h",
     ],
     copts = OHMNIVORE_COPTS,
     strip_include_prefix = "include",
@@ -77,6 +81,51 @@ cc_test(
     srcs = [
         "tests/google_test.h",
         "tests/phase2b_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "phase2c_parser_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase2c_parser_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "phase2c_transient_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase2c_transient_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "phase2c_simulator_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase2c_simulator_test.cc",
     ],
     copts = OHMNIVORE_COPTS,
     visibility = ["//visibility:public"],

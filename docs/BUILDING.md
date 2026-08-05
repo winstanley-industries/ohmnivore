@@ -22,19 +22,38 @@ bazel test //...
 bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 
-The current C++ execution surface is `.DC`/`.OP` operating-point analysis and deterministic linear
-`.AC DEC|OCT|LIN` analysis for resistors, capacitors, inductors, and independent voltage/current
-sources. Sources accept a bare DC value, `DC value`, `AC magnitude [phase_degrees]`, or a DC form
-followed by an AC form. Capacitors are open and inductors are ideal shorts at DC; AC solves
-`(G + j * 2*pi*f*C)x = b_ac` through the temporary dense complex FP64 CPU correctness path.
+The current C++ execution surface is deterministic linear `.DC`/`.OP`, `.AC DEC|OCT|LIN`, and
+`.TRAN tstep tstop [tstart] [UIC]` analysis for resistors, capacitors, inductors, and independent
+voltage/current sources. Sources accept strict DC, AC, PULSE, SIN, PWL, and EXP forms in legacy
+order. Capacitors are open and inductors are ideal shorts at DC; AC solves
+`(G + j * 2*pi*f*C)x = b_ac`; transient solves `G*x + C*dx/dt = b(t)`. Both use temporary dense
+FP64 CPU correctness solvers.
 
 AC point counts and frequencies are validated before execution. LIN requires at least two total
 points and includes the requested endpoints. DEC/OCT require a positive points-per-interval value,
 emit their geometric grid from the exact start, and include the exact stop once. Every sweep must
 have finite positive frequencies with `stop > start`, and generated sweeps are limited to one
 million points. A requested grid that cannot be represented as strictly increasing FP64 values is
-rejected instead of silently dropping points. Transient analysis and waveform sources remain typed
-unsupported errors.
+rejected instead of silently dropping points.
+
+Transient `tstep` is the hard maximum accepted step, integration always begins at zero, `tstart`
+is an exact output boundary, and `tstop` is included exactly. Waveform breakpoints are hard
+boundaries. The initial, post-rejection recovery, and waveform-breakpoint landing steps use
+backward Euler; other steps use trapezoidal integration. Every dynamic BE step is error-controlled
+by one full step versus two half steps, while trapezoidal steps use a deterministic BE comparison.
+At a discontinuous source edge, integration reaches the edge with the left-limit forcing and then
+projects algebraic variables to the right limit while preserving capacitor voltages and inductor
+currents. The controller uses a scaled infinity error with `1e-9` absolute and `1e-3` relative tolerances,
+clamps step changes to `[0.5, 2]` with a `0.9` safety factor, and uses `tstep/10000` as the adaptive
+minimum. Mandatory hard-boundary clips may be smaller. Unrepresentable time progress,
+minimum-step exhaustion, non-finite arithmetic, singular systems, and step/attempt limits are
+typed failures. The production limits are 1,000,000 accepted steps and 2,000,000 total attempts.
+
+Without UIC, the existing DC solve initializes the state. UIC instead enforces zero capacitor
+voltage and zero inductor current while solving the remaining algebraic constraints; inconsistent
+constraints fail explicitly, while redundant constraints consistent with voltage sources are
+accepted. Transient-only sources have zero DC initialization, and a transient
+waveform replaces rather than adds to a source's DC value during transient execution.
 
 Use `bazel lint --fix` to apply supported formatting fixes. Individual language checks are
 available with `--only cpp`, `--only python`, `--only shell`, and `--only starlark`.
@@ -82,6 +101,25 @@ command. Final validation must reject implicit lock changes:
 ```sh
 bazel test --lockfile_mode=error //...
 ```
+
+## Hermetic ngspice acceptance
+
+The Phase 2C differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
+that exact executable. It does not search `PATH` or use a system ngspice, compiler, header, or
+library. Configure and Make receive only checksum-pinned BusyBox POSIX tools and GCC binutils on
+their `PATH`; the required execution-platform `/bin/bash` is checksum-verified before configure.
+The runner requires a little-endian x86-64 static executable, rejects any ELF program
+header containing `PT_INTERP` or `PT_DYNAMIC`, and checks the exact version before comparing the
+bounded linear fixtures:
+
+```sh
+bazel test //acceptance:ngspice_acceptance_test
+```
+
+Exact source/build provenance, configure inputs, fixtures, sampling rules, and tolerances are in
+`third_party/ngspice/PROVENANCE.md`. The harness reconstructs and validates complete transient
+reference grids and exact CSV schemas before comparing values. Failure to prove provenance or
+obtain bracketing comparison samples fails the test closed.
 
 ## Hermeticity boundary
 

@@ -1,0 +1,38 @@
+diff --git a/foreign_cc/built_tools/make_build.bzl b/foreign_cc/built_tools/make_build.bzl
+index 00d4320..5c103af 100644
+--- a/foreign_cc/built_tools/make_build.bzl
++++ b/foreign_cc/built_tools/make_build.bzl
+@@ -55,7 +55,11 @@ def _make_tool_impl(ctx):
+         # invocations, so we append --sysroot flags directly to CC and LD.
+         absolute_cc = absolutize(ctx.workspace_name, cc_path, True)
+-        if sysroot_cflags:
+-            absolute_cc += " " + _join_flags_list(ctx.workspace_name, sysroot_cflags)
++        absolute_cxx = absolute_cc
++        # Some older Autoconf type probes invoke $CC without $CFLAGS. Carry
++        # the complete hermetic include search path in $CC so those probes do
++        # not lose the selected Bazel toolchain's zero-sysroot headers.
++        if cflags:
++            absolute_cc += " " + _join_flags_list(ctx.workspace_name, cflags)
+         absolute_ld = absolutize(ctx.workspace_name, ld_path, True)
+         if sysroot_ldflags:
+             absolute_ld += " " + _join_flags_list(ctx.workspace_name, sysroot_ldflags)
+@@ -82,5 +86,6 @@ def _make_tool_impl(ctx):
+             "--without-guile",
+             "--with-guile=no",
++            "--disable-nls",
+             "--disable-dependency-tracking",
+             "--prefix=\"$$INSTALLDIR$$\"",
+         ]
+@@ -101,6 +106,12 @@ def _make_tool_impl(ctx):
+             "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
+             "CC": absolute_cc,
+             "CFLAGS": _join_flags_list(ctx.workspace_name, non_sysroot_cflags),
++            # GNU Make is a C project. Reuse the pinned Clang driver for its
++            # configure-only C++ probe instead of discovering host g++.
++            "CXX": absolute_cxx,
++            "CXXFLAGS": _join_flags_list(ctx.workspace_name, cflags),
+             "LD": absolute_ld,
+             "LDFLAGS": _join_flags_list(ctx.workspace_name, non_sysroot_ldflags),
++            "PKG_CONFIG": ":",
++            "RANLIB": ":",
+         })

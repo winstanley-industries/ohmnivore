@@ -4,7 +4,17 @@ module(
 
 bazel_dep(name = "rules_cc", version = "0.2.22")
 bazel_dep(name = "rules_cuda", version = "0.3.0")
+
+bazel_dep(name = "rules_foreign_cc", version = "0.15.1", dev_dependency = True)
+
 bazel_dep(name = "platforms", version = "1.1.0")
+
+single_version_override(
+    module_name = "rules_foreign_cc",
+    patch_strip = 1,
+    patches = ["//third_party/ngspice:rules_foreign_cc_make_llvm.patch"],
+    version = "0.15.1",
+)
 
 # CUDA 13.0 supports GCC 15, while the default LLVM 22/libc++ toolchain is
 # intentionally newer than nvcc's supported host range.
@@ -54,3 +64,35 @@ cuda_gcc.toolchain(
     target_arch = "x86_64",
 )
 use_repo(cuda_gcc, "ohmnivore_cuda_gcc15")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "busybox_1_35_0_x86_64_musl",
+    downloaded_file_path = "busybox",
+    executable = True,
+    sha256 = "6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348",
+    urls = ["https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox"],
+)
+
+http_archive(
+    name = "ngspice_46",
+    build_file = "//third_party/ngspice:ngspice.BUILD.bazel",
+    patch_strip = 1,
+    patches = ["//third_party/ngspice:ngspice-static-hicum-link.patch"],
+    sha256 = "a0d1699af1940b06649276dcd6ff5a566c8c0cad01b2f7b5e99dedbb4d64c19b",
+    strip_prefix = "ngspice-46",
+    urls = ["https://downloads.sourceforge.net/project/ngspice/ng-spice-rework/46/ngspice-46.tar.gz"],
+)
+
+# Root-registered fail sentinels take precedence over rules_foreign_cc's
+# optional host-tool fallbacks. The release build uses only its generated
+# configure products and the rules_foreign_cc checksum-pinned GNU Make 4.4.1.
+register_toolchains(
+    "//third_party/ngspice:fail_autoconf_toolchain",
+    "//third_party/ngspice:fail_automake_toolchain",
+    "//third_party/ngspice:fail_m4_toolchain",
+    "//third_party/ngspice:fail_pkgconfig_toolchain",
+)

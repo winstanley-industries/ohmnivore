@@ -1,0 +1,7 @@
+* Phase 2C hermetic ngspice acceptance: non-UIC current-driven series RLC
+I1 0 in PULSE(0 1m 0.1m 1u 1u 10m 20m)
+R1 in mid 100
+L1 mid out 1m
+C1 out 0 1u
+.TRAN 0.1u 1m 0.1m
+.END

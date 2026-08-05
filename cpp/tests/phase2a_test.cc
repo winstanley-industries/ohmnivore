@@ -68,8 +68,7 @@ TEST(Phase2AParserTest, ClassifiesMalformedAndUnsupportedSources) {
        .expected_code = ErrorCode::kParse},
       {.netlist = "V1 1 0 SINUSOIDAL\n.OP\n",
        .expected_code = ErrorCode::kParse},
-      {.netlist = "V1 1 0 PULSE(0 5 0 1n 1n 1u 2u)\n.OP\n",
-       .expected_code = ErrorCode::kUnsupported},
+      {.netlist = "V1 1 0 PULSE(0)\n.OP\n", .expected_code = ErrorCode::kParse},
   };
 
   for (const Case &test_case : cases) {

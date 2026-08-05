@@ -1,0 +1,6 @@
+* Phase 2C hermetic ngspice acceptance: linear AC RC low-pass
+V1 in 0 AC 1 0
+R1 in out 1k
+C1 out 0 1u
+.AC DEC 5 10 100k
+.END

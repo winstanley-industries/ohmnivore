@@ -2,11 +2,10 @@
 
 Ohmnivore reads SPICE-subset netlists. This document covers the supported syntax.
 
-> **Migration note:** The detailed nonlinear and transient forms below describe the legacy Rust
-> prototype. The active C++ Phase 2B parser supports only positive R/L/C devices; independent V/I
-> sources in bare DC, `DC value`, `AC magnitude [phase_degrees]`, or DC-then-AC form; `.DC`, `.OP`,
-> `.AC DEC|OCT|LIN`, `.PRINT`, and `.END`. A source without DC or AC is malformed. Recognized
-> PULSE/SIN/PWL/EXP waveforms and `.TRAN` remain typed unsupported errors.
+> **Migration note:** The active C++ Phase 2C parser supports positive R/L/C devices; independent
+> V/I sources with strict DC, AC, PULSE, SIN, PWL, and EXP specifications; `.DC`, `.OP`, `.AC`,
+> `.TRAN`, `.PRINT`, and `.END`. The nonlinear forms later in this document remain legacy Rust
+> reference material.
 
 ## Structure
 
@@ -77,7 +76,9 @@ Vname  n+  n-  [DC val]  [AC mag [phase]]  [transient_func]
 Iname  n+  n-  [DC val]  [AC mag [phase]]  [transient_func]
 ```
 
-All three specs are optional and combinable. A bare number means DC. Examples:
+The specifications must appear in the order shown, and at least one must be present. A bare number
+means DC. A transient waveform replaces rather than adds to the DC value during transient
+execution. Examples:
 
 ```spice
 V1 1 0 DC 5               * 5V DC source
@@ -111,6 +112,11 @@ PULSE(v1 v2 td tr tf pw per)
 
 Example: `V1 1 0 PULSE(0 5 0 1n 1n 0.5m 1m)`
 
+`v1` and `v2` may have either sign. All time parameters are finite and nonnegative; an explicitly
+supplied period is strictly positive. PULSE accepts exactly two through seven parameters. The
+infinite `pw`/`per` defaults are represented by the largest finite FP64 value, preserving legacy
+non-falling/non-repeating behavior without admitting a non-finite token.
+
 **SIN** -- sinusoidal:
 
 ```
@@ -127,6 +133,9 @@ SIN(vo va freq td theta)
 
 Example: `V1 1 0 SIN(0 1 1MEG)`
 
+SIN accepts exactly three through five finite parameters. Frequency, delay, and damping must be
+nonnegative.
+
 **PWL** -- piecewise linear:
 
 ```
@@ -134,6 +143,9 @@ PWL(t1 v1 t2 v2 ... tn vn)
 ```
 
 Specifies time-value pairs. The source linearly interpolates between them.
+
+At least one finite pair is required. Times must be nonnegative and strictly increasing. Before
+the first and after the last pair the value is held constant.
 
 Example: `V1 1 0 PWL(0 0 1u 5 2u 5 3u 0)`
 
@@ -153,6 +165,14 @@ EXP(v1 v2 td1 tau1 td2 tau2)
 | `tau2` | Fall time constant | infinity |
 
 Example: `V1 1 0 EXP(0 5 0 1u 5u 1u)`
+
+EXP accepts exactly two through six finite parameters. Delays are nonnegative, time constants are
+strictly positive, and the fall delay cannot precede the rise delay.
+
+Waveform values may be separated by whitespace or commas. Parentheses are required. Text after
+the closing parenthesis, missing/incomplete parameters, extra positional parameters, non-finite
+numbers, and additional waveform specifications are parse errors; the source line is always
+consumed in full.
 
 ## Semiconductor Devices
 

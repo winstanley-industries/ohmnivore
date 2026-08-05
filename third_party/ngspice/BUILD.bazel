@@ -1,0 +1,165 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load(":hermetic_posix_tools.bzl", "hermetic_copy", "hermetic_posix_tools")
+
+package(default_visibility = ["//visibility:private"])
+
+exports_files([
+    "ngspice-static-hicum-link.patch",
+    "ngspice.BUILD.bazel",
+    "rules_foreign_cc_make_llvm.patch",
+    "hermetic_posix_tools.bzl",
+])
+
+cc_binary(
+    name = "hermetic_tools_builder",
+    srcs = ["hermetic_tools_builder.cc"],
+)
+
+hermetic_posix_tools(
+    name = "hermetic_posix_tools",
+    busybox = "@busybox_1_35_0_x86_64_musl//file",
+    builder = ":hermetic_tools_builder",
+)
+
+[
+    cc_binary(
+        name = "unavailable_{}".format(tool),
+        srcs = ["unavailable_build_tool.cc"],
+    )
+    for tool in [
+        "autoconf",
+        "automake",
+        "m4",
+        "pkgconfig",
+    ]
+]
+
+[
+    native_tool_toolchain(
+        name = "fail_native_{}".format(tool),
+        path = "$(execpath :unavailable_{})".format(tool),
+        target = ":unavailable_{}".format(tool),
+    )
+    for tool in [
+        "autoconf",
+        "automake",
+        "m4",
+        "pkgconfig",
+    ]
+]
+
+toolchain(
+    name = "fail_autoconf_toolchain",
+    toolchain = ":fail_native_autoconf",
+    toolchain_type = "@rules_foreign_cc//toolchains:autoconf_toolchain",
+)
+
+toolchain(
+    name = "fail_automake_toolchain",
+    toolchain = ":fail_native_automake",
+    toolchain_type = "@rules_foreign_cc//toolchains:automake_toolchain",
+)
+
+toolchain(
+    name = "fail_m4_toolchain",
+    toolchain = ":fail_native_m4",
+    toolchain_type = "@rules_foreign_cc//toolchains:m4_toolchain",
+)
+
+toolchain(
+    name = "fail_pkgconfig_toolchain",
+    toolchain = ":fail_native_pkgconfig",
+    toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
+)
+
+hermetic_copy(
+    name = "pinned_ngspice_libstdcxx",
+    builder = ":hermetic_tools_builder",
+    # A distinct output name prevents libtool from replacing the declared
+    # archive with the relocated sibling libstdc++.la/shared-library metadata.
+    output_name = "pinned_ngspice_libstdcxx.a",
+    src = "@ohmnivore_cuda_gcc15//:lib64/libstdc++.a",
+)
+
+configure_make(
+    name = "ngspice_46_build",
+    args = [
+        "-j8",
+        "ngspice_LDFLAGS=-all-static",
+    ],
+    build_data = [
+        "@busybox_1_35_0_x86_64_musl//file",
+        ":hermetic_posix_tools",
+        ":pinned_ngspice_libstdcxx",
+        "@ohmnivore_cuda_gcc15//:all_files",
+    ],
+    configure_prefix = " ".join([
+        "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/sha256sum /bin/bash | $$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/grep -qx '3efccc187bafa75ff1e37d246270ab3e7aa559f242c7a52bf3ec2a1b5450bdbd  /bin/bash' &&",
+        "CC=\"$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin/gcc\"",
+        "CXX=\"$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin/g++\"",
+        "AR=\"$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin/ar\"",
+        "NM=\"$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin/nm\"",
+        "OBJDUMP=\"$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin/objdump\"",
+        "STRIP=\"$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin/strip\"",
+        # Deterministic GNU ar `s` indexing is already requested by
+        # ARFLAGS=rcsD; avoid any undeclared ranlib discovery.
+        "RANLIB=:",
+        "ARFLAGS=rcsD",
+        "CFLAGS=\"--sysroot=$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot -O2 -fno-omit-frame-pointer -ffile-prefix-map=$$EXT_BUILD_ROOT$$=.\"",
+        "CXXFLAGS=\"--sysroot=$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot -O2 -fno-omit-frame-pointer -ffile-prefix-map=$$EXT_BUILD_ROOT$$=.\"",
+        "LDFLAGS=\"--sysroot=$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot -static -no-pie\"",
+        # Avoid libtool's relocated libstdc++.la metadata, which names the
+        # shared object even under -all-static. The declared archive is copied
+        # to a distinct Bazel output name and kept last through Autoconf's LIBS
+        # substitution.
+        "ac_cv_lib_stdcpp_main=no",
+        "lt_cv_path_MAGIC_CMD=:",
+        "LIBS=\"$$EXT_BUILD_ROOT$$/$(execpath :pinned_ngspice_libstdcxx) -Wl,--start-group $$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot/usr/lib/libm-2.28.a $$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot/usr/lib/libmvec.a -Wl,--end-group\"",
+    ]),
+    configure_options = [
+        "--disable-cider",
+        "--disable-dependency-tracking",
+        "--disable-klu",
+        "--disable-maintainer-mode",
+        "--disable-openmp",
+        "--disable-osdi",
+        "--disable-shared",
+        "--disable-xspice",
+        "--enable-static",
+        "--with-editline=no",
+        "--with-fftw3=no",
+        "--with-readline=no",
+        "--without-x",
+    ],
+    env = {
+        "AUTOCONF": "false",
+        "AUTOMAKE": "false",
+        "AWK": "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/awk",
+        # The release archive contains newer generated C/header pairs.  These
+        # sentinels prevent configure or make from discovering system parser
+        # generators and fail the build if regeneration is ever required.
+        "BISON": "false",
+        "CONFIG_SHELL": "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/sh",
+        "GREP": "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/grep",
+        "LEX": "false",
+        "M4": "false",
+        "PATH": "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools):$$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/bin",
+        "PKG_CONFIG": "false",
+        "SED": "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/sed",
+        "SHELL": "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/sh",
+        "SOURCE_DATE_EPOCH": "1774742400",
+        "YACC": "false",
+    },
+    lib_source = "@ngspice_46//:all_srcs",
+    out_binaries = ["ngspice"],
+    tags = ["manual"],
+)
+
+filegroup(
+    name = "ngspice_binary",
+    srcs = [":ngspice_46_build"],
+    output_group = "ngspice",
+    visibility = ["//acceptance:__pkg__"],
+)

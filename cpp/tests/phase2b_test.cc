@@ -160,19 +160,19 @@ I1 0 in +4m AC +5m +180
   EXPECT_EQ(bare_plus.error().code, ErrorCode::kParse);
 }
 
-TEST(Phase2BParserTest, KeepsRecognizedTransientWaveformsTypedUnsupported) {
+TEST(Phase2BParserTest, RejectsMalformedRecognizedTransientWaveforms) {
   const std::vector<std::string> specifications = {
-      "PULSE(0 1 0 1n 1n 1u 2u)",
-      "SIN(0 1 1k)",
-      "PWL(0 0 1u 1)",
-      "EXP(0 1 0 1u 2u 1u)",
-      "DC 1 AC 2 0 PULSE(0 1)",
+      "PULSE(0)",
+      "SIN(0 1)",
+      "PWL(0 0 0 1)",
+      "EXP(0 1 0 0)",
+      "DC 1 AC 2 0 PULSE(0 1) trailing",
   };
   for (const std::string &specification : specifications) {
     SCOPED_TRACE(specification);
     auto parsed = ParseNetlist("V1 1 0 " + specification + "\n.OP\n");
     ASSERT_FALSE(parsed.ok());
-    EXPECT_EQ(parsed.error().code, ErrorCode::kUnsupported);
+    EXPECT_EQ(parsed.error().code, ErrorCode::kParse);
     EXPECT_NE(parsed.error().message.find("line 1"), std::string::npos);
   }
 }

@@ -1,5 +1,7 @@
 #include "ohmnivore/compiler.h"
 
+#include "ohmnivore/waveform.h"
+
 #include <cmath>
 #include <complex>
 #include <cstddef>
@@ -93,6 +95,18 @@ AcToComplex(const AcSourceSpecification &specification) {
   return std::isfinite(value.real()) && std::isfinite(value.imag());
 }
 
+[[nodiscard]] std::optional<std::string>
+ValidateTransientSource(const std::optional<TransientWaveform> &waveform) {
+  if (!waveform.has_value()) {
+    return std::nullopt;
+  }
+  const Result<double> evaluated = EvaluateTransientWaveform(*waveform, 0.0);
+  if (!evaluated.ok()) {
+    return evaluated.error().message;
+  }
+  return std::nullopt;
+}
+
 [[nodiscard]] std::optional<std::string> ValidateCsr(const CsrMatrix &matrix) {
   if (matrix.row_offsets.size() != matrix.rows + 1 ||
       matrix.column_indices.size() != matrix.values.size()) {
@@ -169,6 +183,9 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
   std::map<Coordinate, double> c_entries;
   std::vector<double> b_dc(size, 0.0);
   std::vector<std::complex<double>> b_ac(size, {0.0, 0.0});
+  std::vector<TransientSourceStamp> transient_sources;
+  std::vector<CapacitorInitialConstraint> capacitor_constraints;
+  std::vector<InductorInitialConstraint> inductor_constraints;
   for (std::size_t node = 0; node < node_count; ++node) {
     AddStamp(&g_entries, node, node, kGminSiemens);
   }
@@ -212,6 +229,11 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       if (positive == negative) {
         continue;
       }
+      capacitor_constraints.push_back(CapacitorInitialConstraint{
+          .name = capacitor->name,
+          .positive_node_index = positive,
+          .negative_node_index = negative,
+      });
       if (positive.has_value()) {
         AddStamp(&c_entries, *positive, *positive,
                  capacitor->capacitance_farads);
@@ -230,10 +252,11 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
     }
 
     if (const auto *current = std::get_if<CurrentSource>(&component)) {
-      if (!current->dc_amperes.has_value() && !current->ac.has_value()) {
-        return Result<MnaSystem>::Fail(ErrorCode::kCompile,
-                                       "current source '" + current->name +
-                                           "' has neither a DC nor AC value");
+      if (!current->dc_amperes.has_value() && !current->ac.has_value() &&
+          !current->transient.has_value()) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile, "current source '" + current->name +
+                                     "' has no DC, AC, or transient value");
       }
       if (current->dc_amperes.has_value() &&
           !std::isfinite(*current->dc_amperes)) {
@@ -249,6 +272,13 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
         return Result<MnaSystem>::Fail(ErrorCode::kCompile,
                                        "current source '" + current->name +
                                            "' has invalid AC value");
+      }
+      if (const auto error = ValidateTransientSource(current->transient);
+          error.has_value()) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile,
+            "current source '" + current->name +
+                "' has invalid transient value: " + *error);
       }
       const auto positive = FindNode(current->positive_node, node_map);
       const auto negative = FindNode(current->negative_node, node_map);
@@ -272,6 +302,23 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
           b_ac[*negative] += ac_value;
         }
       }
+      if (current->transient.has_value()) {
+        TransientSourceStamp source{
+            .name = current->name,
+            .dc_value = current->dc_amperes.value_or(0.0),
+            .waveform = *current->transient,
+            .rhs_stamps = {},
+        };
+        if (positive.has_value()) {
+          source.rhs_stamps.push_back(
+              TransientRhsStamp{.index = *positive, .coefficient = -1.0});
+        }
+        if (negative.has_value()) {
+          source.rhs_stamps.push_back(
+              TransientRhsStamp{.index = *negative, .coefficient = 1.0});
+        }
+        transient_sources.push_back(std::move(source));
+      }
       continue;
     }
 
@@ -290,10 +337,11 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       negative_node = &inductor->negative_node;
     } else {
       const auto &source = std::get<VoltageSource>(component);
-      if (!source.dc_volts.has_value() && !source.ac.has_value()) {
-        return Result<MnaSystem>::Fail(ErrorCode::kCompile,
-                                       "voltage source '" + source.name +
-                                           "' has neither a DC nor AC value");
+      if (!source.dc_volts.has_value() && !source.ac.has_value() &&
+          !source.transient.has_value()) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile, "voltage source '" + source.name +
+                                     "' has no DC, AC, or transient value");
       }
       if (source.dc_volts.has_value() && !std::isfinite(*source.dc_volts)) {
         return Result<MnaSystem>::Fail(ErrorCode::kCompile,
@@ -307,6 +355,13 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
         return Result<MnaSystem>::Fail(ErrorCode::kCompile,
                                        "voltage source '" + source.name +
                                            "' has invalid AC value");
+      }
+      if (const auto error = ValidateTransientSource(source.transient);
+          error.has_value()) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile,
+            "voltage source '" + source.name +
+                "' has invalid transient value: " + *error);
       }
       name = &source.name;
       positive_node = &source.positive_node;
@@ -332,6 +387,10 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
 
     if (const auto *inductor = std::get_if<Inductor>(&component)) {
       AddStamp(&c_entries, branch, branch, -inductor->inductance_henries);
+      inductor_constraints.push_back(InductorInitialConstraint{
+          .name = inductor->name,
+          .branch_index = branch,
+      });
     } else {
       const auto &source = std::get<VoltageSource>(component);
       if (source.dc_volts.has_value()) {
@@ -339,6 +398,15 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       }
       if (source.ac.has_value()) {
         b_ac[branch] = AcToComplex(*source.ac);
+      }
+      if (source.transient.has_value()) {
+        transient_sources.push_back(TransientSourceStamp{
+            .name = source.name,
+            .dc_value = source.dc_volts.value_or(0.0),
+            .waveform = *source.transient,
+            .rhs_stamps = {TransientRhsStamp{.index = branch,
+                                             .coefficient = 1.0}},
+        });
       }
     }
   }
@@ -379,6 +447,9 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       .b_ac = std::move(b_ac),
       .node_names = std::move(node_names),
       .branch_names = std::move(branch_names),
+      .transient_sources = std::move(transient_sources),
+      .capacitor_initial_constraints = std::move(capacitor_constraints),
+      .inductor_initial_constraints = std::move(inductor_constraints),
   });
 }
 

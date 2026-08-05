@@ -1,0 +1,9 @@
+package(default_visibility = ["//visibility:public"])
+
+# The official release archive contains generated configure/Makefile/parser
+# products, allowing the acceptance-only build to avoid Autotools, Bison, and
+# Flex discovery.
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)

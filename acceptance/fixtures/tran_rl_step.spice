@@ -1,0 +1,6 @@
+* Phase 2C hermetic ngspice acceptance: true series-RL step
+V1 in 0 PULSE(0 5 0 1u 1u 10m 20m)
+R1 in out 100
+L1 out 0 10m
+.TRAN 2u 2m 0 UIC
+.END

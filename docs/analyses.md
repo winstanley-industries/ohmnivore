@@ -2,9 +2,9 @@
 
 Ohmnivore runs three analysis types: DC operating point, AC frequency sweep, and transient. A dot command in the netlist requests each analysis.
 
-> **Migration note:** The active C++ Phase 2B path executes only linear RLCVI `.DC`/`.OP` and `.AC`
-> on the dense FP64 CPU correctness solver. The transient, nonlinear, GPU, and CLI-option details
-> below remain legacy Rust reference material.
+> **Migration note:** The active C++ Phase 2C path executes linear RLCVI `.DC`/`.OP`, `.AC`, and
+> `.TRAN` on dense FP64 CPU correctness solvers. Nonlinear, GPU solver-dispatch, and CLI-option
+> details below remain legacy Rust reference material.
 
 All results print to stdout as CSV.
 
@@ -84,7 +84,7 @@ Sweeps a frequency range and reports magnitude and phase at each node. Sources w
 .AC LIN npoints fstart fstop    * linear, npoints total
 ```
 
-On the C++ Phase 2B path, all frequencies must be finite and positive with `fstop > fstart`.
+On the C++ Phase 2C path, all frequencies must be finite and positive with `fstop > fstart`.
 DEC/OCT require a positive points-per-decade/octave value and emit the start, geometric interior
 grid, and exact stop once (`ceil(npoints * log_base(fstop/fstart)) + 1` total rows). LIN requires at
 least two points, emits exactly `npoints` rows, and includes both endpoints. Sweeps are strictly
@@ -127,7 +127,12 @@ Each frequency point is a row. Magnitudes are linear (not dB). Phases are in deg
 
 ## Transient Analysis
 
-Simulates the circuit over time with time-varying sources. Uses backward Euler integration with adaptive timestep and Newton-Raphson for nonlinear elements.
+The C++ Phase 2C path simulates only linear RLCVI circuits. It solves
+`G*x + C*dx/dt = b(t)` with backward Euler for the initial, recovery, and waveform-breakpoint
+landing steps, then trapezoidal integration with deterministic adaptive timestep control. A
+discontinuous source is integrated to its edge with the left-limit forcing; the right-limit
+algebraic state is then projected without changing capacitor voltages or inductor currents. It
+does not perform Newton iteration or admit nonlinear devices.
 
 **Syntax:**
 
@@ -137,10 +142,33 @@ Simulates the circuit over time with time-varying sources. Uses backward Euler i
 
 | Parameter | Description |
 |---|---|
-| `tstep` | Suggested output timestep |
+| `tstep` | Hard maximum accepted timestep |
 | `tstop` | End time |
-| `tstart` | Start time for recording output (default: 0) |
-| `UIC` | Use Initial Conditions -- skip DC operating point, start from zero |
+| `tstart` | Exact first output time; integration still starts at zero (default: 0) |
+| `UIC` | Skip the DC solve and enforce zero capacitor voltage and zero inductor current |
+
+All time values must be finite. `tstep` and `tstop` must be positive, and
+`0 <= tstart <= tstop`. Parsing consumes the full directive, so misspelled `UIC` or extra tokens
+are errors.
+
+The accepted time grid is strictly increasing. It contains exact `tstart` and `tstop` values plus
+every PULSE, SIN-delay, PWL, and EXP breakpoint within the interval; adaptive stepping cannot jump
+over them. Dynamic BE steps compare one full step with two half steps; trapezoidal steps compare
+TRAP and BE with `(2/3)*|x_trap-x_be|`. Both estimates are scaled by
+`1e-9 + 1e-3*max(|x_high|,|x_low|)`. Its safety factor is `0.9`,
+growth/shrink factor is clamped to `[0.5,2]`, and its adaptive minimum is `tstep/10000`.
+Mandatory exact-boundary clips may be smaller than that minimum. Non-finite arithmetic,
+unrepresentable progress, singular systems, minimum-step exhaustion, and bounded step/attempt
+limits return typed failures instead of partial output. The bounds are 1,000,000 accepted steps
+and 2,000,000 attempts. An algebraic-only BE step has zero dynamic LTE; a mandatory one-ULP
+boundary clip is accepted when no representable midpoint exists.
+
+Without UIC, the complete state comes from the existing GMIN-inclusive DC operating-point solve.
+With UIC, zero reactive state is a constraint, not an assumption that every voltage/current is
+zero; the remaining algebraic system is solved and inconsistent constraints fail. A transient
+constraint already imposed consistently by an ideal voltage source is accepted as redundant. A
+transient waveform replaces its source's DC value while transient time advances. Transient-only sources use
+zero during DC or UIC initialization.
 
 **Example -- RC charging:**
 
@@ -185,6 +213,8 @@ time,V(n1),V(n2),I(V1)
 ```
 
 Each time point is a row. All node voltages and branch currents are included.
+Nodes and the interleaved voltage-source/inductor branches retain IR insertion order. Identifiers
+requiring CSV quoting use standard doubled-quote escaping.
 
 ## GPU Acceleration
 

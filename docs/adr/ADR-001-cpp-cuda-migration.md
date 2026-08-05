@@ -164,17 +164,43 @@ sparse-direct dependency, CUDA circuit kernels or solver dispatch, mixed precisi
 solving. Analytic FP64 solutions provide acceptance for this slice. A separately checksum-pinned
 hermetic ngspice harness remains required before any ngspice differential-acceptance claim.
 
+## Phase 2C: Deterministic linear transient CPU correctness path
+
+Phase 2C completes and differentially accepts the linear FP64 CPU subset. It adds:
+
+- typed PULSE, SIN, PWL, and EXP source waveforms after optional DC and AC specifications, with
+  exact token consumption, finite values, explicit defaults, strict arity, and validated time and
+  waveform domains;
+- validated `.TRAN tstep tstop [tstart] [UIC]` analysis IR;
+- deterministic time-dependent voltage/current-source RHS construction using the existing branch
+  and current-source signs;
+- canonical independent-pattern backward-Euler and trapezoidal companion systems;
+- deterministic scaled FP64 BE step-doubling and BE/TRAP local-error control bounded by a
+  declared maximum step, adaptive minimum, attempt/point limits, and typed failure contracts;
+- exact output-start, waveform-breakpoint, and stop-time landing;
+- left-limit integration and zero-time reactive-state-preserving projection at discontinuous
+  source edges;
+- DC operating-point initialization by default and deterministic zero capacitor-voltage/zero
+  inductor-current UIC constraints with typed inconsistency failures;
+- legacy-compatible transient CSV schema, insertion order, signs, and C++ CSV escaping; and
+- a checksum-pinned, Bazel-built ngspice 46 acceptance harness covering only representative linear
+  RLCVI DC, AC, and transient fixtures under recorded comparison tolerances.
+
+Phase 2C does not add nonlinear or nonlinear-transient execution, initial-condition syntax beyond
+the UIC zero-reactive-state contract, a production sparse-direct dependency, CUDA circuit kernels
+or solver dispatch, mixed precision, MPI/NCCL/RAS/domain decomposition, or performance claims.
+The ngspice claim applies only to the recorded linear fixtures and deterministic comparison
+contract.
+
 ## Follow-up phases
 
-1. Complete and differentially accept the remaining linear CPU path: transient excitation and
-   execution plus the checksum-pinned hermetic ngspice comparison harness.
-2. Select the hermetic sparse-direct FP64 CPU oracle using circuit-representative correctness and
+1. Select the hermetic sparse-direct FP64 CPU oracle using circuit-representative correctness and
    performance evidence.
-3. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear
+2. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear
    transient on CPU.
-4. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
+3. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
    validation, replay, and end-to-end benchmarks.
-5. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before
+4. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before
    considering single-circuit domain decomposition.
 
 ## Consequences

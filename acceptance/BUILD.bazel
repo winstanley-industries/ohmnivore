@@ -1,0 +1,46 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+SANITIZER_INCOMPATIBILITY = select({
+    "//:asan_enabled": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+}) + select({
+    "//:ubsan_enabled": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
+cc_test(
+    name = "ngspice_acceptance_test",
+    size = "large",
+    timeout = "long",
+    srcs = ["ngspice_acceptance_test.cc"],
+    args = [
+        "$(rootpath //cpp:ohmnivore)",
+        "$(rootpath //third_party/ngspice:ngspice_binary)",
+        "$(rootpath :fixtures/dc_voltage_divider.spice)",
+        "$(rootpath :fixtures/ac_rc_lowpass.spice)",
+        "$(rootpath :fixtures/tran_rc_uic_charging.spice)",
+        "$(rootpath :fixtures/tran_pulse_rc.spice)",
+        "$(rootpath :fixtures/tran_rl_step.spice)",
+        "$(rootpath :fixtures/tran_current_rlc_non_uic.spice)",
+    ],
+    copts = [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-Wpedantic",
+    ],
+    data = [
+        ":fixtures/ac_rc_lowpass.spice",
+        ":fixtures/dc_voltage_divider.spice",
+        ":fixtures/tran_pulse_rc.spice",
+        ":fixtures/tran_rc_uic_charging.spice",
+        ":fixtures/tran_rl_step.spice",
+        ":fixtures/tran_current_rlc_non_uic.spice",
+        "//cpp:ohmnivore",
+        "//third_party/ngspice:ngspice_binary",
+    ],
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    visibility = ["//visibility:public"],
+)

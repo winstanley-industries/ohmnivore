@@ -3,6 +3,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -168,73 +169,309 @@ ParseInductor(const std::vector<std::string> &tokens) {
   });
 }
 
-[[nodiscard]] bool IsUnsupportedSourceToken(std::string_view token) {
-  const std::string upper = Upper(token);
-  const auto is_waveform = [&](std::string_view keyword) {
-    return upper == keyword || upper.starts_with(std::string(keyword) + "(");
-  };
-  return is_waveform("PULSE") || is_waveform("SIN") || is_waveform("PWL") ||
-         is_waveform("EXP");
-}
-
 struct SourceSpecifications {
   std::optional<double> dc;
   std::optional<AcSourceSpecification> ac;
+  std::optional<TransientWaveform> transient;
 };
 
-[[nodiscard]] Result<SourceSpecifications>
-ParseSourceSpecifications(const std::vector<std::string> &tokens,
-                          std::string_view source_kind) {
-  for (std::size_t index = 3; index < tokens.size(); ++index) {
-    if (IsUnsupportedSourceToken(tokens[index])) {
-      return Result<SourceSpecifications>::Fail(
-          ErrorCode::kUnsupported, "phase 2B does not support transient " +
-                                       std::string(source_kind) +
-                                       "-source waveforms");
+[[nodiscard]] bool IsAsciiWhitespace(char character) {
+  return character == ' ' || character == '\t' || character == '\r' ||
+         character == '\n';
+}
+
+[[nodiscard]] bool StartsWithCaseInsensitive(std::string_view input,
+                                             std::string_view prefix) {
+  if (input.size() < prefix.size()) {
+    return false;
+  }
+  return Upper(input.substr(0, prefix.size())) == prefix;
+}
+
+[[nodiscard]] bool StartsWithKeywordToken(std::string_view input,
+                                          std::string_view keyword) {
+  input = Trim(input);
+  if (!StartsWithCaseInsensitive(input, keyword)) {
+    return false;
+  }
+  return input.size() == keyword.size() ||
+         IsAsciiWhitespace(input[keyword.size()]) ||
+         input[keyword.size()] == '(';
+}
+
+[[nodiscard]] bool StartsWithWaveformKeyword(std::string_view input) {
+  return StartsWithKeywordToken(input, "PULSE") ||
+         StartsWithKeywordToken(input, "SIN") ||
+         StartsWithKeywordToken(input, "PWL") ||
+         StartsWithKeywordToken(input, "EXP");
+}
+
+[[nodiscard]] bool ConsumeKeyword(std::string_view keyword,
+                                  std::string_view *input) {
+  *input = Trim(*input);
+  if (!StartsWithCaseInsensitive(*input, keyword)) {
+    return false;
+  }
+  if (input->size() != keyword.size() &&
+      !IsAsciiWhitespace((*input)[keyword.size()])) {
+    return false;
+  }
+  input->remove_prefix(keyword.size());
+  *input = Trim(*input);
+  return true;
+}
+
+[[nodiscard]] std::optional<std::string_view>
+TakeWhitespaceToken(std::string_view *input) {
+  *input = Trim(*input);
+  if (input->empty()) {
+    return std::nullopt;
+  }
+  std::size_t length = 0;
+  while (length < input->size() && !IsAsciiWhitespace((*input)[length])) {
+    ++length;
+  }
+  const std::string_view token = input->substr(0, length);
+  input->remove_prefix(length);
+  *input = Trim(*input);
+  return token;
+}
+
+[[nodiscard]] Result<double> TakeEngineeringValue(std::string_view *input,
+                                                  std::string_view syntax) {
+  const auto token = TakeWhitespaceToken(input);
+  if (!token.has_value()) {
+    return Result<double>::Fail(ErrorCode::kParse, std::string(syntax));
+  }
+  return ParseEngineeringValue(*token);
+}
+
+[[nodiscard]] Result<std::vector<double>>
+ParseWaveformArguments(std::string_view input) {
+  std::vector<double> values;
+  input = Trim(input);
+  while (!input.empty()) {
+    if (input.front() == ',') {
+      return Result<std::vector<double>>::Fail(
+          ErrorCode::kParse, "waveform contains an empty parameter");
+    }
+
+    std::size_t length = 0;
+    while (length < input.size() && input[length] != ',' &&
+           !IsAsciiWhitespace(input[length])) {
+      ++length;
+    }
+    auto value = ParseEngineeringValue(input.substr(0, length));
+    if (!value.ok()) {
+      return Result<std::vector<double>>::Fail(value.error().code,
+                                               value.error().message);
+    }
+    values.push_back(value.value());
+    input.remove_prefix(length);
+
+    bool saw_comma = false;
+    while (!input.empty() && IsAsciiWhitespace(input.front())) {
+      input.remove_prefix(1);
+    }
+    if (!input.empty() && input.front() == ',') {
+      saw_comma = true;
+      input.remove_prefix(1);
+      while (!input.empty() && IsAsciiWhitespace(input.front())) {
+        input.remove_prefix(1);
+      }
+    }
+    if (saw_comma && (input.empty() || input.front() == ',')) {
+      return Result<std::vector<double>>::Fail(
+          ErrorCode::kParse, "waveform contains an empty parameter");
     }
   }
+  return Result<std::vector<double>>::Ok(std::move(values));
+}
 
+[[nodiscard]] Result<TransientWaveform>
+ParseTransientWaveform(std::string_view input) {
+  input = Trim(input);
+  std::string_view keyword;
+  if (StartsWithKeywordToken(input, "PULSE")) {
+    keyword = "PULSE";
+  } else if (StartsWithKeywordToken(input, "SIN")) {
+    keyword = "SIN";
+  } else if (StartsWithKeywordToken(input, "PWL")) {
+    keyword = "PWL";
+  } else if (StartsWithKeywordToken(input, "EXP")) {
+    keyword = "EXP";
+  } else {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse,
+        "expected one PULSE, SIN, PWL, or EXP waveform at the end of the "
+        "source specification");
+  }
+
+  if (input.size() <= keyword.size() || input[keyword.size()] != '(') {
+    return Result<TransientWaveform>::Fail(ErrorCode::kParse,
+                                           "expected '(' immediately after " +
+                                               std::string(keyword));
+  }
+  const std::size_t close = input.find(')', keyword.size() + 1);
+  if (close == std::string_view::npos) {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse, "expected ')' to close " + std::string(keyword));
+  }
+  const std::string_view inner =
+      input.substr(keyword.size() + 1, close - keyword.size() - 1);
+  if (inner.find_first_of("()") != std::string_view::npos) {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse, "nested waveform parentheses are not allowed");
+  }
+  if (!Trim(input.substr(close + 1)).empty()) {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse, "trailing text after transient waveform");
+  }
+
+  auto parsed_values = ParseWaveformArguments(inner);
+  if (!parsed_values.ok()) {
+    return Result<TransientWaveform>::Fail(parsed_values.error().code,
+                                           parsed_values.error().message);
+  }
+  const std::vector<double> &values = parsed_values.value();
+  const double maximum = std::numeric_limits<double>::max();
+  if (keyword == "PULSE") {
+    if (values.size() < 2 || values.size() > 7) {
+      return Result<TransientWaveform>::Fail(
+          ErrorCode::kParse, "PULSE requires between two and seven parameters");
+    }
+    const double delay = values.size() > 2 ? values[2] : 0.0;
+    const double rise = values.size() > 3 ? values[3] : 0.0;
+    const double fall = values.size() > 4 ? values[4] : 0.0;
+    const double width = values.size() > 5 ? values[5] : maximum;
+    const double period = values.size() > 6 ? values[6] : maximum;
+    if (delay < 0.0 || rise < 0.0 || fall < 0.0 || width < 0.0) {
+      return Result<TransientWaveform>::Fail(
+          ErrorCode::kParse, "PULSE delay and durations must be nonnegative");
+    }
+    if (period <= 0.0) {
+      return Result<TransientWaveform>::Fail(
+          ErrorCode::kParse, "PULSE period must be greater than zero");
+    }
+    return Result<TransientWaveform>::Ok(PulseWaveform{
+        .initial_value = values[0],
+        .pulsed_value = values[1],
+        .delay_seconds = delay,
+        .rise_time_seconds = rise,
+        .fall_time_seconds = fall,
+        .pulse_width_seconds = width,
+        .period_seconds = period,
+    });
+  }
+  if (keyword == "SIN") {
+    if (values.size() < 3 || values.size() > 5) {
+      return Result<TransientWaveform>::Fail(
+          ErrorCode::kParse, "SIN requires between three and five parameters");
+    }
+    const double delay = values.size() > 3 ? values[3] : 0.0;
+    const double damping = values.size() > 4 ? values[4] : 0.0;
+    if (values[2] < 0.0 || delay < 0.0 || damping < 0.0) {
+      return Result<TransientWaveform>::Fail(
+          ErrorCode::kParse,
+          "SIN frequency, delay, and damping factor must be nonnegative");
+    }
+    return Result<TransientWaveform>::Ok(SinWaveform{
+        .offset = values[0],
+        .amplitude = values[1],
+        .frequency_hz = values[2],
+        .delay_seconds = delay,
+        .damping_factor_per_second = damping,
+    });
+  }
+  if (keyword == "PWL") {
+    if (values.size() < 2 || values.size() % 2 != 0) {
+      return Result<TransientWaveform>::Fail(
+          ErrorCode::kParse,
+          "PWL requires one or more complete time-value pairs");
+    }
+    PwlWaveform waveform;
+    waveform.time_value_pairs.reserve(values.size() / 2);
+    for (std::size_t index = 0; index < values.size(); index += 2) {
+      if (values[index] < 0.0) {
+        return Result<TransientWaveform>::Fail(ErrorCode::kParse,
+                                               "PWL times must be nonnegative");
+      }
+      if (!waveform.time_value_pairs.empty() &&
+          values[index] <= waveform.time_value_pairs.back().first) {
+        return Result<TransientWaveform>::Fail(
+            ErrorCode::kParse, "PWL times must be strictly increasing");
+      }
+      waveform.time_value_pairs.emplace_back(values[index], values[index + 1]);
+    }
+    return Result<TransientWaveform>::Ok(std::move(waveform));
+  }
+
+  if (values.size() < 2 || values.size() > 6) {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse, "EXP requires between two and six parameters");
+  }
+  const double rise_delay = values.size() > 2 ? values[2] : 0.0;
+  const double rise_time_constant = values.size() > 3 ? values[3] : maximum;
+  const double fall_delay = values.size() > 4 ? values[4] : maximum;
+  const double fall_time_constant = values.size() > 5 ? values[5] : maximum;
+  if (rise_delay < 0.0 || fall_delay < 0.0) {
+    return Result<TransientWaveform>::Fail(ErrorCode::kParse,
+                                           "EXP delays must be nonnegative");
+  }
+  if (rise_time_constant <= 0.0 || fall_time_constant <= 0.0) {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse, "EXP time constants must be greater than zero");
+  }
+  if (fall_delay < rise_delay) {
+    return Result<TransientWaveform>::Fail(
+        ErrorCode::kParse, "EXP fall delay must not precede its rise delay");
+  }
+  return Result<TransientWaveform>::Ok(ExpWaveform{
+      .initial_value = values[0],
+      .pulsed_value = values[1],
+      .rise_delay_seconds = rise_delay,
+      .rise_time_constant_seconds = rise_time_constant,
+      .fall_delay_seconds = fall_delay,
+      .fall_time_constant_seconds = fall_time_constant,
+  });
+}
+
+[[nodiscard]] Result<SourceSpecifications>
+ParseSourceSpecifications(std::string_view input,
+                          std::string_view source_kind) {
   const std::string syntax =
       std::string(source_kind) +
       "-source syntax is: " + (source_kind == "voltage" ? "V" : "I") +
-      "name n+ n- ([DC] value [AC magnitude [phase_degrees]] | AC "
-      "magnitude [phase_degrees])";
-  if (tokens.size() <= 3) {
+      "name n+ n- [[DC] value] [AC magnitude [phase_degrees]] "
+      "[PULSE(...)|SIN(...)|PWL(...)|EXP(...)]";
+  input = Trim(input);
+  if (input.empty()) {
     return Result<SourceSpecifications>::Fail(
         ErrorCode::kParse, std::string(source_kind) +
-                               " source requires a DC and/or AC specification");
+                               " source requires a DC, AC, and/or transient "
+                               "specification");
   }
 
   SourceSpecifications specifications;
-  std::size_t index = 3;
-  if (Upper(tokens[index]) == "DC") {
-    ++index;
-    if (index >= tokens.size()) {
-      return Result<SourceSpecifications>::Fail(ErrorCode::kParse, syntax);
-    }
-    auto dc = ParseEngineeringValue(tokens[index]);
+  if (ConsumeKeyword("DC", &input)) {
+    auto dc = TakeEngineeringValue(&input, syntax);
     if (!dc.ok()) {
       return Result<SourceSpecifications>::Fail(dc.error().code,
                                                 dc.error().message);
     }
     specifications.dc = dc.value();
-    ++index;
-  } else if (Upper(tokens[index]) != "AC") {
-    auto dc = ParseEngineeringValue(tokens[index]);
+  } else if (!StartsWithKeywordToken(input, "AC") &&
+             !StartsWithWaveformKeyword(input)) {
+    auto dc = TakeEngineeringValue(&input, syntax);
     if (!dc.ok()) {
       return Result<SourceSpecifications>::Fail(dc.error().code,
                                                 dc.error().message);
     }
     specifications.dc = dc.value();
-    ++index;
   }
 
-  if (index < tokens.size() && Upper(tokens[index]) == "AC") {
-    ++index;
-    if (index >= tokens.size()) {
-      return Result<SourceSpecifications>::Fail(ErrorCode::kParse, syntax);
-    }
-    auto magnitude = ParseEngineeringValue(tokens[index]);
+  if (ConsumeKeyword("AC", &input)) {
+    auto magnitude = TakeEngineeringValue(&input, syntax);
     if (!magnitude.ok()) {
       return Result<SourceSpecifications>::Fail(magnitude.error().code,
                                                 magnitude.error().message);
@@ -243,62 +480,74 @@ ParseSourceSpecifications(const std::vector<std::string> &tokens,
       return Result<SourceSpecifications>::Fail(
           ErrorCode::kParse, "AC source magnitude must not be negative");
     }
-    ++index;
 
     double phase_degrees = 0.0;
-    if (index < tokens.size()) {
-      auto phase = ParseEngineeringValue(tokens[index]);
+    if (!input.empty() && !StartsWithWaveformKeyword(input)) {
+      auto phase = TakeEngineeringValue(&input, syntax);
       if (!phase.ok()) {
         return Result<SourceSpecifications>::Fail(phase.error().code,
                                                   phase.error().message);
       }
       phase_degrees = phase.value();
-      ++index;
     }
     specifications.ac = AcSourceSpecification{.magnitude = magnitude.value(),
                                               .phase_degrees = phase_degrees};
   }
 
-  if (index != tokens.size()) {
-    return Result<SourceSpecifications>::Fail(ErrorCode::kParse, syntax);
+  if (!input.empty()) {
+    auto waveform = ParseTransientWaveform(input);
+    if (!waveform.ok()) {
+      return Result<SourceSpecifications>::Fail(waveform.error().code,
+                                                waveform.error().message);
+    }
+    specifications.transient = waveform.TakeValue();
   }
-  if (!specifications.dc.has_value() && !specifications.ac.has_value()) {
+  if (!specifications.dc.has_value() && !specifications.ac.has_value() &&
+      !specifications.transient.has_value()) {
     return Result<SourceSpecifications>::Fail(
         ErrorCode::kParse, std::string(source_kind) +
-                               " source requires a DC and/or AC specification");
+                               " source requires a DC, AC, and/or transient "
+                               "specification");
   }
   return Result<SourceSpecifications>::Ok(std::move(specifications));
 }
 
-[[nodiscard]] Result<Component>
-ParseVoltageSource(const std::vector<std::string> &tokens) {
-  auto specifications = ParseSourceSpecifications(tokens, "voltage");
+[[nodiscard]] Result<Component> ParseSource(std::string_view line,
+                                            bool is_voltage) {
+  std::string_view remaining = line;
+  const auto name = TakeWhitespaceToken(&remaining);
+  const auto positive_node = TakeWhitespaceToken(&remaining);
+  const auto negative_node = TakeWhitespaceToken(&remaining);
+  const std::string_view source_kind = is_voltage ? "voltage" : "current";
+  if (!name.has_value() || !positive_node.has_value() ||
+      !negative_node.has_value()) {
+    return Result<Component>::Fail(
+        ErrorCode::kParse, std::string(source_kind) +
+                               "-source syntax requires a name and two nodes");
+  }
+
+  auto specifications = ParseSourceSpecifications(remaining, source_kind);
   if (!specifications.ok()) {
     return Result<Component>::Fail(specifications.error().code,
                                    specifications.error().message);
   }
-  return Result<Component>::Ok(VoltageSource{
-      .name = tokens[0],
-      .positive_node = tokens[1],
-      .negative_node = tokens[2],
-      .dc_volts = specifications.value().dc,
-      .ac = specifications.value().ac,
-  });
-}
-
-[[nodiscard]] Result<Component>
-ParseCurrentSource(const std::vector<std::string> &tokens) {
-  auto specifications = ParseSourceSpecifications(tokens, "current");
-  if (!specifications.ok()) {
-    return Result<Component>::Fail(specifications.error().code,
-                                   specifications.error().message);
+  if (is_voltage) {
+    return Result<Component>::Ok(VoltageSource{
+        .name = std::string(*name),
+        .positive_node = std::string(*positive_node),
+        .negative_node = std::string(*negative_node),
+        .dc_volts = specifications.value().dc,
+        .ac = specifications.value().ac,
+        .transient = specifications.value().transient,
+    });
   }
   return Result<Component>::Ok(CurrentSource{
-      .name = tokens[0],
-      .positive_node = tokens[1],
-      .negative_node = tokens[2],
+      .name = std::string(*name),
+      .positive_node = std::string(*positive_node),
+      .negative_node = std::string(*negative_node),
       .dc_amperes = specifications.value().dc,
       .ac = specifications.value().ac,
+      .transient = specifications.value().transient,
   });
 }
 
@@ -365,6 +614,67 @@ ParseAcAnalysis(const std::vector<std::string> &tokens) {
   });
 }
 
+[[nodiscard]] Result<Analysis>
+ParseTranAnalysis(const std::vector<std::string> &tokens) {
+  constexpr std::string_view kSyntax =
+      ".TRAN syntax is: .TRAN tstep tstop [tstart] [UIC]";
+  if (tokens.size() < 3 || tokens.size() > 5) {
+    return Result<Analysis>::Fail(ErrorCode::kParse, std::string(kSyntax));
+  }
+
+  auto time_step = ParseEngineeringValue(tokens[1]);
+  if (!time_step.ok()) {
+    return Result<Analysis>::Fail(time_step.error().code,
+                                  time_step.error().message);
+  }
+  auto stop_time = ParseEngineeringValue(tokens[2]);
+  if (!stop_time.ok()) {
+    return Result<Analysis>::Fail(stop_time.error().code,
+                                  stop_time.error().message);
+  }
+  if (time_step.value() <= 0.0 || stop_time.value() <= 0.0) {
+    return Result<Analysis>::Fail(
+        ErrorCode::kParse, ".TRAN tstep and tstop must be greater than zero");
+  }
+
+  double start_time = 0.0;
+  bool use_initial_conditions = false;
+  if (tokens.size() >= 4) {
+    if (Upper(tokens[3]) == "UIC") {
+      if (tokens.size() != 4) {
+        return Result<Analysis>::Fail(ErrorCode::kParse, std::string(kSyntax));
+      }
+      use_initial_conditions = true;
+    } else {
+      auto parsed_start = ParseEngineeringValue(tokens[3]);
+      if (!parsed_start.ok()) {
+        return Result<Analysis>::Fail(parsed_start.error().code,
+                                      parsed_start.error().message);
+      }
+      start_time = parsed_start.value();
+      if (tokens.size() == 5) {
+        if (Upper(tokens[4]) != "UIC") {
+          return Result<Analysis>::Fail(ErrorCode::kParse,
+                                        std::string(kSyntax));
+        }
+        use_initial_conditions = true;
+      }
+    }
+  }
+  if (start_time < 0.0 || start_time > stop_time.value()) {
+    return Result<Analysis>::Fail(
+        ErrorCode::kParse,
+        ".TRAN tstart must be nonnegative and no greater than tstop");
+  }
+
+  return Result<Analysis>::Ok(TranAnalysis{
+      .time_step_seconds = time_step.value(),
+      .stop_time_seconds = stop_time.value(),
+      .start_time_seconds = start_time,
+      .use_initial_conditions = use_initial_conditions,
+  });
+}
+
 [[nodiscard]] std::string WithLine(std::size_t line_number,
                                    std::string message) {
   return "line " + std::to_string(line_number) + ": " + std::move(message);
@@ -409,10 +719,20 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       circuit.analyses.push_back(analysis.TakeValue());
       continue;
     }
+    if (!tokens.empty() && Upper(tokens.front()) == ".TRAN") {
+      auto analysis = ParseTranAnalysis(tokens);
+      if (!analysis.ok()) {
+        return Result<Circuit>::Fail(
+            analysis.error().code,
+            WithLine(line_number, analysis.error().message));
+      }
+      circuit.analyses.push_back(analysis.TakeValue());
+      continue;
+    }
     if (line.front() == '.') {
       return Result<Circuit>::Fail(
           ErrorCode::kUnsupported,
-          WithLine(line_number, "phase 2B does not support directive '" +
+          WithLine(line_number, "phase 2C does not support directive '" +
                                     std::string(line) + "'"));
     }
 
@@ -432,14 +752,14 @@ Result<Circuit> ParseNetlist(std::string_view input) {
         return ParseInductor(tokens);
       }
       if (kind == 'V') {
-        return ParseVoltageSource(tokens);
+        return ParseSource(line, true);
       }
       if (kind == 'I') {
-        return ParseCurrentSource(tokens);
+        return ParseSource(line, false);
       }
       return Result<Component>::Fail(
           ErrorCode::kUnsupported,
-          "phase 2B supports RLC elements and independent DC/AC "
+          "phase 2C supports RLC elements and independent DC/AC/transient "
           "voltage/current sources only");
     }();
     if (!component.ok()) {

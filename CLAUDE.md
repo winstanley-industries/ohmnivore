@@ -10,12 +10,13 @@ migrating to a C++20 core with a CUDA-first backend and hermetic Bazel toolchain
 implementation is retained as a behavioral reference, not the target architecture for new solver
 development.
 
-Phase 2B is deliberately bounded to deterministic linear AC analysis on the FP64 CPU path. It adds
-independent-source AC magnitude/phase specifications, validated `.AC DEC|OCT|LIN` sweeps, the
-complex AC right-hand side, `G + j omega C`, a temporary dense complex FP64 solve, and legacy AC CSV
-output to the Phase 2A RLCVI foundation. Do not pull transient execution or waveform sources,
-nonlinear work, production sparse-direct selection, CUDA circuit kernels, mixed precision, or
-distributed solving into Phase 2B.
+Phase 2C is deliberately bounded to deterministic linear transient analysis on the FP64 CPU path
+and checksum-pinned differential acceptance of the completed linear DC/AC/transient subset. It
+adds strict PULSE/SIN/PWL/EXP source waveforms, validated `.TRAN`, canonical backward-Euler and
+trapezoidal companion systems, deterministic bounded adaptive stepping, zero-reactive-state UIC,
+legacy transient CSV, and a Bazel-built hermetic ngspice harness. Do not pull nonlinear work,
+production sparse-direct selection, CUDA circuit kernels, mixed precision, or distributed solving
+into Phase 2C.
 
 Before changing the C++ path:
 
@@ -37,6 +38,7 @@ bazel test --config=asan //...
 bazel test --config=ubsan //...
 bazel test --lockfile_mode=error //...
 bazel test --config=cuda //:cuda_smoke_test
+bazel test //acceptance:ngspice_acceptance_test
 git diff --check
 ```
 

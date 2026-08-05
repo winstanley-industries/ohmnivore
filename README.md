@@ -9,17 +9,18 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ Phase 2B path is intentionally limited to deterministic linear DC and AC analysis on the
-FP64 CPU correctness path. It
+The C++ Phase 2C path is intentionally limited to deterministic linear DC, AC, and transient
+analysis on the FP64 CPU correctness path. It
 provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
 - typed domain errors at library boundaries;
 - resistor, capacitor, inductor, and independent voltage/current-source parsing, with sources
-  accepting a bare DC value, `DC value`, `AC magnitude [phase_degrees]`, or a DC form followed by
-  an AC form; every source must specify DC and/or AC, and passive values must be positive;
-- `.DC`/`.OP` operating-point and validated `.AC DEC|OCT|LIN` execution, with `.PRINT` accepted as
-  a compatibility no-op because the CLI emits every solved variable;
+  accepting strict DC, AC, PULSE, SIN, PWL, and EXP forms in legacy order; every source must
+  specify DC, AC, and/or transient excitation, and passive values must be positive;
+- `.DC`/`.OP`, validated `.AC DEC|OCT|LIN`, and validated
+  `.TRAN tstep tstop [tstart] [UIC]` execution, with `.PRINT` accepted as a compatibility no-op
+  because the CLI emits every solved variable;
 - insertion-ordered Circuit IR, deterministic non-ground node order, and one interleaved
   insertion-ordered voltage-source/inductor branch sequence;
 - deterministic independent CSR conductance (`G`) and dynamic (`C`) matrices plus real DC and
@@ -30,17 +31,23 @@ provides:
   `.DC`/`.OP` and `A(omega) = G + j * omega * C`;
 - inclusive, strictly increasing AC frequency grids: LIN emits exactly its total point count,
   while DEC/OCT use points per decade/octave and include the exact stop frequency once;
-- the legacy DC and AC CSV schemas; and
+- backward Euler for initial/recovery/breakpoint steps, trapezoidal integration otherwise,
+  deterministic scaled local-error control on both methods, left/right source-discontinuity
+  projection, exact waveform/output-start/stop boundaries, and bounded typed timestep failures;
+- DC operating-point initialization without UIC and deterministic zero capacitor-voltage/zero
+  inductor-current constraints with UIC;
+- the legacy DC, AC, and transient CSV schemas;
+- a checksum-pinned Bazel-built ngspice 46 acceptance harness for representative linear DC, AC,
+  and transient circuits; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-Transient execution and waveform sources, nonlinear devices, production sparse-direct solver
-selection, CUDA circuit kernels or solver dispatch, mixed precision, and distributed solving have
-not yet been ported. Bare `.DC` is an operating-point request; DC source sweeps are not executed.
+Nonlinear devices and nonlinear transient analysis, production sparse-direct solver selection,
+CUDA circuit kernels or solver dispatch, mixed precision, and distributed solving have not yet
+been ported. Bare `.DC` is an operating-point request; DC source sweeps are not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
-accepted. Phase 2B uses analytic FP64 circuit solutions for acceptance; a separately
-checksum-pinned hermetic ngspice differential harness remains a gate and no ngspice differential
-claim is made here.
+accepted. The differential claim is limited to the representative linear fixtures and tolerances
+recorded in `third_party/ngspice/PROVENANCE.md`.
 
 ## Build and test the C++ path
 
@@ -51,6 +58,7 @@ downloaded from pinned, checksum-verified dependencies.
 bazel lint
 bazel build //...
 bazel test //...
+bazel test //acceptance:ngspice_acceptance_test
 bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 
