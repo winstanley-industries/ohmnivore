@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly repo_root
+
+if [[ -z "${BAZEL_REAL:-}" ]]; then
+  echo "Ohmnivore's Bazel wrapper must be launched through Bazelisk." >&2
+  echo "Install Bazelisk, then run: bazel ${*:-help}" >&2
+  exit 2
+fi
+
+lint_selected() {
+  local language="$1"
+  shift
+  if [[ ${#selected_linters[@]} -eq 0 ]]; then
+    return 0
+  fi
+  local selected
+  for selected in "${selected_linters[@]}"; do
+    if [[ "${selected}" == "${language}" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+run_lint() {
+  local fix=0
+  local -a selected_linters=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --fix)
+        fix=1
+        shift
+        ;;
+      --only)
+        if [[ $# -lt 2 ]]; then
+          echo "--only requires cpp, python, shell, or starlark" >&2
+          return 2
+        fi
+        case "$2" in
+          cpp | python | shell | starlark) selected_linters+=("$2") ;;
+          *)
+            echo "unknown linter: $2" >&2
+            return 2
+            ;;
+        esac
+        shift 2
+        ;;
+      *)
+        echo "unknown lint argument: $1" >&2
+        return 2
+        ;;
+    esac
+  done
+
+  local -a cpp_files=()
+  local -a python_files=()
+  local -a shell_files=()
+  local -a starlark_files=()
+  mapfile -d '' -t cpp_files < <(
+    git -C "${repo_root}" ls-files --cached --others --exclude-standard -z -- \
+      '*.c' '*.cc' '*.cpp' '*.cxx' '*.cu' '*.cuh' '*.h' '*.hh' '*.hpp' '*.hxx'
+  )
+  mapfile -d '' -t python_files < <(
+    git -C "${repo_root}" ls-files --cached --others --exclude-standard -z -- '*.py' '*.pyi'
+  )
+  mapfile -d '' -t shell_files < <(
+    git -C "${repo_root}" ls-files --cached --others --exclude-standard -z -- '*.bash' '*.sh' 'tools/bazel'
+  )
+  mapfile -d '' -t starlark_files < <(
+    git -C "${repo_root}" ls-files --cached --others --exclude-standard -z -- \
+      '*.bzl' 'BUILD' 'BUILD.bazel' 'MODULE.bazel' 'WORKSPACE' 'WORKSPACE.bazel'
+  )
+
+  if lint_selected cpp && [[ ${#cpp_files[@]} -gt 0 ]]; then
+    echo "==> Linting C/C++"
+    if [[ ${fix} -eq 1 ]]; then
+      "${BAZEL_REAL}" run @llvm//tools:clang-format -- -i "${cpp_files[@]/#/${repo_root}/}"
+    else
+      "${BAZEL_REAL}" run @llvm//tools:clang-format -- --dry-run --Werror \
+        "${cpp_files[@]/#/${repo_root}/}"
+    fi
+  fi
+
+  if lint_selected python && [[ ${#python_files[@]} -gt 0 ]]; then
+    echo "==> Linting Python"
+    if [[ ${fix} -eq 1 ]]; then
+      "${BAZEL_REAL}" run @ruff -- check --fix "${python_files[@]/#/${repo_root}/}"
+      "${BAZEL_REAL}" run @ruff -- format "${python_files[@]/#/${repo_root}/}"
+    else
+      "${BAZEL_REAL}" run @ruff -- check "${python_files[@]/#/${repo_root}/}"
+      "${BAZEL_REAL}" run @ruff -- format --check "${python_files[@]/#/${repo_root}/}"
+    fi
+  fi
+
+  if lint_selected shell && [[ ${#shell_files[@]} -gt 0 ]]; then
+    echo "==> Linting shell"
+    "${BAZEL_REAL}" run @rules_shellcheck//:shellcheck -- --format=gcc \
+      "${shell_files[@]/#/${repo_root}/}"
+  fi
+
+  if lint_selected starlark && [[ ${#starlark_files[@]} -gt 0 ]]; then
+    echo "==> Linting Bazel/Starlark"
+    if [[ ${fix} -eq 1 ]]; then
+      "${BAZEL_REAL}" run @buildifier_prebuilt//:buildifier -- -mode=fix -lint=fix \
+        "${starlark_files[@]/#/${repo_root}/}"
+    else
+      "${BAZEL_REAL}" run @buildifier_prebuilt//:buildifier -- -mode=check -lint=warn \
+        "${starlark_files[@]/#/${repo_root}/}"
+    fi
+  fi
+}
+
+if [[ "${1:-}" == "lint" ]]; then
+  shift
+  run_lint "$@"
+  exit $?
+fi
+
+exec "${BAZEL_REAL}" "$@"

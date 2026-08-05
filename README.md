@@ -1,103 +1,88 @@
 # Ohmnivore
 
-A GPU-accelerated SPICE circuit simulator. Write a netlist, run an analysis, get results as CSV.
+Ohmnivore is a GPU-accelerated circuit simulation project that parses a SPICE subset, compiles
+Modified Nodal Analysis (MNA) systems, and solves DC, AC, and transient analyses.
 
-Ohmnivore parses a subset of SPICE netlists, builds Modified Nodal Analysis (MNA) matrices, and solves them on the GPU (wgpu/BiCGSTAB) or CPU (direct LU). It runs DC operating point, AC frequency sweep, and transient analyses. The solver architecture supports multi-GPU and multi-node execution via domain decomposition with RAS preconditioning and MPI communication.
+## Migration status
 
-## Quick Start
+Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core with a CUDA-first
+GPU backend. The accepted rationale, invariants, and phased plan are recorded in
+[ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-Build the project (requires [Rust](https://www.rust-lang.org/tools/install)):
+The first C++ phase is intentionally narrow. It provides:
+
+- hermetic Bazel C++ and opt-in CUDA toolchains;
+- typed domain errors at library boundaries;
+- resistor and independent DC voltage-source parsing, with `.PRINT` accepted as a compatibility
+  no-op because the CLI emits every solved variable;
+- insertion-ordered Circuit IR and CSR MNA compilation;
+- a deterministic FP64 CPU reference solve for `.DC`/`.OP`;
+- the legacy DC CSV schema; and
+- a deterministic CUDA platform smoke test checked against a CPU oracle.
+
+Capacitors, inductors, current sources, nonlinear devices, AC, transient analysis, CUDA solver
+kernels, and distributed solving have not yet been ported. Unsupported input is rejected
+explicitly. The Rust implementation remains in `src/` and `tests/` as a behavioral reference
+until C++ parity is accepted.
+
+## Build and test the C++ path
+
+Install Bazelisk as `bazel` on `PATH`; all compilers, headers, libraries, and lint tools are
+downloaded from pinned, checksum-verified dependencies.
 
 ```sh
-cargo build --release
+bazel lint
+bazel build //...
+bazel test //...
+bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 
-Create a netlist file `divider.spice`:
-
-```spice
-* Voltage Divider
-V1 1 0 DC 10
-R1 1 2 1k
-R2 2 0 1k
-.DC
-.END
-```
-
-Run it:
-
-```sh
-./target/release/ohmnivore divider.spice
-```
-
-Output:
+Expected CSV columns are compatible with the legacy implementation:
 
 ```csv
 Variable,Value
-V(1),10
-V(2),5
-I(V1),-0.005
+V(in),10
+V(mid),4.9999999975
+I(V1),-0.005000000012499999
 ```
 
-Node 2 sits at 5V -- half the supply, as expected from two equal resistors.
+The small difference from the ideal 5 V / -5 mA values is the intentional `1e-12 S` GMIN
+conductance applied to each non-ground node, matching the existing MNA convention.
 
-## Usage
-
-```
-ohmnivore <netlist.spice> [--cpu]
-```
-
-Ohmnivore writes results to stdout as CSV. Redirect to a file if needed:
+Run the opt-in CUDA smoke test on the reference NVIDIA platform:
 
 ```sh
-ohmnivore circuit.spice > results.csv
-ohmnivore circuit.spice --cpu > results.csv   # use CPU solver
+bazel test --config=cuda //:cuda_smoke_test
 ```
 
-## Supported Elements
+See [Building Ohmnivore](docs/BUILDING.md) for sanitizer, lockfile, and hermeticity details.
 
-| Element | Syntax | Example |
-|---|---|---|
-| Resistor | `Rname n+ n- value` | `R1 1 2 10k` |
-| Capacitor | `Cname n+ n- value` | `C1 2 0 100n` |
-| Inductor | `Lname n+ n- value` | `L1 3 4 4.7u` |
-| Voltage source | `Vname n+ n- [DC val] [AC mag [phase]]` | `V1 1 0 DC 5` |
-| Current source | `Iname n+ n- [DC val] [AC mag [phase]]` | `I1 2 0 DC 1m` |
-| Diode | `Dname anode cathode model` | `D1 2 0 DMOD` |
-| BJT | `Qname C B E model` | `Q1 vc base 0 Q2N2222` |
-| MOSFET | `Mname D G S model` | `M1 drain gate 0 NMOD` |
+## Legacy Rust prototype
 
-Values accept engineering suffixes (case-insensitive): `T` `G` `MEG` `K` `M` `U` `N` `P` `F`.
+The legacy implementation supports a broader SPICE subset and contains the current research
+implementations of:
 
-## Examples
+- resistors, capacitors, inductors, voltage/current sources, diodes, BJTs, and MOSFETs;
+- DC, AC, and linear transient analyses;
+- wgpu BiCGSTAB and double-single nonlinear kernels;
+- CPU dense and sparse-LU fallbacks; and
+- experimental MPI/RAS domain decomposition.
 
-The `examples/` directory contains circuits you can run immediately. These netlists also work with [ngspice](https://ngspice.sourceforge.io/).
+It is retained for semantic reference, fixtures, and differential migration tests. It is not the
+target architecture for new solver development.
 
-| File | Analysis | What it demonstrates |
-|---|---|---|
-| `voltage_divider.spice` | DC | Two resistors splitting a voltage |
-| `diode_clamp.spice` | DC | Diode clamping with a .MODEL |
-| `common_source.spice` | DC | NMOS amplifier biasing |
-| `rc_lowpass.spice` | AC | Frequency response of an RC filter |
-| `rc_charging.spice` | Transient | Capacitor charging curve |
-| `pulse_filter.spice` | Transient | Square wave through an RC filter |
+If a Rust toolchain is installed, its historical commands remain:
 
 ```sh
-ohmnivore examples/voltage_divider.spice
-ohmnivore examples/rc_lowpass.spice > lowpass.csv
+cargo build
+cargo test
+cargo test --features ngspice-compare
 ```
-
-## Distributed / Multi-GPU
-
-Ohmnivore can partition circuits across multiple GPUs via METIS graph decomposition. Each GPU solves its subdomain with a local ISAI(1) preconditioner, coordinated by a global BiCGSTAB solver. Enable MPI support:
-
-```sh
-cargo build --release --features distributed
-```
-
-This requires an MPI installation (e.g., OpenMPI). See the [Installation Guide](docs/installation.md) for details.
 
 ## Documentation
 
-- **[Installation Guide](docs/installation.md)** -- building from source, GPU setup, MPI, platform notes
-- **[Netlist Format](docs/netlist-format.md)** -- component syntax, models, node naming, transient sources
-- **[Analysis Types](docs/analyses.md)** -- DC, AC, and transient analysis with worked examples
+- [ADR-001: Migrate the Solver Core to C++20 and CUDA](docs/adr/ADR-001-cpp-cuda-migration.md)
+- [Building Ohmnivore](docs/BUILDING.md)
+- [Netlist Format](docs/netlist-format.md) — legacy prototype coverage
+- [Analysis Types](docs/analyses.md) — legacy prototype coverage
+- [Solver Reference](docs/solver-reference.md) — legacy Rust/wgpu architecture

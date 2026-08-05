@@ -1,0 +1,31 @@
+package(default_visibility = ["//visibility:private"])
+
+config_setting(
+    name = "asan_enabled",
+    flag_values = {"@llvm//config:asan": "True"},
+)
+
+config_setting(
+    name = "ubsan_enabled",
+    flag_values = {"@llvm//config:ubsan": "True"},
+)
+
+alias(
+    name = "ohmnivore",
+    actual = "//cpp:ohmnivore",
+    visibility = ["//visibility:public"],
+)
+
+test_suite(
+    name = "phase1_test",
+    tags = ["manual"],
+    tests = ["//cpp:phase1_test"],
+    visibility = ["//visibility:public"],
+)
+
+test_suite(
+    name = "cuda_smoke_test",
+    tags = ["manual"],
+    tests = ["//cuda:smoke_test"],
+    visibility = ["//visibility:public"],
+)

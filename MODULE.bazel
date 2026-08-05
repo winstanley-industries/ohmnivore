@@ -1,0 +1,56 @@
+module(
+    name = "ohmnivore",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.22")
+bazel_dep(name = "rules_cuda", version = "0.3.0")
+bazel_dep(name = "platforms", version = "1.1.0")
+
+# CUDA 13.0 supports GCC 15, while the default LLVM 22/libc++ toolchain is
+# intentionally newer than nvcc's supported host range.
+bazel_dep(name = "gcc_toolchain", version = "0.10.0")
+
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2", dev_dependency = True)
+
+bazel_dep(name = "llvm", version = "0.8.11")
+
+bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.3", dev_dependency = True)
+bazel_dep(name = "ruff_prebuilt", version = "0.15.19.1", dev_dependency = True, repo_name = "ruff")
+bazel_dep(name = "rules_shellcheck", version = "0.6.3", dev_dependency = True)
+
+register_toolchains("@llvm//toolchain:all")
+
+# The selected CUDA redistributables are checksum verified. The build never
+# probes for a host CUDA installation.
+cuda = use_extension("@rules_cuda//cuda:extensions.bzl", "toolchain")
+cuda.redist_json(
+    name = "ohmnivore_cuda_13_0_2_manifest",
+    components = [
+        "cccl",
+        "crt",
+        "culibos",
+        "cudart",
+        "nvcc",
+        "nvvm",
+    ],
+    sha256 = "fce66717a81c510ffeb89ecc3e79849ab34af3b80139f750876d9033e31d71c2",
+    version = "13.0.2",
+)
+cuda.toolkit(name = "cuda")
+use_repo(cuda, "cuda")
+
+# nvcc host compilation uses a checksum-pinned GCC distribution and its
+# bundled sysroot. This toolchain is selected only by --config=cuda.
+cuda_gcc = use_extension("@gcc_toolchain//toolchain:module_extensions.bzl", "gcc_toolchains")
+cuda_gcc.toolchain(
+    name = "ohmnivore_cuda_gcc15",
+    enable_fortran = False,
+    extra_ldflags = [
+        "-Wl,-Bstatic",
+        "-lstdc++",
+        "-Wl,-Bdynamic",
+    ],
+    gcc_version = "15.2.0",
+    target_arch = "x86_64",
+)
+use_repo(cuda_gcc, "ohmnivore_cuda_gcc15")

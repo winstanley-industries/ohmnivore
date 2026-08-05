@@ -1,0 +1,57 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+OHMNIVORE_COPTS = [
+    "-Wall",
+    "-Werror",
+    "-Wextra",
+    "-Wpedantic",
+]
+
+cc_library(
+    name = "core",
+    srcs = [
+        "src/compiler.cc",
+        "src/parser.cc",
+        "src/simulator.cc",
+        "src/solver.cc",
+    ],
+    hdrs = [
+        "include/ohmnivore/compiler.h",
+        "include/ohmnivore/ir.h",
+        "include/ohmnivore/parser.h",
+        "include/ohmnivore/simulator.h",
+        "include/ohmnivore/solver.h",
+        "include/ohmnivore/sparse.h",
+        "include/ohmnivore/status.h",
+    ],
+    copts = OHMNIVORE_COPTS,
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "ohmnivore",
+    srcs = ["src/main.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core"],
+)
+
+cc_test(
+    name = "phase1_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase1_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+    ],
+)

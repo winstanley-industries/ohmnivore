@@ -4,3 +4,19 @@
 # Added by cargo
 
 /target
+
+# Bazel output symlinks and local configuration.
+/bazel-*
+/.bazelrc.user
+
+# Local compilation databases and profiling output.
+/compile_commands.json
+*.profraw
+*.profdata
+
+# Python and editor caches.
+__pycache__/
+*.py[cod]
+/.idea/
+/.vscode/
+.DS_Store

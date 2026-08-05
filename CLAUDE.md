@@ -1,6 +1,43 @@
 # Ohmnivore
 
-GPU-accelerated circuit simulation solver. Parses a SPICE-subset netlist, compiles to Modified Nodal Analysis (MNA) matrices, and solves via GPU (wgpu/BiCGSTAB) or CPU (direct LU). Designed to scale to multi-GPU and multi-node clusters via domain decomposition.
+GPU-accelerated circuit simulation solver. The active implementation target is a C++20 core with
+a CUDA-first GPU backend; the original Rust/wgpu solver remains in-tree as a migration reference.
+
+## Active C++/CUDA migration authority
+
+ADR-001 (`docs/adr/ADR-001-cpp-cuda-migration.md`) is the authority for new work. Ohmnivore is
+migrating to a C++20 core with a CUDA-first backend and hermetic Bazel toolchains. The Rust/wgpu
+implementation is retained as a behavioral reference, not the target architecture for new solver
+development.
+
+Phase 1 is deliberately bounded to resistors, independent DC voltage sources, `.DC`/`.OP`, Circuit
+IR, CSR MNA compilation, an FP64 CPU reference solve, CSV output, and a CUDA platform smoke test.
+Do not pull additional SPICE elements, nonlinear work, CUDA solver kernels, or distributed solving
+into Phase 1.
+
+Before changing the C++ path:
+
+1. Read ADR-001 and `docs/BUILDING.md`.
+2. Preserve the CPU FP64 path as the correctness oracle and supported no-GPU implementation.
+3. Treat CUDA results as untrusted until CPU differential checks accept them.
+4. Use Bazel as the canonical build interface; never use system CUDA, nvcc, GCC, Clang, headers, or
+   libraries.
+5. Return typed errors for unsupported input rather than silently weakening semantics.
+6. Keep the Rust source intact until a documented parity decision retires it.
+
+Canonical C++ validation:
+
+```sh
+bazel lint
+bazel build //...
+bazel test //...
+bazel test --config=asan //...
+bazel test --config=ubsan //...
+bazel test --lockfile_mode=error //...
+bazel test --config=cuda //:cuda_smoke_test
+```
+
+The architecture and commands below describe the legacy Rust prototype unless stated otherwise.
 
 ## Architecture
 

@@ -1,4 +1,7 @@
-# Installation
+# Installation (legacy Rust/wgpu prototype)
+
+> This page applies only to the retained legacy implementation. Use
+> [Building Ohmnivore](BUILDING.md) for the active C++20/CUDA path.
 
 ## Prerequisites
 
