@@ -192,15 +192,46 @@ or solver dispatch, mixed precision, MPI/NCCL/RAS/domain decomposition, or perfo
 The ngspice claim applies only to the recorded linear fixtures and deterministic comparison
 contract.
 
+## Phase 2D: Hermetic production sparse-direct FP64 CPU path
+
+Phase 2D changes only the linear CPU solver implementation. It adds:
+
+- SuiteSparse KLU 2.3.6 from the checksum-pinned SuiteSparse 7.12.3 source archive, built directly
+  by Bazel with serial 32-bit-index KLU, BTF, AMD, COLAMD, and SuiteSparse_config C sources and no
+  system sparse solver, BLAS/LAPACK, Fortran, OpenMP, CMake, or `PATH` discovery;
+- strict deterministic conversion from canonical square CSR to KLU CSC, retaining explicit zeros
+  and rejecting duplicates, unordered columns, malformed dimensions/offsets, non-finite values,
+  and indexes or nonzero counts outside signed 32-bit representation;
+- real and complex FP64 factorization with BTF enabled, AMD ordering, maximum-magnitude row
+  scaling, full partial-pivot threshold, singular halt, and single-process/single-thread execution;
+- reusable symbolic analysis and deterministic numeric refactorization for fixed sparsity patterns
+  across AC points and transient companion, UIC, and discontinuity-projection systems, with a
+  fresh pivoting numeric factorization under the same symbolic analysis whenever fixed-pivot
+  refactorization fails solution validation;
+- typed fail-closed structure, size, singular/rank, factorization, non-finite-result, and
+  solution-validation failures with no dense fallback;
+- finite-result validation with a row-equilibrated normwise backward-error bound of `1e-10` and a
+  maximum rowwise componentwise guard of `1e-5` for mixed-unit MNA systems, so an unrelated
+  large-unit variable cannot hide a grossly bad small-unit row;
+- a test-only dense partial-pivoting exact-small oracle that production targets cannot link or
+  dispatch to; and
+- reproducible, non-gating selection evidence over a fixed circuit-representative real/complex
+  matrix corpus.
+
+Phase 2D preserves every Phase 2A/2B/2C parser, MNA, GMIN, sign, ordering, grid, timestep,
+waveform, CSV, and bounded ngspice-acceptance contract. It does not add nonlinear devices,
+Newton iteration, nonlinear transient behavior, new syntax, CUDA circuit solving, mixed precision,
+distributed solving, new ngspice fixture scope, or performance/scalability claims. Detailed
+selection, license, build, storage, numerical, determinism, validation, and benchmark evidence is
+recorded in `third_party/suitesparse/PROVENANCE.md`.
+
 ## Follow-up phases
 
-1. Select the hermetic sparse-direct FP64 CPU oracle using circuit-representative correctness and
-   performance evidence.
-2. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear
+1. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear
    transient on CPU.
-3. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
+2. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
    validation, replay, and end-to-end benchmarks.
-4. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before
+3. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before
    considering single-circuit domain decomposition.
 
 ## Consequences

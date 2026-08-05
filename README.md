@@ -9,8 +9,8 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ Phase 2C path is intentionally limited to deterministic linear DC, AC, and transient
-analysis on the FP64 CPU correctness path. It
+The C++ Phase 2D path is intentionally limited to deterministic linear DC, AC, and transient
+analysis on the production FP64 CPU sparse-direct correctness path. It
 provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
@@ -27,8 +27,11 @@ provides:
   complex AC right-hand sides;
 - canonical current-source, capacitor, and inductor MNA stamps, including capacitor-open and
   inductor-short operating-point behavior;
-- deterministic dense real and complex FP64 partial-pivoting CPU reference solves for
-  `.DC`/`.OP` and `A(omega) = G + j * omega * C`;
+- checksum-pinned SuiteSparse KLU 2.3.6 real and complex FP64 sparse-direct solves for DC,
+  `A(omega) = G + j * omega * C`, transient companion, UIC, and discontinuity-projection systems;
+- deterministic CSR-to-CSC conversion, fixed AMD/BTF/pivot/scaling/single-thread policy,
+  symbolic-analysis reuse, pivot-safe numeric refactorization, and finite normwise plus rowwise
+  componentwise backward-error checks;
 - inclusive, strictly increasing AC frequency grids: LIN emits exactly its total point count,
   while DEC/OCT use points per decade/octave and include the exact stop frequency once;
 - backward Euler for initial/recovery/breakpoint steps, trapezoidal integration otherwise,
@@ -41,13 +44,14 @@ provides:
   and transient circuits; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-Nonlinear devices and nonlinear transient analysis, production sparse-direct solver selection,
-CUDA circuit kernels or solver dispatch, mixed precision, and distributed solving have not yet
-been ported. Bare `.DC` is an operating-point request; DC source sweeps are not executed.
+Nonlinear devices and nonlinear transient analysis, CUDA circuit kernels or solver dispatch,
+mixed precision, and distributed solving have not yet been ported. Bare `.DC` is an
+operating-point request; DC source sweeps are not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
 accepted. The differential claim is limited to the representative linear fixtures and tolerances
-recorded in `third_party/ngspice/PROVENANCE.md`.
+recorded in `third_party/ngspice/PROVENANCE.md`. Sparse-solver selection, storage, numerical,
+license, and reproducibility details are recorded in `third_party/suitesparse/PROVENANCE.md`.
 
 ## Build and test the C++ path
 
@@ -59,6 +63,8 @@ bazel lint
 bazel build //...
 bazel test //...
 bazel test //acceptance:ngspice_acceptance_test
+bazel test //cpp:solver_hermeticity_test
+bazel run -c opt //cpp:solver_selection_benchmark -- --warmups=3 --repetitions=15
 bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 

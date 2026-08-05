@@ -422,7 +422,7 @@ TEST(Phase2BSolverTest, SolvesComplexSystemWithDeterministicPivoting) {
       .column_indices = {1, 0, 1},
       .row_offsets = {0, 1, 3},
   };
-  auto solved = SolveCpuComplexReference(matrix, {{2.0, -1.0}, {2.0, 3.0}});
+  auto solved = SolveSparseComplex(matrix, {{2.0, -1.0}, {2.0, 3.0}});
   ASSERT_TRUE(solved.ok()) << solved.error().message;
   ASSERT_EQ(solved.value().size(), 2U);
   ExpectComplexNear(solved.value()[0], {1.0, 1.0}, 1e-14);
@@ -437,7 +437,7 @@ TEST(Phase2BSolverTest, SolvesNonsingularMixedScaleRealAndComplexSystems) {
       .column_indices = {0, 1},
       .row_offsets = {0, 1, 2},
   };
-  auto real = SolveCpuReference(real_matrix, {1e20, 1.0});
+  auto real = SolveSparseReal(real_matrix, {1e20, 1.0});
   ASSERT_TRUE(real.ok()) << real.error().message;
   EXPECT_EQ(real.value(), (std::vector<double>{1.0, 1.0}));
 
@@ -448,8 +448,7 @@ TEST(Phase2BSolverTest, SolvesNonsingularMixedScaleRealAndComplexSystems) {
       .column_indices = {0, 1},
       .row_offsets = {0, 1, 2},
   };
-  auto complex =
-      SolveCpuComplexReference(complex_matrix, {{1e20, 0.0}, {0.0, 1.0}});
+  auto complex = SolveSparseComplex(complex_matrix, {{1e20, 0.0}, {0.0, 1.0}});
   ASSERT_TRUE(complex.ok()) << complex.error().message;
   ExpectComplexNear(complex.value()[0], {1.0, 0.0}, 0.0);
   ExpectComplexNear(complex.value()[1], {1.0, 0.0}, 0.0);
@@ -468,7 +467,7 @@ TEST(Phase2BSolverTest, SolvesLargeGminDiagonalAndRejectsTrueSingularity) {
     gmin_diagonal.row_offsets.push_back(index);
   }
   gmin_diagonal.row_offsets.push_back(size);
-  auto solved = SolveCpuComplexReference(
+  auto solved = SolveSparseComplex(
       gmin_diagonal,
       std::vector<std::complex<double>>(size, {kGminSiemens, 0.0}));
   ASSERT_TRUE(solved.ok()) << solved.error().message;
@@ -483,9 +482,9 @@ TEST(Phase2BSolverTest, SolvesLargeGminDiagonalAndRejectsTrueSingularity) {
       .column_indices = {0, 1, 0, 1},
       .row_offsets = {0, 2, 4},
   };
-  auto rejected = SolveCpuComplexReference(singular, {{3.0, 0.0}, {6.0, 0.0}});
+  auto rejected = SolveSparseComplex(singular, {{3.0, 0.0}, {6.0, 0.0}});
   ASSERT_FALSE(rejected.ok());
-  EXPECT_EQ(rejected.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(rejected.error().code, ErrorCode::kSingular);
 }
 
 TEST(Phase2BSolverTest, RejectsMalformedComplexInputs) {
@@ -496,9 +495,9 @@ TEST(Phase2BSolverTest, RejectsMalformedComplexInputs) {
       .column_indices = {0},
       .row_offsets = {0, 1},
   };
-  auto dimensions = SolveCpuComplexReference(identity, {});
+  auto dimensions = SolveSparseComplex(identity, {});
   ASSERT_FALSE(dimensions.ok());
-  EXPECT_EQ(dimensions.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(dimensions.error().code, ErrorCode::kInvalidStructure);
 
   const ComplexCsrMatrix invalid_order = {
       .rows = 2,
@@ -507,10 +506,9 @@ TEST(Phase2BSolverTest, RejectsMalformedComplexInputs) {
       .column_indices = {1, 0},
       .row_offsets = {0, 2, 2},
   };
-  auto order =
-      SolveCpuComplexReference(invalid_order, {{1.0, 0.0}, {0.0, 0.0}});
+  auto order = SolveSparseComplex(invalid_order, {{1.0, 0.0}, {0.0, 0.0}});
   ASSERT_FALSE(order.ok());
-  EXPECT_EQ(order.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(order.error().code, ErrorCode::kInvalidStructure);
 
   const ComplexCsrMatrix nonfinite = {
       .rows = 1,
@@ -519,9 +517,9 @@ TEST(Phase2BSolverTest, RejectsMalformedComplexInputs) {
       .column_indices = {0},
       .row_offsets = {0, 1},
   };
-  auto finite = SolveCpuComplexReference(nonfinite, {{1.0, 0.0}});
+  auto finite = SolveSparseComplex(nonfinite, {{1.0, 0.0}});
   ASSERT_FALSE(finite.ok());
-  EXPECT_EQ(finite.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(finite.error().code, ErrorCode::kNonFinite);
 
   const ComplexCsrMatrix bad_offset = {
       .rows = 1,
@@ -530,9 +528,9 @@ TEST(Phase2BSolverTest, RejectsMalformedComplexInputs) {
       .column_indices = {0},
       .row_offsets = {1, 1},
   };
-  auto offset = SolveCpuComplexReference(bad_offset, {{1.0, 0.0}});
+  auto offset = SolveSparseComplex(bad_offset, {{1.0, 0.0}});
   ASSERT_FALSE(offset.ok());
-  EXPECT_EQ(offset.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(offset.error().code, ErrorCode::kInvalidStructure);
 
   const ComplexCsrMatrix bad_column = {
       .rows = 1,
@@ -541,9 +539,9 @@ TEST(Phase2BSolverTest, RejectsMalformedComplexInputs) {
       .column_indices = {1},
       .row_offsets = {0, 1},
   };
-  auto column = SolveCpuComplexReference(bad_column, {{1.0, 0.0}});
+  auto column = SolveSparseComplex(bad_column, {{1.0, 0.0}});
   ASSERT_FALSE(column.ok());
-  EXPECT_EQ(column.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(column.error().code, ErrorCode::kInvalidStructure);
 }
 
 TEST(Phase2BSimulationTest, MatchesAnalyticRcLowPass) {

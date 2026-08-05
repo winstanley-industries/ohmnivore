@@ -11,6 +11,12 @@ enum class ErrorCode {
   kParse,
   kCompile,
   kSolve,
+  kInvalidStructure,
+  kUnsupportedSize,
+  kSingular,
+  kFactorization,
+  kNonFinite,
+  kSolutionValidation,
   kIo,
   kUnsupported,
 };
@@ -48,6 +54,18 @@ private:
     return "compile";
   case ErrorCode::kSolve:
     return "solve";
+  case ErrorCode::kInvalidStructure:
+    return "invalid-structure";
+  case ErrorCode::kUnsupportedSize:
+    return "unsupported-size";
+  case ErrorCode::kSingular:
+    return "singular";
+  case ErrorCode::kFactorization:
+    return "factorization";
+  case ErrorCode::kNonFinite:
+    return "non-finite";
+  case ErrorCode::kSolutionValidation:
+    return "solution-validation";
   case ErrorCode::kIo:
     return "io";
   case ErrorCode::kUnsupported:

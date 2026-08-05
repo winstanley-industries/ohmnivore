@@ -291,9 +291,9 @@ TEST(Phase2ASolverTest, RejectsNonzeroInitialCsrRowOffset) {
       .column_indices = {0},
       .row_offsets = {1, 1},
   };
-  auto solved = SolveCpuReference(invalid, {1.0});
+  auto solved = SolveSparseReal(invalid, {1.0});
   ASSERT_FALSE(solved.ok());
-  EXPECT_EQ(solved.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(solved.error().code, ErrorCode::kInvalidStructure);
   EXPECT_NE(solved.error().message.find("start at zero"), std::string::npos);
 }
 
@@ -305,9 +305,9 @@ TEST(Phase2ASolverTest, RejectsNoncanonicalCsrColumnOrder) {
       .column_indices = {1, 0},
       .row_offsets = {0, 2, 2},
   };
-  auto solved = SolveCpuReference(invalid, {1.0, 0.0});
+  auto solved = SolveSparseReal(invalid, {1.0, 0.0});
   ASSERT_FALSE(solved.ok());
-  EXPECT_EQ(solved.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(solved.error().code, ErrorCode::kInvalidStructure);
   EXPECT_NE(solved.error().message.find("strictly increasing"),
             std::string::npos);
 }

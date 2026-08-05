@@ -5,6 +5,7 @@
 #include <complex>
 #include <cstddef>
 #include <limits>
+#include <memory>
 #include <numbers>
 #include <string>
 #include <system_error>
@@ -56,7 +57,7 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 }
 
 [[nodiscard]] Result<DcResult> RunDc(const MnaSystem &system) {
-  auto solved = SolveCpuReference(system.g, system.b_dc);
+  auto solved = SolveSparseReal(system.g, system.b_dc);
   if (!solved.ok()) {
     return Result<DcResult>::Fail(solved.error().code, solved.error().message);
   }
@@ -96,6 +97,8 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
     result.branch_currents.back().second.reserve(result.frequencies_hz.size());
   }
 
+  std::unique_ptr<SparseComplexFactorization> factorization;
+
   for (double frequency_hz : result.frequencies_hz) {
     const double angular_frequency = 2.0 * std::numbers::pi * frequency_hz;
     auto matrix = FormAcMatrix(system.g, system.c, angular_frequency);
@@ -103,7 +106,15 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
       return Result<AcResult>::Fail(matrix.error().code,
                                     matrix.error().message);
     }
-    auto solved = SolveCpuComplexReference(matrix.value(), system.b_ac);
+    if (factorization == nullptr) {
+      auto analyzed = SparseComplexFactorization::Analyze(matrix.value());
+      if (!analyzed.ok()) {
+        return Result<AcResult>::Fail(analyzed.error().code,
+                                      analyzed.error().message);
+      }
+      factorization = analyzed.TakeValue();
+    }
+    auto solved = factorization->FactorAndSolve(matrix.value(), system.b_ac);
     if (!solved.ok()) {
       return Result<AcResult>::Fail(solved.error().code,
                                     solved.error().message);

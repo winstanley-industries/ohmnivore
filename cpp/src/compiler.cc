@@ -516,10 +516,11 @@ Result<ComplexCsrMatrix> FormAcMatrix(const CsrMatrix &g, const CsrMatrix &c,
             ErrorCode::kCompile,
             "AC matrix formation produced a non-finite value");
       }
-      if (value != std::complex<double>{0.0, 0.0}) {
-        result.column_indices.push_back(column);
-        result.values.push_back(value);
-      }
+      // Retain the deterministic G/C union pattern even when a particular
+      // frequency produces an exact numerical zero. This lets the sparse
+      // solver reuse one symbolic analysis throughout the sweep.
+      result.column_indices.push_back(column);
+      result.values.push_back(value);
     }
     result.row_offsets.push_back(result.values.size());
   }

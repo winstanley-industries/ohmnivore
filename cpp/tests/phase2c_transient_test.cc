@@ -1,8 +1,10 @@
 #include "google_test.h"
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <optional>
 #include <string>
@@ -182,7 +184,7 @@ TEST(Phase2CUicTest, SupportsRedundantCapsAndRejectsInconsistentConstraints) {
   Result<std::vector<double>> rejected =
       BuildTransientInitialState(inconsistent, true);
   ASSERT_FALSE(rejected.ok());
-  EXPECT_EQ(rejected.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(rejected.error().code, ErrorCode::kSolutionValidation);
 }
 
 TEST(Phase2CUicTest, DistinguishesDcAndZeroReactiveStateInitialization) {
@@ -298,6 +300,20 @@ TEST(Phase2CTransientTest, HasDeterministicRejectionAndRecoveryTrace) {
   ASSERT_TRUE(repeated.ok()) << repeated.error().message;
   ASSERT_EQ(repeated.value().step_trace.size(),
             result.value().step_trace.size());
+  EXPECT_EQ(repeated.value().times_seconds, result.value().times_seconds);
+  ASSERT_EQ(repeated.value().states.size(), result.value().states.size());
+  for (std::size_t sample = 0; sample < result.value().states.size();
+       ++sample) {
+    ASSERT_EQ(repeated.value().states[sample].size(),
+              result.value().states[sample].size());
+    for (std::size_t variable = 0;
+         variable < result.value().states[sample].size(); ++variable) {
+      EXPECT_EQ(std::bit_cast<std::uint64_t>(
+                    repeated.value().states[sample][variable]),
+                std::bit_cast<std::uint64_t>(
+                    result.value().states[sample][variable]));
+    }
+  }
   for (std::size_t index = 0; index < result.value().step_trace.size();
        ++index) {
     const TransientStepRecord &first = result.value().step_trace[index];
@@ -809,7 +825,8 @@ TEST(Phase2CTransientTest, PropagatesSingularSolveAsTypedFailure) {
                              .start_time_seconds = 0.0,
                              .use_initial_conditions = false});
   ASSERT_FALSE(result.ok());
-  EXPECT_EQ(result.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(result.error().code, ErrorCode::kSingular)
+      << result.error().message;
 }
 
 } // namespace

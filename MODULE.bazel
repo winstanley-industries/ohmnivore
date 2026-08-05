@@ -87,6 +87,17 @@ http_archive(
     urls = ["https://downloads.sourceforge.net/project/ngspice/ng-spice-rework/46/ngspice-46.tar.gz"],
 )
 
+# Phase 2D builds only KLU and its serial ordering/configuration dependencies
+# from this checksum-pinned source archive.  The repository BUILD file does
+# not run upstream CMake and has no BLAS, LAPACK, or Fortran dependency.
+http_archive(
+    name = "suitesparse_7_12_3",
+    build_file = "//third_party/suitesparse:BUILD.suitesparse.bazel",
+    sha256 = "158ee4ed2ce3fdcbf52c4e47e94b0d1a8ae13344b4a835991d78a3ad20f08086",
+    strip_prefix = "SuiteSparse-7.12.3",
+    urls = ["https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v7.12.3.tar.gz"],
+)
+
 # Root-registered fail sentinels take precedence over rules_foreign_cc's
 # optional host-tool fallbacks. The release build uses only its generated
 # configure products and the rules_foreign_cc checksum-pinned GNU Make 4.4.1.

@@ -10,13 +10,12 @@ migrating to a C++20 core with a CUDA-first backend and hermetic Bazel toolchain
 implementation is retained as a behavioral reference, not the target architecture for new solver
 development.
 
-Phase 2C is deliberately bounded to deterministic linear transient analysis on the FP64 CPU path
-and checksum-pinned differential acceptance of the completed linear DC/AC/transient subset. It
-adds strict PULSE/SIN/PWL/EXP source waveforms, validated `.TRAN`, canonical backward-Euler and
-trapezoidal companion systems, deterministic bounded adaptive stepping, zero-reactive-state UIC,
-legacy transient CSV, and a Bazel-built hermetic ngspice harness. Do not pull nonlinear work,
-production sparse-direct selection, CUDA circuit kernels, mixed precision, or distributed solving
-into Phase 2C.
+Phase 2D is deliberately bounded to selecting and integrating the hermetic production sparse-direct
+FP64 CPU solver for the completed linear DC/AC/transient subset. SuiteSparse KLU 2.3.6 from the
+checksum-pinned SuiteSparse 7.12.3 archive is the production path. The former dense partial-pivoting
+implementation is a test-only exact-small oracle. Do not pull nonlinear work, CUDA circuit kernels,
+mixed precision, distributed solving, or semantic changes to DC, AC, transient, waveforms, GMIN,
+ordering, signs, or CSV into Phase 2D.
 
 Before changing the C++ path:
 

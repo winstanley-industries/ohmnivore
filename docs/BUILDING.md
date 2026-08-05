@@ -26,8 +26,10 @@ The current C++ execution surface is deterministic linear `.DC`/`.OP`, `.AC DEC|
 `.TRAN tstep tstop [tstart] [UIC]` analysis for resistors, capacitors, inductors, and independent
 voltage/current sources. Sources accept strict DC, AC, PULSE, SIN, PWL, and EXP forms in legacy
 order. Capacitors are open and inductors are ideal shorts at DC; AC solves
-`(G + j * 2*pi*f*C)x = b_ac`; transient solves `G*x + C*dx/dt = b(t)`. Both use temporary dense
-FP64 CPU correctness solvers.
+`(G + j * 2*pi*f*C)x = b_ac`; transient solves `G*x + C*dx/dt = b(t)`. DC, AC,
+transient companion, UIC, and discontinuity-projection systems use the checksum-pinned KLU 2.3.6
+real or complex FP64 sparse-direct path. The old dense partial-pivoting implementation is linked
+only into the exact-small test oracle.
 
 AC point counts and frequencies are validated before execution. LIN requires at least two total
 points and includes the requested endpoints. DEC/OCT require a positive points-per-interval value,
@@ -57,6 +59,50 @@ waveform replaces rather than adds to a source's DC value during transient execu
 
 Use `bazel lint --fix` to apply supported formatting fixes. Individual language checks are
 available with `--only cpp`, `--only python`, `--only shell`, and `--only starlark`.
+
+## Production sparse solver
+
+Phase 2D builds the 32-bit-index, serial KLU 2.3.6, AMD, BTF, COLAMD, and SuiteSparse_config C
+sources directly from the checksum-pinned SuiteSparse 7.12.3 archive. It does not run upstream
+CMake and declares no system sparse library, BLAS, LAPACK, Fortran, OpenMP, or path-discovery
+dependency. Normal ASan and UBSan test configurations instrument these sources with the rest of
+the CPU implementation.
+
+The explicit hermeticity/boundary test parses the production ELF rather than relying only on
+substring matching. It allowlists exact `DT_NEEDED` host-ABI entries, requires embedded
+`klu_factor`/`klu_refactor` real and complex symbols, rejects the dense-oracle symbol, checks a
+Bazel-generated production dependency manifest, and consumes an analysis-time `CcInfo` manifest
+that rejects system include/library paths, dense-oracle inputs, excluded int64 SuiteSparse
+sources, and external numerical libraries:
+
+```sh
+bazel test //cpp:solver_hermeticity_test
+```
+
+The two constituent evidence targets can also be built and inspected directly:
+
+```sh
+bazel build //cpp:production_solver_dependency_manifest //cpp:production_solver_cc_manifest
+```
+
+The pinned zero-sysroot compiler action and sanitizer instrumentation remain reproducible with:
+
+```sh
+bazel aquery 'mnemonic("CppCompile", @suitesparse_7_12_3//:klu)' --output=commands
+bazel aquery --config=asan 'mnemonic("CppCompile", @suitesparse_7_12_3//:klu)' --output=commands
+bazel aquery --config=ubsan 'mnemonic("CppCompile", @suitesparse_7_12_3//:klu)' --output=commands
+```
+
+The manual selection-evidence target has no timing pass/fail thresholds. It emits machine and
+toolchain metadata, every raw sample, and deterministic min/P25/median/P75/max summaries for a
+fixed circuit-representative matrix corpus:
+
+```sh
+bazel run -c opt //cpp:solver_selection_benchmark -- --warmups=3 --repetitions=15
+```
+
+Exact dependency provenance, rejected candidates, build inputs, storage and failure contracts,
+license obligations, and the recorded benchmark are in `third_party/suitesparse/PROVENANCE.md`.
 
 ## Sanitizers
 

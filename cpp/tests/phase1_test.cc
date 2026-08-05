@@ -130,9 +130,9 @@ TEST(Phase1SolverTest, RejectsOutOfBoundsCsrColumnBeforeDenseConversion) {
       .column_indices = {1},
       .row_offsets = {0, 1},
   };
-  auto solved = SolveCpuReference(invalid, {1.0});
+  auto solved = SolveSparseReal(invalid, {1.0});
   ASSERT_FALSE(solved.ok());
-  EXPECT_EQ(solved.error().code, ErrorCode::kSolve);
+  EXPECT_EQ(solved.error().code, ErrorCode::kInvalidStructure);
 }
 
 } // namespace

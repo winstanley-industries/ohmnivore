@@ -2,9 +2,10 @@
 
 Ohmnivore runs three analysis types: DC operating point, AC frequency sweep, and transient. A dot command in the netlist requests each analysis.
 
-> **Migration note:** The active C++ Phase 2C path executes linear RLCVI `.DC`/`.OP`, `.AC`, and
-> `.TRAN` on dense FP64 CPU correctness solvers. Nonlinear, GPU solver-dispatch, and CLI-option
-> details below remain legacy Rust reference material.
+> **Migration note:** The active C++ Phase 2D path executes linear RLCVI `.DC`/`.OP`, `.AC`, and
+> `.TRAN` through the checksum-pinned KLU real/complex FP64 sparse-direct solver. The former dense
+> partial-pivoting implementation is an exact-small test oracle only. Nonlinear,
+> GPU solver-dispatch, and CLI-option details below remain legacy Rust reference material.
 
 All results print to stdout as CSV.
 
@@ -84,7 +85,7 @@ Sweeps a frequency range and reports magnitude and phase at each node. Sources w
 .AC LIN npoints fstart fstop    * linear, npoints total
 ```
 
-On the C++ Phase 2C path, all frequencies must be finite and positive with `fstop > fstart`.
+On the C++ Phase 2D path, all frequencies must be finite and positive with `fstop > fstart`.
 DEC/OCT require a positive points-per-decade/octave value and emit the start, geometric interior
 grid, and exact stop once (`ceil(npoints * log_base(fstop/fstart)) + 1` total rows). LIN requires at
 least two points, emits exactly `npoints` rows, and includes both endpoints. Sweeps are strictly
@@ -127,7 +128,7 @@ Each frequency point is a row. Magnitudes are linear (not dB). Phases are in deg
 
 ## Transient Analysis
 
-The C++ Phase 2C path simulates only linear RLCVI circuits. It solves
+The C++ Phase 2D path simulates only linear RLCVI circuits. It solves
 `G*x + C*dx/dt = b(t)` with backward Euler for the initial, recovery, and waveform-breakpoint
 landing steps, then trapezoidal integration with deterministic adaptive timestep control. A
 discontinuous source is integrated to its edge with the left-limit forcing; the right-limit

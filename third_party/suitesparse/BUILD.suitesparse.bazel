@@ -1,0 +1,95 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "config",
+    srcs = ["SuiteSparse_config/SuiteSparse_config.c"],
+    hdrs = ["SuiteSparse_config/SuiteSparse_config.h"],
+    includes = ["SuiteSparse_config"],
+)
+
+cc_library(
+    name = "amd",
+    srcs = glob(
+        ["AMD/Source/*.c"],
+        exclude = ["AMD/Source/amd_l*.c"],
+    ),
+    hdrs = glob(["AMD/Include/*.h"]),
+    includes = [
+        "AMD/Include",
+        "AMD/Source",
+    ],
+    deps = [":config"],
+)
+
+cc_library(
+    name = "btf",
+    srcs = glob(
+        ["BTF/Source/*.c"],
+        exclude = ["BTF/Source/btf_l*.c"],
+    ),
+    hdrs = glob(["BTF/Include/*.h"]),
+    includes = [
+        "BTF/Include",
+        "BTF/Source",
+    ],
+    deps = [":config"],
+)
+
+cc_library(
+    name = "colamd",
+    srcs = glob(
+        ["COLAMD/Source/*.c"],
+        exclude = ["COLAMD/Source/colamd_l.c"],
+    ),
+    hdrs = glob(["COLAMD/Include/*.h"]),
+    includes = [
+        "COLAMD/Include",
+        "COLAMD/Source",
+    ],
+    deps = [":config"],
+)
+
+cc_library(
+    name = "klu",
+    srcs = glob(
+        ["KLU/Source/*.c"],
+        exclude = [
+            "KLU/Source/klu_l*.c",
+            "KLU/Source/klu_zl*.c",
+        ],
+    ),
+    hdrs = glob(["KLU/Include/*.h"]),
+    # The complex int32 wrappers include the generic real source files after
+    # defining COMPLEX.  Declare only those included implementation files as
+    # textual inputs; the excluded int64 wrappers are not build inputs.
+    textual_hdrs = glob(
+        ["KLU/Source/*.c"],
+        exclude = [
+            "KLU/Source/klu_l*.c",
+            "KLU/Source/klu_z*.c",
+        ],
+    ),
+    includes = [
+        "KLU/Include",
+        "KLU/Source",
+    ],
+    deps = [
+        ":amd",
+        ":btf",
+        ":colamd",
+        ":config",
+    ],
+)
+
+filegroup(
+    name = "licenses",
+    srcs = [
+        "AMD/Doc/License.txt",
+        "BTF/Doc/License.txt",
+        "COLAMD/Doc/License.txt",
+        "KLU/Doc/License.txt",
+        "SuiteSparse_config/README.txt",
+    ],
+)

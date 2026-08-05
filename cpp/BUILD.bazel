@@ -1,6 +1,7 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load(":hermeticity.bzl", "solver_cc_boundary_manifest")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -35,6 +36,17 @@ cc_library(
     copts = OHMNIVORE_COPTS,
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
+    deps = ["@suitesparse_7_12_3//:klu"],
+)
+
+cc_library(
+    name = "dense_oracle",
+    testonly = True,
+    srcs = ["tests/dense_oracle.cc"],
+    hdrs = ["tests/dense_oracle.h"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//cpp:__pkg__"],
+    deps = [":core"],
 )
 
 cc_binary(
@@ -133,4 +145,65 @@ cc_test(
         ":core",
         "@googletest//:gtest_main",
     ],
+)
+
+cc_test(
+    name = "phase2d_solver_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase2d_solver_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        ":dense_oracle",
+        "@googletest//:gtest_main",
+        "@suitesparse_7_12_3//:config",
+    ],
+)
+
+cc_test(
+    name = "solver_hermeticity_test",
+    size = "small",
+    srcs = ["tests/solver_hermeticity_test.cc"],
+    args = [
+        "$(rootpath :ohmnivore)",
+        "$(rootpath :production_solver_dependency_manifest)",
+        "$(rootpath :production_solver_cc_manifest)",
+    ],
+    copts = OHMNIVORE_COPTS,
+    data = [
+        ":ohmnivore",
+        ":production_solver_cc_manifest",
+        ":production_solver_dependency_manifest",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["@suitesparse_7_12_3//:klu"],
+)
+
+genquery(
+    name = "production_solver_dependency_manifest",
+    expression = "deps(//cpp:ohmnivore)",
+    opts = [
+        "--noimplicit_deps",
+        "--notool_deps",
+    ],
+    scope = [":ohmnivore"],
+)
+
+solver_cc_boundary_manifest(
+    name = "production_solver_cc_manifest",
+    target = ":core",
+)
+
+cc_binary(
+    name = "solver_selection_benchmark",
+    srcs = ["benchmarks/solver_selection_benchmark.cc"],
+    copts = OHMNIVORE_COPTS,
+    defines = ["OHMNIVORE_REPOSITORY_BAZEL_PIN=\\\"9.2.0\\\""],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [":core"],
 )

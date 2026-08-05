@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <limits>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -81,8 +82,13 @@ Multiply(const CsrMatrix &matrix, const std::vector<double> &vector) {
 
 [[nodiscard]] Result<CsrMatrix> DenseToCsr(const std::vector<double> &dense,
                                            std::size_t size) {
+  if (size != 0 && size > std::numeric_limits<std::size_t>::max() / size) {
+    return Result<CsrMatrix>::Fail(
+        ErrorCode::kUnsupportedSize,
+        "dense projection matrix dimensions are not representable");
+  }
   if (dense.size() != size * size) {
-    return Result<CsrMatrix>::Fail(ErrorCode::kSolve,
+    return Result<CsrMatrix>::Fail(ErrorCode::kInvalidStructure,
                                    "invalid dense matrix dimensions");
   }
   CsrMatrix matrix;
@@ -95,7 +101,7 @@ Multiply(const CsrMatrix &matrix, const std::vector<double> &vector) {
       const double value = dense[row * size + column];
       if (!std::isfinite(value)) {
         return Result<CsrMatrix>::Fail(
-            ErrorCode::kSolve, "dense matrix contains a non-finite value");
+            ErrorCode::kNonFinite, "dense matrix contains a non-finite value");
       }
       if (value != 0.0) {
         matrix.column_indices.push_back(column);
@@ -106,6 +112,43 @@ Multiply(const CsrMatrix &matrix, const std::vector<double> &vector) {
   }
   return Result<CsrMatrix>::Ok(std::move(matrix));
 }
+
+class SparseRealFactorizationCache {
+public:
+  [[nodiscard]] Result<std::vector<double>>
+  Solve(const CsrMatrix &matrix, const std::vector<double> &rhs) {
+    Result<SolverCscPattern> converted = ConvertCsrToSolverCsc(matrix);
+    if (!converted.ok()) {
+      return Result<std::vector<double>>::Fail(converted.error().code,
+                                               converted.error().message);
+    }
+    for (Entry &entry : entries_) {
+      if (entry.pattern.size == converted.value().size &&
+          entry.pattern.column_offsets == converted.value().column_offsets &&
+          entry.pattern.row_indices == converted.value().row_indices &&
+          entry.pattern.csr_value_indices ==
+              converted.value().csr_value_indices) {
+        return entry.factorization->FactorAndSolve(matrix, rhs);
+      }
+    }
+    Result<std::unique_ptr<SparseRealFactorization>> analyzed =
+        SparseRealFactorization::Analyze(matrix);
+    if (!analyzed.ok()) {
+      return Result<std::vector<double>>::Fail(analyzed.error().code,
+                                               analyzed.error().message);
+    }
+    entries_.push_back(Entry{.pattern = converted.TakeValue(),
+                             .factorization = analyzed.TakeValue()});
+    return entries_.back().factorization->FactorAndSolve(matrix, rhs);
+  }
+
+private:
+  struct Entry {
+    SolverCscPattern pattern;
+    std::unique_ptr<SparseRealFactorization> factorization;
+  };
+  std::vector<Entry> entries_;
+};
 
 struct ReactiveConstraintEquation {
   std::vector<double> coefficients;
@@ -176,30 +219,35 @@ struct RankBasisRow {
          std::abs(actual - right_hand_side) <= tolerance;
 }
 
-[[nodiscard]] Result<std::vector<double>> ProjectReactiveState(
-    const MnaSystem &system, const std::vector<double> &target_state,
-    const std::vector<double> &source_rhs, std::string context) {
+[[nodiscard]] Result<std::vector<double>>
+ProjectReactiveState(const MnaSystem &system,
+                     const std::vector<double> &target_state,
+                     const std::vector<double> &source_rhs, std::string context,
+                     SparseRealFactorizationCache *factorization_cache) {
   const std::size_t size = system.g.rows;
   const std::size_t node_count = system.node_names.size();
   if (system.g.rows != system.g.columns || target_state.size() != size ||
       source_rhs.size() != size) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve, context + " has invalid projection dimensions");
+        ErrorCode::kInvalidStructure,
+        context + " has invalid projection dimensions");
   }
-  if (const auto error = ValidateCsr(system.g); error.has_value()) {
+  Result<SolverCscPattern> structure = ConvertCsrToSolverCsc(system.g);
+  if (!structure.ok()) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve, context + " has invalid G matrix: " + *error);
+        structure.error().code,
+        context + " has invalid G matrix: " + structure.error().message);
   }
   for (double value : target_state) {
     if (!std::isfinite(value)) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, context + " target state is non-finite");
+          ErrorCode::kNonFinite, context + " target state is non-finite");
     }
   }
   for (double value : source_rhs) {
     if (!std::isfinite(value)) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, context + " source RHS is non-finite");
+          ErrorCode::kNonFinite, context + " source RHS is non-finite");
     }
   }
 
@@ -212,8 +260,9 @@ struct RankBasisRow {
         (constraint.negative_node_index.has_value() &&
          *constraint.negative_node_index >= node_count)) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, context + ": capacitor '" + constraint.name +
-                                 "' has invalid constraint metadata");
+          ErrorCode::kInvalidStructure,
+          context + ": capacitor '" + constraint.name +
+              "' has invalid constraint metadata");
     }
     ReactiveConstraintEquation equation{
         .coefficients = std::vector<double>(size, 0.0),
@@ -246,8 +295,9 @@ struct RankBasisRow {
         constraint.branch_index >= size ||
         constrained_branch[constraint.branch_index]) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, context + ": inductor '" + constraint.name +
-                                 "' has invalid constraint metadata");
+          ErrorCode::kInvalidStructure,
+          context + ": inductor '" + constraint.name +
+              "' has invalid constraint metadata");
     }
     constrained_branch[constraint.branch_index] = true;
     replaceable_row[constraint.branch_index] = true;
@@ -300,28 +350,28 @@ struct RankBasisRow {
   }
   if (selected_rhs.size() != size) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve,
+        ErrorCode::kSingular,
         context + " constraints do not define a unique algebraic state");
   }
 
   Result<CsrMatrix> matrix = DenseToCsr(selected_dense, size);
   if (!matrix.ok()) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve,
+        matrix.error().code,
         context + " matrix construction failed: " + matrix.error().message);
   }
   Result<std::vector<double>> solved =
-      SolveCpuReference(matrix.value(), selected_rhs);
+      factorization_cache->Solve(matrix.value(), selected_rhs);
   if (!solved.ok()) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve,
+        solved.error().code,
         context + " solve failed: " + solved.error().message);
   }
 
   for (const ReactiveConstraintEquation &constraint : constraints) {
     if (!EquationIsSatisfied(constraint.coefficients,
                              constraint.right_hand_side, solved.value())) {
-      return Result<std::vector<double>>::Fail(ErrorCode::kSolve,
+      return Result<std::vector<double>>::Fail(ErrorCode::kSolutionValidation,
                                                context + " has inconsistent " +
                                                    constraint.description);
     }
@@ -335,7 +385,7 @@ struct RankBasisRow {
         dense_g.begin() + static_cast<std::ptrdiff_t>((row + 1) * size));
     if (!EquationIsSatisfied(equation, source_rhs[row], solved.value())) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve,
+          ErrorCode::kSolutionValidation,
           context + " is inconsistent with an algebraic circuit constraint");
     }
   }
@@ -527,10 +577,10 @@ Result<CsrMatrix> FormTransientCompanionMatrix(const CsrMatrix &g,
             ErrorCode::kSolve,
             "transient companion matrix produced a non-finite value");
       }
-      if (value != 0.0) {
-        result.column_indices.push_back(column);
-        result.values.push_back(value);
-      }
+      // Retain the deterministic G/C union pattern across methods and step
+      // sizes, including exact numerical cancellations, for symbolic reuse.
+      result.column_indices.push_back(column);
+      result.values.push_back(value);
     }
     result.row_offsets.push_back(result.values.size());
   }
@@ -620,11 +670,10 @@ BuildTrapezoidalRhs(const CsrMatrix &g, const CsrMatrix &c,
 
 namespace {
 
-[[nodiscard]] Result<std::vector<double>>
-SolveBackwardEulerStep(const MnaSystem &system,
-                       const std::vector<double> &previous_state,
-                       const std::vector<double> &current_rhs,
-                       double step_size_seconds, std::string context) {
+[[nodiscard]] Result<std::vector<double>> SolveBackwardEulerStep(
+    const MnaSystem &system, const std::vector<double> &previous_state,
+    const std::vector<double> &current_rhs, double step_size_seconds,
+    std::string context, SparseRealFactorizationCache *factorization_cache) {
   Result<CsrMatrix> matrix =
       FormTransientCompanionMatrix(system.g, system.c, step_size_seconds, 1.0);
   if (!matrix.ok()) {
@@ -638,10 +687,10 @@ SolveBackwardEulerStep(const MnaSystem &system,
         ErrorCode::kSolve, context + ": " + rhs.error().message);
   }
   Result<std::vector<double>> solved =
-      SolveCpuReference(matrix.value(), rhs.value());
+      factorization_cache->Solve(matrix.value(), rhs.value());
   if (!solved.ok()) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve, context + ": " + solved.error().message);
+        solved.error().code, context + ": " + solved.error().message);
   }
   return solved;
 }
@@ -654,22 +703,24 @@ SolveBackwardEulerStep(const MnaSystem &system,
 
 } // namespace
 
-Result<std::vector<double>>
-BuildTransientInitialState(const MnaSystem &system,
-                           bool use_initial_conditions) {
+namespace {
+
+[[nodiscard]] Result<std::vector<double>> BuildTransientInitialStateImpl(
+    const MnaSystem &system, bool use_initial_conditions,
+    SparseRealFactorizationCache *factorization_cache) {
   if (system.g.rows != system.g.columns ||
       system.node_names.size() + system.branch_names.size() != system.g.rows ||
       system.b_dc.size() != system.g.rows) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve,
+        ErrorCode::kInvalidStructure,
         "invalid MNA dimensions for transient initialization");
   }
   if (!use_initial_conditions) {
     Result<std::vector<double>> solved =
-        SolveCpuReference(system.g, system.b_dc);
+        factorization_cache->Solve(system.g, system.b_dc);
     if (!solved.ok()) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve,
+          solved.error().code,
           "DC transient initialization failed: " + solved.error().message);
     }
     return solved;
@@ -677,12 +728,14 @@ BuildTransientInitialState(const MnaSystem &system,
 
   const std::size_t size = system.g.rows;
   const std::vector<double> zero_reactive_state(size, 0.0);
-  Result<std::vector<double>> solved = ProjectReactiveState(
-      system, zero_reactive_state, system.b_dc, "UIC initialization");
+  Result<std::vector<double>> solved =
+      ProjectReactiveState(system, zero_reactive_state, system.b_dc,
+                           "UIC initialization", factorization_cache);
   if (!solved.ok()) {
     return Result<std::vector<double>>::Fail(
-        ErrorCode::kSolve, "UIC initialization constraints are inconsistent: " +
-                               solved.error().message);
+        solved.error().code,
+        "UIC initialization constraints are inconsistent: " +
+            solved.error().message);
   }
 
   for (const CapacitorInitialConstraint &constraint :
@@ -698,8 +751,9 @@ BuildTransientInitialState(const MnaSystem &system,
     if (std::abs(positive - negative) >
         ConstraintTolerance(positive, negative)) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, "capacitor '" + constraint.name +
-                                 "' has an inconsistent zero-voltage UIC");
+          ErrorCode::kSolutionValidation,
+          "capacitor '" + constraint.name +
+              "' has an inconsistent zero-voltage UIC");
     }
   }
   for (const InductorInitialConstraint &constraint :
@@ -707,16 +761,28 @@ BuildTransientInitialState(const MnaSystem &system,
     const double current = solved.value()[constraint.branch_index];
     if (std::abs(current) > ConstraintTolerance(current)) {
       return Result<std::vector<double>>::Fail(
-          ErrorCode::kSolve, "inductor '" + constraint.name +
-                                 "' has an inconsistent zero-current UIC");
+          ErrorCode::kSolutionValidation,
+          "inductor '" + constraint.name +
+              "' has an inconsistent zero-current UIC");
     }
   }
   return solved;
 }
 
+} // namespace
+
+Result<std::vector<double>>
+BuildTransientInitialState(const MnaSystem &system,
+                           bool use_initial_conditions) {
+  SparseRealFactorizationCache factorization_cache;
+  return BuildTransientInitialStateImpl(system, use_initial_conditions,
+                                        &factorization_cache);
+}
+
 Result<TransientResult>
 RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                      const TransientExecutionLimits &limits) {
+  SparseRealFactorizationCache factorization_cache;
   if (!std::isfinite(analysis.time_step_seconds) ||
       analysis.time_step_seconds <= 0.0 ||
       !std::isfinite(analysis.stop_time_seconds) ||
@@ -772,10 +838,10 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                     hard_points.end());
   SortUnique(&hard_points);
 
-  Result<std::vector<double>> initial =
-      BuildTransientInitialState(system, analysis.use_initial_conditions);
+  Result<std::vector<double>> initial = BuildTransientInitialStateImpl(
+      system, analysis.use_initial_conditions, &factorization_cache);
   if (!initial.ok()) {
-    return Result<TransientResult>::Fail(ErrorCode::kSolve,
+    return Result<TransientResult>::Fail(initial.error().code,
                                          initial.error().message);
   }
   Result<std::vector<double>> initial_rhs = BuildTransientRhs(system, 0.0);
@@ -783,11 +849,11 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
     return Result<TransientResult>::Fail(ErrorCode::kSolve,
                                          initial_rhs.error().message);
   }
-  Result<std::vector<double>> projected_initial =
-      ProjectReactiveState(system, initial.value(), initial_rhs.value(),
-                           "initial transient source projection");
+  Result<std::vector<double>> projected_initial = ProjectReactiveState(
+      system, initial.value(), initial_rhs.value(),
+      "initial transient source projection", &factorization_cache);
   if (!projected_initial.ok()) {
-    return Result<TransientResult>::Fail(ErrorCode::kSolve,
+    return Result<TransientResult>::Fail(projected_initial.error().code,
                                          projected_initial.error().message);
   }
 
@@ -885,11 +951,11 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
     std::vector<double> accepted_state;
     double normalized_error = 0.0;
     if (use_backward_euler) {
-      Result<std::vector<double>> full_step =
-          SolveBackwardEulerStep(system, state, integration_rhs, step,
-                                 "backward-Euler transient solve failed");
+      Result<std::vector<double>> full_step = SolveBackwardEulerStep(
+          system, state, integration_rhs, step,
+          "backward-Euler transient solve failed", &factorization_cache);
       if (!full_step.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
+        return Result<TransientResult>::Fail(full_step.error().code,
                                              full_step.error().message);
       }
 
@@ -919,16 +985,19 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
           const double second_half = next_time - midpoint;
           Result<std::vector<double>> first_half_state = SolveBackwardEulerStep(
               system, state, midpoint_rhs.value(), first_half,
-              "first half backward-Euler LTE solve failed");
+              "first half backward-Euler LTE solve failed",
+              &factorization_cache);
           if (!first_half_state.ok()) {
             return Result<TransientResult>::Fail(
-                ErrorCode::kSolve, first_half_state.error().message);
+                first_half_state.error().code,
+                first_half_state.error().message);
           }
           Result<std::vector<double>> refined = SolveBackwardEulerStep(
               system, first_half_state.value(), integration_rhs, second_half,
-              "second half backward-Euler LTE solve failed");
+              "second half backward-Euler LTE solve failed",
+              &factorization_cache);
           if (!refined.ok()) {
-            return Result<TransientResult>::Fail(ErrorCode::kSolve,
+            return Result<TransientResult>::Fail(refined.error().code,
                                                  refined.error().message);
           }
           Result<double> error = ComputeNormalizedLocalError(
@@ -983,11 +1052,11 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                                              trap_rhs.error().message);
       }
       Result<std::vector<double>> trap_solution =
-          SolveCpuReference(trap_matrix.value(), trap_rhs.value());
+          factorization_cache.Solve(trap_matrix.value(), trap_rhs.value());
       if (!trap_solution.ok()) {
         return Result<TransientResult>::Fail(
-            ErrorCode::kSolve, "trapezoidal transient solve failed: " +
-                                   trap_solution.error().message);
+            trap_solution.error().code, "trapezoidal transient solve failed: " +
+                                            trap_solution.error().message);
       }
 
       Result<CsrMatrix> be_matrix =
@@ -1003,10 +1072,10 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                                              be_rhs.error().message);
       }
       Result<std::vector<double>> be_solution =
-          SolveCpuReference(be_matrix.value(), be_rhs.value());
+          factorization_cache.Solve(be_matrix.value(), be_rhs.value());
       if (!be_solution.ok()) {
         return Result<TransientResult>::Fail(
-            ErrorCode::kSolve,
+            be_solution.error().code,
             "LTE backward-Euler solve failed: " + be_solution.error().message);
       }
       Result<double> error = ComputeNormalizedLocalError(
@@ -1048,11 +1117,11 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
 
     if (waveform_landing &&
         !EqualVectors(integration_rhs, current_rhs.value())) {
-      Result<std::vector<double>> projected =
-          ProjectReactiveState(system, accepted_state, current_rhs.value(),
-                               "waveform discontinuity projection");
+      Result<std::vector<double>> projected = ProjectReactiveState(
+          system, accepted_state, current_rhs.value(),
+          "waveform discontinuity projection", &factorization_cache);
       if (!projected.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
+        return Result<TransientResult>::Fail(projected.error().code,
                                              projected.error().message);
       }
       accepted_state = projected.TakeValue();
