@@ -6,6 +6,8 @@
 
 #include "ohmnivore/compiler.h"
 #include "ohmnivore/ir.h"
+#include "ohmnivore/nonlinear.h"
+#include "ohmnivore/solver.h"
 #include "ohmnivore/sparse.h"
 #include "ohmnivore/status.h"
 
@@ -22,11 +24,20 @@ struct TransientExecutionLimits {
   std::size_t maximum_accepted_steps = kMaximumTransientAcceptedSteps;
   std::size_t maximum_step_attempts = kMaximumTransientStepAttempts;
   double minimum_step_divisor = 10'000.0;
+  // Production uses the Phase 3A bound. Focused tests may only reduce it to
+  // exercise deterministic nonlinear timestep retry and exhaustion.
+  std::size_t nonlinear_maximum_iterations = kDirectNewtonMaximumIterations;
 };
 
 enum class TransientIntegrationMethod {
   kBackwardEuler,
   kTrapezoidal,
+};
+
+enum class TransientStepRejectionReason {
+  kNone,
+  kLocalError,
+  kNonlinearConvergence,
 };
 
 struct TransientStepRecord {
@@ -37,6 +48,8 @@ struct TransientStepRecord {
   bool accepted;
   double normalized_local_error;
   bool landed_on_hard_point;
+  TransientStepRejectionReason rejection_reason =
+      TransientStepRejectionReason::kNone;
 };
 
 // Full FP64 states are ordered exactly like MnaSystem: insertion-ordered node
@@ -46,6 +59,7 @@ struct TransientResult {
   std::vector<double> times_seconds;
   std::vector<std::vector<double>> states;
   std::vector<TransientStepRecord> step_trace;
+  SparseSolverStatistics solver_statistics;
 };
 
 // Builds b(t) by replacing each transient source's own DC contribution with

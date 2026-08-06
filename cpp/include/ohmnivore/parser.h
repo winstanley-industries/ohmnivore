@@ -8,11 +8,11 @@
 
 namespace ohmnivore {
 
-// Phase 3A recognizes RLC elements, independent voltage/current sources with
+// Phase 3B recognizes RLC elements, independent voltage/current sources with
 // strict DC, small-signal AC, and PULSE/SIN/PWL/EXP specifications, .DC/.OP,
-// .AC, .TRAN, strict diode/.MODEL D DC syntax, .PRINT as a compatibility
-// no-op, and .END. Other SPICE forms are rejected explicitly rather than
-// weakened.
+// .AC, .TRAN, strict diode/.MODEL D DC and transient syntax, .PRINT as a
+// compatibility no-op, and .END. Other SPICE forms are rejected explicitly
+// rather than weakened.
 [[nodiscard]] Result<Circuit> ParseNetlist(std::string_view input);
 
 } // namespace ohmnivore

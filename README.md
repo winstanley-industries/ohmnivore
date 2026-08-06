@@ -9,9 +9,9 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ Phase 3A path provides deterministic linear DC, AC, and transient analysis plus a bounded
-nonlinear diode DC operating-point foundation on the production FP64 CPU sparse-direct correctness
-path. It provides:
+The C++ Phase 3B path provides deterministic linear DC, AC, and transient analysis plus bounded
+nonlinear diode DC operating-point and memoryless-diode transient analysis on the production FP64
+CPU sparse-direct correctness path. It provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
 - typed domain errors at library boundaries;
@@ -36,28 +36,30 @@ path. It provides:
   defaults, typed malformed/unsupported/model failures, and one fixed explicit-zero CSR union
   pattern for every linear and possible diode Jacobian stamp;
 - FP64 Shockley current/conductance evaluation at fixed `VT=0.02585 V`, deterministic PN-junction
-  limiting, Newton update plus nonlinear-residual convergence, fixed direct/source/GMIN strategy
-  order, original-system final validation, and one reused KLU symbolic analysis;
+  limiting, Newton update plus nonlinear-residual convergence, fixed DC direct/source/GMIN strategy
+  order, original-system final validation, and reused KLU symbolic analyses;
 - inclusive, strictly increasing AC frequency grids: LIN emits exactly its total point count,
   while DEC/OCT use points per decade/octave and include the exact stop frequency once;
 - backward Euler for initial/recovery/breakpoint steps, trapezoidal integration otherwise,
   deterministic scaled local-error control on both methods, left/right source-discontinuity
-  projection, exact waveform/output-start/stop boundaries, and bounded typed timestep failures;
-- DC operating-point initialization without UIC and deterministic zero capacitor-voltage/zero
-  inductor-current constraints with UIC;
+  projection, exact waveform/output-start/stop boundaries, nonlinear companion residual validation,
+  deterministic half-step Newton retry, and bounded typed timestep failures;
+- linear or nonlinear DC operating-point initialization without UIC and deterministic zero
+  capacitor-voltage/zero inductor-current constraints with UIC;
 - the legacy DC, AC, and transient CSV schemas;
 - a checksum-pinned Bazel-built ngspice 46 acceptance harness for representative linear DC, AC,
-  and transient circuits plus one bounded forward-biased diode DC fixture; and
+  and transient circuits plus bounded forward-biased diode DC and memoryless-diode transient
+  fixtures; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-BJTs, MOSFETs, diode AC/charge/noise/temperature behavior, and nonlinear transient analysis have
-not yet been ported. CUDA circuit kernels or solver dispatch, mixed precision, and distributed
-solving are also absent. Bare `.DC` is an operating-point request; DC source sweeps are not
-executed.
+BJTs, MOSFETs, and diode AC/charge/noise/temperature behavior have not yet been ported. CUDA circuit
+kernels or solver dispatch, mixed precision, and distributed solving are also absent. Bare `.DC`
+is an operating-point request; DC source sweeps are not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
 accepted. The differential claim is limited to the representative linear fixtures, one diode DC
-fixture, and tolerances recorded in `third_party/ngspice/PROVENANCE.md`. Sparse-solver selection,
+fixture, one memoryless-diode transient fixture, and tolerances recorded in
+`third_party/ngspice/PROVENANCE.md`. Sparse-solver selection,
 storage, numerical, license, and reproducibility details are recorded in
 `third_party/suitesparse/PROVENANCE.md`.
 
@@ -71,6 +73,7 @@ bazel lint
 bazel build //...
 bazel test //...
 bazel test //cpp:phase3a_test
+bazel test //cpp:phase3b_test
 bazel test //acceptance:ngspice_acceptance_test
 bazel test //cpp:solver_hermeticity_test
 bazel run -c opt //cpp:solver_selection_benchmark -- --warmups=3 --repetitions=15

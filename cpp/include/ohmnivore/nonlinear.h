@@ -78,6 +78,11 @@ struct NonlinearLinearization {
   std::vector<double> residual;
 };
 
+struct NonlinearPointResult {
+  std::vector<double> solution;
+  std::vector<NonlinearIterationRecord> iteration_trace;
+};
+
 [[nodiscard]] Result<NonlinearLinearization> BuildNonlinearDcLinearization(
     const MnaSystem &system, const std::vector<double> &solution,
     double source_scale = 1.0, double extra_gmin_siemens = 0.0);
@@ -88,6 +93,20 @@ struct NonlinearLinearization {
 [[nodiscard]] Result<double> ValidateNonlinearResidual(
     const MnaSystem &system, const std::vector<double> &solution,
     double source_scale = 1.0, double extra_gmin_siemens = 0.0);
+
+// Returns only S*i(S^T*x), in stable descriptor order, with the same model,
+// descriptor, finite-value, and magnitude validation as Newton assembly.
+[[nodiscard]] Result<std::vector<double>>
+BuildDiodeResidualContribution(const MnaSystem &system,
+                               const std::vector<double> &solution);
+
+// Solves one already-formed nonlinear system with a caller-owned KLU symbolic
+// analysis. Transient execution uses this direct bounded Newton path and owns
+// timestep retry; DC continuation remains exclusively in RunNonlinearDc.
+[[nodiscard]] Result<NonlinearPointResult> RunNonlinearPoint(
+    const MnaSystem &system, const std::vector<double> &initial_guess,
+    SparseRealFactorization *factorization,
+    std::size_t maximum_iterations = kDirectNewtonMaximumIterations);
 
 [[nodiscard]] Result<NonlinearDcResult>
 RunNonlinearDc(const MnaSystem &system, const NonlinearDcOptions &options = {});

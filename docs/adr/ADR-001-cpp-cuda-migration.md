@@ -345,10 +345,120 @@ dispatch, mixed precision, distributed solving, new linear semantics, or general
 scalability claims. Netlists that request AC or transient execution with a diode are rejected as
 unsupported. Rust remains unchanged as behavioral reference material.
 
+## Phase 3B: Deterministic FP64 CPU memoryless-diode transient analysis
+
+Phase 3B adds only nonlinear transient execution for the exact diode syntax, model bounds,
+fixed-temperature Shockley evaluation, and insertion-order semantics accepted by Phase 3A. A diode
+remains a memoryless conductance/current device: Phase 3B adds no diode charge, junction or diffusion
+capacitance, transit time, or other hidden dynamic state. The production FP64 CPU path remains the
+correctness authority.
+
+### Nonlinear DAE and integration contract
+
+For the Phase 2C state order and source vector, define the memoryless diode residual contribution
+`d(x) = S*i(S^T*x)`. Phase 3B solves exactly
+
+```text
+G*x + C*dx/dt - b(t) + d(x) = 0.
+```
+
+The Phase 2C timestep schedule, hard maximum `tstep`, adaptive minimum `tstep/10000`, accepted-step
+and attempt limits, output grid, waveform breakpoints, left-limit integration, right-limit
+projection, and BE/TRAP method-selection rules remain unchanged. At a step from accepted state
+`x_p` to `x_n` with size `h`, the nonlinear systems are:
+
+```text
+BE:   (G + C/h)*x_n - (b_n + C*x_p/h) + d(x_n) = 0
+TRAP: (G + 2*C/h)*x_n
+      - (b_n + b_p + (2*C/h - G)*x_p - d(x_p)) + d(x_n) = 0.
+```
+
+The `d(x_p)` history term is freshly evaluated from the accepted previous state in stable diode
+order. At a discontinuous source edge, `b_n` for integration is the left limit. After the step is
+accepted, the existing zero-time projection uses the right-limit source value while preserving
+every capacitor voltage and inductor current. The projected state and right-limit source vector
+become the history for the next step. There is no diode-history or charge term.
+
+Every full BE step, both BE half steps, each TRAP candidate, each BE LTE comparison candidate, and
+each nonlinear projection is an independently converged and residual-validated implicit solve.
+The Phase 2C local-error formulas, tolerances, safety factor, adaptation clamp, hard-point landing,
+and accepted higher-accuracy state are not changed.
+
+### Initialization and discontinuity projection
+
+Without `UIC`, transient initialization first obtains the Phase 3A nonlinear DC operating point
+using the original DC sources and the exact direct/source-stepping/GMIN-stepping schedule. It then
+performs the Phase 2C zero-time projection if the transient source value at zero differs, preserving
+the DC capacitor voltages and inductor currents while satisfying the right-limit nonlinear
+algebraic equations.
+
+With `UIC`, capacitor voltages and inductor currents are exactly zero under the existing Phase 2C
+constraint-selection and redundancy rules. The remaining independent algebraic equations include
+the Phase 3A diode currents and are solved by the same bounded FP64 Newton/limiting path. A diode
+contributes only to a selected physical node-KCL equation; it does not contribute to a row replaced
+by a reactive-state constraint. Missing rank, inconsistent or redundant-but-conflicting
+constraints, Newton exhaustion, or failed post-solve constraint/residual checks are typed failures.
+
+Every waveform discontinuity projection applies the same rule to the accepted left-limit state.
+Projection Newton is seeded by the state being projected, is bounded to 50 iterations, and has no
+continuation or unbounded retry. Linear netlists continue to use the unchanged Phase 2C linear
+projection path.
+
+### Newton, timestep retry, sparse reuse, and validation
+
+Each implicit transient point is seeded by its immediately preceding state: the accepted step
+state for a full BE, TRAP, or LTE BE solve, and the first accepted half-step state for the second
+BE half step. Device evaluation, PN-junction limiting, update tolerances, row-scaled nonlinear
+residual criteria, finite `1e100` magnitude bound, and accepted-Jacobian zero solve are exactly the
+Phase 3A contracts. The direct transient Newton budget is 50 iterations. Source stepping and GMIN
+stepping remain DC operating-point strategies and are not applied to a transient companion
+equation.
+
+Only typed `kNonConvergence` from an implicit step is recoverable by the transient controller. The
+attempt is recorded as a nonlinear-convergence rejection, the proposed step is exactly halved, and
+the retry is a backward-Euler recovery step. Retrying stops at the existing attempt limit, adaptive
+minimum, or FP64 time-representability boundary and then returns typed `kNonConvergence`. Singular
+or rank-deficient Jacobians, invalid structure, unsupported size, allocation/factorization errors,
+non-finite arithmetic, sparse backward-error failure, nonlinear residual-validation failure, and
+projection failure propagate immediately and are never reclassified as timestep rejections.
+
+Compilation and companion formation retain one immutable canonical CSR union containing every
+linear `G` coordinate, every dynamic `C` coordinate, and every possible active diode Jacobian
+coordinate. Exact numerical cancellations and diode-required zeros are retained. Descriptor value
+indexes are deterministically remapped to that union. KLU symbolic analysis is reused for every
+matrix with that pattern across BE, TRAP, LTE, timestep retry, and repeated accepted steps; numeric
+values refactor through the Phase 2D pivot-safe policy. Projection patterns are likewise cached by
+exact structure. No failure can dispatch to the dense exact-small oracle or another solver.
+
+Before accepting any nonlinear implicit or projected state, Phase 3B freshly recomputes the
+original requested equation and requires the Phase 3A normalized nonlinear residual bound in
+addition to KLU's normwise and rowwise componentwise backward-error checks. Reactive constraints
+and every retained algebraic equation are also rechecked independently after projection.
+
+Device evaluation, residual and history construction, limiting, convergence reductions, LTE,
+timestep adaptation, retry decisions, and sparse-pattern lookup execute single-threaded in stable
+row/device/index order. Repeated runs on one supported toolchain/platform must produce
+bitwise-identical output times, states, step/rejection traces, and solver statistics. Cross-libm or
+cross-platform bitwise equality is not claimed; analytic and ngspice comparisons use only their
+recorded tolerances.
+
+### Preservation and excluded work
+
+Netlists without diodes retain the Phase 2C/2D linear initialization, projection, companion solve,
+LTE, timestep, ordering, sign, GMIN, CSV, and KLU fast paths without nonlinear dispatch. Linear DC,
+diode DC, linear and diode-free AC, waveform parsing, and all previously accepted fixtures remain
+regression gates. AC analysis containing a diode remains explicitly unsupported because Phase 3B
+adds neither diode small-signal linearization nor charge.
+
+Phase 3B does not add or approximate diode charge/capacitance, AC, noise, temperature dependence,
+temperature sweeps, BJTs, MOSFETs, new source or initial-condition syntax, CUDA circuit kernels or
+solver dispatch, mixed precision, MPI/NCCL/RAS/domain decomposition, or performance/scalability
+claims. The Rust/wgpu source and tests remain unchanged as behavioral reference material.
+
 ## Follow-up phases
 
-1. Extend the CPU nonlinear authority only through separately bounded diode-transient and
-   additional-device phases.
+1. Extend the CPU nonlinear authority only through separately bounded additional-device or
+   charge-storage phases.
 2. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
    validation, replay, and end-to-end benchmarks.
 3. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before

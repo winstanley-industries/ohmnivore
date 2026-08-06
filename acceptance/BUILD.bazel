@@ -25,6 +25,7 @@ cc_test(
         "$(rootpath :fixtures/tran_pulse_rc.spice)",
         "$(rootpath :fixtures/tran_rl_step.spice)",
         "$(rootpath :fixtures/tran_current_rlc_non_uic.spice)",
+        "$(rootpath :fixtures/tran_diode_rc.spice)",
     ],
     copts = [
         "-Wall",
@@ -40,6 +41,7 @@ cc_test(
         ":fixtures/tran_rc_uic_charging.spice",
         ":fixtures/tran_rl_step.spice",
         ":fixtures/tran_current_rlc_non_uic.spice",
+        ":fixtures/tran_diode_rc.spice",
         "//cpp:ohmnivore",
         "//third_party/ngspice:ngspice_binary",
     ],

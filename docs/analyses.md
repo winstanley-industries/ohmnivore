@@ -2,10 +2,11 @@
 
 Ohmnivore runs three analysis types: DC operating point, AC frequency sweep, and transient. A dot command in the netlist requests each analysis.
 
-> **Migration note:** The active C++ Phase 3A path adds deterministic FP64 diode `.DC`/`.OP` to
-> the linear RLCVI `.DC`/`.OP`, `.AC`, and `.TRAN` subset. Every production solve uses the
+> **Migration note:** The active C++ Phase 3B path adds deterministic FP64 diode `.DC`/`.OP` and
+> memoryless-diode `.TRAN` to the linear RLCVI `.DC`/`.OP`, `.AC`, and `.TRAN` subset. Every
+> production solve uses the
 > checksum-pinned KLU real/complex FP64 sparse-direct solver. The former dense partial-pivoting
-> implementation is an exact-small test oracle only. BJT, MOSFET, nonlinear AC/transient, GPU
+> implementation is an exact-small test oracle only. BJT, MOSFET, diode AC/charge, GPU
 > solver-dispatch, and CLI-option details below remain legacy Rust reference material.
 
 All results print to stdout as CSV.
@@ -119,7 +120,7 @@ Sweeps a frequency range and reports magnitude and phase at each node. Sources w
 .AC LIN npoints fstart fstop    * linear, npoints total
 ```
 
-On the C++ Phase 3A path, all frequencies must be finite and positive with `fstop > fstart`.
+On the C++ Phase 3B path, all frequencies must be finite and positive with `fstop > fstart`.
 DEC/OCT require a positive points-per-decade/octave value and emit the start, geometric interior
 grid, and exact stop once (`ceil(npoints * log_base(fstop/fstart)) + 1` total rows). LIN requires at
 least two points, emits exactly `npoints` rows, and includes both endpoints. Sweeps are strictly
@@ -162,12 +163,14 @@ Each frequency point is a row. Magnitudes are linear (not dB). Phases are in deg
 
 ## Transient Analysis
 
-The C++ Phase 3A path simulates only linear RLCVI transient circuits. It solves
-`G*x + C*dx/dt = b(t)` with backward Euler for the initial, recovery, and waveform-breakpoint
-landing steps, then trapezoidal integration with deterministic adaptive timestep control. A
-discontinuous source is integrated to its edge with the left-limit forcing; the right-limit
-algebraic state is then projected without changing capacitor voltages or inductor currents. It
-does not perform Newton iteration or admit nonlinear devices.
+The C++ Phase 3B path simulates linear RLCVI circuits and the strict Phase 3A memoryless-diode
+subset. Linear circuits solve `G*x + C*dx/dt = b(t)`. Diode circuits solve
+`G*x + C*dx/dt - b(t) + d(x) = 0`, where `d(x)` is the insertion-ordered Shockley current
+contribution and has no charge or hidden state. Backward Euler is used for initial, recovery, and
+waveform-breakpoint landing steps; trapezoidal integration is used otherwise with deterministic
+adaptive timestep control. A discontinuous source is integrated to its edge with the left-limit
+forcing; the right-limit algebraic state is then projected without changing capacitor voltages or
+inductor currents.
 
 **Syntax:**
 
@@ -198,12 +201,26 @@ limits return typed failures instead of partial output. The bounds are 1,000,000
 and 2,000,000 attempts. An algebraic-only BE step has zero dynamic LTE; a mandatory one-ULP
 boundary clip is accepted when no representable midpoint exists.
 
-Without UIC, the complete state comes from the existing GMIN-inclusive DC operating-point solve.
+For diodes, BE solves
+`(G+C/h)x_n-(b_n+C*x_p/h)+d(x_n)=0`. TRAP solves
+`(G+2C/h)x_n-(b_n+b_p+(2C/h-G)x_p-d(x_p))+d(x_n)=0`, including a freshly evaluated previous-current
+history term. Every full, half, and LTE comparison point uses Phase 3A PN-junction limiting,
+scaled Newton update and residual convergence, KLU backward-error validation, and an original-system
+residual recheck. Only Newton nonconvergence rejects a step for an exact half-size BE retry;
+singularity, non-finite arithmetic, factorization, structure, and validation errors fail
+immediately. The direct transient Newton budget is 50 iterations.
+
+Without UIC, the complete state comes from the existing GMIN-inclusive linear or Phase 3A nonlinear
+DC operating-point solve.
 With UIC, zero reactive state is a constraint, not an assumption that every voltage/current is
 zero; the remaining algebraic system is solved and inconsistent constraints fail. A transient
 constraint already imposed consistently by an ideal voltage source is accepted as redundant. A
 transient waveform replaces its source's DC value while transient time advances. Transient-only sources use
 zero during DC or UIC initialization.
+
+For a diode circuit, UIC and source-discontinuity projection include diode current in every retained
+physical KCL row while omitting it from rows replaced by reactive-state constraints. The fixed
+G/C/diode CSR union lets KLU reuse symbolic analysis across BE, TRAP, LTE, and retry solves.
 
 **Example -- RC charging:**
 

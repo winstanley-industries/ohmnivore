@@ -868,7 +868,7 @@ D1 out 0 DM
   EXPECT_EQ(allocation_failure.error().code, ErrorCode::kFactorization);
 }
 
-TEST(Phase3ASimulationTest, RejectsNonlinearAcAndTransientExplicitly) {
+TEST(Phase3ASimulationTest, KeepsNonlinearAcExplicitlyUnsupported) {
   constexpr char ac[] = R"(V1 in 0 DC 1 AC 1
 .MODEL DM D
 D1 in 0 DM
@@ -877,27 +877,6 @@ D1 in 0 DM
   auto ac_result = SimulateAc(ac);
   ASSERT_FALSE(ac_result.ok());
   EXPECT_EQ(ac_result.error().code, ErrorCode::kUnsupported);
-
-  constexpr char transient[] = R"(V1 in 0 PULSE(0 1)
-.MODEL DM D
-D1 in 0 DM
-.TRAN 1u 2u
-)";
-  auto transient_result = SimulateTransient(transient);
-  ASSERT_FALSE(transient_result.ok());
-  EXPECT_EQ(transient_result.error().code, ErrorCode::kUnsupported);
-
-  MnaSystem system = Compile(transient);
-  auto initial = BuildTransientInitialState(system, false);
-  ASSERT_FALSE(initial.ok());
-  EXPECT_EQ(initial.error().code, ErrorCode::kUnsupported);
-  auto integrated = RunTransientAnalysis(
-      system, TranAnalysis{.time_step_seconds = 1e-6,
-                           .stop_time_seconds = 2e-6,
-                           .start_time_seconds = 0.0,
-                           .use_initial_conditions = false});
-  ASSERT_FALSE(integrated.ok());
-  EXPECT_EQ(integrated.error().code, ErrorCode::kUnsupported);
 }
 
 TEST(Phase3ASimulationTest, PreservesOrderingSignsGminAndCsvEscaping) {

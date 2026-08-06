@@ -1,5 +1,7 @@
 #include "ohmnivore/nonlinear.h"
 
+#include "cpp/src/nonlinear_internal.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -166,11 +168,19 @@ ValidateDescriptor(const MnaSystem &system, const DiodeDescriptor &descriptor) {
 
 [[nodiscard]] Result<AssembledNewtonSystem>
 Assemble(const MnaSystem &system, const std::vector<double> &solution,
-         double source_scale, double extra_gmin_siemens) {
+         double source_scale, double extra_gmin_siemens,
+         const std::vector<bool> *active_node_equations = nullptr) {
   if (solution.size() != system.g.columns) {
     return Result<AssembledNewtonSystem>::Fail(
         ErrorCode::kInvalidStructure,
         "nonlinear solution dimensions disagree with the MNA system");
+  }
+  if (active_node_equations != nullptr &&
+      active_node_equations->size() != system.node_names.size()) {
+    return Result<AssembledNewtonSystem>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear projection row mask dimensions disagree with the MNA "
+        "system");
   }
   if (!std::isfinite(source_scale) || source_scale < 0.0 ||
       source_scale > 1.0 || !std::isfinite(extra_gmin_siemens) ||
@@ -259,28 +269,39 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
     }
     const double current = evaluated.value().current_amperes;
     const double conductance = evaluated.value().conductance_siemens;
-    if (descriptor.anode_node_index.has_value()) {
+    const auto equation_is_active = [&](std::optional<std::size_t> node) {
+      return node.has_value() && (active_node_equations == nullptr ||
+                                  (*active_node_equations)[*node]);
+    };
+    if (equation_is_active(descriptor.anode_node_index)) {
       const std::size_t row = *descriptor.anode_node_index;
       assembled.residual[row] += current;
       assembled.row_scales[row] += std::abs(current);
       assembled.jacobian.values[*descriptor.anode_anode_value_index] +=
           conductance;
+      if (descriptor.anode_cathode_value_index.has_value()) {
+        assembled.jacobian.values[*descriptor.anode_cathode_value_index] -=
+            conductance;
+      }
     }
-    if (descriptor.cathode_node_index.has_value()) {
+    if (equation_is_active(descriptor.cathode_node_index)) {
       const std::size_t row = *descriptor.cathode_node_index;
       assembled.residual[row] -= current;
       assembled.row_scales[row] += std::abs(current);
       assembled.jacobian.values[*descriptor.cathode_cathode_value_index] +=
           conductance;
-    }
-    if (descriptor.anode_cathode_value_index.has_value()) {
-      assembled.jacobian.values[*descriptor.anode_cathode_value_index] -=
-          conductance;
-      assembled.jacobian.values[*descriptor.cathode_anode_value_index] -=
-          conductance;
+      if (descriptor.cathode_anode_value_index.has_value()) {
+        assembled.jacobian.values[*descriptor.cathode_anode_value_index] -=
+            conductance;
+      }
     }
     for (const std::optional<std::size_t> row :
-         {descriptor.anode_node_index, descriptor.cathode_node_index}) {
+         {equation_is_active(descriptor.anode_node_index)
+              ? descriptor.anode_node_index
+              : std::nullopt,
+          equation_is_active(descriptor.cathode_node_index)
+              ? descriptor.cathode_node_index
+              : std::nullopt}) {
       if (row.has_value() && (!IsBounded(assembled.residual[*row]) ||
                               !IsBounded(assembled.row_scales[*row]))) {
         return Result<AssembledNewtonSystem>::Fail(
@@ -447,11 +468,13 @@ struct AttemptResult {
     const MnaSystem &system, NonlinearStrategy strategy,
     double continuation_value, double source_scale, double extra_gmin_siemens,
     const std::vector<double> &initial_guess, std::size_t maximum_iterations,
+    const std::vector<bool> *active_node_equations,
     SparseRealFactorization *factorization,
     std::vector<NonlinearIterationRecord> *iteration_trace) {
   std::vector<double> solution = initial_guess;
   Result<AssembledNewtonSystem> initial =
-      Assemble(system, solution, source_scale, extra_gmin_siemens);
+      Assemble(system, solution, source_scale, extra_gmin_siemens,
+               active_node_equations);
   if (!initial.ok()) {
     return Result<AttemptResult>::Fail(initial.error().code,
                                        initial.error().message);
@@ -485,7 +508,8 @@ struct AttemptResult {
   for (std::size_t iteration = 1; iteration <= maximum_iterations;
        ++iteration) {
     Result<AssembledNewtonSystem> assembled =
-        Assemble(system, solution, source_scale, extra_gmin_siemens);
+        Assemble(system, solution, source_scale, extra_gmin_siemens,
+                 active_node_equations);
     if (!assembled.ok()) {
       return Result<AttemptResult>::Fail(assembled.error().code,
                                          assembled.error().message);
@@ -529,7 +553,8 @@ struct AttemptResult {
     }
     const double update = normalized_update.value();
     Result<AssembledNewtonSystem> checked =
-        Assemble(system, proposed, source_scale, extra_gmin_siemens);
+        Assemble(system, proposed, source_scale, extra_gmin_siemens,
+                 active_node_equations);
     if (!checked.ok()) {
       return Result<AttemptResult>::Fail(checked.error().code,
                                          checked.error().message);
@@ -572,12 +597,26 @@ struct AttemptResult {
 
 [[nodiscard]] Result<bool>
 AcceptOriginalSystem(const MnaSystem &system,
-                     const std::vector<double> &solution) {
-  Result<double> validation =
-      ValidateNonlinearResidual(system, solution, 1.0, 0.0);
-  if (!validation.ok()) {
-    return Result<bool>::Fail(validation.error().code,
-                              validation.error().message);
+                     const std::vector<double> &solution,
+                     const std::vector<bool> *active_node_equations) {
+  Result<AssembledNewtonSystem> assembled =
+      Assemble(system, solution, 1.0, 0.0, active_node_equations);
+  if (!assembled.ok()) {
+    return Result<bool>::Fail(assembled.error().code,
+                              assembled.error().message);
+  }
+  Result<double> normalized =
+      MaximumNormalizedResidual(system, assembled.value());
+  if (!normalized.ok()) {
+    return Result<bool>::Fail(normalized.error().code,
+                              normalized.error().message);
+  }
+  if (normalized.value() > 1.0) {
+    return Result<bool>::Fail(
+        ErrorCode::kSolutionValidation,
+        "nonlinear solution failed original-system residual validation: "
+        "maximum normalized residual=" +
+            std::to_string(normalized.value()));
   }
   return Result<bool>::Ok(true);
 }
@@ -750,6 +789,146 @@ BuildNonlinearDcLinearization(const MnaSystem &system,
   }
 }
 
+Result<std::vector<double>>
+BuildDiodeResidualContribution(const MnaSystem &system,
+                               const std::vector<double> &solution) {
+  try {
+    Result<bool> valid = ValidateNonlinearSystem(system);
+    if (!valid.ok()) {
+      return Result<std::vector<double>>::Fail(valid.error().code,
+                                               valid.error().message);
+    }
+    if (solution.size() != system.g.columns) {
+      return Result<std::vector<double>>::Fail(
+          ErrorCode::kInvalidStructure,
+          "diode residual solution dimensions disagree with the MNA system");
+    }
+    for (double value : solution) {
+      if (!IsBounded(value)) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kNonFinite,
+            "diode residual solution contains a non-finite or over-bound "
+            "value");
+      }
+    }
+
+    std::vector<double> residual(system.g.rows, 0.0);
+    for (const DiodeDescriptor &descriptor : system.diode_descriptors) {
+      const double junction_voltage =
+          NodeVoltage(solution, descriptor.anode_node_index) -
+          NodeVoltage(solution, descriptor.cathode_node_index);
+      Result<DiodeEvaluation> evaluated =
+          EvaluateDiode(junction_voltage, descriptor.saturation_current_amperes,
+                        descriptor.emission_voltage_volts);
+      if (!evaluated.ok()) {
+        return Result<std::vector<double>>::Fail(
+            evaluated.error().code,
+            "diode '" + descriptor.name + "': " + evaluated.error().message);
+      }
+      if (descriptor.anode_node_index.has_value()) {
+        residual[*descriptor.anode_node_index] +=
+            evaluated.value().current_amperes;
+        if (!IsBounded(residual[*descriptor.anode_node_index])) {
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite,
+              "diode residual accumulation produced a non-finite or "
+              "over-bound value");
+        }
+      }
+      if (descriptor.cathode_node_index.has_value()) {
+        residual[*descriptor.cathode_node_index] -=
+            evaluated.value().current_amperes;
+        if (!IsBounded(residual[*descriptor.cathode_node_index])) {
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite,
+              "diode residual accumulation produced a non-finite or "
+              "over-bound value");
+        }
+      }
+    }
+    return Result<std::vector<double>>::Ok(std::move(residual));
+  } catch (const std::bad_alloc &) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kFactorization, "diode residual allocation failed");
+  }
+}
+
+namespace {
+
+[[nodiscard]] Result<NonlinearPointResult> RunNonlinearPointImpl(
+    const MnaSystem &system, const std::vector<double> &initial_guess,
+    const std::vector<bool> *active_node_equations,
+    SparseRealFactorization *factorization, std::size_t maximum_iterations) {
+  if (factorization == nullptr) {
+    return Result<NonlinearPointResult>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear point solve requires an analyzed KLU factorization");
+  }
+  if (maximum_iterations > kDirectNewtonMaximumIterations) {
+    return Result<NonlinearPointResult>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear point iteration limit exceeds the fixed Phase 3B bound");
+  }
+  if (active_node_equations != nullptr &&
+      active_node_equations->size() != system.node_names.size()) {
+    return Result<NonlinearPointResult>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear projection row mask dimensions disagree with the MNA "
+        "system");
+  }
+  Result<bool> valid = ValidateNonlinearSystem(system);
+  if (!valid.ok()) {
+    return Result<NonlinearPointResult>::Fail(valid.error().code,
+                                              valid.error().message);
+  }
+  std::vector<NonlinearIterationRecord> trace;
+  Result<AttemptResult> solved = RunNewtonAttempt(
+      system, NonlinearStrategy::kDirect, 1.0, 1.0, 0.0, initial_guess,
+      maximum_iterations, active_node_equations, factorization, &trace);
+  if (!solved.ok()) {
+    return Result<NonlinearPointResult>::Fail(solved.error().code,
+                                              solved.error().message);
+  }
+  Result<bool> accepted = AcceptOriginalSystem(system, solved.value().solution,
+                                               active_node_equations);
+  if (!accepted.ok()) {
+    return Result<NonlinearPointResult>::Fail(accepted.error().code,
+                                              accepted.error().message);
+  }
+  return Result<NonlinearPointResult>::Ok(NonlinearPointResult{
+      .solution = solved.TakeValue().solution,
+      .iteration_trace = std::move(trace),
+  });
+}
+
+} // namespace
+
+Result<NonlinearPointResult> RunNonlinearPoint(
+    const MnaSystem &system, const std::vector<double> &initial_guess,
+    SparseRealFactorization *factorization, std::size_t maximum_iterations) {
+  try {
+    return RunNonlinearPointImpl(system, initial_guess, nullptr, factorization,
+                                 maximum_iterations);
+  } catch (const std::bad_alloc &) {
+    return Result<NonlinearPointResult>::Fail(
+        ErrorCode::kFactorization, "nonlinear point allocation failed");
+  }
+}
+
+Result<NonlinearPointResult> internal::RunNonlinearPointForProjection(
+    const MnaSystem &system, const std::vector<double> &initial_guess,
+    const std::vector<bool> &active_node_equations,
+    SparseRealFactorization *factorization, std::size_t maximum_iterations) {
+  try {
+    return RunNonlinearPointImpl(system, initial_guess, &active_node_equations,
+                                 factorization, maximum_iterations);
+  } catch (const std::bad_alloc &) {
+    return Result<NonlinearPointResult>::Fail(
+        ErrorCode::kFactorization,
+        "nonlinear projection point allocation failed");
+  }
+}
+
 Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
                                          const NonlinearDcOptions &options) {
   try {
@@ -799,12 +978,12 @@ Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
     const std::size_t direct_trace_start = result.iteration_trace.size();
     Result<AttemptResult> direct =
         RunNewtonAttempt(system, NonlinearStrategy::kDirect, 1.0, 1.0, 0.0,
-                         zero, options.direct_maximum_iterations,
+                         zero, options.direct_maximum_iterations, nullptr,
                          factorization.get(), &result.iteration_trace);
     record_attempt(NonlinearStrategy::kDirect, 1.0, direct_trace_start, direct);
     if (direct.ok()) {
       Result<bool> accepted =
-          AcceptOriginalSystem(system, direct.value().solution);
+          AcceptOriginalSystem(system, direct.value().solution, nullptr);
       if (!accepted.ok()) {
         return Result<NonlinearDcResult>::Fail(accepted.error().code,
                                                accepted.error().message);
@@ -825,7 +1004,7 @@ Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
       const std::size_t trace_start = result.iteration_trace.size();
       Result<AttemptResult> attempt = RunNewtonAttempt(
           system, NonlinearStrategy::kSourceStepping, scale, scale, 0.0,
-          source_seed, options.source_step_maximum_iterations,
+          source_seed, options.source_step_maximum_iterations, nullptr,
           factorization.get(), &result.iteration_trace);
       record_attempt(NonlinearStrategy::kSourceStepping, scale, trace_start,
                      attempt);
@@ -840,7 +1019,8 @@ Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
       source_seed = attempt.TakeValue().solution;
     }
     if (!source_failed) {
-      Result<bool> accepted = AcceptOriginalSystem(system, source_seed);
+      Result<bool> accepted =
+          AcceptOriginalSystem(system, source_seed, nullptr);
       if (!accepted.ok()) {
         return Result<NonlinearDcResult>::Fail(accepted.error().code,
                                                accepted.error().message);
@@ -858,10 +1038,10 @@ Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
       const std::size_t maximum_iterations =
           extra_gmin == 0.0 ? options.final_gmin_maximum_iterations
                             : options.gmin_step_maximum_iterations;
-      Result<AttemptResult> attempt =
-          RunNewtonAttempt(system, NonlinearStrategy::kGminStepping, extra_gmin,
-                           1.0, extra_gmin, gmin_seed, maximum_iterations,
-                           factorization.get(), &result.iteration_trace);
+      Result<AttemptResult> attempt = RunNewtonAttempt(
+          system, NonlinearStrategy::kGminStepping, extra_gmin, 1.0, extra_gmin,
+          gmin_seed, maximum_iterations, nullptr, factorization.get(),
+          &result.iteration_trace);
       record_attempt(NonlinearStrategy::kGminStepping, extra_gmin, trace_start,
                      attempt);
       if (!attempt.ok()) {
@@ -876,7 +1056,7 @@ Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
       }
       gmin_seed = attempt.TakeValue().solution;
     }
-    Result<bool> accepted = AcceptOriginalSystem(system, gmin_seed);
+    Result<bool> accepted = AcceptOriginalSystem(system, gmin_seed, nullptr);
     if (!accepted.ok()) {
       return Result<NonlinearDcResult>::Fail(accepted.error().code,
                                              accepted.error().message);

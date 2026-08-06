@@ -646,8 +646,8 @@ std::pair<std::string, double> ParseDcOut(std::string_view contents) {
 
 int main(int argc, char **argv) {
   try {
-    if (argc != 10) {
-      Fail("acceptance runner requires nine runfile arguments");
+    if (argc != 11) {
+      Fail("acceptance runner requires ten runfile arguments");
     }
     const std::filesystem::path temporary_root =
         std::getenv("TEST_TMPDIR") == nullptr
@@ -722,6 +722,12 @@ int main(int argc, char **argv) {
          1e-3,
          0.1e-3,
          {"time", "V(in)", "V(mid)", "V(out)", "I(L1)"}},
+        {std::filesystem::absolute(argv[10]),
+         "tran_diode_rc",
+         2e-6,
+         2e-3,
+         0.0,
+         {"time", "V(in)", "V(out)", "I(V1)"}},
     };
     for (const auto &fixture : transient_fixtures) {
       CompareTransient(
@@ -731,8 +737,8 @@ int main(int argc, char **argv) {
           fixture.stem);
     }
     std::cout
-        << "ngspice-46 hermetic linear DC/AC/transient plus bounded diode DC "
-           "acceptance passed\n";
+        << "ngspice-46 hermetic linear DC/AC/transient plus bounded diode "
+           "DC/transient acceptance passed\n";
     return 0;
   } catch (const std::exception &error) {
     std::cerr << "ngspice acceptance failure: " << error.what() << '\n';

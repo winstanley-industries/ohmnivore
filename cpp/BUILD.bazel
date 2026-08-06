@@ -17,6 +17,7 @@ cc_library(
     srcs = [
         "src/compiler.cc",
         "src/nonlinear.cc",
+        "src/nonlinear_internal.h",
         "src/parser.cc",
         "src/simulator.cc",
         "src/solver.cc",
@@ -172,6 +173,22 @@ cc_test(
     srcs = [
         "tests/google_test.h",
         "tests/phase3a_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+        "@suitesparse_7_12_3//:config",
+    ],
+)
+
+cc_test(
+    name = "phase3b_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase3b_test.cc",
     ],
     copts = OHMNIVORE_COPTS,
     visibility = ["//visibility:public"],

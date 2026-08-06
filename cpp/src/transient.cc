@@ -6,13 +6,17 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <new>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "ohmnivore/nonlinear.h"
 #include "ohmnivore/solver.h"
 #include "ohmnivore/waveform.h"
+
+#include "cpp/src/nonlinear_internal.h"
 
 namespace ohmnivore {
 namespace {
@@ -113,14 +117,119 @@ Multiply(const CsrMatrix &matrix, const std::vector<double> &vector) {
   return Result<CsrMatrix>::Ok(std::move(matrix));
 }
 
+[[nodiscard]] std::optional<std::size_t>
+FindValueIndex(const CsrMatrix &matrix, std::size_t row, std::size_t column) {
+  if (row >= matrix.rows || matrix.row_offsets.size() != matrix.rows + 1) {
+    return std::nullopt;
+  }
+  for (std::size_t index = matrix.row_offsets[row];
+       index < matrix.row_offsets[row + 1]; ++index) {
+    if (matrix.column_indices[index] == column) {
+      return index;
+    }
+    if (matrix.column_indices[index] > column) {
+      break;
+    }
+  }
+  return std::nullopt;
+}
+
+[[nodiscard]] Result<MnaSystem>
+BuildNonlinearSystemForMatrix(const MnaSystem &source,
+                              const CsrMatrix &base_matrix,
+                              const std::vector<double> &right_hand_side) {
+  const std::size_t node_count = source.node_names.size();
+  const std::size_t size = node_count + source.branch_names.size();
+  if (source.diode_descriptors.empty() || base_matrix.rows != size ||
+      base_matrix.columns != size || right_hand_side.size() != size) {
+    return Result<MnaSystem>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear transient matrix dimensions or diode metadata are invalid");
+  }
+  if (const auto error = ValidateCsr(base_matrix); error.has_value()) {
+    return Result<MnaSystem>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear transient base matrix is invalid: " + *error);
+  }
+
+  using Coordinate = std::pair<std::size_t, std::size_t>;
+  std::map<Coordinate, double> entries;
+  for (std::size_t row = 0; row < size; ++row) {
+    for (std::size_t index = base_matrix.row_offsets[row];
+         index < base_matrix.row_offsets[row + 1]; ++index) {
+      entries.emplace(Coordinate{row, base_matrix.column_indices[index]},
+                      base_matrix.values[index]);
+    }
+  }
+
+  std::vector<DiodeDescriptor> descriptors = source.diode_descriptors;
+  for (DiodeDescriptor &descriptor : descriptors) {
+    if ((descriptor.anode_node_index.has_value() &&
+         *descriptor.anode_node_index >= node_count) ||
+        (descriptor.cathode_node_index.has_value() &&
+         *descriptor.cathode_node_index >= node_count)) {
+      return Result<MnaSystem>::Fail(
+          ErrorCode::kInvalidStructure,
+          "nonlinear transient diode descriptor references an invalid node");
+    }
+    const auto retain = [&](std::optional<std::size_t> row,
+                            std::optional<std::size_t> column) {
+      if (row.has_value() && column.has_value()) {
+        entries.try_emplace(Coordinate{*row, *column}, 0.0);
+      }
+    };
+    retain(descriptor.anode_node_index, descriptor.anode_node_index);
+    retain(descriptor.anode_node_index, descriptor.cathode_node_index);
+    retain(descriptor.cathode_node_index, descriptor.anode_node_index);
+    retain(descriptor.cathode_node_index, descriptor.cathode_node_index);
+  }
+
+  CsrMatrix union_matrix;
+  union_matrix.rows = size;
+  union_matrix.columns = size;
+  union_matrix.row_offsets.reserve(size + 1);
+  union_matrix.row_offsets.push_back(0);
+  auto entry = entries.begin();
+  for (std::size_t row = 0; row < size; ++row) {
+    while (entry != entries.end() && entry->first.first == row) {
+      union_matrix.column_indices.push_back(entry->first.second);
+      union_matrix.values.push_back(entry->second);
+      ++entry;
+    }
+    union_matrix.row_offsets.push_back(union_matrix.values.size());
+  }
+
+  for (DiodeDescriptor &descriptor : descriptors) {
+    const auto position = [&](std::optional<std::size_t> row,
+                              std::optional<std::size_t> column) {
+      return row.has_value() && column.has_value()
+                 ? FindValueIndex(union_matrix, *row, *column)
+                 : std::nullopt;
+    };
+    descriptor.anode_anode_value_index =
+        position(descriptor.anode_node_index, descriptor.anode_node_index);
+    descriptor.anode_cathode_value_index =
+        position(descriptor.anode_node_index, descriptor.cathode_node_index);
+    descriptor.cathode_anode_value_index =
+        position(descriptor.cathode_node_index, descriptor.anode_node_index);
+    descriptor.cathode_cathode_value_index =
+        position(descriptor.cathode_node_index, descriptor.cathode_node_index);
+  }
+
+  MnaSystem transformed = source;
+  transformed.g = std::move(union_matrix);
+  transformed.b_dc = right_hand_side;
+  transformed.diode_descriptors = std::move(descriptors);
+  return Result<MnaSystem>::Ok(std::move(transformed));
+}
+
 class SparseRealFactorizationCache {
 public:
-  [[nodiscard]] Result<std::vector<double>>
-  Solve(const CsrMatrix &matrix, const std::vector<double> &rhs) {
+  [[nodiscard]] Result<SparseRealFactorization *> Get(const CsrMatrix &matrix) {
     Result<SolverCscPattern> converted = ConvertCsrToSolverCsc(matrix);
     if (!converted.ok()) {
-      return Result<std::vector<double>>::Fail(converted.error().code,
-                                               converted.error().message);
+      return Result<SparseRealFactorization *>::Fail(converted.error().code,
+                                                     converted.error().message);
     }
     for (Entry &entry : entries_) {
       if (entry.pattern.size == converted.value().size &&
@@ -128,18 +237,44 @@ public:
           entry.pattern.row_indices == converted.value().row_indices &&
           entry.pattern.csr_value_indices ==
               converted.value().csr_value_indices) {
-        return entry.factorization->FactorAndSolve(matrix, rhs);
+        return Result<SparseRealFactorization *>::Ok(entry.factorization.get());
       }
     }
     Result<std::unique_ptr<SparseRealFactorization>> analyzed =
         SparseRealFactorization::Analyze(matrix);
     if (!analyzed.ok()) {
-      return Result<std::vector<double>>::Fail(analyzed.error().code,
-                                               analyzed.error().message);
+      return Result<SparseRealFactorization *>::Fail(analyzed.error().code,
+                                                     analyzed.error().message);
     }
     entries_.push_back(Entry{.pattern = converted.TakeValue(),
                              .factorization = analyzed.TakeValue()});
-    return entries_.back().factorization->FactorAndSolve(matrix, rhs);
+    return Result<SparseRealFactorization *>::Ok(
+        entries_.back().factorization.get());
+  }
+
+  [[nodiscard]] Result<std::vector<double>>
+  Solve(const CsrMatrix &matrix, const std::vector<double> &rhs) {
+    Result<SparseRealFactorization *> factorization = Get(matrix);
+    if (!factorization.ok()) {
+      return Result<std::vector<double>>::Fail(factorization.error().code,
+                                               factorization.error().message);
+    }
+    return factorization.value()->FactorAndSolve(matrix, rhs);
+  }
+
+  [[nodiscard]] SparseSolverStatistics statistics() const {
+    SparseSolverStatistics total;
+    for (const Entry &entry : entries_) {
+      const SparseSolverStatistics &current = entry.factorization->statistics();
+      total.symbolic_analyses += current.symbolic_analyses;
+      total.numeric_factorizations += current.numeric_factorizations;
+      total.numeric_refactorizations += current.numeric_refactorizations;
+      total.numeric_refactorization_fallbacks +=
+          current.numeric_refactorization_fallbacks;
+      total.numeric_reuses += current.numeric_reuses;
+      total.solves += current.solves;
+    }
+    return total;
   }
 
 private:
@@ -311,24 +446,31 @@ ProjectReactiveState(const MnaSystem &system,
   }
 
   const std::vector<double> dense_g = system.g.ToDense();
-  std::vector<double> selected_dense;
-  std::vector<double> selected_rhs;
-  selected_dense.reserve(size * size);
-  selected_rhs.reserve(size);
+  struct SelectedEquation {
+    std::vector<double> coefficients;
+    double right_hand_side;
+    std::optional<std::size_t> physical_row;
+  };
+  std::vector<SelectedEquation> selected_equations;
+  selected_equations.reserve(size);
   std::vector<RankBasisRow> basis;
-  const auto select = [&](const std::vector<double> &row, double rhs) {
+  const auto select = [&](const std::vector<double> &row, double rhs,
+                          std::optional<std::size_t> physical_row) {
     if (!AppendIfIndependent(row, &basis)) {
       return;
     }
-    selected_dense.insert(selected_dense.end(), row.begin(), row.end());
-    selected_rhs.push_back(rhs);
+    selected_equations.push_back(SelectedEquation{
+        .coefficients = row,
+        .right_hand_side = rhs,
+        .physical_row = physical_row,
+    });
   };
 
   // Reactive state constraints are mandatory.  Preserve every algebraic row
   // that cannot carry a capacitor impulse or replace an inductor constitutive
   // equation before using the remaining dynamic rows to complete the rank.
   for (const ReactiveConstraintEquation &constraint : constraints) {
-    select(constraint.coefficients, constraint.right_hand_side);
+    select(constraint.coefficients, constraint.right_hand_side, std::nullopt);
   }
   for (std::size_t row = 0; row < size; ++row) {
     if (!replaceable_row[row]) {
@@ -336,22 +478,92 @@ ProjectReactiveState(const MnaSystem &system,
           std::vector<double>(
               dense_g.begin() + static_cast<std::ptrdiff_t>(row * size),
               dense_g.begin() + static_cast<std::ptrdiff_t>((row + 1) * size)),
-          source_rhs[row]);
+          source_rhs[row], row);
     }
   }
-  for (std::size_t row = 0; row < size && selected_rhs.size() < size; ++row) {
+  for (std::size_t row = 0; row < size && selected_equations.size() < size;
+       ++row) {
     if (replaceable_row[row]) {
       select(
           std::vector<double>(
               dense_g.begin() + static_cast<std::ptrdiff_t>(row * size),
               dense_g.begin() + static_cast<std::ptrdiff_t>((row + 1) * size)),
-          source_rhs[row]);
+          source_rhs[row], row);
     }
   }
-  if (selected_rhs.size() != size) {
+  if (selected_equations.size() != size) {
     return Result<std::vector<double>>::Fail(
         ErrorCode::kSingular,
         context + " constraints do not define a unique algebraic state");
+  }
+
+  std::vector<double> selected_dense;
+  std::vector<double> selected_rhs;
+  std::vector<bool> active_node_equations(node_count, false);
+  std::vector<bool> retained_physical_row(size, false);
+  if (system.diode_descriptors.empty()) {
+    selected_dense.reserve(size * size);
+    selected_rhs.reserve(size);
+    for (const SelectedEquation &equation : selected_equations) {
+      selected_dense.insert(selected_dense.end(), equation.coefficients.begin(),
+                            equation.coefficients.end());
+      selected_rhs.push_back(equation.right_hand_side);
+    }
+  } else {
+    selected_dense.assign(size * size, 0.0);
+    selected_rhs.assign(size, 0.0);
+    std::vector<bool> occupied(size, false);
+    for (const SelectedEquation &equation : selected_equations) {
+      if (!equation.physical_row.has_value()) {
+        continue;
+      }
+      const std::size_t row = *equation.physical_row;
+      std::copy(equation.coefficients.begin(), equation.coefficients.end(),
+                selected_dense.begin() +
+                    static_cast<std::ptrdiff_t>(row * size));
+      selected_rhs[row] = equation.right_hand_side;
+      occupied[row] = true;
+      retained_physical_row[row] = true;
+      if (row < node_count) {
+        active_node_equations[row] = true;
+      }
+    }
+    for (const SelectedEquation &equation : selected_equations) {
+      if (equation.physical_row.has_value()) {
+        continue;
+      }
+      std::optional<std::size_t> slot;
+      for (std::size_t row = 0; row < size; ++row) {
+        if (!occupied[row] && replaceable_row[row]) {
+          slot = row;
+          break;
+        }
+      }
+      // An independent physical equation can be redundant with a mandatory
+      // reactive constraint, leaving only its original row available.  Keep
+      // the established replaceable-row preference, then deterministically
+      // use the first remaining row; active diode equations are still keyed
+      // only to retained physical node rows above.
+      if (!slot.has_value()) {
+        for (std::size_t row = 0; row < size; ++row) {
+          if (!occupied[row]) {
+            slot = row;
+            break;
+          }
+        }
+      }
+      if (!slot.has_value()) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kInvalidStructure,
+            context + " cannot place an independent reactive constraint");
+      }
+      const std::size_t row = *slot;
+      std::copy(equation.coefficients.begin(), equation.coefficients.end(),
+                selected_dense.begin() +
+                    static_cast<std::ptrdiff_t>(row * size));
+      selected_rhs[row] = equation.right_hand_side;
+      occupied[row] = true;
+    }
   }
 
   Result<CsrMatrix> matrix = DenseToCsr(selected_dense, size);
@@ -360,8 +572,32 @@ ProjectReactiveState(const MnaSystem &system,
         matrix.error().code,
         context + " matrix construction failed: " + matrix.error().message);
   }
-  Result<std::vector<double>> solved =
-      factorization_cache->Solve(matrix.value(), selected_rhs);
+  Result<std::vector<double>> solved = [&]() {
+    if (system.diode_descriptors.empty()) {
+      return factorization_cache->Solve(matrix.value(), selected_rhs);
+    }
+    Result<MnaSystem> nonlinear =
+        BuildNonlinearSystemForMatrix(system, matrix.value(), selected_rhs);
+    if (!nonlinear.ok()) {
+      return Result<std::vector<double>>::Fail(nonlinear.error().code,
+                                               nonlinear.error().message);
+    }
+    Result<SparseRealFactorization *> factorization =
+        factorization_cache->Get(nonlinear.value().g);
+    if (!factorization.ok()) {
+      return Result<std::vector<double>>::Fail(factorization.error().code,
+                                               factorization.error().message);
+    }
+    Result<NonlinearPointResult> point =
+        internal::RunNonlinearPointForProjection(
+            nonlinear.value(), target_state, active_node_equations,
+            factorization.value(), kDirectNewtonMaximumIterations);
+    if (!point.ok()) {
+      return Result<std::vector<double>>::Fail(point.error().code,
+                                               point.error().message);
+    }
+    return Result<std::vector<double>>::Ok(point.TakeValue().solution);
+  }();
   if (!solved.ok()) {
     return Result<std::vector<double>>::Fail(
         solved.error().code,
@@ -376,14 +612,28 @@ ProjectReactiveState(const MnaSystem &system,
                                                    constraint.description);
     }
   }
+  std::vector<double> diode_residual(size, 0.0);
+  if (!system.diode_descriptors.empty()) {
+    Result<std::vector<double>> evaluated =
+        BuildDiodeResidualContribution(system, solved.value());
+    if (!evaluated.ok()) {
+      return Result<std::vector<double>>::Fail(
+          evaluated.error().code, context + " residual validation failed: " +
+                                      evaluated.error().message);
+    }
+    diode_residual = evaluated.TakeValue();
+  }
   for (std::size_t row = 0; row < size; ++row) {
-    if (replaceable_row[row]) {
+    if (system.diode_descriptors.empty()
+            ? replaceable_row[row]
+            : replaceable_row[row] && !retained_physical_row[row]) {
       continue;
     }
     const std::vector<double> equation(
         dense_g.begin() + static_cast<std::ptrdiff_t>(row * size),
         dense_g.begin() + static_cast<std::ptrdiff_t>((row + 1) * size));
-    if (!EquationIsSatisfied(equation, source_rhs[row], solved.value())) {
+    if (!EquationIsSatisfied(equation, source_rhs[row] - diode_residual[row],
+                             solved.value())) {
       return Result<std::vector<double>>::Fail(
           ErrorCode::kSolutionValidation,
           context + " is inconsistent with an algebraic circuit constraint");
@@ -670,10 +920,50 @@ BuildTrapezoidalRhs(const CsrMatrix &g, const CsrMatrix &c,
 
 namespace {
 
+[[nodiscard]] Result<std::vector<double>>
+SolveTransientSystem(const MnaSystem &system, const CsrMatrix &matrix,
+                     const std::vector<double> &right_hand_side,
+                     const std::vector<double> &initial_guess,
+                     std::size_t nonlinear_maximum_iterations,
+                     const std::string &context,
+                     SparseRealFactorizationCache *factorization_cache) {
+  if (system.diode_descriptors.empty()) {
+    Result<std::vector<double>> solved =
+        factorization_cache->Solve(matrix, right_hand_side);
+    if (!solved.ok()) {
+      return Result<std::vector<double>>::Fail(
+          solved.error().code, context + ": " + solved.error().message);
+    }
+    return solved;
+  }
+  Result<MnaSystem> nonlinear =
+      BuildNonlinearSystemForMatrix(system, matrix, right_hand_side);
+  if (!nonlinear.ok()) {
+    return Result<std::vector<double>>::Fail(
+        nonlinear.error().code, context + ": " + nonlinear.error().message);
+  }
+  Result<SparseRealFactorization *> factorization =
+      factorization_cache->Get(nonlinear.value().g);
+  if (!factorization.ok()) {
+    return Result<std::vector<double>>::Fail(factorization.error().code,
+                                             context + ": " +
+                                                 factorization.error().message);
+  }
+  Result<NonlinearPointResult> solved =
+      RunNonlinearPoint(nonlinear.value(), initial_guess, factorization.value(),
+                        nonlinear_maximum_iterations);
+  if (!solved.ok()) {
+    return Result<std::vector<double>>::Fail(
+        solved.error().code, context + ": " + solved.error().message);
+  }
+  return Result<std::vector<double>>::Ok(solved.TakeValue().solution);
+}
+
 [[nodiscard]] Result<std::vector<double>> SolveBackwardEulerStep(
     const MnaSystem &system, const std::vector<double> &previous_state,
     const std::vector<double> &current_rhs, double step_size_seconds,
-    std::string context, SparseRealFactorizationCache *factorization_cache) {
+    std::size_t nonlinear_maximum_iterations, std::string context,
+    SparseRealFactorizationCache *factorization_cache) {
   Result<CsrMatrix> matrix =
       FormTransientCompanionMatrix(system.g, system.c, step_size_seconds, 1.0);
   if (!matrix.ok()) {
@@ -686,19 +976,174 @@ namespace {
     return Result<std::vector<double>>::Fail(
         ErrorCode::kSolve, context + ": " + rhs.error().message);
   }
-  Result<std::vector<double>> solved =
-      factorization_cache->Solve(matrix.value(), rhs.value());
-  if (!solved.ok()) {
-    return Result<std::vector<double>>::Fail(
-        solved.error().code, context + ": " + solved.error().message);
-  }
-  return solved;
+  return SolveTransientSystem(system, matrix.value(), rhs.value(),
+                              previous_state, nonlinear_maximum_iterations,
+                              context, factorization_cache);
 }
 
 [[nodiscard]] bool EqualVectors(const std::vector<double> &first,
                                 const std::vector<double> &second) {
   return first.size() == second.size() &&
          std::equal(first.begin(), first.end(), second.begin());
+}
+
+struct IntegratedStepAttempt {
+  std::vector<double> accepted_state;
+  double normalized_error;
+  double adapted_step;
+};
+
+[[nodiscard]] Result<IntegratedStepAttempt> IntegrateTransientStepAttempt(
+    const MnaSystem &system, const std::vector<double> &state,
+    const std::vector<double> &previous_rhs,
+    const std::vector<double> &current_rhs,
+    const std::vector<double> &integration_rhs, double time, double next_time,
+    double step, bool use_backward_euler, bool lands_on_hard_point,
+    std::size_t nonlinear_maximum_iterations,
+    SparseRealFactorizationCache *factorization_cache) {
+  std::vector<double> accepted_state;
+  double normalized_error = 0.0;
+  if (use_backward_euler) {
+    Result<std::vector<double>> full_step = SolveBackwardEulerStep(
+        system, state, integration_rhs, step, nonlinear_maximum_iterations,
+        "backward-Euler transient solve failed", factorization_cache);
+    if (!full_step.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(full_step.error().code,
+                                                 full_step.error().message);
+    }
+
+    if (system.c.values.empty()) {
+      accepted_state = full_step.TakeValue();
+    } else {
+      const double midpoint = time + step * 0.5;
+      if (!std::isfinite(midpoint) || midpoint <= time ||
+          midpoint >= next_time) {
+        if (lands_on_hard_point &&
+            next_time ==
+                std::nextafter(time, std::numeric_limits<double>::infinity())) {
+          accepted_state = full_step.TakeValue();
+        } else {
+          return Result<IntegratedStepAttempt>::Fail(
+              ErrorCode::kSolve,
+              "backward-Euler error-estimation midpoint is not representable");
+        }
+      } else {
+        Result<std::vector<double>> midpoint_rhs =
+            BuildTransientRhs(system, midpoint);
+        if (!midpoint_rhs.ok()) {
+          return Result<IntegratedStepAttempt>::Fail(
+              ErrorCode::kSolve, midpoint_rhs.error().message);
+        }
+        const double first_half = midpoint - time;
+        const double second_half = next_time - midpoint;
+        Result<std::vector<double>> first_half_state = SolveBackwardEulerStep(
+            system, state, midpoint_rhs.value(), first_half,
+            nonlinear_maximum_iterations,
+            "first half backward-Euler LTE solve failed", factorization_cache);
+        if (!first_half_state.ok()) {
+          return Result<IntegratedStepAttempt>::Fail(
+              first_half_state.error().code, first_half_state.error().message);
+        }
+        Result<std::vector<double>> refined = SolveBackwardEulerStep(
+            system, first_half_state.value(), integration_rhs, second_half,
+            nonlinear_maximum_iterations,
+            "second half backward-Euler LTE solve failed", factorization_cache);
+        if (!refined.ok()) {
+          return Result<IntegratedStepAttempt>::Fail(refined.error().code,
+                                                     refined.error().message);
+        }
+        Result<double> error = ComputeNormalizedLocalError(
+            refined.value(), full_step.value(), 1.0);
+        if (!error.ok()) {
+          return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                     error.error().message);
+        }
+        normalized_error = error.value();
+        accepted_state = refined.TakeValue();
+      }
+    }
+  } else {
+    Result<CsrMatrix> trap_matrix =
+        FormTransientCompanionMatrix(system.g, system.c, step, 2.0);
+    if (!trap_matrix.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                 trap_matrix.error().message);
+    }
+    Result<std::vector<double>> trap_rhs = BuildTrapezoidalRhs(
+        system.g, system.c, state, previous_rhs, current_rhs, step);
+    if (!trap_rhs.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                 trap_rhs.error().message);
+    }
+    std::vector<double> trap_rhs_values = trap_rhs.TakeValue();
+    if (!system.diode_descriptors.empty()) {
+      Result<std::vector<double>> previous_diode =
+          BuildDiodeResidualContribution(system, state);
+      if (!previous_diode.ok()) {
+        return Result<IntegratedStepAttempt>::Fail(
+            previous_diode.error().code, previous_diode.error().message);
+      }
+      for (std::size_t row = 0; row < trap_rhs_values.size(); ++row) {
+        trap_rhs_values[row] -= previous_diode.value()[row];
+        if (!std::isfinite(trap_rhs_values[row]) ||
+            std::abs(trap_rhs_values[row]) > kNonlinearMaximumMagnitude) {
+          return Result<IntegratedStepAttempt>::Fail(
+              ErrorCode::kNonFinite,
+              "trapezoidal diode history produced a non-finite or "
+              "over-bound value");
+        }
+      }
+    }
+    Result<std::vector<double>> trap_solution = SolveTransientSystem(
+        system, trap_matrix.value(), trap_rhs_values, state,
+        nonlinear_maximum_iterations, "trapezoidal transient solve failed",
+        factorization_cache);
+    if (!trap_solution.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(trap_solution.error().code,
+                                                 trap_solution.error().message);
+    }
+
+    Result<CsrMatrix> be_matrix =
+        FormTransientCompanionMatrix(system.g, system.c, step, 1.0);
+    if (!be_matrix.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                 be_matrix.error().message);
+    }
+    Result<std::vector<double>> be_rhs =
+        BuildBackwardEulerRhs(system.c, state, integration_rhs, step);
+    if (!be_rhs.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                 be_rhs.error().message);
+    }
+    Result<std::vector<double>> be_solution = SolveTransientSystem(
+        system, be_matrix.value(), be_rhs.value(), state,
+        nonlinear_maximum_iterations, "LTE backward-Euler solve failed",
+        factorization_cache);
+    if (!be_solution.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(be_solution.error().code,
+                                                 be_solution.error().message);
+    }
+    Result<double> error = ComputeNormalizedLocalError(
+        trap_solution.value(), be_solution.value(), 2.0 / 3.0);
+    if (!error.ok()) {
+      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                 error.error().message);
+    }
+    normalized_error = error.value();
+    accepted_state = trap_solution.TakeValue();
+  }
+
+  const double adapted_step = step * AdaptationFactor(normalized_error);
+  if (!std::isfinite(adapted_step) || adapted_step <= 0.0) {
+    return Result<IntegratedStepAttempt>::Fail(
+        ErrorCode::kSolve,
+        "adaptive transient timestep produced a non-finite value");
+  }
+  return Result<IntegratedStepAttempt>::Ok(IntegratedStepAttempt{
+      .accepted_state = std::move(accepted_state),
+      .normalized_error = normalized_error,
+      .adapted_step = adapted_step,
+  });
 }
 
 } // namespace
@@ -716,14 +1161,24 @@ namespace {
         "invalid MNA dimensions for transient initialization");
   }
   if (!use_initial_conditions) {
-    Result<std::vector<double>> solved =
-        factorization_cache->Solve(system.g, system.b_dc);
+    if (system.diode_descriptors.empty()) {
+      Result<std::vector<double>> solved =
+          factorization_cache->Solve(system.g, system.b_dc);
+      if (!solved.ok()) {
+        return Result<std::vector<double>>::Fail(
+            solved.error().code,
+            "DC transient initialization failed: " + solved.error().message);
+      }
+      return solved;
+    }
+    Result<NonlinearDcResult> solved = RunNonlinearDc(system);
     if (!solved.ok()) {
       return Result<std::vector<double>>::Fail(
           solved.error().code,
-          "DC transient initialization failed: " + solved.error().message);
+          "nonlinear DC transient initialization failed: " +
+              solved.error().message);
     }
-    return solved;
+    return Result<std::vector<double>>::Ok(solved.TakeValue().solution);
   }
 
   const std::size_t size = system.g.rows;
@@ -774,11 +1229,6 @@ namespace {
 Result<std::vector<double>>
 BuildTransientInitialState(const MnaSystem &system,
                            bool use_initial_conditions) {
-  if (!system.diode_descriptors.empty()) {
-    return Result<std::vector<double>>::Fail(
-        ErrorCode::kUnsupported,
-        "phase 3A does not support nonlinear transient analysis");
-  }
   SparseRealFactorizationCache factorization_cache;
   return BuildTransientInitialStateImpl(system, use_initial_conditions,
                                         &factorization_cache);
@@ -787,394 +1237,303 @@ BuildTransientInitialState(const MnaSystem &system,
 Result<TransientResult>
 RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                      const TransientExecutionLimits &limits) {
-  if (!system.diode_descriptors.empty()) {
-    return Result<TransientResult>::Fail(
-        ErrorCode::kUnsupported,
-        "phase 3A does not support nonlinear transient analysis");
-  }
-  SparseRealFactorizationCache factorization_cache;
-  if (!std::isfinite(analysis.time_step_seconds) ||
-      analysis.time_step_seconds <= 0.0 ||
-      !std::isfinite(analysis.stop_time_seconds) ||
-      analysis.stop_time_seconds <= 0.0 ||
-      !std::isfinite(analysis.start_time_seconds) ||
-      analysis.start_time_seconds < 0.0 ||
-      analysis.start_time_seconds > analysis.stop_time_seconds) {
-    return Result<TransientResult>::Fail(
-        ErrorCode::kSolve, "invalid transient analysis time bounds");
-  }
-  if (limits.maximum_accepted_steps == 0 || limits.maximum_step_attempts == 0 ||
-      limits.maximum_step_attempts < limits.maximum_accepted_steps ||
-      !std::isfinite(limits.minimum_step_divisor) ||
-      limits.minimum_step_divisor < 1.0) {
-    return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                         "invalid transient execution limits");
-  }
-  const double maximum_step = analysis.time_step_seconds;
-  const double minimum_step = maximum_step / limits.minimum_step_divisor;
-  if (!std::isfinite(minimum_step) || minimum_step <= 0.0) {
-    return Result<TransientResult>::Fail(
-        ErrorCode::kSolve,
-        "transient minimum timestep is not positively representable");
-  }
-
-  std::vector<double> waveform_points;
-  for (const TransientSourceStamp &source : system.transient_sources) {
-    Result<std::vector<double>> points = CollectTransientWaveformBreakpoints(
-        source.waveform, analysis.stop_time_seconds);
-    if (!points.ok()) {
+  try {
+    SparseRealFactorizationCache factorization_cache;
+    if (!std::isfinite(analysis.time_step_seconds) ||
+        analysis.time_step_seconds <= 0.0 ||
+        !std::isfinite(analysis.stop_time_seconds) ||
+        analysis.stop_time_seconds <= 0.0 ||
+        !std::isfinite(analysis.start_time_seconds) ||
+        analysis.start_time_seconds < 0.0 ||
+        analysis.start_time_seconds > analysis.stop_time_seconds) {
+      return Result<TransientResult>::Fail(
+          ErrorCode::kSolve, "invalid transient analysis time bounds");
+    }
+    if (limits.maximum_accepted_steps == 0 ||
+        limits.maximum_step_attempts == 0 ||
+        limits.maximum_step_attempts < limits.maximum_accepted_steps ||
+        !std::isfinite(limits.minimum_step_divisor) ||
+        limits.minimum_step_divisor < 1.0 ||
+        limits.nonlinear_maximum_iterations > kDirectNewtonMaximumIterations) {
+      return Result<TransientResult>::Fail(
+          ErrorCode::kSolve, "invalid transient execution limits");
+    }
+    const double maximum_step = analysis.time_step_seconds;
+    const double minimum_step = maximum_step / limits.minimum_step_divisor;
+    if (!std::isfinite(minimum_step) || minimum_step <= 0.0) {
       return Result<TransientResult>::Fail(
           ErrorCode::kSolve,
-          "transient source '" + source.name +
-              "' breakpoint collection failed: " + points.error().message);
+          "transient minimum timestep is not positively representable");
     }
-    for (double point : points.value()) {
-      if (!std::isfinite(point) || point < 0.0 ||
-          point > analysis.stop_time_seconds) {
+
+    std::vector<double> waveform_points;
+    for (const TransientSourceStamp &source : system.transient_sources) {
+      Result<std::vector<double>> points = CollectTransientWaveformBreakpoints(
+          source.waveform, analysis.stop_time_seconds);
+      if (!points.ok()) {
         return Result<TransientResult>::Fail(
-            ErrorCode::kSolve, "transient source '" + source.name +
-                                   "' produced an invalid breakpoint");
+            ErrorCode::kSolve,
+            "transient source '" + source.name +
+                "' breakpoint collection failed: " + points.error().message);
       }
-      waveform_points.push_back(point);
+      for (double point : points.value()) {
+        if (!std::isfinite(point) || point < 0.0 ||
+            point > analysis.stop_time_seconds) {
+          return Result<TransientResult>::Fail(
+              ErrorCode::kSolve, "transient source '" + source.name +
+                                     "' produced an invalid breakpoint");
+        }
+        waveform_points.push_back(point);
+      }
     }
-  }
-  SortUnique(&waveform_points);
+    SortUnique(&waveform_points);
 
-  std::vector<double> hard_points = waveform_points;
-  hard_points.push_back(analysis.start_time_seconds);
-  hard_points.push_back(analysis.stop_time_seconds);
-  hard_points.erase(std::remove_if(hard_points.begin(), hard_points.end(),
-                                   [](double value) { return value <= 0.0; }),
-                    hard_points.end());
-  SortUnique(&hard_points);
+    std::vector<double> hard_points = waveform_points;
+    hard_points.push_back(analysis.start_time_seconds);
+    hard_points.push_back(analysis.stop_time_seconds);
+    hard_points.erase(std::remove_if(hard_points.begin(), hard_points.end(),
+                                     [](double value) { return value <= 0.0; }),
+                      hard_points.end());
+    SortUnique(&hard_points);
 
-  Result<std::vector<double>> initial = BuildTransientInitialStateImpl(
-      system, analysis.use_initial_conditions, &factorization_cache);
-  if (!initial.ok()) {
-    return Result<TransientResult>::Fail(initial.error().code,
-                                         initial.error().message);
-  }
-  Result<std::vector<double>> initial_rhs = BuildTransientRhs(system, 0.0);
-  if (!initial_rhs.ok()) {
-    return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                         initial_rhs.error().message);
-  }
-  Result<std::vector<double>> projected_initial = ProjectReactiveState(
-      system, initial.value(), initial_rhs.value(),
-      "initial transient source projection", &factorization_cache);
-  if (!projected_initial.ok()) {
-    return Result<TransientResult>::Fail(projected_initial.error().code,
-                                         projected_initial.error().message);
-  }
-
-  TransientResult result;
-  std::vector<double> state = projected_initial.TakeValue();
-  std::vector<double> previous_rhs = initial_rhs.TakeValue();
-  double time = 0.0;
-  double proposed_step = maximum_step;
-  bool recovery_step = false;
-  std::size_t hard_index = 0;
-  std::size_t attempts = 0;
-  std::size_t accepted_steps = 0;
-  if (analysis.start_time_seconds == 0.0) {
-    result.times_seconds.push_back(0.0);
-    result.states.push_back(state);
-  }
-
-  while (time < analysis.stop_time_seconds) {
-    if (attempts >= limits.maximum_step_attempts) {
-      return Result<TransientResult>::Fail(
-          ErrorCode::kSolve, "transient analysis exceeded " +
-                                 std::to_string(limits.maximum_step_attempts) +
-                                 " timestep attempts");
+    Result<std::vector<double>> initial = BuildTransientInitialStateImpl(
+        system, analysis.use_initial_conditions, &factorization_cache);
+    if (!initial.ok()) {
+      return Result<TransientResult>::Fail(initial.error().code,
+                                           initial.error().message);
     }
-    ++attempts;
-    while (hard_index < hard_points.size() && hard_points[hard_index] <= time) {
-      ++hard_index;
-    }
-    if (hard_index == hard_points.size()) {
-      return Result<TransientResult>::Fail(
-          ErrorCode::kSolve,
-          "transient hard-point schedule ended before tstop");
-    }
-
-    const double next_hard_point = hard_points[hard_index];
-    const double hard_distance = next_hard_point - time;
-    if (!std::isfinite(hard_distance) || hard_distance <= 0.0) {
-      return Result<TransientResult>::Fail(
-          ErrorCode::kSolve, "transient hard point is not strictly increasing");
-    }
-    double step = std::min(proposed_step, maximum_step);
-    bool lands_on_hard_point = false;
-    double next_time = time + step;
-    if (step >= hard_distance || next_time >= next_hard_point) {
-      step = hard_distance;
-      next_time = next_hard_point;
-      lands_on_hard_point = true;
-    }
-    if (!std::isfinite(step) || step <= 0.0 || !std::isfinite(next_time) ||
-        next_time <= time) {
-      return Result<TransientResult>::Fail(
-          ErrorCode::kSolve,
-          "transient timestep is not strictly increasing and representable");
-    }
-    if (step < minimum_step && !lands_on_hard_point) {
-      return Result<TransientResult>::Fail(
-          ErrorCode::kSolve, "adaptive transient timestep fell below h_min");
-    }
-
-    const bool waveform_landing =
-        lands_on_hard_point && ContainsExact(waveform_points, next_time);
-    const bool use_backward_euler =
-        accepted_steps == 0 || recovery_step || waveform_landing;
-    const TransientIntegrationMethod method =
-        use_backward_euler ? TransientIntegrationMethod::kBackwardEuler
-                           : TransientIntegrationMethod::kTrapezoidal;
-
-    Result<std::vector<double>> current_rhs =
-        BuildTransientRhs(system, next_time);
-    if (!current_rhs.ok()) {
+    Result<std::vector<double>> initial_rhs = BuildTransientRhs(system, 0.0);
+    if (!initial_rhs.ok()) {
       return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                           current_rhs.error().message);
+                                           initial_rhs.error().message);
+    }
+    Result<std::vector<double>> projected_initial = ProjectReactiveState(
+        system, initial.value(), initial_rhs.value(),
+        "initial transient source projection", &factorization_cache);
+    if (!projected_initial.ok()) {
+      return Result<TransientResult>::Fail(projected_initial.error().code,
+                                           projected_initial.error().message);
     }
 
-    // Integrate to a waveform breakpoint with its left-limit forcing, then
-    // project algebraic variables to the right-limit forcing while preserving
-    // capacitor voltages and inductor currents. This prevents a discontinuous
-    // source from acting over the interval before its scheduled edge.
-    std::vector<double> integration_rhs = current_rhs.value();
-    if (waveform_landing) {
-      const double left_time = std::nextafter(next_time, time);
-      if (left_time > time && left_time < next_time) {
-        Result<std::vector<double>> left_rhs =
-            BuildTransientRhs(system, left_time);
-        if (!left_rhs.ok()) {
-          return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                               left_rhs.error().message);
-        }
-        integration_rhs = left_rhs.TakeValue();
-      } else {
-        integration_rhs = previous_rhs;
-      }
-    }
-
-    std::vector<double> accepted_state;
-    double normalized_error = 0.0;
-    if (use_backward_euler) {
-      Result<std::vector<double>> full_step = SolveBackwardEulerStep(
-          system, state, integration_rhs, step,
-          "backward-Euler transient solve failed", &factorization_cache);
-      if (!full_step.ok()) {
-        return Result<TransientResult>::Fail(full_step.error().code,
-                                             full_step.error().message);
-      }
-
-      if (system.c.values.empty()) {
-        accepted_state = full_step.TakeValue();
-      } else {
-        const double midpoint = time + step * 0.5;
-        if (!std::isfinite(midpoint) || midpoint <= time ||
-            midpoint >= next_time) {
-          if (lands_on_hard_point &&
-              next_time == std::nextafter(
-                               time, std::numeric_limits<double>::infinity())) {
-            accepted_state = full_step.TakeValue();
-          } else {
-            return Result<TransientResult>::Fail(
-                ErrorCode::kSolve, "backward-Euler error-estimation midpoint "
-                                   "is not representable");
-          }
-        } else {
-          Result<std::vector<double>> midpoint_rhs =
-              BuildTransientRhs(system, midpoint);
-          if (!midpoint_rhs.ok()) {
-            return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                                 midpoint_rhs.error().message);
-          }
-          const double first_half = midpoint - time;
-          const double second_half = next_time - midpoint;
-          Result<std::vector<double>> first_half_state = SolveBackwardEulerStep(
-              system, state, midpoint_rhs.value(), first_half,
-              "first half backward-Euler LTE solve failed",
-              &factorization_cache);
-          if (!first_half_state.ok()) {
-            return Result<TransientResult>::Fail(
-                first_half_state.error().code,
-                first_half_state.error().message);
-          }
-          Result<std::vector<double>> refined = SolveBackwardEulerStep(
-              system, first_half_state.value(), integration_rhs, second_half,
-              "second half backward-Euler LTE solve failed",
-              &factorization_cache);
-          if (!refined.ok()) {
-            return Result<TransientResult>::Fail(refined.error().code,
-                                                 refined.error().message);
-          }
-          Result<double> error = ComputeNormalizedLocalError(
-              refined.value(), full_step.value(), 1.0);
-          if (!error.ok()) {
-            return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                                 error.error().message);
-          }
-          normalized_error = error.value();
-          accepted_state = refined.TakeValue();
-        }
-      }
-
-      const double adapted_step = step * AdaptationFactor(normalized_error);
-      if (!std::isfinite(adapted_step) || adapted_step <= 0.0) {
-        return Result<TransientResult>::Fail(
-            ErrorCode::kSolve,
-            "adaptive backward-Euler timestep produced a non-finite value");
-      }
-      if (normalized_error > 1.0) {
-        result.step_trace.push_back(TransientStepRecord{
-            .start_time_seconds = time,
-            .end_time_seconds = next_time,
-            .step_size_seconds = step,
-            .method = method,
-            .accepted = false,
-            .normalized_local_error = normalized_error,
-            .landed_on_hard_point = lands_on_hard_point,
-        });
-        if (adapted_step < minimum_step) {
-          return Result<TransientResult>::Fail(
-              ErrorCode::kSolve,
-              "adaptive transient timestep fell below h_min");
-        }
-        proposed_step = adapted_step;
-        recovery_step = true;
-        continue;
-      }
-      proposed_step = std::clamp(adapted_step, minimum_step, maximum_step);
-      recovery_step = false;
-    } else {
-      Result<CsrMatrix> trap_matrix =
-          FormTransientCompanionMatrix(system.g, system.c, step, 2.0);
-      if (!trap_matrix.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                             trap_matrix.error().message);
-      }
-      Result<std::vector<double>> trap_rhs = BuildTrapezoidalRhs(
-          system.g, system.c, state, previous_rhs, current_rhs.value(), step);
-      if (!trap_rhs.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                             trap_rhs.error().message);
-      }
-      Result<std::vector<double>> trap_solution =
-          factorization_cache.Solve(trap_matrix.value(), trap_rhs.value());
-      if (!trap_solution.ok()) {
-        return Result<TransientResult>::Fail(
-            trap_solution.error().code, "trapezoidal transient solve failed: " +
-                                            trap_solution.error().message);
-      }
-
-      Result<CsrMatrix> be_matrix =
-          FormTransientCompanionMatrix(system.g, system.c, step, 1.0);
-      if (!be_matrix.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                             be_matrix.error().message);
-      }
-      Result<std::vector<double>> be_rhs =
-          BuildBackwardEulerRhs(system.c, state, integration_rhs, step);
-      if (!be_rhs.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                             be_rhs.error().message);
-      }
-      Result<std::vector<double>> be_solution =
-          factorization_cache.Solve(be_matrix.value(), be_rhs.value());
-      if (!be_solution.ok()) {
-        return Result<TransientResult>::Fail(
-            be_solution.error().code,
-            "LTE backward-Euler solve failed: " + be_solution.error().message);
-      }
-      Result<double> error = ComputeNormalizedLocalError(
-          trap_solution.value(), be_solution.value(), 2.0 / 3.0);
-      if (!error.ok()) {
-        return Result<TransientResult>::Fail(ErrorCode::kSolve,
-                                             error.error().message);
-      }
-      normalized_error = error.value();
-      const double factor = AdaptationFactor(normalized_error);
-      const double adapted_step = step * factor;
-      if (!std::isfinite(adapted_step) || adapted_step <= 0.0) {
-        return Result<TransientResult>::Fail(
-            ErrorCode::kSolve,
-            "adaptive transient timestep produced a non-finite value");
-      }
-      if (normalized_error > 1.0) {
-        result.step_trace.push_back(TransientStepRecord{
-            .start_time_seconds = time,
-            .end_time_seconds = next_time,
-            .step_size_seconds = step,
-            .method = method,
-            .accepted = false,
-            .normalized_local_error = normalized_error,
-            .landed_on_hard_point = lands_on_hard_point,
-        });
-        if (adapted_step < minimum_step) {
-          return Result<TransientResult>::Fail(
-              ErrorCode::kSolve,
-              "adaptive transient timestep fell below h_min");
-        }
-        proposed_step = adapted_step;
-        recovery_step = true;
-        continue;
-      }
-      accepted_state = trap_solution.TakeValue();
-      proposed_step = std::clamp(adapted_step, minimum_step, maximum_step);
-    }
-
-    if (waveform_landing &&
-        !EqualVectors(integration_rhs, current_rhs.value())) {
-      Result<std::vector<double>> projected = ProjectReactiveState(
-          system, accepted_state, current_rhs.value(),
-          "waveform discontinuity projection", &factorization_cache);
-      if (!projected.ok()) {
-        return Result<TransientResult>::Fail(projected.error().code,
-                                             projected.error().message);
-      }
-      accepted_state = projected.TakeValue();
-    }
-
-    if (accepted_steps >= limits.maximum_accepted_steps) {
-      return Result<TransientResult>::Fail(
-          ErrorCode::kSolve, "transient analysis exceeded " +
-                                 std::to_string(limits.maximum_accepted_steps) +
-                                 " accepted timesteps");
-    }
-    ++accepted_steps;
-    result.step_trace.push_back(TransientStepRecord{
-        .start_time_seconds = time,
-        .end_time_seconds = next_time,
-        .step_size_seconds = step,
-        .method = method,
-        .accepted = true,
-        .normalized_local_error = normalized_error,
-        .landed_on_hard_point = lands_on_hard_point,
-    });
-    state = std::move(accepted_state);
-    previous_rhs = current_rhs.TakeValue();
-    time = next_time;
-
-    if (time >= analysis.start_time_seconds) {
-      result.times_seconds.push_back(time);
+    TransientResult result;
+    std::vector<double> state = projected_initial.TakeValue();
+    std::vector<double> previous_rhs = initial_rhs.TakeValue();
+    double time = 0.0;
+    double proposed_step = maximum_step;
+    bool recovery_step = false;
+    bool nonlinear_retry_pending = false;
+    std::size_t hard_index = 0;
+    std::size_t attempts = 0;
+    std::size_t accepted_steps = 0;
+    if (analysis.start_time_seconds == 0.0) {
+      result.times_seconds.push_back(0.0);
       result.states.push_back(state);
     }
-  }
 
-  if (time != analysis.stop_time_seconds || result.times_seconds.empty() ||
-      result.times_seconds.back() != analysis.stop_time_seconds) {
+    while (time < analysis.stop_time_seconds) {
+      if (attempts >= limits.maximum_step_attempts) {
+        return Result<TransientResult>::Fail(
+            nonlinear_retry_pending ? ErrorCode::kNonConvergence
+                                    : ErrorCode::kSolve,
+            "transient analysis exceeded " +
+                std::to_string(limits.maximum_step_attempts) +
+                " timestep attempts");
+      }
+      ++attempts;
+      while (hard_index < hard_points.size() &&
+             hard_points[hard_index] <= time) {
+        ++hard_index;
+      }
+      if (hard_index == hard_points.size()) {
+        return Result<TransientResult>::Fail(
+            ErrorCode::kSolve,
+            "transient hard-point schedule ended before tstop");
+      }
+
+      const double next_hard_point = hard_points[hard_index];
+      const double hard_distance = next_hard_point - time;
+      if (!std::isfinite(hard_distance) || hard_distance <= 0.0) {
+        return Result<TransientResult>::Fail(
+            ErrorCode::kSolve,
+            "transient hard point is not strictly increasing");
+      }
+      double step = std::min(proposed_step, maximum_step);
+      bool lands_on_hard_point = false;
+      double next_time = time + step;
+      if (step >= hard_distance || next_time >= next_hard_point) {
+        step = hard_distance;
+        next_time = next_hard_point;
+        lands_on_hard_point = true;
+      }
+      if (!std::isfinite(step) || step <= 0.0 || !std::isfinite(next_time) ||
+          next_time <= time) {
+        return Result<TransientResult>::Fail(
+            nonlinear_retry_pending ? ErrorCode::kNonConvergence
+                                    : ErrorCode::kSolve,
+            "transient timestep is not strictly increasing and representable");
+      }
+      if (step < minimum_step && !lands_on_hard_point) {
+        return Result<TransientResult>::Fail(
+            nonlinear_retry_pending ? ErrorCode::kNonConvergence
+                                    : ErrorCode::kSolve,
+            "adaptive transient timestep fell below h_min");
+      }
+
+      const bool waveform_landing =
+          lands_on_hard_point && ContainsExact(waveform_points, next_time);
+      const bool use_backward_euler =
+          accepted_steps == 0 || recovery_step || waveform_landing;
+      const TransientIntegrationMethod method =
+          use_backward_euler ? TransientIntegrationMethod::kBackwardEuler
+                             : TransientIntegrationMethod::kTrapezoidal;
+
+      Result<std::vector<double>> current_rhs =
+          BuildTransientRhs(system, next_time);
+      if (!current_rhs.ok()) {
+        return Result<TransientResult>::Fail(ErrorCode::kSolve,
+                                             current_rhs.error().message);
+      }
+
+      // Integrate to a waveform breakpoint with its left-limit forcing, then
+      // project algebraic variables to the right-limit forcing while preserving
+      // capacitor voltages and inductor currents. This prevents a discontinuous
+      // source from acting over the interval before its scheduled edge.
+      std::vector<double> integration_rhs = current_rhs.value();
+      if (waveform_landing) {
+        const double left_time = std::nextafter(next_time, time);
+        if (left_time > time && left_time < next_time) {
+          Result<std::vector<double>> left_rhs =
+              BuildTransientRhs(system, left_time);
+          if (!left_rhs.ok()) {
+            return Result<TransientResult>::Fail(ErrorCode::kSolve,
+                                                 left_rhs.error().message);
+          }
+          integration_rhs = left_rhs.TakeValue();
+        } else {
+          integration_rhs = previous_rhs;
+        }
+      }
+
+      Result<IntegratedStepAttempt> integrated = IntegrateTransientStepAttempt(
+          system, state, previous_rhs, current_rhs.value(), integration_rhs,
+          time, next_time, step, use_backward_euler, lands_on_hard_point,
+          limits.nonlinear_maximum_iterations, &factorization_cache);
+      if (!integrated.ok()) {
+        if (system.diode_descriptors.empty() ||
+            integrated.error().code != ErrorCode::kNonConvergence) {
+          return Result<TransientResult>::Fail(integrated.error().code,
+                                               integrated.error().message);
+        }
+        result.step_trace.push_back(TransientStepRecord{
+            .start_time_seconds = time,
+            .end_time_seconds = next_time,
+            .step_size_seconds = step,
+            .method = method,
+            .accepted = false,
+            .normalized_local_error = 0.0,
+            .landed_on_hard_point = lands_on_hard_point,
+            .rejection_reason =
+                TransientStepRejectionReason::kNonlinearConvergence,
+        });
+        const double retry_step = step * 0.5;
+        if (!std::isfinite(retry_step) || retry_step <= 0.0 ||
+            retry_step < minimum_step) {
+          return Result<TransientResult>::Fail(
+              ErrorCode::kNonConvergence,
+              "nonlinear transient timestep retry fell below h_min or became "
+              "unrepresentable");
+        }
+        proposed_step = retry_step;
+        recovery_step = true;
+        nonlinear_retry_pending = true;
+        continue;
+      }
+
+      const double normalized_error = integrated.value().normalized_error;
+      const double adapted_step = integrated.value().adapted_step;
+      if (normalized_error > 1.0) {
+        result.step_trace.push_back(TransientStepRecord{
+            .start_time_seconds = time,
+            .end_time_seconds = next_time,
+            .step_size_seconds = step,
+            .method = method,
+            .accepted = false,
+            .normalized_local_error = normalized_error,
+            .landed_on_hard_point = lands_on_hard_point,
+            .rejection_reason = TransientStepRejectionReason::kLocalError,
+        });
+        if (adapted_step < minimum_step) {
+          return Result<TransientResult>::Fail(
+              ErrorCode::kSolve,
+              "adaptive transient timestep fell below h_min");
+        }
+        proposed_step = adapted_step;
+        recovery_step = true;
+        nonlinear_retry_pending = false;
+        continue;
+      }
+      std::vector<double> accepted_state =
+          integrated.TakeValue().accepted_state;
+      proposed_step = std::clamp(adapted_step, minimum_step, maximum_step);
+      recovery_step = false;
+      nonlinear_retry_pending = false;
+
+      if (waveform_landing &&
+          !EqualVectors(integration_rhs, current_rhs.value())) {
+        Result<std::vector<double>> projected = ProjectReactiveState(
+            system, accepted_state, current_rhs.value(),
+            "waveform discontinuity projection", &factorization_cache);
+        if (!projected.ok()) {
+          return Result<TransientResult>::Fail(projected.error().code,
+                                               projected.error().message);
+        }
+        accepted_state = projected.TakeValue();
+      }
+
+      if (accepted_steps >= limits.maximum_accepted_steps) {
+        return Result<TransientResult>::Fail(
+            ErrorCode::kSolve,
+            "transient analysis exceeded " +
+                std::to_string(limits.maximum_accepted_steps) +
+                " accepted timesteps");
+      }
+      ++accepted_steps;
+      result.step_trace.push_back(TransientStepRecord{
+          .start_time_seconds = time,
+          .end_time_seconds = next_time,
+          .step_size_seconds = step,
+          .method = method,
+          .accepted = true,
+          .normalized_local_error = normalized_error,
+          .landed_on_hard_point = lands_on_hard_point,
+      });
+      state = std::move(accepted_state);
+      previous_rhs = current_rhs.TakeValue();
+      time = next_time;
+
+      if (time >= analysis.start_time_seconds) {
+        result.times_seconds.push_back(time);
+        result.states.push_back(state);
+      }
+    }
+
+    if (time != analysis.stop_time_seconds || result.times_seconds.empty() ||
+        result.times_seconds.back() != analysis.stop_time_seconds) {
+      return Result<TransientResult>::Fail(
+          ErrorCode::kSolve,
+          "transient analysis did not include the exact requested stop time");
+    }
+    if (result.times_seconds.front() != analysis.start_time_seconds) {
+      return Result<TransientResult>::Fail(
+          ErrorCode::kSolve,
+          "transient analysis did not include the exact output start time");
+    }
+    result.solver_statistics = factorization_cache.statistics();
+    return Result<TransientResult>::Ok(std::move(result));
+  } catch (const std::bad_alloc &) {
     return Result<TransientResult>::Fail(
-        ErrorCode::kSolve,
-        "transient analysis did not include the exact requested stop time");
+        ErrorCode::kFactorization, "transient analysis allocation failed");
   }
-  if (result.times_seconds.front() != analysis.start_time_seconds) {
-    return Result<TransientResult>::Fail(
-        ErrorCode::kSolve,
-        "transient analysis did not include the exact output start time");
-  }
-  return Result<TransientResult>::Ok(std::move(result));
 }
 
 } // namespace ohmnivore

@@ -2,8 +2,8 @@
 
 Ohmnivore reads SPICE-subset netlists. This document covers the supported syntax.
 
-> **Migration note:** The active C++ Phase 3A parser supports positive R/L/C devices; strict diode
-> instances and diode models for nonlinear DC; independent
+> **Migration note:** The active C++ Phase 3B parser supports positive R/L/C devices; strict diode
+> instances and diode models for nonlinear DC and memoryless transient analysis; independent
 > V/I sources with strict DC, AC, PULSE, SIN, PWL, and EXP specifications; `.DC`, `.OP`, `.AC`,
 > `.TRAN`, `.PRINT`, and `.END`. BJT and MOSFET forms later in this document remain legacy Rust
 > reference material and are rejected by the C++ path.
@@ -212,8 +212,9 @@ parameters, malformed identifiers or punctuation, duplicate model names under ca
 comparison, unsupported model types or parameters, non-finite values, physically invalid values,
 and missing model references are typed errors. Malformed supported-`D` syntax is a parse error;
 unsupported model types or parameters are unsupported errors. No unsupported model data is
-ignored. Phase 3A uses this diode model only for `.DC` and `.OP`; diode `.AC` and `.TRAN` requests
-are typed unsupported errors.
+ignored. Phase 3B uses this diode model for `.DC`, `.OP`, and `.TRAN`. The transient diode is
+memoryless: only its Shockley current and conductance are evaluated, with no diode charge or
+capacitance. Diode `.AC` requests remain typed unsupported errors.
 
 Example:
 

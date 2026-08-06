@@ -1,0 +1,8 @@
+* Phase 3B bounded memoryless-diode transient acceptance
+V1 in 0 PULSE(0 1 0 1u 1u 0.5m 1m)
+R1 in out 1k
+C1 out 0 100n
+.MODEL DM D(IS=1e-12 N=1)
+D1 out 0 DM
+.TRAN 2u 2m UIC
+.END

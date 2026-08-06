@@ -1,7 +1,8 @@
 # Hermetic ngspice acceptance oracle
 
-Ohmnivore Phase 3A uses ngspice only as an external acceptance oracle for six
-bounded linear fixtures and one forward-biased diode DC fixture. It is not
+Ohmnivore Phase 3B uses ngspice only as an external acceptance oracle for six
+bounded linear fixtures, one forward-biased diode DC fixture, and one
+memoryless-diode transient fixture. It is not
 linked into the simulator and is not a runtime dependency of Ohmnivore.
 
 ## Upstream source identity
@@ -135,6 +136,7 @@ The explicit target `//acceptance:ngspice_acceptance_test` compares only:
 - a pulsed RC filter;
 - a true series-RL voltage step;
 - a non-UIC, current-driven series RLC response with nonzero `tstart`.
+- a pulsed RC circuit shunted by the bounded Phase 3A diode model under `UIC`.
 
 The harness asks ngspice for an ASCII raw file with 17 significant digits and
 parses it strictly. Ohmnivore CSV headers, row widths, and insertion order are
@@ -161,6 +163,11 @@ insertion order.
   duplicated, or irregular ngspice output. The exact Ohmnivore start and stop
   points must also be present. Voltages use
   `max(1e-2 V, 2e-2 * abs(reference))`.
+
+The nonlinear transient fixture uses the same transient voltage tolerance. It
+does not validate diode charge or capacitance: Ohmnivore's diode remains
+memoryless, and the only dynamic storage in the fixture is the explicit
+capacitor.
 
 The linear tolerances intentionally match the legacy linear acceptance policy; the bounded diode
 tolerance is recorded above. They are acceptance limits, not accuracy or performance claims.

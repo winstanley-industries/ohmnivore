@@ -93,7 +93,7 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
   if (!system.diode_descriptors.empty()) {
     return Result<AcResult>::Fail(
         ErrorCode::kUnsupported,
-        "phase 3A does not support diode AC analysis or small-signal "
+        "phase 3B does not support diode AC analysis or small-signal "
         "linearization");
   }
   auto generated = GenerateAcFrequencies(analysis);
@@ -153,11 +153,6 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 
 [[nodiscard]] Result<TranResult> RunTransient(const MnaSystem &system,
                                               const TranAnalysis &analysis) {
-  if (!system.diode_descriptors.empty()) {
-    return Result<TranResult>::Fail(
-        ErrorCode::kUnsupported,
-        "phase 3A does not support nonlinear diode transient analysis");
-  }
   auto integrated = RunTransientAnalysis(system, analysis);
   if (!integrated.ok()) {
     return Result<TranResult>::Fail(integrated.error().code,

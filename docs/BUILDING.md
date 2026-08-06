@@ -24,15 +24,15 @@ bazel run //:ohmnivore -- examples/voltage_divider.spice
 
 The current C++ execution surface is deterministic linear `.DC`/`.OP`, `.AC DEC|OCT|LIN`, and
 `.TRAN tstep tstop [tstart] [UIC]` analysis for resistors, capacitors, inductors, and independent
-voltage/current sources, plus nonlinear diode `.DC`/`.OP`. Sources accept strict DC, AC, PULSE,
-SIN, PWL, and EXP forms in legacy order. Capacitors are open and inductors are ideal shorts at DC;
-AC solves
+voltage/current sources, plus nonlinear diode `.DC`/`.OP` and memoryless-diode `.TRAN`. Sources
+accept strict DC, AC, PULSE, SIN, PWL, and EXP forms in legacy order. Capacitors are open and
+inductors are ideal shorts at DC; AC solves
 `(G + j * 2*pi*f*C)x = b_ac`; transient solves `G*x + C*dx/dt = b(t)`. DC, AC,
 transient companion, UIC, and discontinuity-projection systems use the checksum-pinned KLU 2.3.6
 real or complex FP64 sparse-direct path. The old dense partial-pivoting implementation is linked
 only into the exact-small test oracle.
 
-## Nonlinear diode DC
+## Nonlinear diode DC and transient
 
 Phase 3A accepts exactly `Dname anode cathode modelname` and diode models in one of these forms:
 
@@ -80,18 +80,34 @@ Jacobian coordinates. Diode-required numerical zeros are retained; linear-only m
 existing zero-elision and exact fast path. One KLU symbolic analysis is reused across every Newton
 and continuation step; changed values use numeric refactorization plus the Phase 2D pivot-safe
 fresh-numeric retry and backward-error checks. No sparse or nonlinear failure can dispatch to the
-dense test oracle. Nonlinear CPU work is deterministic and single-threaded. Diode AC and transient
-requests are explicitly unsupported in Phase 3A.
+dense test oracle. Nonlinear CPU work is deterministic and single-threaded. Diode AC remains
+explicitly unsupported.
 
 Repeated direct, source-stepping, and GMIN-stepping runs on one supported toolchain/platform are
 required to produce bitwise-identical solutions, traces, and solver statistics. There is no
 cross-libm or cross-platform equality guarantee; independent-oracle and ngspice checks use only
 their individually stated tolerances.
 
+Phase 3B applies the same memoryless diode current, conductance, limiting, update, residual, and
+accepted-Jacobian checks to the Phase 2C transient DAE. Backward Euler solves
+`(G+C/h)x_n-(b_n+C*x_p/h)+d(x_n)=0`; trapezoidal integration includes the previous diode current as
+`(G+2C/h)x_n-(b_n+b_p+(2C/h-G)x_p-d(x_p))+d(x_n)=0`. Every full, half, and LTE comparison solve is
+independently converged. Only Newton nonconvergence retries by halving the timestep and forcing a BE
+recovery step; singularity, non-finite arithmetic, factorization, and validation failures propagate
+immediately.
+
+Without UIC, the Phase 3A nonlinear DC operating point initializes diode transient state. With UIC,
+zero capacitor voltage and zero inductor current remain exact constraints while the other algebraic
+rows include diode current. Source discontinuity projection preserves those reactive quantities and
+solves the right-limit nonlinear algebraic equations. The canonical transient matrix retains the
+fixed G/C/diode coordinate union so KLU symbolic analysis is reused across BE, TRAP, LTE, rejection,
+and accepted steps.
+
 Focused nonlinear validation is available as:
 
 ```sh
 bazel test //cpp:phase3a_test
+bazel test //cpp:phase3b_test
 ```
 
 AC point counts and frequencies are validated before execution. LIN requires at least two total
@@ -213,13 +229,14 @@ bazel test --lockfile_mode=error //...
 
 ## Hermetic ngspice acceptance
 
-The Phase 3A differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
+The Phase 3B differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
 that exact executable. It does not search `PATH` or use a system ngspice, compiler, header, or
 library. Configure and Make receive only checksum-pinned BusyBox POSIX tools and GCC binutils on
 their `PATH`; the required execution-platform `/bin/bash` is checksum-verified before configure.
 The runner requires a little-endian x86-64 static executable, rejects any ELF program
 header containing `PT_INTERP` or `PT_DYNAMIC`, and checks the exact version before comparing the
-bounded linear fixtures and one forward-biased diode DC fixture:
+bounded linear fixtures plus one forward-biased diode DC fixture and one memoryless-diode transient
+fixture:
 
 ```sh
 bazel test //acceptance:ngspice_acceptance_test

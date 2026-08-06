@@ -304,7 +304,7 @@ ParseDiode(const std::vector<std::string> &tokens) {
     const auto type = TakeWhitespaceToken(&remaining);
     return Result<DiodeModel>::Fail(
         ErrorCode::kUnsupported,
-        "phase 3A supports diode .MODEL type D only, not '" +
+        "phase 3B supports diode .MODEL type D only, not '" +
             std::string(type.value_or(std::string_view{})) + "'");
   }
   remaining.remove_prefix(1);
@@ -327,7 +327,7 @@ ParseDiode(const std::vector<std::string> &tokens) {
           remaining.front() == '_';
       return Result<DiodeModel>::Fail(
           extended_type ? ErrorCode::kUnsupported : ErrorCode::kParse,
-          extended_type ? "phase 3A supports diode .MODEL type D only"
+          extended_type ? "phase 3B supports diode .MODEL type D only"
                         : "malformed text after diode .MODEL type D");
     }
     if (remaining.back() != ')' ||
@@ -913,7 +913,7 @@ Result<Circuit> ParseNetlist(std::string_view input) {
     if (line.front() == '.') {
       return Result<Circuit>::Fail(
           ErrorCode::kUnsupported,
-          WithLine(line_number, "phase 3A does not support directive '" +
+          WithLine(line_number, "phase 3B does not support directive '" +
                                     std::string(line) + "'"));
     }
 
@@ -943,7 +943,7 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       }
       return Result<Component>::Fail(
           ErrorCode::kUnsupported,
-          "phase 3A supports RLC elements, independent DC/AC/transient "
+          "phase 3B supports RLC elements, independent DC/AC/transient "
           "voltage/current sources, and diode instances only");
     }();
     if (!component.ok()) {

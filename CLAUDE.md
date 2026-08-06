@@ -10,13 +10,14 @@ migrating to a C++20 core with a CUDA-first backend and hermetic Bazel toolchain
 implementation is retained as a behavioral reference, not the target architecture for new solver
 development.
 
-Phase 3A is deliberately bounded to deterministic FP64 CPU nonlinear DC operating points for the
-strict `D`/`.MODEL ... D(IS=... N=...)` diode subset. SuiteSparse KLU 2.3.6 from the
-checksum-pinned SuiteSparse 7.12.3 archive remains the only production linear solve path and reuses
-one symbolic analysis for the fixed nonlinear union pattern. The former dense partial-pivoting
-implementation remains a test-only exact-small oracle. Do not pull BJTs, MOSFETs, diode AC/charge,
-nonlinear transient work, CUDA circuit kernels, mixed precision, distributed solving, or semantic
-changes to linear DC, AC, transient, waveforms, GMIN, ordering, signs, or CSV into Phase 3A.
+Phase 3B is deliberately bounded to deterministic FP64 CPU nonlinear transient analysis for the
+strict, memoryless Phase 3A `D`/`.MODEL ... D(IS=... N=...)` diode subset. SuiteSparse KLU 2.3.6
+from the checksum-pinned SuiteSparse 7.12.3 archive remains the only production linear solve path
+and reuses symbolic analysis for each fixed nonlinear union pattern. The former dense
+partial-pivoting implementation remains a test-only exact-small oracle. Do not pull BJTs, MOSFETs,
+diode AC/charge/noise/temperature work, CUDA circuit kernels, mixed precision, distributed solving,
+or semantic changes to linear DC, AC, transient, waveforms, GMIN, ordering, signs, or CSV into
+Phase 3B.
 
 Before changing the C++ path:
 
