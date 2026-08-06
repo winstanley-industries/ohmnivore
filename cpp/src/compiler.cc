@@ -3,6 +3,7 @@
 #include "ohmnivore/waveform.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <complex>
 #include <cstddef>
@@ -14,6 +15,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -225,13 +227,67 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
     }
   }
 
+  for (std::size_t index = 0; index < circuit.bjt_models.size(); ++index) {
+    const BjtModel &model = circuit.bjt_models[index];
+    if (!IsAsciiModelIdentifier(model.name)) {
+      return Result<MnaSystem>::Fail(ErrorCode::kCompile,
+                                     "BJT model name must contain only ASCII "
+                                     "letters, digits, or underscore");
+    }
+    const auto valid_parameter = [](double value) {
+      return std::isfinite(value) && value > 0.0 &&
+             value <= kDiodeMaximumParameterMagnitude;
+    };
+    const double forward_emission_voltage =
+        model.forward_ideality_factor * kDiodeThermalVoltageVolts;
+    const double reverse_emission_voltage =
+        model.reverse_ideality_factor * kDiodeThermalVoltageVolts;
+    if (!valid_parameter(model.saturation_current_amperes) ||
+        !valid_parameter(model.forward_current_gain) ||
+        !valid_parameter(model.reverse_current_gain) ||
+        !valid_parameter(model.forward_ideality_factor) ||
+        !valid_parameter(model.reverse_ideality_factor) ||
+        !std::isfinite(forward_emission_voltage) ||
+        forward_emission_voltage <= 0.0 ||
+        forward_emission_voltage > kDiodeMaximumEmissionVoltageVolts ||
+        !std::isfinite(reverse_emission_voltage) ||
+        reverse_emission_voltage <= 0.0 ||
+        reverse_emission_voltage > kDiodeMaximumEmissionVoltageVolts) {
+      return Result<MnaSystem>::Fail(ErrorCode::kCompile,
+                                     "BJT model '" + model.name +
+                                         "' has invalid IS, BF, BR, NF, or "
+                                         "NR data");
+    }
+    for (std::size_t prior = 0; prior < index; ++prior) {
+      if (EqualCaseInsensitive(model.name, circuit.bjt_models[prior].name)) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile, "duplicate model name '" + model.name +
+                                     "' under case-insensitive comparison");
+      }
+    }
+    for (const DiodeModel &diode_model : circuit.diode_models) {
+      if (EqualCaseInsensitive(model.name, diode_model.name)) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile, "duplicate model name '" + model.name +
+                                     "' under case-insensitive comparison");
+      }
+    }
+  }
+
   std::unordered_map<std::string, std::size_t> node_map;
   std::vector<std::string> node_names;
   for (const Component &component : circuit.components) {
     std::visit(
         [&](const auto &typed) {
-          RegisterNode(typed.positive_node, &node_map, &node_names);
-          RegisterNode(typed.negative_node, &node_map, &node_names);
+          using Typed = std::decay_t<decltype(typed)>;
+          if constexpr (std::is_same_v<Typed, Bjt>) {
+            RegisterNode(typed.collector_node, &node_map, &node_names);
+            RegisterNode(typed.base_node, &node_map, &node_names);
+            RegisterNode(typed.emitter_node, &node_map, &node_names);
+          } else {
+            RegisterNode(typed.positive_node, &node_map, &node_names);
+            RegisterNode(typed.negative_node, &node_map, &node_names);
+          }
         },
         component);
   }
@@ -291,6 +347,19 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
     double emission_voltage_volts;
   };
   std::vector<PendingDiode> pending_diodes;
+  struct PendingBjt {
+    std::string name;
+    std::optional<std::size_t> collector;
+    std::optional<std::size_t> base;
+    std::optional<std::size_t> emitter;
+    double polarity;
+    double saturation_current_amperes;
+    double forward_current_gain;
+    double reverse_current_gain;
+    double forward_emission_voltage_volts;
+    double reverse_emission_voltage_volts;
+  };
+  std::vector<PendingBjt> pending_bjts;
   for (std::size_t node = 0; node < node_count; ++node) {
     AddStamp(&g_entries, node, node, kGminSiemens);
   }
@@ -481,6 +550,73 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       continue;
     }
 
+    if (const auto *bjt = std::get_if<Bjt>(&component)) {
+      if (bjt->name.empty() || bjt->collector_node.empty() ||
+          bjt->base_node.empty() || bjt->emitter_node.empty() ||
+          bjt->model_name.empty()) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kInvalidStructure,
+            "BJT instances require non-empty name, terminals, and model "
+            "reference");
+      }
+      if (!IsAsciiModelIdentifier(bjt->model_name)) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile,
+            "BJT '" + bjt->name +
+                "' model reference must contain only ASCII letters, digits, "
+                "or underscore");
+      }
+      const auto model = std::find_if(
+          circuit.bjt_models.begin(), circuit.bjt_models.end(),
+          [&](const BjtModel &candidate) {
+            return EqualCaseInsensitive(candidate.name, bjt->model_name);
+          });
+      if (model == circuit.bjt_models.end()) {
+        const bool wrong_type = std::any_of(
+            circuit.diode_models.begin(), circuit.diode_models.end(),
+            [&](const DiodeModel &item) {
+              return EqualCaseInsensitive(item.name, bjt->model_name);
+            });
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile, "BJT '" + bjt->name + "' references " +
+                                     (wrong_type ? "non-BJT" : "missing") +
+                                     " model '" + bjt->model_name + "'");
+      }
+      const std::array<std::optional<std::size_t>, 3> terminals = {
+          FindNode(bjt->collector_node, node_map),
+          FindNode(bjt->base_node, node_map),
+          FindNode(bjt->emitter_node, node_map),
+      };
+      if (terminals[0] == terminals[1] && terminals[1] == terminals[2]) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kInvalidStructure,
+            "BJT '" + bjt->name +
+                "' connects all three terminals to the same electrical node");
+      }
+      for (const std::optional<std::size_t> row : terminals) {
+        for (const std::optional<std::size_t> column : terminals) {
+          if (row.has_value() && column.has_value()) {
+            nonlinear_union_coordinates.emplace(*row, *column);
+          }
+        }
+      }
+      pending_bjts.push_back(PendingBjt{
+          .name = bjt->name,
+          .collector = terminals[0],
+          .base = terminals[1],
+          .emitter = terminals[2],
+          .polarity = model->is_npn ? 1.0 : -1.0,
+          .saturation_current_amperes = model->saturation_current_amperes,
+          .forward_current_gain = model->forward_current_gain,
+          .reverse_current_gain = model->reverse_current_gain,
+          .forward_emission_voltage_volts =
+              model->forward_ideality_factor * kDiodeThermalVoltageVolts,
+          .reverse_emission_voltage_volts =
+              model->reverse_ideality_factor * kDiodeThermalVoltageVolts,
+      });
+      continue;
+    }
+
     const std::string *name = nullptr;
     const std::string *positive_node = nullptr;
     const std::string *negative_node = nullptr;
@@ -645,6 +781,46 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
     diode_descriptors.push_back(std::move(descriptor));
   }
 
+  std::vector<BjtDescriptor> bjt_descriptors;
+  bjt_descriptors.reserve(pending_bjts.size());
+  for (const PendingBjt &pending : pending_bjts) {
+    const std::array<std::optional<std::size_t>, 3> terminals = {
+        pending.collector, pending.base, pending.emitter};
+    std::array<std::optional<std::size_t>, 9> positions;
+    for (std::size_t row = 0; row < terminals.size(); ++row) {
+      for (std::size_t column = 0; column < terminals.size(); ++column) {
+        const std::size_t position = row * terminals.size() + column;
+        if (!terminals[row].has_value() || !terminals[column].has_value()) {
+          positions[position] = std::nullopt;
+          continue;
+        }
+        positions[position] =
+            FindValueIndex(g, *terminals[row], *terminals[column]);
+        if (!positions[position].has_value()) {
+          return Result<MnaSystem>::Fail(
+              ErrorCode::kInvalidStructure,
+              "BJT '" + pending.name +
+                  "' could not resolve its canonical CSR union coordinates");
+        }
+      }
+    }
+    bjt_descriptors.push_back(BjtDescriptor{
+        .name = pending.name,
+        .collector_node_index = pending.collector,
+        .base_node_index = pending.base,
+        .emitter_node_index = pending.emitter,
+        .polarity = pending.polarity,
+        .saturation_current_amperes = pending.saturation_current_amperes,
+        .forward_current_gain = pending.forward_current_gain,
+        .reverse_current_gain = pending.reverse_current_gain,
+        .forward_emission_voltage_volts =
+            pending.forward_emission_voltage_volts,
+        .reverse_emission_voltage_volts =
+            pending.reverse_emission_voltage_volts,
+        .jacobian_value_indices = positions,
+    });
+  }
+
   return Result<MnaSystem>::Ok(MnaSystem{
       .g = std::move(g),
       .c = BuildCsr(size, c_entries),
@@ -656,6 +832,7 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       .capacitor_initial_constraints = std::move(capacitor_constraints),
       .inductor_initial_constraints = std::move(inductor_constraints),
       .diode_descriptors = std::move(diode_descriptors),
+      .bjt_descriptors = std::move(bjt_descriptors),
   });
 }
 

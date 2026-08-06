@@ -44,7 +44,7 @@ TEST(Phase1ParserTest, PreservesComponentsAndEngineeringValues) {
 }
 
 TEST(Phase1ParserTest, RejectsUnsupportedElementsExplicitly) {
-  auto parsed = ParseNetlist("Q1 collector base 0 QDEFAULT\n.DC\n.END\n");
+  auto parsed = ParseNetlist("M1 drain gate 0 MDEFAULT\n.DC\n.END\n");
   ASSERT_FALSE(parsed.ok());
   EXPECT_EQ(parsed.error().code, ErrorCode::kUnsupported);
   EXPECT_NE(parsed.error().message.find("line 1"), std::string::npos);

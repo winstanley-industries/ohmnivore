@@ -455,6 +455,113 @@ temperature sweeps, BJTs, MOSFETs, new source or initial-condition syntax, CUDA 
 solver dispatch, mixed precision, MPI/NCCL/RAS/domain decomposition, or performance/scalability
 claims. The Rust/wgpu source and tests remain unchanged as behavioral reference material.
 
+## Phase 3C: Deterministic FP64 CPU BJT DC operating-point analysis
+
+Phase 3C adds only deterministic nonlinear DC operating-point analysis for a strict minimal
+legacy-compatible Ebers--Moll BJT subset. The Phase 3A FP64 Newton, PN-junction limiting,
+continuation, nonlinear residual, accepted-Jacobian, fixed-pattern KLU, finite-value, and
+determinism contracts remain authoritative. Phase 3C extends those contracts to BJT device
+evaluation and stamping; it does not introduce another nonlinear solver or linear-solve path.
+
+### Netlist and model contract
+
+- A BJT instance is exactly `Qname collector base emitter modelname`, with no substrate, area,
+  multiplicity, OFF, initial-condition, geometry, temperature, or trailing fields. Model names and
+  references use `[A-Za-z0-9_]+`; lookup is ASCII case-insensitive, while original instance, node,
+  and model spelling and insertion order remain observable. Terminal aliases such as the
+  diode-connected `collector == base` form are valid, but all three terminals may not identify the
+  same electrical node after treating `0` and case-insensitive `GND` as ground.
+- A BJT model is `.MODEL modelname NPN`, `.MODEL modelname NPN()`,
+  `.MODEL modelname PNP`, `.MODEL modelname PNP()`, or the corresponding form with one or more
+  whitespace-separated `key=value` fields inside the attached parentheses. The only admitted keys
+  are `IS`, `BF`, `BR`, `NF`, and `NR`; each may appear at most once and may appear in any order.
+  Keys, model types, and lookup are ASCII case-insensitive. Commas, detached, nested, empty
+  parameter fields, or unclosed parameter lists, trailing text, duplicate parameters, and all
+  other BJT parameters are rejected. Duplicate model names, including collisions between diode and
+  BJT definitions, are rejected under case-insensitive comparison.
+- Defaults match the retained legacy subset: `IS=1e-16 A`, `BF=100`, `BR=1`, `NF=1`, and `NR=1`.
+  Every parameter must be finite in `(0, 1e100]`; `NF*VT` and `NR*VT` must also remain positive,
+  finite, and no greater than `2.585e98 V`. Direct IR with invalid model data, invalid identifiers,
+  duplicate definitions, a missing or wrong-type model reference, or an all-terminal self
+  connection fails with a typed compile or invalid-structure error.
+- `NPN` has polarity `p=+1` and `PNP` has `p=-1`. The temperature policy is fixed at the Phase 3A
+  `VT=0.02585 V` at 300 K. Temperature syntax, temperature sweeps, and temperature-dependent model
+  parameters are not admitted.
+
+### Ebers--Moll evaluation, residual, and Jacobian contract
+
+For collector, base, and emitter voltages `Vc`, `Vb`, and `Ve`, define
+
+```text
+vbe = p*(Vb - Ve)                 vbc = p*(Vb - Vc)
+IF  = IS*expm1(clamp(vbe/(NF*VT), -80, 80))
+IR  = IS*expm1(clamp(vbc/(NR*VT), -80, 80))
+Ic  = p*(BF/(BF+1)*IF - IR/(BR+1))
+Ib  = p*(IF/(BF+1) + IR/(BR+1))
+Ie  = -(Ic + Ib).
+```
+
+`Ic`, `Ib`, and `Ie` are currents leaving the corresponding collector, base, and emitter terminals
+and are added to those node KCL residuals. The four junction derivatives are
+
+```text
+dIc/dVbe = BF/(BF+1)*IS*exp(vbe/(NF*VT))/(NF*VT)
+dIc/dVbc = -IS*exp(vbc/(NR*VT))/((BR+1)*(NR*VT))
+dIb/dVbe = IS*exp(vbe/(NF*VT))/((BF+1)*(NF*VT))
+dIb/dVbc = IS*exp(vbc/(NR*VT))/((BR+1)*(NR*VT)).
+```
+
+The same closed `[-80,80]` exponential clamp applies to the derivative exponent. Expanding these
+four values through `Vbe=Vb-Ve`, `Vbc=Vb-Vc`, and `Ie=-(Ic+Ib)` gives the full collector/base/emitter
+3-by-3 Jacobian. NPN and PNP use the same physical-voltage derivatives because the two polarity
+factors cancel. Aliased terminals combine residual and Jacobian contributions in stable row-major
+terminal order.
+
+Every input, exponent, exponential, current, derivative, residual, row scale, stamp accumulation,
+limiter value, and Newton value must be finite and at most `1e100` in magnitude. Each mathematically
+positive junction conductance must remain positively representable. Violations fail with typed
+non-finite errors rather than saturating, skipping a terminal, or changing the model.
+
+### Compilation, Newton, sparse reuse, and determinism
+
+Compilation extends the immutable canonical nonlinear `G` union with all non-ground coordinates
+in each BJT's collector/base/emitter 3-by-3 block. Exact zeros required by either a diode or BJT
+descriptor are retained, aliases resolve deterministically to the same canonical value index, and
+linear-only compilation preserves its exact zero-elision fast path. BJT descriptors are emitted in
+BJT component insertion order and contain the three optional node indexes, polarity, the five
+validated FP64 model values represented as `IS`, `BF`, `BR`, `NF*VT`, and `NR*VT`, and nine resolved
+CSR value indexes. Descriptor dimensions and indexes remain within the signed 32-bit KLU contract.
+
+At each Newton proposal, BJT descriptors are limited in insertion order, after diode descriptors.
+Each BJT applies the exact Phase 3A logarithmic PN limiter first to polarity-adjusted `VBE` using
+`IS` and `NF*VT`, then to polarity-adjusted `VBC` using `IS` and `NR*VT`; a limited junction scales
+both participating non-ground node updates by the same deterministic factor. The Phase 3A update
+tolerances, row-scaled residual tolerances, direct/source/GMIN schedule, iteration bounds, original
+system final check, and accepted-Jacobian zero solve are unchanged. Mixed diode/BJT DC circuits use
+stable diode-then-BJT device-type order and insertion order within each type for evaluation,
+stamping, limiting, and reductions.
+
+One KLU symbolic analysis of the complete diode/BJT union pattern is reused across all Newton and
+continuation iterations. Numeric changes use the Phase 2D refactorization, pivot-safe fresh-numeric
+retry, and backward-error validation; no failure can dispatch to the dense exact-small oracle.
+Repeated runs on one supported toolchain/platform must produce bitwise-identical solutions,
+iteration and attempt traces, and KLU statistics. Analytic and hermetic ngspice comparisons use
+only their recorded tolerances and do not claim cross-libm or cross-platform bitwise equality.
+
+### Preservation and excluded work
+
+Netlists without BJTs retain all Phase 2A--3B parsing, matrix, solver, timestep, diode, source,
+ordering, sign, GMIN, and CSV behavior. BJT DC results use the existing DC node/branch ordering and
+CSV schema. AC or transient analysis of any circuit containing a BJT fails explicitly as
+unsupported; there is no silent linearization, device omission, or diode substitution.
+
+Phase 3C does not add BJT transient or charge storage, capacitances, transit time, Early effect,
+high-current effects, area or multiplicity scaling, initial conditions, AC, noise, temperature,
+temperature sweeps, MOSFETs, new source or analysis syntax, CUDA circuit kernels or dispatch, mixed
+precision, MPI/NCCL/RAS/domain decomposition, or performance/scalability claims. Diode behavior,
+including Phase 3B memoryless transient analysis, is unchanged. Rust/wgpu source and tests remain
+unchanged as behavioral reference material.
+
 ## Follow-up phases
 
 1. Extend the CPU nonlinear authority only through separately bounded additional-device or

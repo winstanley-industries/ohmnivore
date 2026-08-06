@@ -200,6 +200,22 @@ cc_test(
 )
 
 cc_test(
+    name = "phase3c_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase3c_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+        "@suitesparse_7_12_3//:config",
+    ],
+)
+
+cc_test(
     name = "solver_hermeticity_test",
     size = "small",
     srcs = ["tests/solver_hermeticity_test.cc"],

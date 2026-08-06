@@ -1,0 +1,7 @@
+* Phase 3C fixed-collector NPN DC operating point
+V1 in 0 DC 5
+R1 in out 100k
+.MODEL QM NPN(IS=1e-14 BF=200 BR=2 NF=1 NR=1)
+Q1 in out 0 QM
+.OP
+.END

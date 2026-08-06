@@ -9,9 +9,9 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ Phase 3B path provides deterministic linear DC, AC, and transient analysis plus bounded
-nonlinear diode DC operating-point and memoryless-diode transient analysis on the production FP64
-CPU sparse-direct correctness path. It provides:
+The C++ Phase 3C path provides deterministic linear DC, AC, and transient analysis plus bounded
+nonlinear diode DC operating-point and memoryless-diode transient analysis and strict BJT DC
+operating-point analysis on the production FP64 CPU sparse-direct correctness path. It provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
 - typed domain errors at library boundaries;
@@ -38,6 +38,9 @@ CPU sparse-direct correctness path. It provides:
 - FP64 Shockley current/conductance evaluation at fixed `VT=0.02585 V`, deterministic PN-junction
   limiting, Newton update plus nonlinear-residual convergence, fixed DC direct/source/GMIN strategy
   order, original-system final validation, and reused KLU symbolic analyses;
+- strict five-token BJT instances and case-insensitive NPN/PNP models with only
+  `IS/BF/BR/NF/NR`, legacy-compatible FP64 Ebers--Moll currents, full 3-by-3 Jacobian stamping,
+  deterministic BE/BC limiting, and typed rejection of BJT AC or transient execution;
 - inclusive, strictly increasing AC frequency grids: LIN emits exactly its total point count,
   while DEC/OCT use points per decade/octave and include the exact stop frequency once;
 - backward Euler for initial/recovery/breakpoint steps, trapezoidal integration otherwise,
@@ -48,17 +51,18 @@ CPU sparse-direct correctness path. It provides:
   capacitor-voltage/zero inductor-current constraints with UIC;
 - the legacy DC, AC, and transient CSV schemas;
 - a checksum-pinned Bazel-built ngspice 46 acceptance harness for representative linear DC, AC,
-  and transient circuits plus bounded forward-biased diode DC and memoryless-diode transient
-  fixtures; and
+  and transient circuits plus bounded forward-biased diode DC, memoryless-diode transient, and BJT
+  DC fixtures; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-BJTs, MOSFETs, and diode AC/charge/noise/temperature behavior have not yet been ported. CUDA circuit
-kernels or solver dispatch, mixed precision, and distributed solving are also absent. Bare `.DC`
-is an operating-point request; DC source sweeps are not executed.
+MOSFETs, BJT transient/charge/AC/noise/temperature behavior, and diode AC/charge/noise/temperature
+behavior have not yet been ported. CUDA circuit kernels or solver dispatch, mixed precision, and
+distributed solving are also absent. Bare `.DC` is an operating-point request; DC source sweeps are
+not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
 accepted. The differential claim is limited to the representative linear fixtures, one diode DC
-fixture, one memoryless-diode transient fixture, and tolerances recorded in
+fixture, one memoryless-diode transient fixture, one BJT DC fixture, and tolerances recorded in
 `third_party/ngspice/PROVENANCE.md`. Sparse-solver selection,
 storage, numerical, license, and reproducibility details are recorded in
 `third_party/suitesparse/PROVENANCE.md`.
@@ -74,6 +78,7 @@ bazel build //...
 bazel test //...
 bazel test //cpp:phase3a_test
 bazel test //cpp:phase3b_test
+bazel test //cpp:phase3c_test
 bazel test //acceptance:ngspice_acceptance_test
 bazel test //cpp:solver_hermeticity_test
 bazel run -c opt //cpp:solver_selection_benchmark -- --warmups=3 --repetitions=15

@@ -2,11 +2,12 @@
 
 Ohmnivore reads SPICE-subset netlists. This document covers the supported syntax.
 
-> **Migration note:** The active C++ Phase 3B parser supports positive R/L/C devices; strict diode
-> instances and diode models for nonlinear DC and memoryless transient analysis; independent
+> **Migration note:** The active C++ Phase 3C parser supports positive R/L/C devices; strict diode
+> instances and diode models for nonlinear DC and memoryless transient analysis; strict BJT
+> instances and NPN/PNP models for nonlinear DC; independent
 > V/I sources with strict DC, AC, PULSE, SIN, PWL, and EXP specifications; `.DC`, `.OP`, `.AC`,
-> `.TRAN`, `.PRINT`, and `.END`. BJT and MOSFET forms later in this document remain legacy Rust
-> reference material and are rejected by the C++ path.
+> `.TRAN`, `.PRINT`, and `.END`. MOSFET forms later in this document remain legacy Rust reference
+> material and are rejected by the C++ path.
 
 ## Structure
 
@@ -232,7 +233,11 @@ Qname  collector  base  emitter  modelname
 Model definition (Ebers-Moll):
 
 ```
+.MODEL modelname NPN
+.MODEL modelname NPN()
 .MODEL modelname NPN(IS=val BF=val BR=val NF=val NR=val)
+.MODEL modelname PNP
+.MODEL modelname PNP()
 .MODEL modelname PNP(IS=val BF=val BR=val NF=val NR=val)
 ```
 
@@ -243,6 +248,19 @@ Model definition (Ebers-Moll):
 | `BR` | Reverse current gain | 1 |
 | `NF` | Forward emission coefficient | 1.0 |
 | `NR` | Reverse emission coefficient | 1.0 |
+
+The instance has exactly five fields. The model name and reference grammar is `[A-Za-z0-9_]+`;
+lookup is ASCII case-insensitive. Parameters are whitespace-separated complete `key=value` fields,
+may appear in any order, and may appear at most once. Every value must be finite and in
+`(0,1e100]`, with positively representable `NF*0.02585 V` and `NR*0.02585 V`. Detached, nested,
+unclosed, comma-separated, duplicated, unsupported, or trailing model data is rejected. Model
+names share one case-insensitive namespace with diode models.
+
+Collector/base/emitter aliases are allowed, including a diode-connected collector/base, but all
+three terminals may not be the same electrical node. Phase 3C supports this fixed-temperature
+legacy-compatible Ebers--Moll subset only for `.DC` and `.OP`. BJT AC, transient, charge, noise,
+temperature, area/multiplicity, Early-effect, high-current, and initial-condition syntax is not
+accepted.
 
 Example:
 

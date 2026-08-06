@@ -24,7 +24,8 @@ bazel run //:ohmnivore -- examples/voltage_divider.spice
 
 The current C++ execution surface is deterministic linear `.DC`/`.OP`, `.AC DEC|OCT|LIN`, and
 `.TRAN tstep tstop [tstart] [UIC]` analysis for resistors, capacitors, inductors, and independent
-voltage/current sources, plus nonlinear diode `.DC`/`.OP` and memoryless-diode `.TRAN`. Sources
+voltage/current sources, plus nonlinear diode `.DC`/`.OP`, memoryless-diode `.TRAN`, and strict
+NPN/PNP BJT `.DC`/`.OP`. Sources
 accept strict DC, AC, PULSE, SIN, PWL, and EXP forms in legacy order. Capacitors are open and
 inductors are ideal shorts at DC; AC solves
 `(G + j * 2*pi*f*C)x = b_ac`; transient solves `G*x + C*dx/dt = b(t)`. DC, AC,
@@ -32,7 +33,7 @@ transient companion, UIC, and discontinuity-projection systems use the checksum-
 real or complex FP64 sparse-direct path. The old dense partial-pivoting implementation is linked
 only into the exact-small test oracle.
 
-## Nonlinear diode DC and transient
+## Nonlinear diode and BJT analysis
 
 Phase 3A accepts exactly `Dname anode cathode modelname` and diode models in one of these forms:
 
@@ -88,6 +89,22 @@ required to produce bitwise-identical solutions, traces, and solver statistics. 
 cross-libm or cross-platform equality guarantee; independent-oracle and ngspice checks use only
 their individually stated tolerances.
 
+Phase 3C accepts exactly `Qname collector base emitter modelname` and NPN/PNP models in bare,
+empty-parentheses, or attached-parentheses forms. The only parameters are `IS`, `BF`, `BR`, `NF`,
+and `NR`, with defaults `1e-16`, `100`, `1`, `1`, and `1`. Model identifiers, full-token parsing,
+case-insensitive lookup, duplicate detection, finite `(0,1e100]` bounds, and fixed
+`VT=0.02585 V` follow the strict Phase 3A policy. Collector/base aliases are supported for
+diode-connected devices; an all-terminal self-connection is rejected.
+
+For polarity-adjusted `vbe` and `vbc`, the bounded legacy-compatible Ebers--Moll path evaluates
+`IF=IS*expm1(clamp(vbe/(NF*VT),-80,80))` and the corresponding `IR`, then
+`Ic=p*(BF/(BF+1)*IF-IR/(BR+1))`, `Ib=p*(IF/(BF+1)+IR/(BR+1))`, and
+`Ie=-(Ic+Ib)`. The complete 3-by-3 Jacobian is accumulated into the immutable nonlinear union.
+BJT descriptors are evaluated and limited after diode descriptors, with BE before BC. The same
+Newton tolerances, direct/source/GMIN schedule, original-system residual validation, accepted
+Jacobian KLU solve, one symbolic analysis, and deterministic FP64 reductions apply. BJT AC and
+transient requests are typed unsupported errors; no device stamp is silently omitted.
+
 Phase 3B applies the same memoryless diode current, conductance, limiting, update, residual, and
 accepted-Jacobian checks to the Phase 2C transient DAE. Backward Euler solves
 `(G+C/h)x_n-(b_n+C*x_p/h)+d(x_n)=0`; trapezoidal integration includes the previous diode current as
@@ -108,6 +125,7 @@ Focused nonlinear validation is available as:
 ```sh
 bazel test //cpp:phase3a_test
 bazel test //cpp:phase3b_test
+bazel test //cpp:phase3c_test
 ```
 
 AC point counts and frequencies are validated before execution. LIN requires at least two total
@@ -229,14 +247,14 @@ bazel test --lockfile_mode=error //...
 
 ## Hermetic ngspice acceptance
 
-The Phase 3B differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
+The Phase 3C differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
 that exact executable. It does not search `PATH` or use a system ngspice, compiler, header, or
 library. Configure and Make receive only checksum-pinned BusyBox POSIX tools and GCC binutils on
 their `PATH`; the required execution-platform `/bin/bash` is checksum-verified before configure.
 The runner requires a little-endian x86-64 static executable, rejects any ELF program
 header containing `PT_INTERP` or `PT_DYNAMIC`, and checks the exact version before comparing the
-bounded linear fixtures plus one forward-biased diode DC fixture and one memoryless-diode transient
-fixture:
+bounded linear fixtures plus one forward-biased diode DC fixture, one memoryless-diode transient
+fixture, and one forward-active BJT DC fixture:
 
 ```sh
 bazel test //acceptance:ngspice_acceptance_test

@@ -59,7 +59,7 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 
 [[nodiscard]] Result<DcResult> RunDc(const MnaSystem &system) {
   std::vector<double> solution;
-  if (system.diode_descriptors.empty()) {
+  if (system.diode_descriptors.empty() && system.bjt_descriptors.empty()) {
     auto solved = SolveSparseReal(system.g, system.b_dc);
     if (!solved.ok()) {
       return Result<DcResult>::Fail(solved.error().code,
@@ -94,6 +94,12 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
     return Result<AcResult>::Fail(
         ErrorCode::kUnsupported,
         "phase 3B does not support diode AC analysis or small-signal "
+        "linearization");
+  }
+  if (!system.bjt_descriptors.empty()) {
+    return Result<AcResult>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3C does not support BJT AC analysis or small-signal "
         "linearization");
   }
   auto generated = GenerateAcFrequencies(analysis);

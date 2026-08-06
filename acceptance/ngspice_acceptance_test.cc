@@ -646,8 +646,8 @@ std::pair<std::string, double> ParseDcOut(std::string_view contents) {
 
 int main(int argc, char **argv) {
   try {
-    if (argc != 11) {
-      Fail("acceptance runner requires ten runfile arguments");
+    if (argc != 12) {
+      Fail("acceptance runner requires eleven runfile arguments");
     }
     const std::filesystem::path temporary_root =
         std::getenv("TEST_TMPDIR") == nullptr
@@ -685,7 +685,19 @@ int main(int argc, char **argv) {
              .real(),
          1e-6, 2e-3, "diode DC V(out)");
 
-    const std::filesystem::path ac_fixture = std::filesystem::absolute(argv[5]);
+    const std::filesystem::path bjt_fixture =
+        std::filesystem::absolute(argv[5]);
+    const RawTable bjt_reference =
+        RunNgspice(ngspice, bjt_fixture, temporary, "dc_bjt", false);
+    const ProcessResult bjt_actual =
+        Run({ohmnivore.string(), bjt_fixture.string()}, temporary);
+    RequireSuccess(bjt_actual, "Ohmnivore BJT DC");
+    const double bjt_value = ParseDcOut(bjt_actual.output).second;
+    Near(bjt_value,
+         bjt_reference.rows.front()[RawColumn(bjt_reference, "v(out)")].real(),
+         1e-6, 1e-3, "BJT DC V(out)");
+
+    const std::filesystem::path ac_fixture = std::filesystem::absolute(argv[6]);
     CompareAc(RunOhmnivore(ohmnivore, ac_fixture, temporary),
               RunNgspice(ngspice, ac_fixture, temporary, "ac", false));
 
@@ -698,31 +710,31 @@ int main(int argc, char **argv) {
       std::vector<std::string> header;
     };
     const std::vector<TransientFixture> transient_fixtures = {
-        {std::filesystem::absolute(argv[6]),
+        {std::filesystem::absolute(argv[7]),
          "tran_rc_uic",
          10e-6,
          5e-3,
          0.0,
          {"time", "V(in)", "V(out)", "I(V1)"}},
-        {std::filesystem::absolute(argv[7]),
+        {std::filesystem::absolute(argv[8]),
          "tran_pulse_rc",
          1e-6,
          2e-3,
          0.0,
          {"time", "V(in)", "V(out)", "I(V1)"}},
-        {std::filesystem::absolute(argv[8]),
+        {std::filesystem::absolute(argv[9]),
          "tran_rl_step",
          2e-6,
          2e-3,
          0.0,
          {"time", "V(in)", "V(out)", "I(V1)", "I(L1)"}},
-        {std::filesystem::absolute(argv[9]),
+        {std::filesystem::absolute(argv[10]),
          "tran_current_rlc_non_uic",
          0.1e-6,
          1e-3,
          0.1e-3,
          {"time", "V(in)", "V(mid)", "V(out)", "I(L1)"}},
-        {std::filesystem::absolute(argv[10]),
+        {std::filesystem::absolute(argv[11]),
          "tran_diode_rc",
          2e-6,
          2e-3,
@@ -738,7 +750,7 @@ int main(int argc, char **argv) {
     }
     std::cout
         << "ngspice-46 hermetic linear DC/AC/transient plus bounded diode "
-           "DC/transient acceptance passed\n";
+           "DC/transient and BJT DC acceptance passed\n";
     return 0;
   } catch (const std::exception &error) {
     std::cerr << "ngspice acceptance failure: " << error.what() << '\n';

@@ -1,8 +1,8 @@
 # Hermetic ngspice acceptance oracle
 
-Ohmnivore Phase 3B uses ngspice only as an external acceptance oracle for six
-bounded linear fixtures, one forward-biased diode DC fixture, and one
-memoryless-diode transient fixture. It is not
+Ohmnivore Phase 3C uses ngspice only as an external acceptance oracle for six
+bounded linear fixtures, one forward-biased diode DC fixture, one
+memoryless-diode transient fixture, and one forward-active BJT DC fixture. It is not
 linked into the simulator and is not a runtime dependency of Ohmnivore.
 
 ## Upstream source identity
@@ -131,6 +131,7 @@ The explicit target `//acceptance:ngspice_acceptance_test` compares only:
 
 - a current-loaded resistive DC voltage divider;
 - a forward-biased resistor-diode DC operating point;
+- a fixed-collector, resistor-driven NPN BJT DC operating point;
 - an AC RC low-pass filter;
 - UIC RC charging from a DC source;
 - a pulsed RC filter;
@@ -146,6 +147,10 @@ insertion order.
 
 - DC: voltage values use `max(1e-9, 1e-3 * abs(reference))`.
 - Diode DC: the output voltage uses `max(1e-6 V, 2e-3 * abs(reference))`.
+- BJT DC: the output voltage uses `max(1e-6 V, 1e-3 * abs(reference))`. The
+  fixture compares the strict Phase 3C legacy-compatible Ebers--Moll subset to
+  ngspice's fuller BJT implementation; the tolerance admits their documented
+  model difference without claiming parameter-complete SPICE parity.
 - AC: the point count must match and every frequency uses
   `max(1e-12 Hz, 1e-12 * abs(reference))`. Magnitudes use
   `max(1e-12, 1e-2 * abs(reference))`; wrapped phase error is at most one
@@ -170,7 +175,8 @@ memoryless, and the only dynamic storage in the fixture is the explicit
 capacitor.
 
 The linear tolerances intentionally match the legacy linear acceptance policy; the bounded diode
-tolerance is recorded above. They are acceptance limits, not accuracy or performance claims.
+and BJT tolerances are recorded above. They are acceptance limits, not accuracy or performance
+claims.
 
 The acceptance target is deliberately incompatible with the ASan and UBSan
 build settings: sanitizer gates cover Ohmnivore's C++ CPU implementation and

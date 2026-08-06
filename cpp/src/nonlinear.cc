@@ -119,12 +119,82 @@ ValidateDescriptor(const MnaSystem &system, const DiodeDescriptor &descriptor) {
   return Result<bool>::Ok(true);
 }
 
+[[nodiscard]] Result<bool>
+ValidateBjtDescriptor(const MnaSystem &system,
+                      const BjtDescriptor &descriptor) {
+  const std::size_t node_count = system.node_names.size();
+  if (descriptor.name.empty()) {
+    return Result<bool>::Fail(ErrorCode::kInvalidStructure,
+                              "BJT descriptor name must not be empty");
+  }
+  const std::array<std::optional<std::size_t>, 3> terminals = {
+      descriptor.collector_node_index, descriptor.base_node_index,
+      descriptor.emitter_node_index};
+  if (terminals[0] == terminals[1] && terminals[1] == terminals[2]) {
+    return Result<bool>::Fail(ErrorCode::kInvalidStructure,
+                              "BJT descriptor '" + descriptor.name +
+                                  "' has one electrical terminal");
+  }
+  for (const std::optional<std::size_t> node : terminals) {
+    if (node.has_value() && *node >= node_count) {
+      return Result<bool>::Fail(ErrorCode::kInvalidStructure,
+                                "BJT descriptor '" + descriptor.name +
+                                    "' references a non-node solution index");
+    }
+  }
+  const auto valid_parameter = [](double value) {
+    return std::isfinite(value) && value > 0.0 &&
+           value <= kNonlinearMaximumMagnitude;
+  };
+  if ((descriptor.polarity != 1.0 && descriptor.polarity != -1.0) ||
+      !valid_parameter(descriptor.saturation_current_amperes) ||
+      !valid_parameter(descriptor.forward_current_gain) ||
+      !valid_parameter(descriptor.reverse_current_gain) ||
+      !valid_parameter(descriptor.forward_emission_voltage_volts) ||
+      descriptor.forward_emission_voltage_volts >
+          kDiodeMaximumEmissionVoltageVolts ||
+      !valid_parameter(descriptor.reverse_emission_voltage_volts) ||
+      descriptor.reverse_emission_voltage_volts >
+          kDiodeMaximumEmissionVoltageVolts) {
+    return Result<bool>::Fail(ErrorCode::kCompile,
+                              "BJT descriptor '" + descriptor.name +
+                                  "' has invalid model parameters");
+  }
+
+  for (std::size_t row = 0; row < terminals.size(); ++row) {
+    for (std::size_t column = 0; column < terminals.size(); ++column) {
+      const std::size_t position = row * terminals.size() + column;
+      const std::optional<std::size_t> actual =
+          descriptor.jacobian_value_indices[position];
+      if (!terminals[row].has_value() || !terminals[column].has_value()) {
+        if (actual.has_value()) {
+          return Result<bool>::Fail(
+              ErrorCode::kInvalidStructure,
+              "ground-related BJT descriptor position must be absent");
+        }
+        continue;
+      }
+      const auto expected =
+          FindValueIndex(system.g, *terminals[row], *terminals[column]);
+      if (!expected.has_value() || actual != expected) {
+        return Result<bool>::Fail(
+            ErrorCode::kInvalidStructure,
+            "BJT descriptor '" + descriptor.name +
+                "' has malformed CSR value index at row-major position " +
+                std::to_string(position));
+      }
+    }
+  }
+  return Result<bool>::Ok(true);
+}
+
 [[nodiscard]] Result<bool> ValidateNonlinearSystem(const MnaSystem &system) {
   const std::size_t size =
       system.node_names.size() + system.branch_names.size();
-  if (system.diode_descriptors.empty()) {
-    return Result<bool>::Fail(ErrorCode::kInvalidStructure,
-                              "nonlinear DC requires at least one diode");
+  if (system.diode_descriptors.empty() && system.bjt_descriptors.empty()) {
+    return Result<bool>::Fail(
+        ErrorCode::kInvalidStructure,
+        "nonlinear DC requires at least one diode or BJT");
   }
   if (system.g.rows != size || system.g.columns != size ||
       system.b_dc.size() != size) {
@@ -154,6 +224,12 @@ ValidateDescriptor(const MnaSystem &system, const DiodeDescriptor &descriptor) {
   }
   for (const DiodeDescriptor &descriptor : system.diode_descriptors) {
     Result<bool> valid = ValidateDescriptor(system, descriptor);
+    if (!valid.ok()) {
+      return valid;
+    }
+  }
+  for (const BjtDescriptor &descriptor : system.bjt_descriptors) {
+    Result<bool> valid = ValidateBjtDescriptor(system, descriptor);
     if (!valid.ok()) {
       return valid;
     }
@@ -312,6 +388,98 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
     }
   }
 
+  for (const BjtDescriptor &descriptor : system.bjt_descriptors) {
+    const double collector_voltage =
+        NodeVoltage(solution, descriptor.collector_node_index);
+    const double base_voltage =
+        NodeVoltage(solution, descriptor.base_node_index);
+    const double emitter_voltage =
+        NodeVoltage(solution, descriptor.emitter_node_index);
+    Result<BjtEvaluation> evaluated = EvaluateBjt(
+        collector_voltage, base_voltage, emitter_voltage, descriptor.polarity,
+        descriptor.saturation_current_amperes, descriptor.forward_current_gain,
+        descriptor.reverse_current_gain,
+        descriptor.forward_emission_voltage_volts,
+        descriptor.reverse_emission_voltage_volts);
+    if (!evaluated.ok()) {
+      return Result<AssembledNewtonSystem>::Fail(
+          evaluated.error().code,
+          "BJT '" + descriptor.name + "': " + evaluated.error().message);
+    }
+    const double emitter_current =
+        -(evaluated.value().collector_current_amperes +
+          evaluated.value().base_current_amperes);
+    if (!IsBounded(emitter_current)) {
+      return Result<AssembledNewtonSystem>::Fail(
+          ErrorCode::kNonFinite,
+          "BJT terminal-current conservation produced a non-finite or "
+          "over-bound value");
+    }
+    const std::array<double, 3> currents = {
+        evaluated.value().collector_current_amperes,
+        evaluated.value().base_current_amperes, emitter_current};
+    const double collector_vbe =
+        evaluated.value().collector_vbe_derivative_siemens;
+    const double collector_vbc =
+        evaluated.value().collector_vbc_derivative_siemens;
+    const double base_vbe = evaluated.value().base_vbe_derivative_siemens;
+    const double base_vbc = evaluated.value().base_vbc_derivative_siemens;
+    const std::array<double, 9> jacobian = {
+        -collector_vbc,
+        collector_vbe + collector_vbc,
+        -collector_vbe,
+        -base_vbc,
+        base_vbe + base_vbc,
+        -base_vbe,
+        collector_vbc + base_vbc,
+        -(collector_vbe + collector_vbc + base_vbe + base_vbc),
+        collector_vbe + base_vbe,
+    };
+    const std::array<std::optional<std::size_t>, 3> terminals = {
+        descriptor.collector_node_index, descriptor.base_node_index,
+        descriptor.emitter_node_index};
+    for (double value : jacobian) {
+      if (!IsBounded(value)) {
+        return Result<AssembledNewtonSystem>::Fail(
+            ErrorCode::kNonFinite,
+            "BJT Jacobian expansion produced a non-finite or over-bound "
+            "value");
+      }
+    }
+    for (std::size_t row = 0; row < terminals.size(); ++row) {
+      if (!terminals[row].has_value() ||
+          (active_node_equations != nullptr &&
+           !(*active_node_equations)[*terminals[row]])) {
+        continue;
+      }
+      const std::size_t physical_row = *terminals[row];
+      assembled.residual[physical_row] += currents[row];
+      assembled.row_scales[physical_row] += std::abs(currents[row]);
+      if (!IsBounded(assembled.residual[physical_row]) ||
+          !IsBounded(assembled.row_scales[physical_row])) {
+        return Result<AssembledNewtonSystem>::Fail(
+            ErrorCode::kNonFinite,
+            "BJT residual accumulation produced a non-finite or over-bound "
+            "value");
+      }
+      for (std::size_t column = 0; column < terminals.size(); ++column) {
+        if (!terminals[column].has_value()) {
+          continue;
+        }
+        const std::size_t position = row * terminals.size() + column;
+        const std::size_t value_index =
+            *descriptor.jacobian_value_indices[position];
+        assembled.jacobian.values[value_index] += jacobian[position];
+        if (!IsBounded(assembled.jacobian.values[value_index])) {
+          return Result<AssembledNewtonSystem>::Fail(
+              ErrorCode::kNonFinite,
+              "BJT Jacobian accumulation produced a non-finite or over-bound "
+              "value");
+        }
+      }
+    }
+  }
+
   for (double value : assembled.jacobian.values) {
     if (!IsBounded(value)) {
       return Result<AssembledNewtonSystem>::Fail(
@@ -359,9 +527,9 @@ MaximumNormalizedResidual(const MnaSystem &system,
   return Result<double>::Ok(maximum);
 }
 
-[[nodiscard]] Result<double> LimitAllDiodes(const MnaSystem &system,
-                                            const std::vector<double> &previous,
-                                            std::vector<double> *proposed) {
+[[nodiscard]] Result<double>
+LimitAllJunctions(const MnaSystem &system, const std::vector<double> &previous,
+                  std::vector<double> *proposed) {
   for (const DiodeDescriptor &descriptor : system.diode_descriptors) {
     const double previous_voltage =
         NodeVoltage(previous, descriptor.anode_node_index) -
@@ -408,6 +576,74 @@ MaximumNormalizedResidual(const MnaSystem &system,
           (*proposed)[*node] = updated;
         }
       }
+    }
+  }
+  for (const BjtDescriptor &descriptor : system.bjt_descriptors) {
+    const auto limit_junction = [&](std::optional<std::size_t> first,
+                                    std::optional<std::size_t> second,
+                                    double emission_voltage) -> Result<double> {
+      const double previous_voltage =
+          descriptor.polarity *
+          (NodeVoltage(previous, first) - NodeVoltage(previous, second));
+      const double proposed_voltage =
+          descriptor.polarity *
+          (NodeVoltage(*proposed, first) - NodeVoltage(*proposed, second));
+      Result<double> limited = LimitDiodeJunctionVoltage(
+          proposed_voltage, previous_voltage,
+          descriptor.saturation_current_amperes, emission_voltage);
+      if (!limited.ok()) {
+        return limited;
+      }
+      if (limited.value() == proposed_voltage) {
+        return Result<double>::Ok(0.0);
+      }
+      const double junction_delta = proposed_voltage - previous_voltage;
+      if (junction_delta == 0.0 || !IsBounded(junction_delta)) {
+        return Result<double>::Fail(
+            ErrorCode::kNonFinite,
+            "BJT limiting encountered an invalid junction update");
+      }
+      const double scale =
+          (limited.value() - previous_voltage) / junction_delta;
+      if (!IsBounded(scale)) {
+        return Result<double>::Fail(
+            ErrorCode::kNonFinite,
+            "BJT limiting produced a non-finite or over-bound scale");
+      }
+      for (const std::optional<std::size_t> node : {first, second}) {
+        if (!node.has_value()) {
+          continue;
+        }
+        const double node_delta = (*proposed)[*node] - previous[*node];
+        const double scaled_delta = node_delta * scale;
+        const double updated = previous[*node] + scaled_delta;
+        if (!IsBounded(node_delta) || !IsBounded(scaled_delta) ||
+            !IsBounded(updated)) {
+          return Result<double>::Fail(
+              ErrorCode::kNonFinite,
+              "BJT limiting produced a non-finite or over-bound node update");
+        }
+        (*proposed)[*node] = updated;
+      }
+      return Result<double>::Ok(0.0);
+    };
+    Result<double> limited_forward = limit_junction(
+        descriptor.base_node_index, descriptor.emitter_node_index,
+        descriptor.forward_emission_voltage_volts);
+    if (!limited_forward.ok()) {
+      return Result<double>::Fail(
+          limited_forward.error().code,
+          "BJT '" + descriptor.name +
+              "' forward junction: " + limited_forward.error().message);
+    }
+    Result<double> limited_reverse = limit_junction(
+        descriptor.base_node_index, descriptor.collector_node_index,
+        descriptor.reverse_emission_voltage_volts);
+    if (!limited_reverse.ok()) {
+      return Result<double>::Fail(
+          limited_reverse.error().code,
+          "BJT '" + descriptor.name +
+              "' reverse junction: " + limited_reverse.error().message);
     }
   }
   for (double value : *proposed) {
@@ -540,7 +776,7 @@ struct AttemptResult {
       }
       proposed[index] = updated;
     }
-    Result<double> limited = LimitAllDiodes(system, solution, &proposed);
+    Result<double> limited = LimitAllJunctions(system, solution, &proposed);
     if (!limited.ok()) {
       return Result<AttemptResult>::Fail(limited.error().code,
                                          limited.error().message);
@@ -658,6 +894,123 @@ Result<DiodeEvaluation> EvaluateDiode(double junction_voltage_volts,
       .current_amperes = current,
       .conductance_siemens = conductance,
       .exponent = exponent,
+  });
+}
+
+Result<BjtEvaluation>
+EvaluateBjt(double collector_voltage_volts, double base_voltage_volts,
+            double emitter_voltage_volts, double polarity,
+            double saturation_current_amperes, double forward_current_gain,
+            double reverse_current_gain, double forward_emission_voltage_volts,
+            double reverse_emission_voltage_volts) {
+  if (!IsBounded(collector_voltage_volts) || !IsBounded(base_voltage_volts) ||
+      !IsBounded(emitter_voltage_volts) ||
+      (polarity != 1.0 && polarity != -1.0) ||
+      !IsBounded(saturation_current_amperes) ||
+      saturation_current_amperes <= 0.0 || !IsBounded(forward_current_gain) ||
+      forward_current_gain <= 0.0 || !IsBounded(reverse_current_gain) ||
+      reverse_current_gain <= 0.0 ||
+      !IsBounded(forward_emission_voltage_volts) ||
+      forward_emission_voltage_volts <= 0.0 ||
+      forward_emission_voltage_volts > kDiodeMaximumEmissionVoltageVolts ||
+      !IsBounded(reverse_emission_voltage_volts) ||
+      reverse_emission_voltage_volts <= 0.0 ||
+      reverse_emission_voltage_volts > kDiodeMaximumEmissionVoltageVolts) {
+    return Result<BjtEvaluation>::Fail(
+        ErrorCode::kNonFinite,
+        "BJT evaluation inputs are non-finite, over-bound, or outside the "
+        "model domain");
+  }
+  const double base_emitter_difference =
+      base_voltage_volts - emitter_voltage_volts;
+  const double base_collector_difference =
+      base_voltage_volts - collector_voltage_volts;
+  const double forward_voltage = polarity * base_emitter_difference;
+  const double reverse_voltage = polarity * base_collector_difference;
+  if (!IsBounded(base_emitter_difference) ||
+      !IsBounded(base_collector_difference) || !IsBounded(forward_voltage) ||
+      !IsBounded(reverse_voltage)) {
+    return Result<BjtEvaluation>::Fail(
+        ErrorCode::kNonFinite,
+        "BJT junction-voltage formation produced a non-finite or over-bound "
+        "value");
+  }
+  Result<DiodeEvaluation> forward =
+      EvaluateDiode(forward_voltage, saturation_current_amperes,
+                    forward_emission_voltage_volts);
+  if (!forward.ok()) {
+    return Result<BjtEvaluation>::Fail(
+        forward.error().code, "forward junction: " + forward.error().message);
+  }
+  Result<DiodeEvaluation> reverse =
+      EvaluateDiode(reverse_voltage, saturation_current_amperes,
+                    reverse_emission_voltage_volts);
+  if (!reverse.ok()) {
+    return Result<BjtEvaluation>::Fail(
+        reverse.error().code, "reverse junction: " + reverse.error().message);
+  }
+
+  const double forward_denominator = forward_current_gain + 1.0;
+  const double reverse_denominator = reverse_current_gain + 1.0;
+  const double forward_alpha = forward_current_gain / forward_denominator;
+  const double inverse_forward_denominator = 1.0 / forward_denominator;
+  const double inverse_reverse_denominator = 1.0 / reverse_denominator;
+  if (!IsBounded(forward_denominator) || forward_denominator <= 0.0 ||
+      !IsBounded(reverse_denominator) || reverse_denominator <= 0.0 ||
+      !IsBounded(forward_alpha) || forward_alpha <= 0.0 ||
+      !IsBounded(inverse_forward_denominator) ||
+      inverse_forward_denominator <= 0.0 ||
+      !IsBounded(inverse_reverse_denominator) ||
+      inverse_reverse_denominator <= 0.0) {
+    return Result<BjtEvaluation>::Fail(
+        ErrorCode::kNonFinite,
+        "BJT gain normalization underflowed or produced an invalid value");
+  }
+
+  const double collector_forward =
+      forward_alpha * forward.value().current_amperes;
+  const double collector_reverse =
+      inverse_reverse_denominator * reverse.value().current_amperes;
+  const double base_forward =
+      inverse_forward_denominator * forward.value().current_amperes;
+  const double base_reverse =
+      inverse_reverse_denominator * reverse.value().current_amperes;
+  const double collector_current =
+      polarity * (collector_forward - collector_reverse);
+  const double base_current = polarity * (base_forward + base_reverse);
+  const double collector_vbe =
+      forward_alpha * forward.value().conductance_siemens;
+  const double collector_vbc =
+      -inverse_reverse_denominator * reverse.value().conductance_siemens;
+  const double base_vbe =
+      inverse_forward_denominator * forward.value().conductance_siemens;
+  const double base_vbc =
+      inverse_reverse_denominator * reverse.value().conductance_siemens;
+  for (double value : {collector_forward, collector_reverse, base_forward,
+                       base_reverse, collector_current, base_current,
+                       collector_vbe, collector_vbc, base_vbe, base_vbc}) {
+    if (!IsBounded(value)) {
+      return Result<BjtEvaluation>::Fail(
+          ErrorCode::kNonFinite,
+          "BJT current or derivative evaluation produced a non-finite or "
+          "over-bound value");
+    }
+  }
+  if (collector_vbe <= 0.0 || collector_vbc >= 0.0 || base_vbe <= 0.0 ||
+      base_vbc <= 0.0) {
+    return Result<BjtEvaluation>::Fail(
+        ErrorCode::kNonFinite,
+        "BJT junction derivative underflowed or has an invalid sign");
+  }
+  return Result<BjtEvaluation>::Ok(BjtEvaluation{
+      .collector_current_amperes = collector_current,
+      .base_current_amperes = base_current,
+      .collector_vbe_derivative_siemens = collector_vbe,
+      .collector_vbc_derivative_siemens = collector_vbc,
+      .base_vbe_derivative_siemens = base_vbe,
+      .base_vbc_derivative_siemens = base_vbc,
+      .forward_exponent = forward.value().exponent,
+      .reverse_exponent = reverse.value().exponent,
   });
 }
 
@@ -867,7 +1220,7 @@ namespace {
   if (maximum_iterations > kDirectNewtonMaximumIterations) {
     return Result<NonlinearPointResult>::Fail(
         ErrorCode::kInvalidStructure,
-        "nonlinear point iteration limit exceeds the fixed Phase 3B bound");
+        "nonlinear point iteration limit exceeds the fixed nonlinear bound");
   }
   if (active_node_equations != nullptr &&
       active_node_equations->size() != system.node_names.size()) {

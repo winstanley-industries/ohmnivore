@@ -193,7 +193,7 @@ TEST(Phase3AParserTest, RejectsMalformedDuplicateUnsupportedAndInvalidModels) {
       {".MODEL foo( D", ErrorCode::kParse},
       {"D1 a 0 bad-name", ErrorCode::kParse},
       {".MODEL DM D(RS=1)", ErrorCode::kUnsupported},
-      {".MODEL QM NPN(IS=1e-14)", ErrorCode::kUnsupported},
+      {".MODEL QM NMOS(KP=1e-3)", ErrorCode::kUnsupported},
       {".MODEL DM DIODE", ErrorCode::kUnsupported},
       {".MODEL DM D(IS=1e-14,N=1)", ErrorCode::kParse},
       {".MODEL DM D)", ErrorCode::kParse},

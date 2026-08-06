@@ -107,8 +107,26 @@ struct DiodeModel {
   double ideality_factor = 1.0;
 };
 
+struct Bjt {
+  std::string name;
+  std::string collector_node;
+  std::string base_node;
+  std::string emitter_node;
+  std::string model_name;
+};
+
+struct BjtModel {
+  std::string name;
+  double saturation_current_amperes = 1e-16;
+  double forward_current_gain = 100.0;
+  double reverse_current_gain = 1.0;
+  double forward_ideality_factor = 1.0;
+  double reverse_ideality_factor = 1.0;
+  bool is_npn = true;
+};
+
 using Component = std::variant<Resistor, Capacitor, Inductor, VoltageSource,
-                               CurrentSource, Diode>;
+                               CurrentSource, Diode, Bjt>;
 
 struct DcAnalysis {};
 
@@ -138,6 +156,7 @@ struct Circuit {
   std::vector<Component> components;
   std::vector<Analysis> analyses;
   std::vector<DiodeModel> diode_models = {};
+  std::vector<BjtModel> bjt_models = {};
 };
 
 } // namespace ohmnivore

@@ -1153,6 +1153,11 @@ namespace {
 [[nodiscard]] Result<std::vector<double>> BuildTransientInitialStateImpl(
     const MnaSystem &system, bool use_initial_conditions,
     SparseRealFactorizationCache *factorization_cache) {
+  if (!system.bjt_descriptors.empty()) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3C does not support BJT transient analysis or charge storage");
+  }
   if (system.g.rows != system.g.columns ||
       system.node_names.size() + system.branch_names.size() != system.g.rows ||
       system.b_dc.size() != system.g.rows) {
@@ -1238,6 +1243,11 @@ Result<TransientResult>
 RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                      const TransientExecutionLimits &limits) {
   try {
+    if (!system.bjt_descriptors.empty()) {
+      return Result<TransientResult>::Fail(
+          ErrorCode::kUnsupported,
+          "phase 3C does not support BJT transient analysis or charge storage");
+    }
     SparseRealFactorizationCache factorization_cache;
     if (!std::isfinite(analysis.time_step_seconds) ||
         analysis.time_step_seconds <= 0.0 ||

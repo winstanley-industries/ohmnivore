@@ -2,11 +2,13 @@
 
 Ohmnivore runs three analysis types: DC operating point, AC frequency sweep, and transient. A dot command in the netlist requests each analysis.
 
-> **Migration note:** The active C++ Phase 3B path adds deterministic FP64 diode `.DC`/`.OP` and
-> memoryless-diode `.TRAN` to the linear RLCVI `.DC`/`.OP`, `.AC`, and `.TRAN` subset. Every
+> **Migration note:** The active C++ Phase 3C path adds deterministic FP64 BJT `.DC`/`.OP` to the
+> Phase 3B diode `.DC`/`.OP`, memoryless-diode `.TRAN`, and linear RLCVI `.DC`/`.OP`, `.AC`, and
+> `.TRAN` subset. Every
 > production solve uses the
 > checksum-pinned KLU real/complex FP64 sparse-direct solver. The former dense partial-pivoting
-> implementation is an exact-small test oracle only. BJT, MOSFET, diode AC/charge, GPU
+> implementation is an exact-small test oracle only. MOSFET, BJT AC/transient/charge, diode
+> AC/charge, GPU
 > solver-dispatch, and CLI-option details below remain legacy Rust reference material.
 
 All results print to stdout as CSV.
@@ -98,6 +100,14 @@ its current Jacobian through KLU before acceptance. Repeated direct, source-step
 GMIN-stepping runs are bitwise deterministic on one supported toolchain/platform. Phase 3A makes
 no cross-libm or cross-platform numerical-equivalence claim; scalar-oracle and ngspice checks use
 their individual recorded tolerances.
+
+Phase 3C extends this exact nonlinear schedule to strict NPN/PNP BJT DC. With `p=+1` for NPN and
+`p=-1` for PNP, it evaluates `vbe=p*(Vb-Ve)`, `vbc=p*(Vb-Vc)`, bounded forward/reverse junction
+currents, and the legacy-compatible terminal currents
+`Ic=p*(BF/(BF+1)*IF-IR/(BR+1))`, `Ib=p*(IF/(BF+1)+IR/(BR+1))`, and
+`Ie=-(Ic+Ib)`. Their complete 3-by-3 Jacobian shares the immutable diode/BJT CSR union and the same
+KLU symbolic analysis. Mixed diode/BJT DC uses deterministic diode-then-BJT ordering. BJT AC and
+transient analyses fail explicitly as unsupported.
 
 ### CSV Format
 

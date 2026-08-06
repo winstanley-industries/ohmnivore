@@ -1,6 +1,7 @@
 #ifndef OHMNIVORE_COMPILER_H_
 #define OHMNIVORE_COMPILER_H_
 
+#include <array>
 #include <complex>
 #include <cstddef>
 #include <optional>
@@ -55,6 +56,22 @@ struct DiodeDescriptor {
   std::optional<std::size_t> cathode_cathode_value_index;
 };
 
+struct BjtDescriptor {
+  std::string name;
+  std::optional<std::size_t> collector_node_index;
+  std::optional<std::size_t> base_node_index;
+  std::optional<std::size_t> emitter_node_index;
+  double polarity;
+  double saturation_current_amperes;
+  double forward_current_gain;
+  double reverse_current_gain;
+  double forward_emission_voltage_volts;
+  double reverse_emission_voltage_volts;
+  // Row-major CC, CB, CE, BC, BB, BE, EC, EB, EE positions. Positions
+  // involving ground are absent; aliased terminals may share a value index.
+  std::array<std::optional<std::size_t>, 9> jacobian_value_indices;
+};
+
 struct MnaSystem {
   CsrMatrix g;
   CsrMatrix c;
@@ -66,6 +83,7 @@ struct MnaSystem {
   std::vector<CapacitorInitialConstraint> capacitor_initial_constraints = {};
   std::vector<InductorInitialConstraint> inductor_initial_constraints = {};
   std::vector<DiodeDescriptor> diode_descriptors = {};
+  std::vector<BjtDescriptor> bjt_descriptors = {};
 };
 
 [[nodiscard]] Result<MnaSystem> CompileMna(const Circuit &circuit);

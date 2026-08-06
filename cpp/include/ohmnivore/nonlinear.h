@@ -25,9 +25,27 @@ struct DiodeEvaluation {
   double exponent;
 };
 
+struct BjtEvaluation {
+  double collector_current_amperes;
+  double base_current_amperes;
+  double collector_vbe_derivative_siemens;
+  double collector_vbc_derivative_siemens;
+  double base_vbe_derivative_siemens;
+  double base_vbc_derivative_siemens;
+  double forward_exponent;
+  double reverse_exponent;
+};
+
 [[nodiscard]] Result<DiodeEvaluation>
 EvaluateDiode(double junction_voltage_volts, double saturation_current_amperes,
               double emission_voltage_volts);
+
+[[nodiscard]] Result<BjtEvaluation>
+EvaluateBjt(double collector_voltage_volts, double base_voltage_volts,
+            double emitter_voltage_volts, double polarity,
+            double saturation_current_amperes, double forward_current_gain,
+            double reverse_current_gain, double forward_emission_voltage_volts,
+            double reverse_emission_voltage_volts);
 
 [[nodiscard]] Result<double> LimitDiodeJunctionVoltage(
     double proposed_voltage_volts, double previous_voltage_volts,

@@ -278,6 +278,28 @@ ParseDiode(const std::vector<std::string> &tokens) {
   });
 }
 
+[[nodiscard]] Result<Component>
+ParseBjt(const std::vector<std::string> &tokens) {
+  if (tokens.size() != 5) {
+    return Result<Component>::Fail(
+        ErrorCode::kParse,
+        "BJT syntax is: Qname collector base emitter modelname");
+  }
+  if (!IsAsciiModelIdentifier(tokens[4])) {
+    return Result<Component>::Fail(
+        ErrorCode::kParse,
+        "BJT model reference must contain only ASCII letters, digits, or "
+        "underscore");
+  }
+  return Result<Component>::Ok(Bjt{
+      .name = tokens[0],
+      .collector_node = tokens[1],
+      .base_node = tokens[2],
+      .emitter_node = tokens[3],
+      .model_name = tokens[4],
+  });
+}
+
 [[nodiscard]] Result<DiodeModel> ParseDiodeModel(std::string_view line) {
   std::string_view remaining = line;
   if (!ConsumeKeyword(".MODEL", &remaining)) {
@@ -406,6 +428,203 @@ ParseDiode(const std::vector<std::string> &tokens) {
         "diode .MODEL N produces an invalid or unrepresentable N*VT");
   }
   return Result<DiodeModel>::Ok(std::move(model));
+}
+
+[[nodiscard]] Result<BjtModel> ParseBjtModel(std::string_view line) {
+  constexpr std::string_view kSyntax =
+      ".MODEL syntax is: .MODEL modelname NPN|PNP"
+      "[(IS=value BF=value BR=value NF=value NR=value)]";
+  std::string_view remaining = line;
+  if (!ConsumeKeyword(".MODEL", &remaining)) {
+    return Result<BjtModel>::Fail(ErrorCode::kParse, std::string(kSyntax));
+  }
+  const auto name = TakeWhitespaceToken(&remaining);
+  if (!name.has_value() || remaining.empty()) {
+    return Result<BjtModel>::Fail(ErrorCode::kParse, std::string(kSyntax));
+  }
+  if (!IsAsciiModelIdentifier(*name)) {
+    return Result<BjtModel>::Fail(
+        ErrorCode::kParse,
+        "BJT model name must contain only ASCII letters, digits, or "
+        "underscore");
+  }
+
+  remaining = Trim(remaining);
+  std::string_view model_type;
+  if (StartsWithCaseInsensitive(remaining, "NPN") &&
+      (remaining.size() == 3 || remaining[3] == '(' ||
+       IsAsciiWhitespace(remaining[3]))) {
+    model_type = "NPN";
+  } else if (StartsWithCaseInsensitive(remaining, "PNP") &&
+             (remaining.size() == 3 || remaining[3] == '(' ||
+              IsAsciiWhitespace(remaining[3]))) {
+    model_type = "PNP";
+  } else {
+    const auto type = TakeWhitespaceToken(&remaining);
+    const std::string unsupported_type(type.value_or(std::string_view{}));
+    const bool malformed_known_type =
+        (StartsWithCaseInsensitive(unsupported_type, "NPN") &&
+         unsupported_type.size() > 3 &&
+         !IsAsciiModelIdentifier(
+             std::string_view(unsupported_type).substr(3, 1))) ||
+        (StartsWithCaseInsensitive(unsupported_type, "PNP") &&
+         unsupported_type.size() > 3 &&
+         !IsAsciiModelIdentifier(
+             std::string_view(unsupported_type).substr(3, 1)));
+    return Result<BjtModel>::Fail(
+        malformed_known_type ? ErrorCode::kParse : ErrorCode::kUnsupported,
+        malformed_known_type
+            ? "malformed text after BJT .MODEL type"
+            : "phase 3C supports BJT .MODEL types NPN and PNP only, not '" +
+                  unsupported_type + "'");
+  }
+  remaining.remove_prefix(model_type.size());
+  const bool detached_parameters =
+      !remaining.empty() && IsAsciiWhitespace(remaining.front());
+  remaining = Trim(remaining);
+
+  std::string_view parameters;
+  if (!remaining.empty()) {
+    if (detached_parameters) {
+      return Result<BjtModel>::Fail(
+          ErrorCode::kParse,
+          "BJT .MODEL requires '(' immediately after model type");
+    }
+    if (remaining.front() != '(' || remaining.back() != ')' ||
+        remaining.substr(1, remaining.size() - 2).find_first_of("()") !=
+            std::string_view::npos) {
+      return Result<BjtModel>::Fail(
+          ErrorCode::kParse,
+          "BJT .MODEL requires one final, non-nested parenthesized "
+          "parameter list");
+    }
+    parameters = Trim(remaining.substr(1, remaining.size() - 2));
+  }
+
+  BjtModel model{.name = std::string(*name), .is_npn = model_type == "NPN"};
+  bool saw_saturation_current = false;
+  bool saw_forward_gain = false;
+  bool saw_reverse_gain = false;
+  bool saw_forward_ideality = false;
+  bool saw_reverse_ideality = false;
+  while (!parameters.empty()) {
+    const auto parameter = TakeWhitespaceToken(&parameters);
+    if (!parameter.has_value()) {
+      break;
+    }
+    const std::size_t equals = parameter->find('=');
+    if (equals == std::string_view::npos || equals == 0 ||
+        equals + 1 == parameter->size() ||
+        parameter->find('=', equals + 1) != std::string_view::npos) {
+      return Result<BjtModel>::Fail(
+          ErrorCode::kParse,
+          "BJT .MODEL parameters must be complete key=value fields");
+    }
+    const std::string key = Upper(parameter->substr(0, equals));
+    auto value = ParseEngineeringValue(parameter->substr(equals + 1));
+    if (!value.ok()) {
+      return Result<BjtModel>::Fail(value.error().code, value.error().message);
+    }
+    bool *seen = nullptr;
+    double *destination = nullptr;
+    if (key == "IS") {
+      seen = &saw_saturation_current;
+      destination = &model.saturation_current_amperes;
+    } else if (key == "BF") {
+      seen = &saw_forward_gain;
+      destination = &model.forward_current_gain;
+    } else if (key == "BR") {
+      seen = &saw_reverse_gain;
+      destination = &model.reverse_current_gain;
+    } else if (key == "NF") {
+      seen = &saw_forward_ideality;
+      destination = &model.forward_ideality_factor;
+    } else if (key == "NR") {
+      seen = &saw_reverse_ideality;
+      destination = &model.reverse_ideality_factor;
+    } else {
+      return Result<BjtModel>::Fail(ErrorCode::kUnsupported,
+                                    "unsupported BJT .MODEL parameter '" + key +
+                                        "'");
+    }
+    if (*seen) {
+      return Result<BjtModel>::Fail(ErrorCode::kParse,
+                                    "duplicate BJT .MODEL parameter " + key);
+    }
+    *seen = true;
+    *destination = value.value();
+  }
+
+  const auto valid_parameter = [](double value) {
+    return std::isfinite(value) && value > 0.0 &&
+           value <= kDiodeMaximumParameterMagnitude;
+  };
+  if (!valid_parameter(model.saturation_current_amperes) ||
+      !valid_parameter(model.forward_current_gain) ||
+      !valid_parameter(model.reverse_current_gain) ||
+      !valid_parameter(model.forward_ideality_factor) ||
+      !valid_parameter(model.reverse_ideality_factor)) {
+    return Result<BjtModel>::Fail(
+        ErrorCode::kParse,
+        "BJT .MODEL IS, BF, BR, NF, and NR must be finite, greater than "
+        "zero, and at most 1e100");
+  }
+  for (const double emission_voltage :
+       {model.forward_ideality_factor * kDiodeThermalVoltageVolts,
+        model.reverse_ideality_factor * kDiodeThermalVoltageVolts}) {
+    if (!std::isfinite(emission_voltage) || emission_voltage <= 0.0 ||
+        emission_voltage > kDiodeMaximumEmissionVoltageVolts) {
+      return Result<BjtModel>::Fail(
+          ErrorCode::kParse,
+          "BJT .MODEL NF or NR produces an invalid or unrepresentable N*VT");
+    }
+  }
+  return Result<BjtModel>::Ok(std::move(model));
+}
+
+using ParsedModel = std::variant<DiodeModel, BjtModel>;
+
+[[nodiscard]] Result<ParsedModel> ParseModel(std::string_view line) {
+  std::string_view remaining = line;
+  static_cast<void>(ConsumeKeyword(".MODEL", &remaining));
+  static_cast<void>(TakeWhitespaceToken(&remaining));
+  const auto type = TakeWhitespaceToken(&remaining);
+  if (!type.has_value()) {
+    return Result<ParsedModel>::Fail(
+        ErrorCode::kParse,
+        ".MODEL requires a model name and D, NPN, or PNP type");
+  }
+  const std::string upper = Upper(*type);
+  const auto is_identifier_character = [](char character) {
+    return (character >= 'A' && character <= 'Z') ||
+           (character >= '0' && character <= '9') || character == '_';
+  };
+  if (upper == "D" || (upper.starts_with("D") && upper.size() > 1 &&
+                       !is_identifier_character(upper[1]))) {
+    auto parsed = ParseDiodeModel(line);
+    if (!parsed.ok()) {
+      return Result<ParsedModel>::Fail(parsed.error().code,
+                                       parsed.error().message);
+    }
+    return Result<ParsedModel>::Ok(parsed.TakeValue());
+  }
+  if (upper == "NPN" ||
+      (upper.starts_with("NPN") && upper.size() > 3 &&
+       !is_identifier_character(upper[3])) ||
+      upper == "PNP" ||
+      (upper.starts_with("PNP") && upper.size() > 3 &&
+       !is_identifier_character(upper[3]))) {
+    auto parsed = ParseBjtModel(line);
+    if (!parsed.ok()) {
+      return Result<ParsedModel>::Fail(parsed.error().code,
+                                       parsed.error().message);
+    }
+    return Result<ParsedModel>::Ok(parsed.TakeValue());
+  }
+  return Result<ParsedModel>::Fail(
+      ErrorCode::kUnsupported,
+      "phase 3C supports .MODEL types D, NPN, and PNP only, not '" +
+          std::string(*type) + "'");
 }
 
 [[nodiscard]] Result<std::vector<double>>
@@ -892,28 +1111,43 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       continue;
     }
     if (!tokens.empty() && Upper(tokens.front()) == ".MODEL") {
-      auto model = ParseDiodeModel(line);
+      auto model = ParseModel(line);
       if (!model.ok()) {
         return Result<Circuit>::Fail(
             model.error().code, WithLine(line_number, model.error().message));
       }
-      const std::string canonical_name = Upper(model.value().name);
+      const std::string model_name = std::visit(
+          [](const auto &typed) { return typed.name; }, model.value());
+      const std::string canonical_name = Upper(model_name);
       for (const DiodeModel &existing : circuit.diode_models) {
         if (Upper(existing.name) == canonical_name) {
           return Result<Circuit>::Fail(
               ErrorCode::kParse,
-              WithLine(line_number, "duplicate diode model name '" +
-                                        model.value().name +
+              WithLine(line_number, "duplicate model name '" + model_name +
                                         "' under case-insensitive comparison"));
         }
       }
-      circuit.diode_models.push_back(model.TakeValue());
+      for (const BjtModel &existing : circuit.bjt_models) {
+        if (Upper(existing.name) == canonical_name) {
+          return Result<Circuit>::Fail(
+              ErrorCode::kParse,
+              WithLine(line_number, "duplicate model name '" + model_name +
+                                        "' under case-insensitive comparison"));
+        }
+      }
+      ParsedModel parsed_model = model.TakeValue();
+      if (auto *diode = std::get_if<DiodeModel>(&parsed_model)) {
+        circuit.diode_models.push_back(std::move(*diode));
+      } else {
+        circuit.bjt_models.push_back(
+            std::move(std::get<BjtModel>(parsed_model)));
+      }
       continue;
     }
     if (line.front() == '.') {
       return Result<Circuit>::Fail(
           ErrorCode::kUnsupported,
-          WithLine(line_number, "phase 3B does not support directive '" +
+          WithLine(line_number, "phase 3C does not support directive '" +
                                     std::string(line) + "'"));
     }
 
@@ -941,10 +1175,13 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       if (kind == 'D') {
         return ParseDiode(tokens);
       }
+      if (kind == 'Q') {
+        return ParseBjt(tokens);
+      }
       return Result<Component>::Fail(
           ErrorCode::kUnsupported,
-          "phase 3B supports RLC elements, independent DC/AC/transient "
-          "voltage/current sources, and diode instances only");
+          "phase 3C supports RLC elements, independent DC/AC/transient "
+          "voltage/current sources, diode instances, and BJT instances only");
     }();
     if (!component.ok()) {
       return Result<Circuit>::Fail(
