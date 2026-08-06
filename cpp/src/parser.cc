@@ -1,5 +1,6 @@
 #include "ohmnivore/parser.h"
 
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstddef>
@@ -180,6 +181,17 @@ struct SourceSpecifications {
          character == '\n';
 }
 
+[[nodiscard]] bool IsAsciiModelIdentifier(std::string_view value) {
+  if (value.empty()) {
+    return false;
+  }
+  return std::all_of(value.begin(), value.end(), [](char character) {
+    return (character >= 'A' && character <= 'Z') ||
+           (character >= 'a' && character <= 'z') ||
+           (character >= '0' && character <= '9') || character == '_';
+  });
+}
+
 [[nodiscard]] bool StartsWithCaseInsensitive(std::string_view input,
                                              std::string_view prefix) {
   if (input.size() < prefix.size()) {
@@ -244,6 +256,156 @@ TakeWhitespaceToken(std::string_view *input) {
     return Result<double>::Fail(ErrorCode::kParse, std::string(syntax));
   }
   return ParseEngineeringValue(*token);
+}
+
+[[nodiscard]] Result<Component>
+ParseDiode(const std::vector<std::string> &tokens) {
+  if (tokens.size() != 4) {
+    return Result<Component>::Fail(
+        ErrorCode::kParse, "diode syntax is: Dname anode cathode modelname");
+  }
+  if (!IsAsciiModelIdentifier(tokens[3])) {
+    return Result<Component>::Fail(
+        ErrorCode::kParse,
+        "diode model reference must contain only ASCII letters, digits, or "
+        "underscore");
+  }
+  return Result<Component>::Ok(Diode{
+      .name = tokens[0],
+      .positive_node = tokens[1],
+      .negative_node = tokens[2],
+      .model_name = tokens[3],
+  });
+}
+
+[[nodiscard]] Result<DiodeModel> ParseDiodeModel(std::string_view line) {
+  std::string_view remaining = line;
+  if (!ConsumeKeyword(".MODEL", &remaining)) {
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kParse,
+        ".MODEL syntax is: .MODEL modelname D[(IS=value N=value)]");
+  }
+  const auto name = TakeWhitespaceToken(&remaining);
+  if (!name.has_value() || remaining.empty()) {
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kParse,
+        ".MODEL syntax is: .MODEL modelname D[(IS=value N=value)]");
+  }
+  if (!IsAsciiModelIdentifier(*name)) {
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kParse,
+        "diode model name must contain only ASCII letters, digits, or "
+        "underscore");
+  }
+
+  remaining = Trim(remaining);
+  if (remaining.empty() ||
+      (remaining.front() != 'D' && remaining.front() != 'd')) {
+    const auto type = TakeWhitespaceToken(&remaining);
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3A supports diode .MODEL type D only, not '" +
+            std::string(type.value_or(std::string_view{})) + "'");
+  }
+  remaining.remove_prefix(1);
+  const bool detached_parameters =
+      !remaining.empty() && IsAsciiWhitespace(remaining.front());
+  remaining = Trim(remaining);
+
+  std::string_view parameters;
+  if (!remaining.empty()) {
+    if (detached_parameters) {
+      return Result<DiodeModel>::Fail(
+          ErrorCode::kParse,
+          "diode .MODEL requires '(' immediately after model type D");
+    }
+    if (remaining.front() != '(') {
+      const bool extended_type =
+          (remaining.front() >= 'A' && remaining.front() <= 'Z') ||
+          (remaining.front() >= 'a' && remaining.front() <= 'z') ||
+          (remaining.front() >= '0' && remaining.front() <= '9') ||
+          remaining.front() == '_';
+      return Result<DiodeModel>::Fail(
+          extended_type ? ErrorCode::kUnsupported : ErrorCode::kParse,
+          extended_type ? "phase 3A supports diode .MODEL type D only"
+                        : "malformed text after diode .MODEL type D");
+    }
+    if (remaining.back() != ')' ||
+        remaining.substr(1, remaining.size() - 2).find_first_of("()") !=
+            std::string_view::npos) {
+      return Result<DiodeModel>::Fail(
+          ErrorCode::kParse,
+          "diode .MODEL requires one final, non-nested parenthesized "
+          "parameter list");
+    }
+    parameters = Trim(remaining.substr(1, remaining.size() - 2));
+  }
+
+  DiodeModel model{.name = std::string(*name)};
+  bool saw_saturation_current = false;
+  bool saw_ideality_factor = false;
+  while (!parameters.empty()) {
+    const auto parameter = TakeWhitespaceToken(&parameters);
+    if (!parameter.has_value()) {
+      break;
+    }
+    const std::size_t equals = parameter->find('=');
+    if (equals == std::string_view::npos || equals == 0 ||
+        equals + 1 == parameter->size() ||
+        parameter->find('=', equals + 1) != std::string_view::npos) {
+      return Result<DiodeModel>::Fail(
+          ErrorCode::kParse,
+          "diode .MODEL parameters must be complete key=value fields");
+    }
+    const std::string key = Upper(parameter->substr(0, equals));
+    auto value = ParseEngineeringValue(parameter->substr(equals + 1));
+    if (!value.ok()) {
+      return Result<DiodeModel>::Fail(value.error().code,
+                                      value.error().message);
+    }
+    if (key == "IS") {
+      if (saw_saturation_current) {
+        return Result<DiodeModel>::Fail(ErrorCode::kParse,
+                                        "duplicate diode .MODEL parameter IS");
+      }
+      saw_saturation_current = true;
+      model.saturation_current_amperes = value.value();
+    } else if (key == "N") {
+      if (saw_ideality_factor) {
+        return Result<DiodeModel>::Fail(ErrorCode::kParse,
+                                        "duplicate diode .MODEL parameter N");
+      }
+      saw_ideality_factor = true;
+      model.ideality_factor = value.value();
+    } else {
+      return Result<DiodeModel>::Fail(ErrorCode::kUnsupported,
+                                      "unsupported diode .MODEL parameter '" +
+                                          key + "'");
+    }
+  }
+
+  if (!std::isfinite(model.saturation_current_amperes) ||
+      model.saturation_current_amperes <= 0.0 ||
+      model.saturation_current_amperes > kDiodeMaximumParameterMagnitude) {
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kParse,
+        "diode .MODEL IS must be finite, greater than zero, and at most "
+        "1e100 amperes");
+  }
+  if (!std::isfinite(model.ideality_factor) || model.ideality_factor <= 0.0 ||
+      model.ideality_factor > kDiodeMaximumParameterMagnitude) {
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kParse,
+        "diode .MODEL N must be finite, greater than zero, and at most 1e100");
+  }
+  const double emission_voltage =
+      model.ideality_factor * kDiodeThermalVoltageVolts;
+  if (!std::isfinite(emission_voltage) || emission_voltage <= 0.0) {
+    return Result<DiodeModel>::Fail(
+        ErrorCode::kParse,
+        "diode .MODEL N produces an invalid or unrepresentable N*VT");
+  }
+  return Result<DiodeModel>::Ok(std::move(model));
 }
 
 [[nodiscard]] Result<std::vector<double>>
@@ -729,10 +891,29 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       circuit.analyses.push_back(analysis.TakeValue());
       continue;
     }
+    if (!tokens.empty() && Upper(tokens.front()) == ".MODEL") {
+      auto model = ParseDiodeModel(line);
+      if (!model.ok()) {
+        return Result<Circuit>::Fail(
+            model.error().code, WithLine(line_number, model.error().message));
+      }
+      const std::string canonical_name = Upper(model.value().name);
+      for (const DiodeModel &existing : circuit.diode_models) {
+        if (Upper(existing.name) == canonical_name) {
+          return Result<Circuit>::Fail(
+              ErrorCode::kParse,
+              WithLine(line_number, "duplicate diode model name '" +
+                                        model.value().name +
+                                        "' under case-insensitive comparison"));
+        }
+      }
+      circuit.diode_models.push_back(model.TakeValue());
+      continue;
+    }
     if (line.front() == '.') {
       return Result<Circuit>::Fail(
           ErrorCode::kUnsupported,
-          WithLine(line_number, "phase 2C does not support directive '" +
+          WithLine(line_number, "phase 3A does not support directive '" +
                                     std::string(line) + "'"));
     }
 
@@ -757,10 +938,13 @@ Result<Circuit> ParseNetlist(std::string_view input) {
       if (kind == 'I') {
         return ParseSource(line, false);
       }
+      if (kind == 'D') {
+        return ParseDiode(tokens);
+      }
       return Result<Component>::Fail(
           ErrorCode::kUnsupported,
-          "phase 2C supports RLC elements and independent DC/AC/transient "
-          "voltage/current sources only");
+          "phase 3A supports RLC elements, independent DC/AC/transient "
+          "voltage/current sources, and diode instances only");
     }();
     if (!component.ok()) {
       return Result<Circuit>::Fail(

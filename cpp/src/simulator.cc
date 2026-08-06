@@ -15,6 +15,7 @@
 
 #include "ohmnivore/compiler.h"
 #include "ohmnivore/ir.h"
+#include "ohmnivore/nonlinear.h"
 #include "ohmnivore/parser.h"
 #include "ohmnivore/solver.h"
 #include "ohmnivore/transient.h"
@@ -57,11 +58,22 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 }
 
 [[nodiscard]] Result<DcResult> RunDc(const MnaSystem &system) {
-  auto solved = SolveSparseReal(system.g, system.b_dc);
-  if (!solved.ok()) {
-    return Result<DcResult>::Fail(solved.error().code, solved.error().message);
+  std::vector<double> solution;
+  if (system.diode_descriptors.empty()) {
+    auto solved = SolveSparseReal(system.g, system.b_dc);
+    if (!solved.ok()) {
+      return Result<DcResult>::Fail(solved.error().code,
+                                    solved.error().message);
+    }
+    solution = solved.TakeValue();
+  } else {
+    auto solved = RunNonlinearDc(system);
+    if (!solved.ok()) {
+      return Result<DcResult>::Fail(solved.error().code,
+                                    solved.error().message);
+    }
+    solution = solved.TakeValue().solution;
   }
-  const std::vector<double> &solution = solved.value();
 
   DcResult result;
   for (std::size_t index = 0; index < system.node_names.size(); ++index) {
@@ -78,6 +90,12 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 
 [[nodiscard]] Result<AcResult> RunAc(const MnaSystem &system,
                                      const AcAnalysis &analysis) {
+  if (!system.diode_descriptors.empty()) {
+    return Result<AcResult>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3A does not support diode AC analysis or small-signal "
+        "linearization");
+  }
   auto generated = GenerateAcFrequencies(analysis);
   if (!generated.ok()) {
     return Result<AcResult>::Fail(generated.error().code,
@@ -135,6 +153,11 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 
 [[nodiscard]] Result<TranResult> RunTransient(const MnaSystem &system,
                                               const TranAnalysis &analysis) {
+  if (!system.diode_descriptors.empty()) {
+    return Result<TranResult>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3A does not support nonlinear diode transient analysis");
+  }
   auto integrated = RunTransientAnalysis(system, analysis);
   if (!integrated.ok()) {
     return Result<TranResult>::Fail(integrated.error().code,

@@ -2,10 +2,11 @@
 
 Ohmnivore reads SPICE-subset netlists. This document covers the supported syntax.
 
-> **Migration note:** The active C++ Phase 2C parser supports positive R/L/C devices; independent
+> **Migration note:** The active C++ Phase 3A parser supports positive R/L/C devices; strict diode
+> instances and diode models for nonlinear DC; independent
 > V/I sources with strict DC, AC, PULSE, SIN, PWL, and EXP specifications; `.DC`, `.OP`, `.AC`,
-> `.TRAN`, `.PRINT`, and `.END`. The nonlinear forms later in this document remain legacy Rust
-> reference material.
+> `.TRAN`, `.PRINT`, and `.END`. BJT and MOSFET forms later in this document remain legacy Rust
+> reference material and are rejected by the C++ path.
 
 ## Structure
 
@@ -184,16 +185,35 @@ Semiconductor elements reference a named `.MODEL` statement.
 Dname  anode  cathode  modelname
 ```
 
-Model definition (Shockley diode):
+The diode line has exactly four whitespace-separated fields. The named anode and cathode must be
+different; either may be `0` or `GND`. A model name and every model reference must match the exact
+ASCII identifier grammar `[A-Za-z0-9_]+`; lookup is ASCII case-insensitive.
+
+The accepted Shockley-diode model forms are exactly:
 
 ```
+.MODEL modelname D
+.MODEL modelname D()
 .MODEL modelname D(IS=val N=val)
 ```
 
-| Parameter | Description | Default |
-|---|---|---|
-| `IS` | Saturation current | 1e-14 |
-| `N` | Emission coefficient | 1.0 |
+| Parameter | Description | Units | Default | Valid domain |
+|---|---|---|---|---|
+| `IS` | Saturation current | amperes | `1e-14` | finite, `0 < IS <= 1e100` |
+| `N` | Emission coefficient | dimensionless | `1` | finite, `0 < N <= 1e100`, with positively representable `N*0.02585 V` |
+
+`IS` and `N` are the only accepted parameters. Inside parentheses they are whitespace-separated
+complete `key=value` tokens, may appear in either order, and may each appear at most once. Model
+types, parameter names, model definitions, and model references use ASCII case-insensitive
+matching. Engineering suffixes follow the numeric rules above.
+
+Commas, detached/nested/unclosed parentheses, incomplete fields, trailing tokens, duplicate
+parameters, malformed identifiers or punctuation, duplicate model names under case-insensitive
+comparison, unsupported model types or parameters, non-finite values, physically invalid values,
+and missing model references are typed errors. Malformed supported-`D` syntax is a parse error;
+unsupported model types or parameters are unsupported errors. No unsupported model data is
+ignored. Phase 3A uses this diode model only for `.DC` and `.OP`; diode `.AC` and `.TRAN` requests
+are typed unsupported errors.
 
 Example:
 

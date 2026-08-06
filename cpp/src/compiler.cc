@@ -2,13 +2,18 @@
 
 #include "ohmnivore/waveform.h"
 
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <map>
 #include <numbers>
 #include <optional>
+#include <set>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -60,15 +65,20 @@ void AddStamp(std::map<Coordinate, double> *entries, std::size_t row,
   (*entries)[{row, column}] += value;
 }
 
-[[nodiscard]] CsrMatrix BuildCsr(std::size_t size,
-                                 const std::map<Coordinate, double> &entries) {
+[[nodiscard]] CsrMatrix
+BuildCsr(std::size_t size, const std::map<Coordinate, double> &entries,
+         const std::set<Coordinate> &retained_zeros = {}) {
+  std::map<Coordinate, double> union_entries = entries;
+  for (const Coordinate &coordinate : retained_zeros) {
+    union_entries.try_emplace(coordinate, 0.0);
+  }
   CsrMatrix matrix;
   matrix.rows = size;
   matrix.columns = size;
   matrix.row_offsets.assign(size + 1, 0);
 
-  for (const auto &[coordinate, value] : entries) {
-    if (value == 0.0) {
+  for (const auto &[coordinate, value] : union_entries) {
+    if (value == 0.0 && !retained_zeros.contains(coordinate)) {
       continue;
     }
     matrix.values.push_back(value);
@@ -79,6 +89,52 @@ void AddStamp(std::map<Coordinate, double> *entries, std::size_t row,
     matrix.row_offsets[row + 1] += matrix.row_offsets[row];
   }
   return matrix;
+}
+
+[[nodiscard]] bool EqualCaseInsensitive(std::string_view first,
+                                        std::string_view second) {
+  if (first.size() != second.size()) {
+    return false;
+  }
+  for (std::size_t index = 0; index < first.size(); ++index) {
+    char left = first[index];
+    char right = second[index];
+    if (left >= 'a' && left <= 'z') {
+      left = static_cast<char>(left - 'a' + 'A');
+    }
+    if (right >= 'a' && right <= 'z') {
+      right = static_cast<char>(right - 'a' + 'A');
+    }
+    if (left != right) {
+      return false;
+    }
+  }
+  return true;
+}
+
+[[nodiscard]] bool IsAsciiModelIdentifier(std::string_view value) {
+  if (value.empty()) {
+    return false;
+  }
+  return std::all_of(value.begin(), value.end(), [](char character) {
+    return (character >= 'A' && character <= 'Z') ||
+           (character >= 'a' && character <= 'z') ||
+           (character >= '0' && character <= '9') || character == '_';
+  });
+}
+
+[[nodiscard]] std::optional<std::size_t>
+FindValueIndex(const CsrMatrix &matrix, std::size_t row, std::size_t column) {
+  for (std::size_t index = matrix.row_offsets[row];
+       index < matrix.row_offsets[row + 1]; ++index) {
+    if (matrix.column_indices[index] == column) {
+      return index;
+    }
+    if (matrix.column_indices[index] > column) {
+      break;
+    }
+  }
+  return std::nullopt;
 }
 
 [[nodiscard]] std::complex<double>
@@ -141,6 +197,34 @@ ValidateTransientSource(const std::optional<TransientWaveform> &waveform) {
 } // namespace
 
 Result<MnaSystem> CompileMna(const Circuit &circuit) {
+  for (std::size_t index = 0; index < circuit.diode_models.size(); ++index) {
+    const DiodeModel &model = circuit.diode_models[index];
+    if (!IsAsciiModelIdentifier(model.name)) {
+      return Result<MnaSystem>::Fail(ErrorCode::kCompile,
+                                     "diode model name must contain only ASCII "
+                                     "letters, digits, or underscore");
+    }
+    const double emission_voltage =
+        model.ideality_factor * kDiodeThermalVoltageVolts;
+    if (!std::isfinite(model.saturation_current_amperes) ||
+        model.saturation_current_amperes <= 0.0 ||
+        model.saturation_current_amperes > kDiodeMaximumParameterMagnitude ||
+        !std::isfinite(model.ideality_factor) || model.ideality_factor <= 0.0 ||
+        model.ideality_factor > kDiodeMaximumParameterMagnitude ||
+        !std::isfinite(emission_voltage) || emission_voltage <= 0.0) {
+      return Result<MnaSystem>::Fail(ErrorCode::kCompile,
+                                     "diode model '" + model.name +
+                                         "' has invalid IS or N data");
+    }
+    for (std::size_t prior = 0; prior < index; ++prior) {
+      if (EqualCaseInsensitive(model.name, circuit.diode_models[prior].name)) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile, "duplicate diode model name '" + model.name +
+                                     "' under case-insensitive comparison");
+      }
+    }
+  }
+
   std::unordered_map<std::string, std::size_t> node_map;
   std::vector<std::string> node_names;
   for (const Component &component : circuit.components) {
@@ -173,19 +257,40 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
   }
 
   const std::size_t node_count = node_names.size();
+  if (branch_names.size() >
+      std::numeric_limits<std::size_t>::max() - node_count) {
+    return Result<MnaSystem>::Fail(
+        ErrorCode::kUnsupportedSize,
+        "compiled MNA dimension is not representable");
+  }
   const std::size_t size = node_count + branch_names.size();
   if (size == 0) {
     return Result<MnaSystem>::Fail(ErrorCode::kCompile,
                                    "circuit contains no solvable variables");
   }
+  if (size >
+      static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())) {
+    return Result<MnaSystem>::Fail(
+        ErrorCode::kUnsupportedSize,
+        "compiled MNA dimension exceeds the signed 32-bit KLU index bound");
+  }
 
   std::map<Coordinate, double> g_entries;
   std::map<Coordinate, double> c_entries;
+  std::set<Coordinate> nonlinear_union_coordinates;
   std::vector<double> b_dc(size, 0.0);
   std::vector<std::complex<double>> b_ac(size, {0.0, 0.0});
   std::vector<TransientSourceStamp> transient_sources;
   std::vector<CapacitorInitialConstraint> capacitor_constraints;
   std::vector<InductorInitialConstraint> inductor_constraints;
+  struct PendingDiode {
+    std::string name;
+    std::optional<std::size_t> anode;
+    std::optional<std::size_t> cathode;
+    double saturation_current_amperes;
+    double emission_voltage_volts;
+  };
+  std::vector<PendingDiode> pending_diodes;
   for (std::size_t node = 0; node < node_count; ++node) {
     AddStamp(&g_entries, node, node, kGminSiemens);
   }
@@ -322,6 +427,60 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       continue;
     }
 
+    if (const auto *diode = std::get_if<Diode>(&component)) {
+      if (diode->name.empty() || diode->positive_node.empty() ||
+          diode->negative_node.empty() || diode->model_name.empty()) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kInvalidStructure,
+            "diode instances require non-empty name, terminals, and model "
+            "reference");
+      }
+      if (!IsAsciiModelIdentifier(diode->model_name)) {
+        return Result<MnaSystem>::Fail(
+            ErrorCode::kCompile,
+            "diode '" + diode->name +
+                "' model reference must contain only ASCII letters, digits, "
+                "or underscore");
+      }
+      const auto model = std::find_if(
+          circuit.diode_models.begin(), circuit.diode_models.end(),
+          [&](const DiodeModel &candidate) {
+            return EqualCaseInsensitive(candidate.name, diode->model_name);
+          });
+      if (model == circuit.diode_models.end()) {
+        return Result<MnaSystem>::Fail(ErrorCode::kCompile,
+                                       "diode '" + diode->name +
+                                           "' references missing model '" +
+                                           diode->model_name + "'");
+      }
+      const auto anode = FindNode(diode->positive_node, node_map);
+      const auto cathode = FindNode(diode->negative_node, node_map);
+      if (anode == cathode) {
+        return Result<MnaSystem>::Fail(ErrorCode::kInvalidStructure,
+                                       "diode '" + diode->name +
+                                           "' connects a node to itself");
+      }
+      if (anode.has_value()) {
+        nonlinear_union_coordinates.emplace(*anode, *anode);
+      }
+      if (cathode.has_value()) {
+        nonlinear_union_coordinates.emplace(*cathode, *cathode);
+      }
+      if (anode.has_value() && cathode.has_value()) {
+        nonlinear_union_coordinates.emplace(*anode, *cathode);
+        nonlinear_union_coordinates.emplace(*cathode, *anode);
+      }
+      pending_diodes.push_back(PendingDiode{
+          .name = diode->name,
+          .anode = anode,
+          .cathode = cathode,
+          .saturation_current_amperes = model->saturation_current_amperes,
+          .emission_voltage_volts =
+              model->ideality_factor * kDiodeThermalVoltageVolts,
+      });
+      continue;
+    }
+
     const std::string *name = nullptr;
     const std::string *positive_node = nullptr;
     const std::string *negative_node = nullptr;
@@ -440,8 +599,54 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
     }
   }
 
+  CsrMatrix g = BuildCsr(size, g_entries, nonlinear_union_coordinates);
+  if (g.values.size() >
+      static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())) {
+    return Result<MnaSystem>::Fail(
+        ErrorCode::kUnsupportedSize,
+        "compiled CSR nonzero count exceeds the signed 32-bit KLU "
+        "index bound");
+  }
+  std::vector<DiodeDescriptor> diode_descriptors;
+  diode_descriptors.reserve(pending_diodes.size());
+  for (const PendingDiode &pending : pending_diodes) {
+    const auto resolve =
+        [&](std::optional<std::size_t> row,
+            std::optional<std::size_t> column) -> std::optional<std::size_t> {
+      if (!row.has_value() || !column.has_value()) {
+        return std::nullopt;
+      }
+      return FindValueIndex(g, *row, *column);
+    };
+    DiodeDescriptor descriptor{
+        .name = pending.name,
+        .anode_node_index = pending.anode,
+        .cathode_node_index = pending.cathode,
+        .saturation_current_amperes = pending.saturation_current_amperes,
+        .emission_voltage_volts = pending.emission_voltage_volts,
+        .anode_anode_value_index = resolve(pending.anode, pending.anode),
+        .anode_cathode_value_index = resolve(pending.anode, pending.cathode),
+        .cathode_anode_value_index = resolve(pending.cathode, pending.anode),
+        .cathode_cathode_value_index =
+            resolve(pending.cathode, pending.cathode),
+    };
+    if ((pending.anode.has_value() &&
+         !descriptor.anode_anode_value_index.has_value()) ||
+        (pending.cathode.has_value() &&
+         !descriptor.cathode_cathode_value_index.has_value()) ||
+        (pending.anode.has_value() && pending.cathode.has_value() &&
+         (!descriptor.anode_cathode_value_index.has_value() ||
+          !descriptor.cathode_anode_value_index.has_value()))) {
+      return Result<MnaSystem>::Fail(
+          ErrorCode::kInvalidStructure,
+          "diode '" + pending.name +
+              "' could not resolve its canonical CSR union coordinates");
+    }
+    diode_descriptors.push_back(std::move(descriptor));
+  }
+
   return Result<MnaSystem>::Ok(MnaSystem{
-      .g = BuildCsr(size, g_entries),
+      .g = std::move(g),
       .c = BuildCsr(size, c_entries),
       .b_dc = std::move(b_dc),
       .b_ac = std::move(b_ac),
@@ -450,6 +655,7 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
       .transient_sources = std::move(transient_sources),
       .capacitor_initial_constraints = std::move(capacitor_constraints),
       .inductor_initial_constraints = std::move(inductor_constraints),
+      .diode_descriptors = std::move(diode_descriptors),
   });
 }
 

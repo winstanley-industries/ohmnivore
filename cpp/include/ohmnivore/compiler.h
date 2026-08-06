@@ -42,6 +42,19 @@ struct InductorInitialConstraint {
   std::size_t branch_index;
 };
 
+struct DiodeDescriptor {
+  std::string name;
+  std::optional<std::size_t> anode_node_index;
+  std::optional<std::size_t> cathode_node_index;
+  double saturation_current_amperes;
+  double emission_voltage_volts;
+  // Canonical Jacobian positions. Ground-related entries are absent.
+  std::optional<std::size_t> anode_anode_value_index;
+  std::optional<std::size_t> anode_cathode_value_index;
+  std::optional<std::size_t> cathode_anode_value_index;
+  std::optional<std::size_t> cathode_cathode_value_index;
+};
+
 struct MnaSystem {
   CsrMatrix g;
   CsrMatrix c;
@@ -52,6 +65,7 @@ struct MnaSystem {
   std::vector<TransientSourceStamp> transient_sources = {};
   std::vector<CapacitorInitialConstraint> capacitor_initial_constraints = {};
   std::vector<InductorInitialConstraint> inductor_initial_constraints = {};
+  std::vector<DiodeDescriptor> diode_descriptors = {};
 };
 
 [[nodiscard]] Result<MnaSystem> CompileMna(const Circuit &circuit);

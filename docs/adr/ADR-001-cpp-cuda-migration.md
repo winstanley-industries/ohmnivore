@@ -225,10 +225,130 @@ distributed solving, new ngspice fixture scope, or performance/scalability claim
 selection, license, build, storage, numerical, determinism, validation, and benchmark evidence is
 recorded in `third_party/suitesparse/PROVENANCE.md`.
 
+## Phase 3A: Deterministic FP64 CPU diode DC foundation
+
+Phase 3A adds only nonlinear DC operating-point analysis for the legacy-compatible Shockley-diode
+subset. The production CPU FP64 path is the correctness oracle for later CUDA nonlinear work.
+
+### Netlist and model contract
+
+- A diode instance is exactly `Dname anode cathode modelname`, with no area, temperature,
+  initial-condition, geometry, or trailing fields. Anode-to-cathode voltage and current are
+  positive. A diode model name or reference is one or more ASCII letters, digits, or underscores
+  (`[A-Za-z0-9_]+`); definitions and references outside that lexical grammar are malformed.
+- A diode model is `.MODEL modelname D`, `.MODEL modelname D()`, or
+  `.MODEL modelname D(IS=value N=value)`. Inside parentheses, one or both whitespace-separated
+  `key=value` fields may appear in either order. Keys and model lookup are ASCII
+  case-insensitive; the original spelling and insertion order remain observable. Commas,
+  detached parentheses, nested parentheses, trailing text, empty fields, and every parameter
+  except `IS` and `N` are rejected.
+- `IS` is saturation current in amperes and defaults to `1e-14`; `N` is the dimensionless
+  emission coefficient and defaults to `1.0`. Both must be finite in `(0, 1e100]`, and `N * VT`
+  must remain positively representable. Duplicate parameters and duplicate model names under
+  case-insensitive comparison are parse errors. Missing models, invalid direct IR, or a diode
+  whose terminals identify the same node are typed compile failures.
+- The fixed temperature policy is the legacy `VT = kT/q = 0.02585 V` at 300 K. Temperature
+  syntax and temperature sweeps are not admitted.
+
+### Compilation and sparse-structure contract
+
+Node discovery, ground aliases, voltage-source/inductor branch discovery, source signs, GMIN, and
+all result ordering remain the Phase 2A--2D contracts. Diode descriptors are emitted in component
+insertion order and contain optional anode/cathode node indexes, FP64 `IS` and `N*VT`, plus the
+resolved CSR value indexes for `aa`, `ac`, `ca`, and `cc` Jacobian entries. A directly supplied
+descriptor must preserve the model bounds, including `0 < N*VT <= 2.585e98 V`.
+
+The nonlinear conductance matrix is one immutable canonical CSR union of every linear `G` entry
+and every possible diode Jacobian coordinate. Rows are canonical, columns are strictly
+increasing, repeated coordinates from linear or multiple-device stamps are combined
+deterministically, and explicit numerical zero is retained exactly when the coordinate is needed
+by a diode descriptor. Linear-only compilation keeps the Phase 2A--2D zero-elision policy and
+therefore its exact CSR and fast path. Matrix dimensions, nonzero counts, row offsets, columns,
+and descriptor value indexes must fit the signed 32-bit KLU contract.
+
+### Device, Newton, and validation contract
+
+For `v = va - vc`, `q = v/(N*VT)`, Phase 3A evaluates
+`i(v) = IS*expm1(q)` and `g(v) = IS*exp(q)/(N*VT)` in FP64. The exponential argument is clamped
+to the closed interval `[-80, 80]`, matching the retained legacy nonlinear range: below `-80`
+the reverse current and conductance use `exp(-80)`, and above `80` they use `exp(80)`. Inputs,
+intermediates, and results must be finite and no larger than `1e100` in magnitude; violation is a
+typed non-finite failure rather than saturation to an unreported value. The bound is checked for
+base matrix/RHS data, exponential arguments, Newton deltas and sums, update/residual normalization,
+limiter differences, ratios, scales, and node updates as well as stored results. A mathematically
+positive conductance that underflows to zero in FP64 is also a typed evaluation failure.
+
+With the linear system written `G*x = b`, each diode contributes `+i(v)` to its anode KCL row and
+`-i(v)` to its cathode KCL row. Therefore the nonlinear residual is
+`F(x) = G*x - b + S*i(S^T*x)` and the Jacobian is
+`J(x) = G + S*g(S^T*x)*S^T`, giving the canonical `+g,-g,-g,+g` stamp at
+`aa,ac,ca,cc`. Newton solves `J(x_k)*delta = -F(x_k)` and proposes
+`x_{k+1} = x_k + delta`.
+
+The direct and source-stepping initial guesses are the all-zero vector. Every later continuation
+step uses the preceding accepted step, including the last accepted source point when GMIN stepping
+begins. After every linear solve, diode junction changes are limited in descriptor order with the
+SPICE3 PN-junction logarithmic rule and
+`vcrit = N*VT*log((N*VT)/(sqrt(2)*IS))`; a two-non-ground-node limiter scales both endpoint
+updates by the same deterministic factor. No branch variable is limited.
+
+An iterate is accepted only when all of the following hold:
+
+- every node-voltage update is at most `1e-9 V + 1e-6*max(|new|,|old|)`;
+- every branch-current update is at most `1e-12 A + 1e-6*max(|new|,|old|)`; and
+- recomputing `F` at the limited point gives a maximum row-normalized residual no greater than
+  one, using `1e-12 A + 1e-6*row_scale` on node KCL rows and
+  `1e-9 V + 1e-6*row_scale` on branch KVL rows. `row_scale` is the sum of the absolute linear
+  row product, absolute right-hand side, and absolute diode-current contributions for that row.
+
+The original requested system is recomputed independently for final residual acceptance. Before
+any point is accepted, including an iteration-zero point whose residual already passes, its current
+Jacobian is numerically factorized and zero-solved through KLU so numerical rank deficiency cannot
+bypass validation. An iteration limit, non-finite or over-bound value, malformed descriptor,
+singular/rank-deficient Jacobian, KLU factorization failure, sparse backward-error failure, or
+nonlinear residual failure is typed and fail-closed.
+
+### Continuation, KLU reuse, and determinism contract
+
+The bounded strategy order is exact:
+
+1. direct Newton on the original sources and existing production GMIN, at most 50 iterations;
+2. source stepping at fixed scales `0.0, 0.1, ..., 1.0`, at most 30 Newton iterations per scale;
+3. extra-GMIN stepping at fixed siemens values
+   `1e-3, 1e-4, ..., 1e-12, 0`, at most 30 Newton iterations per nonzero value and 50 for the
+   final zero-extra-GMIN point.
+
+There are no adaptive subdivisions or unbounded retries. A failed step ends that strategy. Source
+scale `1.0` and extra GMIN `0` are original-system solves; regardless of where convergence is
+first reported, the final result is accepted only after original-source, zero-extra-GMIN residual
+validation. Exhausting all three strategies returns typed non-convergence.
+
+One KLU symbolic analysis is created for the immutable union pattern and reused across all Newton
+iterations and continuation strategies. Numeric values may refactor on every iteration. The Phase
+2D fixed-pivot refactorization, pivot-safe fresh-numeric retry under the same symbolic analysis,
+and normwise plus rowwise backward-error validation remain mandatory. Sparse, Newton, limiting,
+continuation, finite-result, and validation failures never dispatch to the dense exact-small test
+oracle or another solver.
+
+Device evaluation, stamp accumulation, limiting, residual evaluation, convergence reduction, and
+continuation are single-threaded and performed in stable component/row/index order. Repeated runs
+on one supported toolchain/platform must produce bitwise-identical direct, source-stepping, and
+GMIN-stepping traces, solver statistics, and results. Phase 3A makes no cross-libm or cross-platform
+bitwise or numerical-equivalence guarantee; independent scalar and ngspice comparisons use only
+the explicit tolerances of their individual tests and acceptance fixtures.
+
+### Excluded
+
+Phase 3A does not add BJTs, MOSFETs, diode charge/capacitance, diode AC/noise/temperature behavior,
+nonlinear transient analysis, new initial conditions or waveforms, CUDA circuit kernels or GPU
+dispatch, mixed precision, distributed solving, new linear semantics, or general performance and
+scalability claims. Netlists that request AC or transient execution with a diode are rejected as
+unsupported. Rust remains unchanged as behavioral reference material.
+
 ## Follow-up phases
 
-1. Port nonlinear device evaluation, Newton iteration, limiting, continuation, and nonlinear
-   transient on CPU.
+1. Extend the CPU nonlinear authority only through separately bounded diode-transient and
+   additional-device phases.
 2. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
    validation, replay, and end-to-end benchmarks.
 3. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before

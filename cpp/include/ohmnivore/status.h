@@ -17,6 +17,7 @@ enum class ErrorCode {
   kFactorization,
   kNonFinite,
   kSolutionValidation,
+  kNonConvergence,
   kIo,
   kUnsupported,
 };
@@ -66,6 +67,8 @@ private:
     return "non-finite";
   case ErrorCode::kSolutionValidation:
     return "solution-validation";
+  case ErrorCode::kNonConvergence:
+    return "non-convergence";
   case ErrorCode::kIo:
     return "io";
   case ErrorCode::kUnsupported:

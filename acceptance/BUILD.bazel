@@ -19,6 +19,7 @@ cc_test(
         "$(rootpath //cpp:ohmnivore)",
         "$(rootpath //third_party/ngspice:ngspice_binary)",
         "$(rootpath :fixtures/dc_voltage_divider.spice)",
+        "$(rootpath :fixtures/dc_diode_forward.spice)",
         "$(rootpath :fixtures/ac_rc_lowpass.spice)",
         "$(rootpath :fixtures/tran_rc_uic_charging.spice)",
         "$(rootpath :fixtures/tran_pulse_rc.spice)",
@@ -33,6 +34,7 @@ cc_test(
     ],
     data = [
         ":fixtures/ac_rc_lowpass.spice",
+        ":fixtures/dc_diode_forward.spice",
         ":fixtures/dc_voltage_divider.spice",
         ":fixtures/tran_pulse_rc.spice",
         ":fixtures/tran_rc_uic_charging.spice",

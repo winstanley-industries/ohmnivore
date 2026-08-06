@@ -2,10 +2,11 @@
 
 Ohmnivore runs three analysis types: DC operating point, AC frequency sweep, and transient. A dot command in the netlist requests each analysis.
 
-> **Migration note:** The active C++ Phase 2D path executes linear RLCVI `.DC`/`.OP`, `.AC`, and
-> `.TRAN` through the checksum-pinned KLU real/complex FP64 sparse-direct solver. The former dense
-> partial-pivoting implementation is an exact-small test oracle only. Nonlinear,
-> GPU solver-dispatch, and CLI-option details below remain legacy Rust reference material.
+> **Migration note:** The active C++ Phase 3A path adds deterministic FP64 diode `.DC`/`.OP` to
+> the linear RLCVI `.DC`/`.OP`, `.AC`, and `.TRAN` subset. Every production solve uses the
+> checksum-pinned KLU real/complex FP64 sparse-direct solver. The former dense partial-pivoting
+> implementation is an exact-small test oracle only. BJT, MOSFET, nonlinear AC/transient, GPU
+> solver-dispatch, and CLI-option details below remain legacy Rust reference material.
 
 All results print to stdout as CSV.
 
@@ -58,11 +59,44 @@ D1 2 0 DMOD
 $ ohmnivore diode.spice
 Variable,Value
 V(1),5
-V(2),0.6425...
-I(V1),-0.004357...
+V(2),0.6924903752200562
+I(V1),-0.004307509629779944
 ```
 
-The diode drops about 0.64V, matching a typical silicon junction.
+The fixed-temperature Phase 3A model gives a diode drop of about `0.69249 V`.
+
+For a diode voltage `v=va-vc`, Phase 3A evaluates
+`i=IS*expm1(v/(N*0.02585 V))` and
+`g=IS*exp(v/(N*0.02585 V))/(N*0.02585 V)`. The exponent is clamped to `[-80,80]`; every
+intermediate and result must be finite and no larger than `1e100` in magnitude. In the MNA
+model calculation, a positive conductance that underflows to zero is rejected. In the MNA residual
+`F(x)=G*x-b+sum(S*i)`, `S` is `+1` at the anode and `-1` at the cathode. The Jacobian is
+`J=G+sum(S*g*S^T)`, giving the stamp `+g,-g,-g,+g` at `aa,ac,ca,cc`. Ground has no row or column.
+
+Newton starts from the all-zero state and evaluates devices in circuit insertion order. Each KLU
+step solves `J*delta=-F`, after which SPICE3 logarithmic PN-junction limiting is applied in that
+same order. Scaled voltage and current update limits are respectively
+`1e-9 V + 1e-6*scale` and `1e-12 A + 1e-6*scale`; acceptance also requires a freshly recomputed
+residual using `1e-12 A + 1e-6*row_scale` for node KCL rows and
+`1e-9 V + 1e-6*row_scale` for branch KVL rows. A direct solve has at most 50 iterations. If it
+does not converge, fixed source scales `0.0,0.1,...,1.0` receive 30 iterations each, followed by
+fixed extra-GMIN values `1e-3,1e-4,...,1e-12,0 S` with 30 iterations at nonzero values and 50 at
+zero. There is no adaptive retry schedule. The final state is accepted only after validation with
+full sources and no extra GMIN; the normal production `1e-12 S` node conductance remains present.
+
+Compilation creates one canonical CSR union pattern containing the existing linear stamps and all
+possible diode Jacobian coordinates. Required numerical zeros remain explicit, rows have strictly
+increasing columns, and one KLU symbolic analysis is reused across all iterations and continuation
+attempts. Numeric values are refactorized with the Phase 2D pivot-safe retry and backward-error
+validation. Invalid structure or size, missing/invalid models, non-finite arithmetic, singular or
+rank-deficient Jacobians, factorization or validation failure, and exhausted bounded continuation
+return typed errors. None may fall back to the dense test oracle.
+
+Even an iteration-zero point whose residual already passes must numerically factor and zero-solve
+its current Jacobian through KLU before acceptance. Repeated direct, source-stepping, and
+GMIN-stepping runs are bitwise deterministic on one supported toolchain/platform. Phase 3A makes
+no cross-libm or cross-platform numerical-equivalence claim; scalar-oracle and ngspice checks use
+their individual recorded tolerances.
 
 ### CSV Format
 
@@ -85,7 +119,7 @@ Sweeps a frequency range and reports magnitude and phase at each node. Sources w
 .AC LIN npoints fstart fstop    * linear, npoints total
 ```
 
-On the C++ Phase 2D path, all frequencies must be finite and positive with `fstop > fstart`.
+On the C++ Phase 3A path, all frequencies must be finite and positive with `fstop > fstart`.
 DEC/OCT require a positive points-per-decade/octave value and emit the start, geometric interior
 grid, and exact stop once (`ceil(npoints * log_base(fstop/fstart)) + 1` total rows). LIN requires at
 least two points, emits exactly `npoints` rows, and includes both endpoints. Sweeps are strictly
@@ -128,7 +162,7 @@ Each frequency point is a row. Magnitudes are linear (not dB). Phases are in deg
 
 ## Transient Analysis
 
-The C++ Phase 2D path simulates only linear RLCVI circuits. It solves
+The C++ Phase 3A path simulates only linear RLCVI transient circuits. It solves
 `G*x + C*dx/dt = b(t)` with backward Euler for the initial, recovery, and waveform-breakpoint
 landing steps, then trapezoidal integration with deterministic adaptive timestep control. A
 discontinuous source is integrated to its edge with the left-limit forcing; the right-limit

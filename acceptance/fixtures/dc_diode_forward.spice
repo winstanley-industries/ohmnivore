@@ -1,0 +1,7 @@
+* Phase 3A bounded forward-biased diode DC acceptance
+V1 in 0 DC 5
+R1 in out 1k
+.MODEL DM D(IS=1e-14 N=1.0)
+D1 out 0 DM
+.OP
+.END

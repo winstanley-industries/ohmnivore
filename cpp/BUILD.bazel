@@ -16,6 +16,7 @@ cc_library(
     name = "core",
     srcs = [
         "src/compiler.cc",
+        "src/nonlinear.cc",
         "src/parser.cc",
         "src/simulator.cc",
         "src/solver.cc",
@@ -25,6 +26,7 @@ cc_library(
     hdrs = [
         "include/ohmnivore/compiler.h",
         "include/ohmnivore/ir.h",
+        "include/ohmnivore/nonlinear.h",
         "include/ohmnivore/parser.h",
         "include/ohmnivore/simulator.h",
         "include/ohmnivore/solver.h",
@@ -159,6 +161,22 @@ cc_test(
     deps = [
         ":core",
         ":dense_oracle",
+        "@googletest//:gtest_main",
+        "@suitesparse_7_12_3//:config",
+    ],
+)
+
+cc_test(
+    name = "phase3a_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/phase3a_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
         "@googletest//:gtest_main",
         "@suitesparse_7_12_3//:config",
     ],

@@ -24,12 +24,75 @@ bazel run //:ohmnivore -- examples/voltage_divider.spice
 
 The current C++ execution surface is deterministic linear `.DC`/`.OP`, `.AC DEC|OCT|LIN`, and
 `.TRAN tstep tstop [tstart] [UIC]` analysis for resistors, capacitors, inductors, and independent
-voltage/current sources. Sources accept strict DC, AC, PULSE, SIN, PWL, and EXP forms in legacy
-order. Capacitors are open and inductors are ideal shorts at DC; AC solves
+voltage/current sources, plus nonlinear diode `.DC`/`.OP`. Sources accept strict DC, AC, PULSE,
+SIN, PWL, and EXP forms in legacy order. Capacitors are open and inductors are ideal shorts at DC;
+AC solves
 `(G + j * 2*pi*f*C)x = b_ac`; transient solves `G*x + C*dx/dt = b(t)`. DC, AC,
 transient companion, UIC, and discontinuity-projection systems use the checksum-pinned KLU 2.3.6
 real or complex FP64 sparse-direct path. The old dense partial-pivoting implementation is linked
 only into the exact-small test oracle.
+
+## Nonlinear diode DC
+
+Phase 3A accepts exactly `Dname anode cathode modelname` and diode models in one of these forms:
+
+```text
+.MODEL modelname D
+.MODEL modelname D()
+.MODEL modelname D(IS=value N=value)
+```
+
+`IS` (amperes, default `1e-14`) and `N` (dimensionless, default `1`) are the only parameters.
+Fields inside parentheses are whitespace-separated `key=value` tokens, may appear in either order,
+and may each appear at most once. Model names and references match `[A-Za-z0-9_]+`; lookup and
+parameter keys are ASCII case-insensitive. `IS` and `N` must be finite in `(0,1e100]`, and the
+descriptor value must satisfy `0 < N*0.02585 V <= 2.585e98 V`. Commas, detached/nested/unclosed
+parentheses, trailing fields, invalid identifiers, duplicate parameters or model names,
+unsupported parameters or model types, and missing references fail with typed errors.
+
+For `v=va-vc`, the FP64 device path uses `i=IS*expm1(v/(N*VT))` and
+`g=IS*exp(v/(N*VT))/(N*VT)` with `VT=0.02585 V` and the exponent clamped to `[-80,80]`. Every input,
+intermediate, Jacobian/residual entry, and solution value must be finite and no larger than `1e100`
+in magnitude. This includes Newton deltas/sums, normalization values, and limiting arithmetic. A
+mathematically positive conductance that underflows to zero is rejected. The diode contributes
+`+i` at its anode KCL row and `-i` at its cathode; its Jacobian stamp is
+`+g,-g,-g,+g` at `aa,ac,ca,cc`.
+
+Newton starts from zero, solves `J*delta=-F` with production KLU, and applies SPICE3 logarithmic PN
+limiting in diode insertion order. Acceptance requires both scaled voltage/current update checks
+and a freshly recomputed nonlinear residual: voltage uses `1e-9 V + 1e-6*scale`, current uses
+`1e-12 A + 1e-6*scale`. The fixed bounded strategy order is direct Newton (50 iterations), source
+scales `0.0,0.1,...,1.0` (30 iterations each), then extra-GMIN values
+`1e-3,1e-4,...,1e-12,0 S` (30 iterations at nonzero values and 50 at zero). There are no adaptive
+subdivisions. The final accepted point is independently checked with full sources and no extra
+GMIN, so only the existing production `1e-12 S` node conductance remains.
+
+Every accepted point, including an iteration-zero point with an already acceptable residual,
+requires numeric factorization and a zero-right-hand-side solve of its current Jacobian through
+KLU. This makes numerical rank deficiency a typed failure instead of allowing a zero residual to
+bypass the production sparse solver.
+
+Source stepping starts from zero; every later continuation point starts from the preceding
+accepted point. If source stepping fails, GMIN stepping starts from its last accepted source point.
+
+Compilation constructs one canonical CSR union pattern containing the linear matrix and all diode
+Jacobian coordinates. Diode-required numerical zeros are retained; linear-only matrices keep their
+existing zero-elision and exact fast path. One KLU symbolic analysis is reused across every Newton
+and continuation step; changed values use numeric refactorization plus the Phase 2D pivot-safe
+fresh-numeric retry and backward-error checks. No sparse or nonlinear failure can dispatch to the
+dense test oracle. Nonlinear CPU work is deterministic and single-threaded. Diode AC and transient
+requests are explicitly unsupported in Phase 3A.
+
+Repeated direct, source-stepping, and GMIN-stepping runs on one supported toolchain/platform are
+required to produce bitwise-identical solutions, traces, and solver statistics. There is no
+cross-libm or cross-platform equality guarantee; independent-oracle and ngspice checks use only
+their individually stated tolerances.
+
+Focused nonlinear validation is available as:
+
+```sh
+bazel test //cpp:phase3a_test
+```
 
 AC point counts and frequencies are validated before execution. LIN requires at least two total
 points and includes the requested endpoints. DEC/OCT require a positive points-per-interval value,
@@ -150,13 +213,13 @@ bazel test --lockfile_mode=error //...
 
 ## Hermetic ngspice acceptance
 
-The Phase 2C differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
+The Phase 3A differential gate builds checksum-pinned ngspice 46 source through Bazel and invokes
 that exact executable. It does not search `PATH` or use a system ngspice, compiler, header, or
 library. Configure and Make receive only checksum-pinned BusyBox POSIX tools and GCC binutils on
 their `PATH`; the required execution-platform `/bin/bash` is checksum-verified before configure.
 The runner requires a little-endian x86-64 static executable, rejects any ELF program
 header containing `PT_INTERP` or `PT_DYNAMIC`, and checks the exact version before comparing the
-bounded linear fixtures:
+bounded linear fixtures and one forward-biased diode DC fixture:
 
 ```sh
 bazel test //acceptance:ngspice_acceptance_test

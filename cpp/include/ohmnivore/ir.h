@@ -11,6 +11,11 @@
 
 namespace ohmnivore {
 
+inline constexpr double kDiodeThermalVoltageVolts = 0.02585;
+inline constexpr double kDiodeMaximumParameterMagnitude = 1e100;
+inline constexpr double kDiodeMaximumEmissionVoltageVolts =
+    kDiodeMaximumParameterMagnitude * kDiodeThermalVoltageVolts;
+
 struct Resistor {
   std::string name;
   std::string positive_node;
@@ -89,8 +94,21 @@ struct CurrentSource {
   std::optional<TransientWaveform> transient = std::nullopt;
 };
 
-using Component =
-    std::variant<Resistor, Capacitor, Inductor, VoltageSource, CurrentSource>;
+struct Diode {
+  std::string name;
+  std::string positive_node;
+  std::string negative_node;
+  std::string model_name;
+};
+
+struct DiodeModel {
+  std::string name;
+  double saturation_current_amperes = 1e-14;
+  double ideality_factor = 1.0;
+};
+
+using Component = std::variant<Resistor, Capacitor, Inductor, VoltageSource,
+                               CurrentSource, Diode>;
 
 struct DcAnalysis {};
 
@@ -119,6 +137,7 @@ using Analysis = std::variant<DcAnalysis, AcAnalysis, TranAnalysis>;
 struct Circuit {
   std::vector<Component> components;
   std::vector<Analysis> analyses;
+  std::vector<DiodeModel> diode_models = {};
 };
 
 } // namespace ohmnivore

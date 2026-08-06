@@ -774,6 +774,11 @@ namespace {
 Result<std::vector<double>>
 BuildTransientInitialState(const MnaSystem &system,
                            bool use_initial_conditions) {
+  if (!system.diode_descriptors.empty()) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3A does not support nonlinear transient analysis");
+  }
   SparseRealFactorizationCache factorization_cache;
   return BuildTransientInitialStateImpl(system, use_initial_conditions,
                                         &factorization_cache);
@@ -782,6 +787,11 @@ BuildTransientInitialState(const MnaSystem &system,
 Result<TransientResult>
 RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
                      const TransientExecutionLimits &limits) {
+  if (!system.diode_descriptors.empty()) {
+    return Result<TransientResult>::Fail(
+        ErrorCode::kUnsupported,
+        "phase 3A does not support nonlinear transient analysis");
+  }
   SparseRealFactorizationCache factorization_cache;
   if (!std::isfinite(analysis.time_step_seconds) ||
       analysis.time_step_seconds <= 0.0 ||
