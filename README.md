@@ -67,6 +67,16 @@ fixture, one memoryless-diode transient fixture, one BJT DC fixture, and toleran
 storage, numerical, license, and reproducibility details are recorded in
 `third_party/suitesparse/PROVENANCE.md`.
 
+## Post-Phase 3C roadmap
+
+Planned work is split into three bounded epics: deterministic FP64 CPU MOSFET DC authority
+(`NL-04`), a backend-neutral prepared-workload and evidence foundation (`GPU-01`), and one native
+FP64 CUDA batched-AC vertical slice (`GPU-02`). GPU-02 depends on GPU-01; MOSFET DC is independent
+of batched linear AC but is required before any later MOSFET/CMOS CUDA work. The performance thesis,
+parallel CPU comparison, full timing boundary, dispatch gate, scope exclusions, and dependency
+details are recorded in [the C++/CUDA roadmap](docs/roadmap.md). Planning these epics does not
+authorize their implementation or make their behavior supported.
+
 ## Build and test the C++ path
 
 Install Bazelisk as `bazel` on `PATH`; all compilers, headers, libraries, and lint tools are
@@ -130,6 +140,7 @@ cargo test --features ngspice-compare
 ## Documentation
 
 - [ADR-001: Migrate the Solver Core to C++20 and CUDA](docs/adr/ADR-001-cpp-cuda-migration.md)
+- [C++/CUDA Roadmap After Phase 3C](docs/roadmap.md) — planned epic boundaries and GPU evidence gate
 - [Building Ohmnivore](docs/BUILDING.md)
 - [Netlist Format](docs/netlist-format.md) — active C++ subset and identified legacy-only forms
 - [Analysis Types](docs/analyses.md) — active C++ behavior and identified legacy-only behavior

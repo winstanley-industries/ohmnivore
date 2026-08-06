@@ -1,0 +1,195 @@
+# C++/CUDA Roadmap After Phase 3C
+
+This document records the agreed planning boundary after the completed deterministic FP64 CPU
+Phase 3C path. It is a roadmap, not implementation authority: each epic still requires a bounded
+contract in ADR-001 or a successor ADR before code changes begin.
+
+The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
+remain untrusted until the CPU differential and independent validation gates accept them. Planning
+an epic does not make its syntax, model, backend, performance, or dispatch behavior supported.
+
+## Roadmap and dependencies
+
+The next work is split into three epics so device semantics, backend preparation, and CUDA execution
+can be reviewed independently:
+
+1. **NL-04: Deterministic FP64 CPU MOSFET DC authority.** Add the missing bounded MOSFET DC
+   semantics and the CPU oracle required by any later MOSFET or CMOS CUDA work.
+2. **GPU-01: Prepared workload and evidence foundation.** Define the backend-neutral batch
+   contract, CPU performance baseline, replay corpus, validation boundary, and falsifiable GPU
+   performance thesis. This epic contains no CUDA circuit kernel or solver dispatch.
+3. **GPU-02: Native FP64 CUDA batched-AC vertical slice.** Implement and measure one opt-in CUDA
+   path for the already-authoritative linear AC semantics.
+
+GPU-02 depends on GPU-01. NL-04 is independent of the batched-linear-AC path, so it does not block
+GPU-01 or GPU-02. A future nonlinear MOSFET/CMOS CUDA epic depends on both NL-04 and the evidence
+from GPU-02; it is not authorized by this roadmap.
+
+The recommended execution order is GPU-01 followed by GPU-02. NL-04 may proceed as an independent
+bounded CPU-semantic epic, but it must land before any nonlinear MOSFET/CMOS GPU implementation.
+Do not combine NL-04 with either GPU epic: otherwise device-model defects, backend defects, and
+performance results cannot be attributed cleanly.
+
+## NL-04: Deterministic FP64 CPU MOSFET DC authority
+
+### Objective
+
+Add deterministic nonlinear `.DC`/`.OP` analysis for a strict minimal NMOS/PMOS MOSFET subset on
+the existing CPU FP64 Newton and production KLU path. The result becomes the correctness oracle for
+later MOSFET and CMOS CUDA work while remaining a supported no-GPU implementation.
+
+### Required contract work
+
+- Amend ADR-001, or add a successor ADR, with the exact instance and `.MODEL` grammar, parameter
+  defaults and bounds, terminal order, polarity, current signs, region-boundary policy, equations,
+  derivatives, limiting, convergence, determinism, and typed failure semantics before editing the
+  parser or solver.
+- Make the bulk-terminal policy explicit. An admitted terminal must have modeled semantics; the C++
+  path may not silently ignore a bulk terminal or another accepted field.
+- Bound the initial model to the separately authorized Level-1 DC behavior. Charge storage,
+  capacitances, body effect, subthreshold behavior, temperature dependence, and advanced device
+  effects remain excluded unless the epic contract explicitly replaces this boundary.
+- Reuse the Phase 3A/3C Newton, source-stepping, GMIN-stepping, residual-validation, finite-value,
+  KLU backward-error, accepted-Jacobian, and deterministic ordering contracts. Do not add another
+  production linear or nonlinear solver.
+- Extend the immutable nonlinear CSR union pattern and reuse one KLU symbolic analysis across
+  Newton and continuation points.
+
+### Evidence and acceptance
+
+- Strict parser, direct-IR, compiler, descriptor, malformed-input, and unsupported-input tests.
+- Independent analytic current and Jacobian oracles covering NMOS and PMOS cutoff, linear, and
+  saturation regions, including region boundaries, terminal aliases, and ground connections.
+- Deterministic Newton and continuation traces, finite-value and magnitude guards, structural
+  validation, and adversarial failure-path tests.
+- Hermetic ngspice comparisons for a bounded set of bias circuits.
+- A representative, reproducible corpus containing individual NMOS/PMOS bias cases and CMOS
+  inverter/corner cases suitable for later GPU work. This corpus is evidence material, not a claim
+  that CUDA dispatch exists.
+- The canonical lint, build, test, sanitizer, lockfile, hermeticity, ngspice, and diff gates.
+
+### Explicit non-goals
+
+MOSFET transient or charge behavior, MOSFET AC/noise/temperature behavior, BJT or diode semantic
+changes, CUDA circuit kernels or dispatch, mixed precision, distributed solving, and performance
+claims are outside NL-04.
+
+## GPU-01: Prepared workload and evidence foundation
+
+### Objective
+
+Define the smallest backend-neutral prepared-batch boundary that can support an honest CPU-versus-
+GPU decision. Preserve KLU as the correctness authority, supported implementation, and fallback.
+GPU-01 must make the GPU performance claim falsifiable before GPU-02 selects or implements its
+production-candidate algorithm.
+
+### Prepared workload contract
+
+- Introduce a semantic/backend boundary for a prepared family of solves without exposing CUDA
+  types, device ownership, streams, or allocation policy to parsing, Circuit IR, MNA compilation,
+  analysis orchestration, or result formatting.
+- Represent immutable canonical sparse structure separately from ordered per-member matrix values,
+  right-hand sides, frequency/corner/circuit identity, and result association.
+- Provide a CPU KLU implementation of the contract that preserves existing ordering, complex AC
+  semantics, symbolic reuse, validation, typed errors, and CSV-visible results.
+- Keep ordinary CPU execution unchanged. A prepared or experimental backend must be explicit and
+  cannot silently alter the supported no-GPU path.
+
+### Performance thesis
+
+GPU-01 must freeze a falsifiable hypothesis before CUDA implementation:
+
+> Reusing immutable sparse structure across a sufficiently large batch of independent AC points,
+> parameter corners, or circuits will amortize preparation, upload, launch, synchronization,
+> readback, and validation costs enough for native-FP64 CUDA throughput to exceed a parallel CPU
+> KLU batch baseline on the declared reference hardware and workload corpus.
+
+The timing model is end to end:
+
+```text
+T_gpu = T_prepare + T_upload + T_device + T_sync + T_readback + T_validate
+T_cpu = T_prepare + T_parallel_schedule + T_klu + T_validate
+```
+
+Record cold execution and prepared/reused execution separately. CPU FP64 single-thread KLU remains
+the deterministic correctness authority, but the performance competitor must also include a fair
+parallel host baseline that schedules independent KLU solves across available CPU cores. Comparing
+CUDA only with the single-thread authority is not sufficient evidence of a useful speedup.
+
+### Evidence design and exit criteria
+
+- Freeze a versioned replay corpus covering declared matrix dimensions, nonzero counts, sparsity
+  shapes, batch sizes, frequency ranges, value scales, and reuse counts. Tiny acceptance fixtures
+  alone are insufficient for a performance claim.
+- Record target CPU, GPU, driver, toolchain, build mode, warmup, sampling, synchronization, and
+  raw-sample metadata. Report cold latency, prepared latency, throughput, tail latency, CPU memory,
+  GPU memory, validation cost, and failure counts.
+- Define the crossover and automatic-dispatch eligibility thresholds before GPU-02 implementation.
+  The thresholds may vary by declared workload class but may not be chosen after seeing the CUDA
+  result.
+- Reuse the existing finite-result and backward-error validation on every returned solution. Add
+  hostile-result tests that inject non-finite values, excessive residuals, reordered associations,
+  missing results, duplicate results, and stale replay identities.
+- Document and checksum-pin any CUDA library or algorithm candidate before it becomes a build
+  input. System CUDA, nvcc, compilers, headers, or libraries remain forbidden.
+- Complete GPU-01 without CUDA circuit kernels, automatic backend selection, or a speedup claim.
+  Its success criterion is a reviewable contract and experiment capable of disproving the thesis.
+
+### Explicit non-goals
+
+GPU kernels, CUDA solver dispatch, new device or analysis semantics, MOSFET work, mixed precision,
+single-circuit domain decomposition, MPI/NCCL/RAS, multi-node execution, and production speedup
+claims are outside GPU-01.
+
+## GPU-02: Native FP64 CUDA batched-AC vertical slice
+
+### Objective
+
+Implement one opt-in, end-to-end CUDA vertical slice for the existing linear AC contract, using the
+GPU-01 prepared workload and evidence harness. Upload immutable sparse structure once and evaluate
+independent batch members without changing frequency generation, MNA signs, ordering, CSV output,
+or CPU behavior.
+
+### Required implementation boundary
+
+- Start with native `double` and complex FP64 behavior. Mixed precision requires a later,
+  separately authorized evidence phase.
+- Preserve deterministic input/result association for every frequency, corner, and circuit. A
+  missing, duplicate, reordered, stale, or non-finite result is a typed failure.
+- Validate every CUDA solution on the CPU with the authoritative matrix and right-hand side before
+  accepting it. CUDA-reported convergence or status is not sufficient.
+- Keep CPU KLU available and unchanged. The CUDA path remains explicit and experimental until all
+  correctness and performance gates pass; failure cannot silently produce partial output.
+- Check checksum-pinned CUDA dependencies, runtime linkage, architecture coverage, replay identity,
+  and the declared CUDA/sanitizer incompatibility through explicit Bazel targets.
+
+### Acceptance and dispatch gate
+
+- Focused kernel/library tests, exact-small or analytic tests where applicable, CPU/CUDA
+  differential tests across the frozen corpus, hostile-result tests, repeated replay tests, and
+  the canonical CPU and CUDA validation gates must pass.
+- Measure both cold and prepared end-to-end paths against the single-thread CPU authority and the
+  parallel CPU KLU performance baseline. Include preparation, transfer, synchronization, readback,
+  and CPU validation; kernel-only timing cannot establish eligibility.
+- CUDA becomes eligible for automatic dispatch only for workload classes that meet the crossover
+  thresholds frozen by GPU-01 without weakening correctness, determinism, validation, or failure
+  semantics. Other workloads remain on CPU KLU.
+- If the declared crossover is not achieved, GPU-02 still succeeds as an experiment when it
+  produces complete reproducible evidence. CUDA remains opt-in, and the negative result must guide
+  the next architecture decision rather than being hidden by a narrower timing boundary.
+
+### Explicit non-goals
+
+Nonlinear device evaluation, Newton iteration, transient execution, MOSFET execution, semantic
+changes to linear AC, mixed precision, production-default dispatch without evidence, distributed
+solving, and single-circuit domain decomposition are outside GPU-02.
+
+## Later decision boundary
+
+Do not authorize a nonlinear GPU epic merely because GPU-02 is correct. A later MOSFET/CMOS CUDA
+proposal must use the landed NL-04 CPU authority, account for the entire Newton loop and linear
+solve, and show why device-resident iteration or sufficiently large independent batches amortize
+host-device coordination. Offloading device evaluation alone is not presumed to be faster.
+
+Before considering single-circuit domain decomposition, evaluate batched AC points, parameter
+corners, Monte Carlo runs, and independent circuits using the evidence discipline above.
