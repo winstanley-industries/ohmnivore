@@ -562,14 +562,35 @@ precision, MPI/NCCL/RAS/domain decomposition, or performance/scalability claims.
 including Phase 3B memoryless transient analysis, is unchanged. Rust/wgpu source and tests remain
 unchanged as behavioral reference material.
 
-## Follow-up phases
+## Follow-up epics
 
-1. Extend the CPU nonlinear authority only through separately bounded additional-device or
-   charge-storage phases.
-2. Add one CUDA vertical slice with immutable uploaded structure, native `double`, hostile result
-   validation, replay, and end-to-end benchmarks.
-3. Evaluate batched AC points, parameter corners, Monte Carlo runs, and independent circuits before
-   considering single-circuit domain decomposition.
+Post-Phase 3C work is divided into three independently reviewable epics. Their detailed planning
+contract is recorded in [the C++/CUDA roadmap](../roadmap.md). Recording an epic does not authorize
+its implementation; each epic requires an exact bounded ADR contract before code changes begin.
+
+1. **NL-04: Deterministic FP64 CPU MOSFET DC authority.** Add a strict minimal NMOS/PMOS DC model
+   on the existing Newton and KLU path, with an explicit terminal/bulk policy, analytic and ngspice
+   evidence, and a representative CMOS/corner corpus. It does not add transient charge, AC/noise,
+   temperature behavior, CUDA, or another solver.
+2. **GPU-01: Prepared workload and evidence foundation.** Define a backend-neutral prepared-batch
+   contract, CPU KLU reference and fallback, replay corpus, hostile-result boundary, parallel CPU
+   performance baseline, complete timing model, and a falsifiable crossover hypothesis. It adds no
+   CUDA circuit kernel or dispatch.
+3. **GPU-02: Native FP64 CUDA batched-AC vertical slice.** Implement one opt-in CUDA path for the
+   already-authoritative linear AC semantics using immutable uploaded structure, CPU validation,
+   differential replay, and end-to-end benchmarks. CUDA is not dispatch-eligible unless it beats
+   the crossover thresholds frozen before implementation without weakening correctness.
+
+GPU-02 depends on GPU-01. NL-04 does not block the batched-linear-AC epics, but it and GPU-02 both
+precede any future nonlinear MOSFET/CMOS CUDA proposal. Evaluate batched AC points, parameter
+corners, Monte Carlo runs, and independent circuits before considering single-circuit domain
+decomposition.
+
+Performance evidence compares complete GPU time---preparation, upload, device work,
+synchronization, readback, and CPU validation---with a fair parallel host baseline for independent
+KLU solves. The deterministic single-thread KLU path remains the correctness authority, but it is
+not the sole performance comparator. Kernel-only timing or comparison only against the
+single-thread oracle cannot justify automatic CUDA dispatch.
 
 ## Consequences
 
