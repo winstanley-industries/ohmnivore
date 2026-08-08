@@ -9,9 +9,11 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ Phase 3C path provides deterministic linear DC, AC, and transient analysis plus bounded
+The C++ GPU-01 path preserves deterministic linear DC, AC, and transient analysis plus bounded
 nonlinear diode DC operating-point and memoryless-diode transient analysis and strict BJT DC
-operating-point analysis on the production FP64 CPU sparse-direct correctness path. It provides:
+operating-point analysis on the production FP64 CPU sparse-direct correctness path. It also adds
+an explicit prepared linear-AC evidence boundary without changing ordinary simulation. It
+provides:
 
 - hermetic Bazel C++ and opt-in CUDA toolchains;
 - typed domain errors at library boundaries;
@@ -50,6 +52,16 @@ operating-point analysis on the production FP64 CPU sparse-direct correctness pa
 - linear or nonlinear DC operating-point initialization without UIC and deterministic zero
   capacitor-voltage/zero inductor-current constraints with UIC;
 - the legacy DC, AC, and transient CSV schemas;
+- a versioned backend-neutral prepared linear-AC batch contract with immutable canonical sparse
+  structure, ordered value/RHS members, content-bound circuit/corner/frequency identities, typed
+  hostile-result rejection, mandatory CPU KLU certification, and explicit whole-batch CPU KLU
+  fallback;
+- a byte- and identity-pinned four-class replay corpus spanning path/tree/grid/ring sparsity,
+  dimensions 65--1025, 192--4994 stored entries, batches 16--517, broad FP64 value/frequency
+  ranges, one-to-four source branches, and preparation reuse counts 2--8;
+- a manual CPU-only evidence target containing the deterministic serial KLU authority and an
+  isolated, solve-counted parallel-host KLU comparator with complete cold/prepared timing, raw
+  identities/metadata, per-sample child-process memory, and a terminal completeness record;
 - a checksum-pinned Bazel-built ngspice 46 acceptance harness for representative linear DC, AC,
   and transient circuits plus bounded forward-biased diode DC, memoryless-diode transient, and BJT
   DC fixtures; and
@@ -57,8 +69,9 @@ operating-point analysis on the production FP64 CPU sparse-direct correctness pa
 
 MOSFETs, BJT transient/charge/AC/noise/temperature behavior, and diode AC/charge/noise/temperature
 behavior have not yet been ported. CUDA circuit kernels or solver dispatch, mixed precision, and
-distributed solving are also absent. Bare `.DC` is an operating-point request; DC source sweeps are
-not executed.
+distributed solving are also absent. GPU-01 makes no GPU performance claim and does not alter the
+ordinary single-thread CPU execution path. Bare `.DC` is an operating-point request; DC source
+sweeps are not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
 accepted. The differential claim is limited to the representative linear fixtures, one diode DC
@@ -69,13 +82,14 @@ storage, numerical, license, and reproducibility details are recorded in
 
 ## Post-Phase 3C roadmap
 
-Planned work is split into three bounded epics: deterministic FP64 CPU MOSFET DC authority
-(`NL-04`), a backend-neutral prepared-workload and evidence foundation (`GPU-01`), and one native
-FP64 CUDA batched-AC vertical slice (`GPU-02`). GPU-02 depends on GPU-01; MOSFET DC is independent
-of batched linear AC but is required before any later MOSFET/CMOS CUDA work. The performance thesis,
-parallel CPU comparison, full timing boundary, dispatch gate, scope exclusions, and dependency
-details are recorded in [the C++/CUDA roadmap](docs/roadmap.md). Planning these epics does not
-authorize their implementation or make their behavior supported.
+Post-Phase 3C work was split into three bounded epics. GPU-01, the backend-neutral
+prepared-workload and evidence foundation, is complete. Deterministic FP64 CPU MOSFET DC authority
+(`NL-04`) and the native-FP64 CUDA batched-AC vertical slice (`GPU-02`) have not started. GPU-02
+depends on GPU-01; MOSFET DC is independent of batched linear AC but is required before any later
+MOSFET/CMOS CUDA work. The frozen performance thesis, parallel CPU comparison, full timing
+boundary, pre-CUDA thresholds, scope exclusions, and dependency details are recorded in
+[ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md) and
+[the C++/CUDA roadmap](docs/roadmap.md). GPU-01 does not authorize either downstream epic.
 
 ## Build and test the C++ path
 
@@ -89,9 +103,11 @@ bazel test //...
 bazel test //cpp:phase3a_test
 bazel test //cpp:phase3b_test
 bazel test //cpp:phase3c_test
+bazel test //cpp:gpu01_prepared_ac_test //cpp:gpu01_replay_test
 bazel test //acceptance:ngspice_acceptance_test
 bazel test //cpp:solver_hermeticity_test
 bazel run -c opt //cpp:solver_selection_benchmark -- --warmups=3 --repetitions=15
+bazel run -c opt //cpp:prepared_ac_replay_benchmark -- --warmups=2 --repetitions=9
 bazel run //:ohmnivore -- examples/voltage_divider.spice
 ```
 

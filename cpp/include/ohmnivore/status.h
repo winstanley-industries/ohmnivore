@@ -18,6 +18,14 @@ enum class ErrorCode {
   kNonFinite,
   kSolutionValidation,
   kNonConvergence,
+  kPreparedBatchMalformed,
+  kPreparedBatchStale,
+  kPreparedResultMissing,
+  kPreparedResultDuplicate,
+  kPreparedResultReordered,
+  kPreparedResultAssociation,
+  kPreparedInvalidResult,
+  kPreparedBackendFailure,
   kIo,
   kUnsupported,
 };
@@ -69,6 +77,22 @@ private:
     return "solution-validation";
   case ErrorCode::kNonConvergence:
     return "non-convergence";
+  case ErrorCode::kPreparedBatchMalformed:
+    return "prepared-batch-malformed";
+  case ErrorCode::kPreparedBatchStale:
+    return "prepared-batch-stale";
+  case ErrorCode::kPreparedResultMissing:
+    return "prepared-result-missing";
+  case ErrorCode::kPreparedResultDuplicate:
+    return "prepared-result-duplicate";
+  case ErrorCode::kPreparedResultReordered:
+    return "prepared-result-reordered";
+  case ErrorCode::kPreparedResultAssociation:
+    return "prepared-result-association";
+  case ErrorCode::kPreparedInvalidResult:
+    return "prepared-invalid-result";
+  case ErrorCode::kPreparedBackendFailure:
+    return "prepared-backend-failure";
   case ErrorCode::kIo:
     return "io";
   case ErrorCode::kUnsupported:

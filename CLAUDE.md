@@ -10,15 +10,14 @@ migrating to a C++20 core with a CUDA-first backend and hermetic Bazel toolchain
 implementation is retained as a behavioral reference, not the target architecture for new solver
 development.
 
-Phase 3C is deliberately bounded to deterministic FP64 CPU nonlinear DC operating-point analysis
-for strict `Q collector base emitter model` instances and minimal NPN/PNP
-`.MODEL ... (IS=... BF=... BR=... NF=... NR=...)` data. SuiteSparse KLU 2.3.6 from the
-checksum-pinned SuiteSparse 7.12.3 archive remains the only production linear solve path and reuses
-symbolic analysis for the fixed diode/BJT nonlinear union pattern. The former dense
-partial-pivoting implementation remains a test-only exact-small oracle. Do not pull BJT transient
-or charge, BJT AC/noise/temperature, MOSFETs, CUDA circuit kernels, mixed precision, distributed
-solving, or semantic changes to Phase 3B or linear DC, AC, transient, waveforms, GMIN, ordering,
-signs, or CSV into Phase 3C.
+GPU-01 is deliberately bounded to a backend-neutral prepared linear-AC batch, a versioned replay
+corpus, hostile-result validation, and CPU-only evidence. SuiteSparse KLU 2.3.6 from the
+checksum-pinned SuiteSparse 7.12.3 archive remains the only implementation, correctness authority,
+and explicit full-batch fallback. Ordinary `SimulateAc` remains deterministic and unchanged. Do
+not pull CUDA circuit kernels or libraries, device ownership, automatic dispatch, GPU speedup
+claims, MOSFET semantics (`NL-04`), native-FP64 CUDA batched AC (`GPU-02`), mixed precision,
+transient GPU work, MPI/NCCL/RAS, domain decomposition, or semantic changes to completed Phase
+1--3C behavior into GPU-01.
 
 Before changing the C++ path:
 
@@ -41,6 +40,8 @@ bazel test --config=ubsan //...
 bazel test --lockfile_mode=error //...
 bazel test --config=cuda //:cuda_smoke_test
 bazel test //acceptance:ngspice_acceptance_test
+bazel test //cpp:gpu01_prepared_ac_test //cpp:gpu01_replay_test
+bazel run -c opt //cpp:prepared_ac_replay_benchmark -- --warmups=2 --repetitions=9
 git diff --check
 ```
 

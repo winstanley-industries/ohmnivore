@@ -1,0 +1,5 @@
+schema_version,case_id,workload_class,topology,node_count,branch_count,dimension,union_nnz,sweep_type,sweep_points,batch_size,start_frequency_hz,stop_frequency_hz,g_series,g_shunt,c_series,c_shunt,reuse_count
+1,ladder_s_65,small_control,ladder,64,1,65,192,LIN,16,16,10,10000,1e-3,1e-12,1e-9,1e-12,8
+1,tree_m_257,medium,binary_tree,256,1,257,768,DEC,10,61,1,1000000,1e-3,1e-9,1e-8,1e-12,4
+1,grid_l_1025,large,grid_32x32,1024,1,1025,4994,DEC,20,121,100,100000000,1e-2,1e-12,1e-12,1e-15,2
+1,ring_multi_m_260,medium_wide,ring_multi,256,4,260,776,DEC,43,517,1e-3,1e9,1e-6,1e-12,1e-9,1e-15,2

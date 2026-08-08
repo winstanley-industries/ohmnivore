@@ -562,6 +562,239 @@ precision, MPI/NCCL/RAS/domain decomposition, or performance/scalability claims.
 including Phase 3B memoryless transient analysis, is unchanged. Rust/wgpu source and tests remain
 unchanged as behavioral reference material.
 
+## GPU-01: Prepared linear-AC workload and evidence foundation
+
+GPU-01 adds only an explicit backend-neutral boundary for batches of the already-supported linear
+FP64 AC solves and the CPU-only evidence needed to evaluate a later CUDA experiment. It changes no
+netlist, MNA, frequency-grid, nonlinear-device, CSV, or ordinary simulation semantics. Production
+KLU remains the only implementation, the deterministic correctness authority, and the supported
+no-GPU path. This section is the complete GPU-01 implementation contract; it does not authorize
+GPU-02 or NL-04.
+
+### Prepared batch and stable-identity contract
+
+The version-1 prepared workload begins with one already-compiled linear `MnaSystem` and one
+validated `AcAnalysis`. Diode or BJT descriptors are rejected as unsupported; no device is
+linearized or omitted. `GenerateAcFrequencies` remains the sole frequency-grid authority and
+`FormAcMatrix` remains the sole numerical definition of
+`A_k = G + j*2*pi*f_k*C`. Member order is exactly generated-frequency order. Preparing a batch
+does not sort, deduplicate, approximate, or regenerate the frequencies.
+
+The batch stores one immutable canonical sparse structure---the square dimension, CSR row offsets,
+and strictly increasing per-row column indexes---separately from each member's ordered complex
+value array and right-hand side. All members must have that exact structure and value/RHS lengths.
+Each member carries the following self-contained observable identity tuple; `contract_version`
+and `replay_id` are stored in every member as well as in the enclosing batch:
+
+```text
+(contract_version=1, replay_id, circuit_id, corner_id,
+ ordinal, frequency_hz_bit_pattern, structure_fingerprint,
+ member_content_fingerprint)
+```
+
+`ordinal` is the zero-based position in the batch and must be contiguous. `circuit_id`,
+`corner_id`, and `replay_id` are nonempty ASCII identifiers supplied by the explicit caller;
+GPU-01 uses `corner_id=nominal` for ordinary compiled circuits. Frequency identity uses the exact
+FP64 bit pattern, not formatted decimal text or a tolerance. Structure, member, and ordered-batch
+fingerprints use the version-1 byte serialization and two independently seeded 64-bit FNV-1a
+lanes documented with the replay schema. They are deterministic content identities, not
+cryptographic authentication. A result echoes the contract version, replay/batch/structure
+identities, and every complete member identity in the original order. A solution without that
+association metadata is not a prepared result.
+
+No CUDA type, handle, stream, event, allocation, memory-space, library status, or ownership object
+may enter parsing, Circuit IR, MNA compilation, AC orchestration, result formatting, or this data
+contract. The only backend seam in GPU-01 is a narrow prepared-linear-AC batch executor accepting
+the data above and returning associated solution vectors. It is not a universal solver, device,
+analysis, or allocation abstraction.
+
+### Validation, typed failures, and CPU fallback
+
+Every prepared batch is revalidated before execution and every returned batch is validated on the
+CPU against the authoritative per-member matrix and right-hand side. Acceptance first applies the
+Phase 2D finite-result, row-equilibrated normwise `1e-10`, and rowwise componentwise `1e-5` bounds,
+then independently runs fresh CPU KLU numeric certification for every member. KLU must accept the
+structure and numeric system, and every returned component must agree with that CPU result within
+`1e-12 + 1e-9*max(abs(x_backend),abs(x_klu))`. Thus a singular zero-RHS system cannot be accepted
+merely because an arbitrary vector has zero residual. Backend success or convergence status is
+never sufficient. The entire result batch is accepted or rejected; partial publication is
+forbidden.
+
+GPU-01 adds these distinct library-boundary failures:
+
+- `kPreparedBatchMalformed`: invalid version-1 input serialization, empty/invalid identity text,
+  noncanonical or inconsistent structure, invalid member dimension/value/RHS/frequency/order, a
+  duplicate member identity, or a fingerprint that does not recompute exactly;
+- `kPreparedBatchStale`: returned contract, replay, batch, structure, or member content identity
+  belongs to another preparation generation;
+- `kPreparedResultMissing`: at least one expected member result is absent;
+- `kPreparedResultDuplicate`: a returned member identity or ordinal occurs more than once;
+- `kPreparedResultReordered`: the complete expected result set is present but is not in prepared
+  member order;
+- `kPreparedResultAssociation`: a result names an unknown circuit, corner, frequency, ordinal, or
+  member identity instead of the corresponding prepared member; and
+- `kPreparedInvalidResult`: a returned solution has the wrong dimension, contains a non-finite
+  component, fails either authoritative backward-error bound, cannot be certified by CPU KLU, or
+  disagrees with the CPU KLU solution; and
+- `kPreparedBackendFailure`: a preferred or CPU prepared executor throws or otherwise escapes its
+  typed `StatusOr` boundary.
+
+Validation is linear in batch size: returned ordinals index the canonical prepared member array;
+no pairwise identity scan is permitted. Duplicate ordinals or complete identities are rejected
+first. For each unique in-range ordinal, a matching base identity with changed content fingerprint
+is stale; another base identity is an association failure. Only the complete expected set can
+then be classified as reordered. Numerical checks follow metadata checks so corrupt association
+cannot be hidden by a coincidentally valid vector. A stale batch envelope or member content
+fingerprint is reported as stale before association. An invalid prepared input fails before
+backend invocation and is never made valid by fallback.
+
+The explicit execution API has two policies: fail closed, or discard-and-resolve the complete
+batch with CPU KLU. CPU fallback is never implicit. The execution boundary translates exceptions,
+including allocation failures, to `kPreparedBackendFailure`. Under the second policy, any
+preferred-backend execution exception, typed failure, or result-acceptance failure discards every
+preferred result, creates a fresh
+single-thread CPU KLU execution, validates the complete CPU result again, and returns it with an
+observable `used_cpu_fallback` flag. A CPU KLU failure propagates unchanged and has no further
+fallback; an exception from CPU execution is reported as `kPreparedBackendFailure`. GPU-01
+provides only the single-thread CPU KLU backend, so the fallback protocol can be
+hostile-tested without claiming another production backend. `SimulateAc`, `SimulateAcToCsv`, and
+`SimulateToCsv` continue to call their existing ordinary CPU KLU path and do not dispatch through
+the prepared interface.
+
+### Version-1 replay corpus
+
+The checked-in `prepared-ac-replay-v1` corpus is generated deterministically from four distinct
+MNA sparsity shapes: a path ladder, binary tree, rectangular grid, and ring with multiple voltage
+source branches. Every case verifies its declared node count, branch count, dimension, stored
+G/C-union count, sweep type, sweep parameters, and exact generated batch size before timing.
+`g_series`, `g_shunt`, `c_series`, and `c_shunt` are primitive stamp scales; assembled diagonal
+values are deterministic sums. Branch RHS values and connection nodes follow the version-1
+builder rule and are included in member fingerprints.
+
+| Case and class | Shape; nodes + branches | Dimension | Union nnz | Sweep; batch; range (Hz) | Stamp scales `(g_series,g_shunt,c_series,c_shunt)` | Reuses |
+|---|---:|---:|---:|---:|---|---:|
+| `ladder_s_65`, small/control | path; 64 + 1 | 65 | 192 | LIN; 16; `1e1`--`1e4` | `(1e-3,1e-12,1e-9,1e-12)` | 8 |
+| `tree_m_257`, medium | binary tree; 256 + 1 | 257 | 768 | DEC 10; 61; `1`--`1e6` | `(1e-3,1e-9,1e-8,1e-12)` | 4 |
+| `grid_l_1025`, large | 32x32 grid; 1024 + 1 | 1025 | 4994 | DEC 20; 121; `1e2`--`1e8` | `(1e-2,1e-12,1e-12,1e-15)` | 2 |
+| `ring_multi_m_260`, medium/wide | ring; 256 + 4 | 260 | 776 | DEC 43; 517; `1e-3`--`1e9` | `(1e-6,1e-12,1e-9,1e-15)` | 2 |
+
+The versioned manifest is the replay authority. Parsing is strict and rejects missing or extra
+columns, unknown schema/class/topology/sweep values, duplicate case IDs, noncanonical numbers,
+inconsistent node/branch/dimension/nonzero/batch declarations, invalid ranges/scales, and
+unbounded batch or reuse counts. The implementation pins the exact v1 manifest fingerprint and
+golden generated structure, ordered-batch, aggregate-member, and boundary-member identities; a
+different internally valid manifest is not v1. Evidence emits the manifest fingerprint, builder
+source fingerprint, every prepared structure/batch/member identity, and complete reproduction
+metadata. Changing a case, builder rule, fingerprint serialization, or identity field requires a
+new replay schema version; editing a v1 meaning in place is forbidden. These cases deliberately
+extend beyond tiny acceptance fixtures and cover dimensions 65--1025, 192--4994 stored entries,
+batches 16--517, a true twelve-decade logarithmic sweep, several sparsity shapes, multiple
+conductance/dynamic scales, multiple source branches, and reuse counts 2--8. They are
+representative decision inputs, not a universality claim.
+
+### CPU evidence and timing boundaries
+
+The deterministic correctness authority executes members serially in identity order through one
+`SparseComplexFactorization`, reusing one symbolic analysis and applying the Phase 2D pivot-safe
+numeric-refactor policy and validation. Repeated authority runs on one supported build/platform
+must be bitwise identical in identities, solutions, and KLU statistics.
+
+The performance competitor is isolated to the manual evidence binary. It schedules independent
+members over `min(available_hardware_threads, batch_size)` host threads unless an explicit recorded
+thread count is supplied. Each worker owns its own serial KLU symbolic/numeric state; KLU objects
+are never shared concurrently. A worker's first assigned member performs that worker's symbolic
+analysis and numeric solve; no uncounted priming solve is permitted. Every measured execution must
+report exactly `batch_size` scheduled KLU solves, and a prepared sample exactly
+`batch_size*reuse_count`. Validation separately reports the same number of CPU KLU certification
+solves, so the actual total KLU solves are twice the accepted-member count and none are hidden.
+Results are written to their original ordinal slots, CPU-certified, and compared numerically with
+the deterministic single-thread authority under the same `1e-12 + 1e-9*scale` component bound.
+Only repeated serial-authority runs require bitwise equality. This parallel scheduler is not
+reachable from `SimulateAc` or another production target.
+
+Both single-thread authority and parallel-host evidence record two boundaries:
+
+```text
+T_cold = T_prepare_one_batch + T_schedule_and_klu_one_batch + T_validate_one_batch
+T_prepared(R) = T_prepare_one_batch
+              + sum[1..R](T_schedule_and_klu_reuse + T_validate_reuse)
+```
+
+`T_prepare` starts with the compiled `MnaSystem` plus `AcAnalysis` and includes frequency
+generation, every `FormAcMatrix`, immutable-structure verification, value/RHS materialization, and
+all identities/fingerprints. It excludes netlist file I/O, parsing, compilation, and CSV because
+those operations are identical and outside the prepared backend seam. `T_schedule_and_klu`
+includes worker creation/join for the parallel comparator, work assignment, symbolic analysis for
+each participating worker, numeric factor/refactor, triangular solve, KLU's built-in validation,
+and ordered result collection. `T_validate` is the separate prepared-result association,
+finite/backward-error, fresh CPU KLU certification, and differential acceptance pass. Nothing
+overlaps across these reported phase boundaries; their sum is the reported end-to-end time.
+Prepared throughput uses all `batch_size*R` accepted members and includes the one preparation
+cost. Cold and prepared samples are never combined.
+
+The frozen reference target is the AMD Ryzen 9 9950X3D 16-Core Processor (32 hardware threads), an
+NVIDIA GeForce RTX 5080, CUDA driver API 13030, and CUDA runtime/toolkit 13.3. Exact observed CPU,
+GPU, driver, kernel, and hardware-thread values are recorded; a CPU-only run records
+`unavailable` rather than inferring absent GPU data. Each raw measurement runs in a fresh child
+process so its `ru_maxrss` is that sample's child-process peak, not a process-lifetime maximum
+shared by earlier samples. Fork/setup occurs outside `T_cold` and `T_prepared`.
+
+Every evidence stream begins with schema/corpus/manifest identity, exact command, UTC start time,
+implementation/source fingerprint, binary build identity, SuiteSparse/KLU/compiler/Bazel pins,
+target and observed hardware, kernel, build mode, clock, and timing/memory definitions. Every
+prepared member identity is recorded. Each raw sample additionally records case/class/topology,
+mode, requested/participating host threads, warmups, sample index, dimension, nnz, batch, sweep,
+frequency range, stamp scales, reuse count, preparation/schedule-plus-KLU/validation/total
+nanoseconds, actual KLU solve count, accepted-member throughput, child-process peak resident bytes,
+GPU bytes (zero for GPU-01), and failure count. Summaries report min, P25, median, P75, P95, and max
+total latency plus median throughput. Quantiles use the nearest-rank rule
+`sorted[ceil(p*N)-1]`; for nine canonical repetitions P95 is therefore the maximum. A mandatory
+terminal completion record gives expected and observed identity/sample/summary counts, zero
+failures, UTC completion time, and a fingerprint of every preceding output record so truncated
+output cannot appear complete. Evidence runs fail if a sample has a solve-count, backend,
+association, validation, differential, metadata, or completion failure; there is no timing
+pass/fail threshold in GPU-01.
+
+### Frozen GPU crossover hypothesis and pre-CUDA dispatch gate
+
+GPU-02 will test the falsifiable hypothesis that immutable-structure reuse across sufficiently
+many independent FP64 AC members amortizes preparation, upload, launch, synchronization, readback,
+and mandatory CPU validation enough to beat the parallel-host KLU boundary above on the declared
+reference CPU plus RTX 5080. GPU time must be measured as
+
+```text
+T_gpu = T_prepare + T_upload + T_device + T_sync + T_readback + T_validate.
+```
+
+Before any automatic CUDA dispatch can be proposed, GPU-02 must use the unchanged v1 corpus, at
+least 3 warmups and 20 raw samples per mode, identical build mode and reference host, zero failures,
+and exact CPU acceptance. The small/control class is permanently ineligible in GPU-02 regardless
+of timing. For each other class independently, the first declared batch size is a crossover only
+when both of these end-to-end prepared/reused ratios hold against the parallel CPU comparator:
+
+```text
+parallel_cpu_median / gpu_median >= 1.25
+parallel_cpu_P95    / gpu_P95    >= 1.10
+```
+
+The same class must reproduce both bounds in two complete benchmark invocations, and its cold GPU
+median may not exceed `1.10 * parallel_cpu_cold_median`. A qualifying class also requires GPU peak
+memory no greater than 2 GiB for the batch. Automatic selection remains unauthorized in GPU-02;
+these numbers only define eligibility for a later reviewed dispatch change. Classes below the
+first qualifying declared batch, any unrepresented dimension/nnz/frequency/value-scale range, and
+all validation or metadata failures remain on CPU KLU. The thresholds may not be narrowed or
+reinterpreted after CUDA results are observed without a new ADR decision and fresh evidence.
+
+### Preservation and exclusions
+
+GPU-01 adds no CUDA kernel, CUDA solver library, device allocation, upload/readback path, CUDA
+dispatch, automatic backend selection, or GPU speedup claim. It adds no MOSFET or other device
+semantics, nonlinear work, transient GPU work, mixed precision, MPI/NCCL/RAS, domain decomposition,
+multi-node execution, or production parallel-CPU path. Phase 1--3C parser, compiler, MNA signs,
+ordering, GMIN, frequency generation, symbolic reuse, DC/AC/transient/nonlinear execution, typed
+failures, validation, and CSV contracts remain unchanged. Rust/wgpu remains immutable reference
+material.
+
 ## Follow-up epics
 
 Post-Phase 3C work is divided into three independently reviewable epics. Their detailed planning

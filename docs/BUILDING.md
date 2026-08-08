@@ -33,6 +33,10 @@ transient companion, UIC, and discontinuity-projection systems use the checksum-
 real or complex FP64 sparse-direct path. The old dense partial-pivoting implementation is linked
 only into the exact-small test oracle.
 
+GPU-01 additionally provides an explicit prepared linear-AC batch and replay/evidence surface.
+It is not used by ordinary `SimulateAc` or the CLI, and it has no CUDA implementation or automatic
+dispatch. CPU KLU remains the only implementation and full-batch fallback.
+
 ## Nonlinear diode and BJT analysis
 
 Phase 3A accepts exactly `Dname anode cathode modelname` and diode models in one of these forms:
@@ -200,6 +204,43 @@ bazel run -c opt //cpp:solver_selection_benchmark -- --warmups=3 --repetitions=1
 
 Exact dependency provenance, rejected candidates, build inputs, storage and failure contracts,
 license obligations, and the recorded benchmark are in `third_party/suitesparse/PROVENANCE.md`.
+
+## GPU-01 prepared AC replay evidence
+
+The version-1 replay manifest is `replays/prepared_ac/v1/corpus.csv`. Its exact bytes and generated
+identities are pinned. It materializes deterministic MNA path, binary-tree, 32-by-32-grid, and
+multi-source-ring workload classes covering dimensions 65--1025, 192--4994 G/C-union entries,
+batch sizes 16--517, frequency ranges from `1e-3` Hz through `1e9` Hz, multiple
+conductance/dynamic scales, one-to-four source branches, and prepared reuse counts 2--8. The exact
+builder and fingerprint serialization are documented beside the manifest.
+
+Focused correctness and hostile-result gates are:
+
+```sh
+bazel test //cpp:gpu01_prepared_ac_test //cpp:gpu01_replay_test
+```
+
+The manual CPU-only evidence target measures cold and prepared/reused serial KLU authority plus a
+fair parallel-host KLU comparator. Every scheduled member is solved exactly once; fresh CPU KLU
+certification is recorded separately. Each raw sample runs in a new child process and includes
+preparation, scheduling-plus-KLU, association/residual/KLU/differential validation, complete
+source/binary/host/target metadata, throughput, nearest-rank tail-latency inputs, child-process
+peak memory, exact solve counts, and failure count. The stream emits every prepared identity and a
+terminal record binding all preceding records and expected counts:
+
+```sh
+bazel run -c opt //cpp:prepared_ac_replay_benchmark -- --warmups=2 --repetitions=9
+```
+
+`--threads=0` (the default) uses the available hardware-thread count, bounded by batch size. A
+positive `--threads=N` is an explicitly recorded evidence override. This CPU-only measurement has
+no CUDA upload/device/synchronization/readback path and cannot establish a GPU speedup. The
+crossover hypothesis and pre-CUDA thresholds are frozen in ADR-001 before GPU-02.
+
+The preserved canonical CPU-only run uses two warmups and nine recorded samples per mode; its
+complete metadata, identities, raw samples, summaries, solve counts, and terminal completeness
+record are in `docs/evidence/gpu01-prepared-ac-cpu-baseline-2026-08-07.csv`. It is a host baseline
+only, not evidence that a future CUDA implementation will win.
 
 ## Sanitizers
 

@@ -4,6 +4,10 @@ This document records the agreed planning boundary after the completed determini
 Phase 3C path. It is a roadmap, not implementation authority: each epic still requires a bounded
 contract in ADR-001 or a successor ADR before code changes begin.
 
+GPU-01 is now complete under the exact bounded contract in ADR-001. GPU-02 and NL-04 have not
+started. Completion of the foundation does not authorize CUDA execution, automatic dispatch, or
+MOSFET semantics.
+
 The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
 remain untrusted until the CPU differential and independent validation gates accept them. Planning
 an epic does not make its syntax, model, backend, performance, or dispatch behavior supported.
@@ -75,6 +79,9 @@ changes, CUDA circuit kernels or dispatch, mixed precision, distributed solving,
 claims are outside NL-04.
 
 ## GPU-01: Prepared workload and evidence foundation
+
+**Status:** Completed as the CPU-only prepared-workload, replay, hostile-validation, and evidence
+foundation. No GPU-02 or NL-04 work is included.
 
 ### Objective
 

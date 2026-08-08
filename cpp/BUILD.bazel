@@ -19,6 +19,7 @@ cc_library(
         "src/nonlinear.cc",
         "src/nonlinear_internal.h",
         "src/parser.cc",
+        "src/prepared_ac.cc",
         "src/simulator.cc",
         "src/solver.cc",
         "src/transient.cc",
@@ -29,6 +30,7 @@ cc_library(
         "include/ohmnivore/ir.h",
         "include/ohmnivore/nonlinear.h",
         "include/ohmnivore/parser.h",
+        "include/ohmnivore/prepared_ac.h",
         "include/ohmnivore/simulator.h",
         "include/ohmnivore/solver.h",
         "include/ohmnivore/sparse.h",
@@ -216,6 +218,48 @@ cc_test(
 )
 
 cc_test(
+    name = "gpu01_prepared_ac_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/gpu01_prepared_ac_test.cc",
+    ],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "prepared_ac_replay",
+    testonly = True,
+    srcs = ["benchmarks/prepared_ac_replay.cc"],
+    hdrs = ["benchmarks/prepared_ac_replay.h"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)
+
+cc_test(
+    name = "gpu01_replay_test",
+    size = "small",
+    srcs = [
+        "tests/google_test.h",
+        "tests/gpu01_replay_test.cc",
+    ],
+    args = ["$(rootpath //replays/prepared_ac/v1:corpus.csv)"],
+    copts = OHMNIVORE_COPTS,
+    data = ["//replays/prepared_ac/v1:corpus.csv"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        ":prepared_ac_replay",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "solver_hermeticity_test",
     size = "small",
     srcs = ["tests/solver_hermeticity_test.cc"],
@@ -257,4 +301,36 @@ cc_binary(
     tags = ["manual"],
     visibility = ["//visibility:public"],
     deps = [":core"],
+)
+
+cc_binary(
+    name = "prepared_ac_replay_benchmark",
+    testonly = True,
+    srcs = ["benchmarks/prepared_ac_replay_benchmark.cc"],
+    args = [
+        "--corpus=$(rootpath //replays/prepared_ac/v1:corpus.csv)",
+        "--source=$(rootpath :benchmarks/prepared_ac_replay_benchmark.cc)",
+        "--source=$(rootpath :benchmarks/prepared_ac_replay.cc)",
+        "--source=$(rootpath :benchmarks/prepared_ac_replay.h)",
+        "--source=$(rootpath :src/prepared_ac.cc)",
+        "--source=$(rootpath :include/ohmnivore/prepared_ac.h)",
+        "--source=$(rootpath //replays/prepared_ac/v1:corpus.csv)",
+    ],
+    copts = OHMNIVORE_COPTS,
+    data = [
+        "benchmarks/prepared_ac_replay.cc",
+        "benchmarks/prepared_ac_replay.h",
+        "benchmarks/prepared_ac_replay_benchmark.cc",
+        "include/ohmnivore/prepared_ac.h",
+        "src/prepared_ac.cc",
+        "//replays/prepared_ac/v1:corpus.csv",
+    ],
+    defines = ["OHMNIVORE_REPOSITORY_BAZEL_PIN=\\\"9.2.0\\\""],
+    linkopts = ["-pthread"],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        ":prepared_ac_replay",
+    ],
 )
