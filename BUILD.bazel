@@ -1,5 +1,16 @@
 package(default_visibility = ["//visibility:private"])
 
+exports_files(
+    [
+        ".bazelrc",
+        ".bazelversion",
+        "BUILD.bazel",
+        "MODULE.bazel",
+        "MODULE.bazel.lock",
+    ],
+    visibility = ["//cuda:__pkg__"],
+)
+
 config_setting(
     name = "asan_enabled",
     flag_values = {"@llvm//config:asan": "True"},
@@ -27,5 +38,16 @@ test_suite(
     name = "cuda_smoke_test",
     tags = ["manual"],
     tests = ["//cuda:smoke_test"],
+    visibility = ["//visibility:public"],
+)
+
+test_suite(
+    name = "gpu02_cuda_test",
+    tags = ["manual"],
+    tests = [
+        "//cuda:gpu02_linkage_test",
+        "//cuda:gpu02_prepared_ac_test",
+        "//cuda:gpu02_replay_differential_test",
+    ],
     visibility = ["//visibility:public"],
 )

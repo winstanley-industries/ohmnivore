@@ -1,0 +1,23 @@
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["restricted"])
+
+cc_import(
+    name = "cudss_archive",
+    static_library = "lib/libcudss_static.a",
+)
+
+cc_library(
+    name = "cudss_static",
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+    deps = [":cudss_archive"],
+)
+
+filegroup(
+    name = "license",
+    srcs = ["LICENSE"],
+)

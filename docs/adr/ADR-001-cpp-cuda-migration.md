@@ -795,6 +795,242 @@ ordering, GMIN, frequency generation, symbolic reuse, DC/AC/transient/nonlinear 
 failures, validation, and CSV contracts remain unchanged. Rust/wgpu remains immutable reference
 material.
 
+## GPU-02: Opt-in native-FP64 CUDA prepared linear AC
+
+GPU-02 implements only one explicit CUDA executor behind the GPU-01 prepared-linear-AC seam. It
+is a reproducible correctness and crossover experiment, not a production-dispatch decision. CPU
+KLU remains unchanged, is the only supported no-GPU implementation, is the correctness authority,
+and is the explicit whole-batch fallback. Ordinary `SimulateAc`, `SimulateAcToCsv`,
+`SimulateToCsv`, parsing, compilation, result formatting, and production execution never construct
+or select the GPU-02 executor.
+
+### Algorithm, hermetic inputs, platform, and linkage
+
+The sole CUDA sparse algorithm is NVIDIA cuDSS 0.8.0.10 general complex sparse direct
+factorization and solve. Each matrix is `CUDSS_MTYPE_GENERAL`, the indexes are signed 32-bit CSR,
+the data type is `CUDSS_C_64F`, the matrix view is full, and there is one complex-FP64 right-hand
+side per batch member. cuDSS performs general complex LDU factorization. The prepared batch is one
+cuDSS uniform batch: all members share the one canonical CSR structure while their values, RHS, and
+solution vectors occupy contiguous member-major buffers. `CUDSS_CONFIG_UBATCH_SIZE` is the complete
+prepared member count and `CUDSS_CONFIG_UBATCH_INDEX` remains at its `-1` default, so each numeric
+phase processes the complete ordered batch in one library call. Serial per-member library calls or
+`UBATCH_SIZE=1` are not a valid GPU-02 performance implementation because they leave the selected
+library's native same-pattern batch parallelism unused.
+GPU-02 uses one GPU, disables hybrid host execution, disables matching/scaling, requests one
+native-FP64 iterative-refinement step, and uses the default reordering and factorization with the
+automatic local-block pivot policy. These choices are the fixed GPU-02 execution configuration;
+the preserved gate evidence does not claim that alternative cuDSS tuning combinations are
+supported or globally optimal. GPU-01 requires bitwise repeatability only from the serial CPU
+authority; every CUDA result remains subject to residual, fresh-KLU, and componentwise CPU
+certification.
+All factorization, refinement, and solve arithmetic remains native complex FP64. GPU-02 does not
+call cuSOLVER, cuSPARSE factor APIs, a hand-written sparse factorization, or any real-valued,
+split-complex, tensor-core, TF32, FP32, or mixed-precision path.
+
+The only new vendor archive is the NVIDIA CUDA 13 Linux x86-64 cuDSS archive below. Bazel fetches
+it directly; the URL, byte size, extraction prefix, SHA-256 digest, license, redistributable
+manifest, and NVIDIA provenance are recorded in `third_party/cudss/PROVENANCE.md`.
+
+```text
+cuDSS version: 0.8.0.10
+archive: libcudss-linux-x86_64-0.8.0.10_cuda13-archive.tar.xz
+size: 157058452 bytes
+sha256: ba18f5fd80dcbbe905d158caac5b3061d848442bb5abd477b5f296b4257a4937
+redistributable manifest: https://developer.download.nvidia.com/compute/cudss/redist/redistrib_0.8.0.json
+```
+
+Only `libcudss_static.a`, `libcublas_static.a`, `libcublasLt_static.a`, and the pinned `culibos`
+archive are linked for the cuDSS/cuBLAS graph. They come from the checksum-pinned cuDSS archive and
+the cuBLAS component of the existing CUDA 13.0.2 redist toolchain; the CUDA runtime remains the
+statically linked runtime selected by the CUDA build configuration. The final ELF `DT_NEEDED`
+allowlist contains only declared glibc host-ABI components and rejects dynamic cudart, cuDSS,
+cuBLAS, cuSOLVER, cuSPARSE, BLAS, libstdc++, libgcc, or any other undeclared library. The build must
+not load an ambient CUDA toolkit or compiler. The host glibc and NVIDIA driver are platform ABIs,
+not build inputs. The supported build platform is Linux x86-64 with the repository's pinned nvcc
+and GCC 15.2.0 CUDA host toolchain; the device code retains the repository's `compute_120` PTX plus
+`sm_120` cubin policy.
+Execution additionally requires a driver and GPU that accept that code. CUDA/cudss headers,
+libraries, handles, streams, events, allocations, and device ownership are confined to the CUDA
+package and are absent from the backend-neutral GPU-01 interface.
+
+### Immutable preparation, upload, execution, and lifetime
+
+GPU-02 consumes a batch only after the unchanged GPU-01 version-1 validator accepts it. Dimensions,
+row offsets, and column indexes must fit signed 32-bit cuDSS indexes without narrowing. The
+executor owns one preparation generation at a time and keys it by the complete recomputed
+contract/replay/batch/structure/member identity envelope. On first execution of a generation it:
+
+1. creates one CUDA stream, timing events, cuDSS handle/configuration/data objects, and matrix
+   wrappers owned by that executor;
+2. converts and uploads the canonical CSR row offsets and column indexes exactly once;
+3. packs and uploads every member's complex-FP64 values and RHS in unchanged member order; and
+4. binds one cuDSS general-complex matrix view, one RHS, and one solution workspace and performs
+   analysis once for the immutable structure.
+
+No structure is copied or analyzed again while that exact generation remains prepared. The first
+execution performs one uniform-batch numeric factorization call and subsequent executions perform
+one uniform-batch numeric refactorization call. Every execution then performs one uniform-batch
+solve call, synchronizes, and reads the contiguous member-major complex-FP64 solutions back in the
+unchanged ordinal order. Per-member values and RHS are immutable device inputs for the generation;
+repeated prepared executions reuse them as well as the structure and analysis. Logical
+factorization/solve counters count accepted member systems, while separate library-call counters
+must prove exactly one factor/refactor call and one solve call per complete batch execution. A
+different envelope first destroys all matrix wrappers, cuDSS data/config/handle objects, events,
+stream-owned buffers, and the stream, then creates a new generation. Destruction synchronizes
+before release. The CUDA-specific owner-thread `Release` operation is the observable teardown
+boundary: every CUDA/cuDSS cleanup status and a nonzero custom-allocator balance is a typed backend
+failure. The destructor is a no-throw last resort; evidence and tests must call `Release`. Objects
+are move-disabled, have one host-thread owner, and never share a CUDA context resource with an
+ordinary simulator call.
+
+### Synchronization, errors, acceptance, and fallback
+
+Upload completes on the executor stream before analysis. Analysis, uniform-batch factorization or
+refactorization, and uniform-batch solve are submitted in that order. GPU-02 synchronizes and
+queries the independent cuDSS data-info status after each complete batch phase, treats any nonzero
+CUDA or cuDSS status as failure, synchronizes before reading results, and synchronizes again before
+reporting final timing and memory. A CUDA launch/status, cuDSS return
+status, cuDSS asynchronous data-info status, allocation failure, event failure, stream failure,
+device loss, readback failure, or exception becomes `kPreparedBackendFailure`. No library-reported
+success, convergence, or solution count bypasses host validation. Failure releases or invalidates
+the preparation generation; a later call must prepare it again.
+
+The unchanged GPU-01 validator then checks, in order, the complete envelope and ordered member
+associations; dimensions and finiteness; authoritative matrix/RHS normwise and componentwise
+residual bounds; a fresh CPU KLU factorization and solve for each member; and the componentwise
+`1e-12 + 1e-9*max(abs(x_cuda),abs(x_klu))` differential bound. Missing, duplicate, reordered,
+partial, stale, incorrectly associated, non-finite, wrong-sized, or numerically hostile output
+rejects the whole batch with the existing distinct typed failure. A CUDA result is never partly
+published.
+
+The caller chooses the existing fail-closed or explicit CPU-fallback policy. Fallback discards the
+entire CUDA result and reruns every member through fresh CPU KLU, followed by the complete CPU
+acceptance pass and observable `used_cpu_fallback=true`. GPU-02 neither retries a failed CUDA
+member individually nor silently falls back. The CUDA-specific test seam may inject allocation,
+library, and partial-result failures; allocation and status faults fire only after live preparation
+work has begun and must invalidate that generation. The seam cannot weaken the production
+validation boundary.
+
+### Timing, synchronization, and memory accounting
+
+All evidence phases are non-overlapping steady-clock intervals. Each complete backend `Execute`
+wall is measured externally. Context initialization, CUDA/cuDSS object setup, host conversion and
+packing, upload, matrix-wrapper setup, analysis submit/sync, factor/solve submit/sync, readback,
+data-info status, memory queries, and result construction/association are classified subintervals.
+`T_executor_overhead` is the exact nonnegative remainder of that complete wall and therefore
+charges prepared-envelope validation, exception/fault checks, and timing bookkeeping rather than
+dropping them. CUDA events record device elapsed telemetry but are not added to host intervals and
+cannot replace the end-to-end total. Upload and readback use the executor stream and end at a
+stream synchronization. Submit intervals include the host calls that invoke
+analysis/factorization/solve; sync intervals include the corresponding waits and therefore device
+execution. `T_validate` begins only after the complete readback and contains all fresh KLU
+certification and differential work. For execution `i`:
+
+```text
+T_execute_i = T_context_setup_i + T_library_setup_i + T_host_pack_i
+            + T_upload_i + T_matrix_setup_i
+            + T_analysis_submit_i + T_analysis_sync_i
+            + T_factor_solve_submit_i + T_factor_solve_sync_i
+            + T_readback_i + T_phase_status_i + T_memory_accounting_i
+            + T_result_assembly_i + T_executor_overhead_i
+
+T_gpu_cold = T_prepare + T_executor_create + T_execute_1 + T_validate_1
+
+T_gpu_prepared(R) = T_prepare + T_executor_create
+                  + sum[1..R](T_execute_i + T_validate_i)
+```
+
+The one batch preparation, one upload, and one analysis are charged in both boundaries. Cold uses
+`R=1`; prepared uses the replay-v1 reuse count. Parsing, netlist file I/O, compilation, evidence
+process creation, and CSV remain outside every comparator exactly as in GPU-01. The CUDA executor
+performs no KLU work. Every GPU sample separately reports CUDA factor/solve count, accepted member
+count, validation KLU solve count, and zero hidden/priming KLU solves. Serial-authority and
+parallel-host samples retain their GPU-01 boundaries and solve accounting. Owner-thread release
+latency and post-release allocation balance are reported separately; release/destructor latency is
+excluded symmetrically from both GPU and CPU comparator totals.
+
+Device batch memory is the conservative maximum of (a) controlled structure/value/RHS/solution
+buffers plus the greater of cuDSS's post-analysis peak-device estimate and the observed peak from
+its accounted custom allocator, and (b) the observed decrease in `cudaMemGetInfo` free bytes
+from the synchronized pre-generation baseline. Incremental stream/event/library residency after
+primary-context initialization is reported separately; the CUDA runtime cannot observe a
+pre-context free-memory baseline, so that field is not represented as complete primary-context
+residency and is outside the batch gate. Host sample memory remains isolated-child `ru_maxrss`.
+Allocation counters must return to zero at explicit generation teardown. The gate uses the maximum
+conservative batch peak observed across both cold and prepared GPU modes, not a payload estimate or
+an after-the-fact resident value.
+
+### Reproducible evidence and frozen verdict
+
+GPU-02 uses the unmodified `prepared-ac-replay-v1` manifest, meanings, identities, and GPU-01
+thresholds. One canonical invocation contains all four cases and all six modes: deterministic
+single-thread KLU cold/prepared, fair parallel-host KLU cold/prepared, and CUDA cold/prepared. It
+uses at least three warmups and twenty retained raw samples for every case/mode. Two independent
+complete invocations are preserved verbatim under `docs/evidence/`; neither may reuse raw samples
+or omit a failing sample.
+
+Each stream records all GPU-01 identity and completion fields plus the exact source and binary
+fingerprints, cuDSS archive/version/hash, CUDA and cuBLAS package pins, compiler/Bazel/build flags,
+CPU/kernel/hardware threads, GPU name/UUID/compute capability, driver/runtime versions, device
+work and synchronization boundaries, solve and validation counts, throughput, latency quantiles,
+peak CPU and GPU memory, CUDA/cudss/validation failures, and terminal completeness fingerprint.
+Every raw CUDA sample reports all component phase times whose non-overlapping sum equals total.
+The output fails closed on an identity, count, timing-sum, allocation-balance, validation,
+differential, CUDA, cuDSS, memory, sample, summary, or completion mismatch.
+
+For each invocation and each non-control class, the recorded verdict evaluates without adjustment:
+
+```text
+parallel_cpu_prepared_median / gpu_prepared_median >= 1.25
+parallel_cpu_prepared_P95    / gpu_prepared_P95    >= 1.10
+gpu_cold_median <= 1.10 * parallel_cpu_cold_median
+gpu_peak_batch_memory <= 2147483648 bytes
+```
+
+The same class is eligible only if every bound passes in both complete invocations with zero
+failures. `small_control` is always ineligible. A negative timing or memory result is a valid
+GPU-02 experimental outcome and must be reported without changing the corpus, threshold, timing
+boundary, or validation. Automatic CUDA selection remains unauthorized even for an eligible
+class; a later ADR and reviewed implementation would be required. GPU-02 makes no production
+speedup or generality claim.
+
+### GPU-02 observed outcome
+
+The first complete diagnostic used serial per-member cuDSS calls and its measured stream is
+retained only for before/after comparison. Performance debugging identified that call shape as a
+material defect:
+the selected library provides native same-pattern uniform batching, while the diagnostic forced
+`UBATCH_SIZE=1`. The final executor uses the complete member count and reduces prepared CUDA-event
+factor/solve medians by 2.5x--22.8x across the four frozen cases. The two final evidence streams
+share source fingerprint `v1-404c729f9594460a6dcd5497e7ef8823`, binary fingerprint
+`v1-08f2e8cfef866e2d63c2334550bf8cba`, exact solve/call accounting, and zero failures.
+
+The correction did not make a class eligible. Across the two final runs, prepared median ratios
+were 0.0527--0.0538 (small/control), 0.1610--0.1611 (medium), 0.5027--0.5028 (large), and
+0.4122--0.4134 (medium/wide); cold ratios were 116.89--118.87, 18.15--18.18, 2.718--2.739, and
+3.517--3.535 respectively. All P95 timing bounds failed. Peak GPU batch memory was 32--64 MiB, so
+every memory bound passed. The exact values, whole-file hashes, completion fingerprints, and raw
+phase records are preserved in
+`docs/evidence/gpu02-native-fp64-cuda-uniform-batch-summary-2026-08-08.md` and its two referenced
+CSV streams.
+
+The remaining loss is not attributed solely to sparse numeric work. Each frozen fresh-child sample
+charges roughly 215--220 ms of CUDA primary-context initialization, and complete CPU certification
+costs roughly 142 ms for the prepared wide ring and 226 ms for the prepared grid. Assuming all GPU
+execution, setup, transfer, and readback time were zero, preparation plus mandatory validation
+alone limits the observed median ratio to about 1.14 for the grid and 1.15 for the ring, below the
+frozen 1.25 threshold. This evaluates rather than redefines the gate. It does not authorize hiding
+context startup, removing CPU certification, altering replay reuse, or starting automatic
+dispatch.
+
+### GPU-02 preservation and exclusions
+
+GPU-02 changes none of Phase 1--3C or GPU-01 semantics and does not edit Rust/Cargo. It adds no
+MOSFET or other nonlinear model, Newton work, transient GPU execution, mixed precision,
+automatic or production-default CUDA dispatch, CUDA CSV path, universal solver/backend/device
+abstraction, MPI/NCCL/RAS, domain decomposition, multi-node execution, multi-GPU execution, or
+downstream GPU work. NL-04 and every later GPU phase remain unstarted.
+
 ## Follow-up epics
 
 Post-Phase 3C work is divided into three independently reviewable epics. Their detailed planning

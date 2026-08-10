@@ -1,1 +1,7 @@
-exports_files(["corpus.csv"])
+exports_files(
+    [
+        "BUILD.bazel",
+        "corpus.csv",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -4,9 +4,10 @@ This document records the agreed planning boundary after the completed determini
 Phase 3C path. It is a roadmap, not implementation authority: each epic still requires a bounded
 contract in ADR-001 or a successor ADR before code changes begin.
 
-GPU-01 is now complete under the exact bounded contract in ADR-001. GPU-02 and NL-04 have not
-started. Completion of the foundation does not authorize CUDA execution, automatic dispatch, or
-MOSFET semantics.
+GPU-01 is complete under its exact bounded contract in ADR-001. GPU-02 is complete only as the
+explicit native-complex-FP64 CUDA correctness and crossover experiment contracted in ADR-001;
+ordinary execution and automatic dispatch remain unauthorized. NL-04 has not started. Completion
+of either GPU epic does not authorize MOSFET semantics or downstream GPU work.
 
 The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
 remain untrusted until the CPU differential and independent validation gates accept them. Planning
@@ -150,6 +151,12 @@ claims are outside GPU-01.
 
 ## GPU-02: Native FP64 CUDA batched-AC vertical slice
 
+**Status:** Completed as an opt-in cuDSS experiment with CPU-certified replay-v1 correctness and
+two reproducible native-uniform-batch evidence invocations. Correcting the initial serial
+per-member cuDSS call shape materially reduced factor/solve time, but the frozen end-to-end timing
+gate was still not achieved, so no workload class is eligible for a later dispatch proposal.
+Automatic selection remains unauthorized independently of the measured result.
+
 ### Objective
 
 Implement one opt-in, end-to-end CUDA vertical slice for the existing linear AC contract, using the
@@ -178,9 +185,9 @@ or CPU behavior.
 - Measure both cold and prepared end-to-end paths against the single-thread CPU authority and the
   parallel CPU KLU performance baseline. Include preparation, transfer, synchronization, readback,
   and CPU validation; kernel-only timing cannot establish eligibility.
-- CUDA becomes eligible for automatic dispatch only for workload classes that meet the crossover
-  thresholds frozen by GPU-01 without weakening correctness, determinism, validation, or failure
-  semantics. Other workloads remain on CPU KLU.
+- Evaluate each workload class against the crossover thresholds frozen by GPU-01 without weakening
+  correctness, determinism, validation, or failure semantics. Passing the experimental threshold
+  would only support a later ADR proposal; GPU-02 itself never authorizes automatic dispatch.
 - If the declared crossover is not achieved, GPU-02 still succeeds as an experiment when it
   produces complete reproducible evidence. CUDA remains opt-in, and the negative result must guide
   the next architecture decision rather than being hidden by a narrower timing boundary.
@@ -188,7 +195,7 @@ or CPU behavior.
 ### Explicit non-goals
 
 Nonlinear device evaluation, Newton iteration, transient execution, MOSFET execution, semantic
-changes to linear AC, mixed precision, production-default dispatch without evidence, distributed
+changes to linear AC, mixed precision, automatic or production-default dispatch, distributed
 solving, and single-circuit domain decomposition are outside GPU-02.
 
 ## Later decision boundary

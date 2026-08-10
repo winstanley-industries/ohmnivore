@@ -37,6 +37,13 @@ GPU-01 additionally provides an explicit prepared linear-AC batch and replay/evi
 It is not used by ordinary `SimulateAc` or the CLI, and it has no CUDA implementation or automatic
 dispatch. CPU KLU remains the only implementation and full-batch fallback.
 
+GPU-02 adds one opt-in native-complex-FP64 CUDA executor for that prepared surface. It uses the
+checksum-pinned static NVIDIA cuDSS 0.8.0.10 archive and the cuBLAS package from the existing
+checksum-pinned CUDA 13.0.2 redistributable manifest. CUDA remains outside ordinary simulator and
+CSV execution; CPU KLU remains the correctness authority, supported no-GPU path, and explicit
+whole-batch fallback. Exact source, linkage, architecture, and license provenance is recorded in
+`third_party/cudss/PROVENANCE.md`.
+
 ## Nonlinear diode and BJT analysis
 
 Phase 3A accepts exactly `Dname anode cathode modelname` and diode models in one of these forms:
@@ -242,6 +249,49 @@ complete metadata, identities, raw samples, summaries, solve counts, and termina
 record are in `docs/evidence/gpu01-prepared-ac-cpu-baseline-2026-08-07.csv`. It is a host baseline
 only, not evidence that a future CUDA implementation will win.
 
+## GPU-02 native-FP64 CUDA prepared AC
+
+GPU-02 is manual and opt-in. The focused analytic/hostile test, the complete frozen replay-v1
+CPU/CUDA differential, and the static-link audit are explicit CUDA targets:
+
+```sh
+bazel test --config=cuda //cuda:gpu02_prepared_ac_test
+bazel test --config=cuda //cuda:gpu02_replay_differential_test
+bazel test --config=cuda //cuda:gpu02_linkage_test
+```
+
+The executor uploads canonical CSR structure once per preparation, uses native complex FP64 cuDSS,
+and submits the complete same-pattern member set as one native uniform batch per factor/solve
+phase. It exposes owner-thread teardown so every cleanup status and allocation imbalance fails closed.
+The linkage audit requires embedded static cuDSS and cuBLAS symbols and permits only the declared
+glibc host ABI in `DT_NEEDED`; cudart, libstdc++, and libgcc are static. No ordinary simulator or
+CSV target depends on this executor.
+
+The canonical evidence invocation enforces at least three warmups and twenty retained samples for
+all four cases and all six serial-KLU, parallel-KLU, and CUDA cold/prepared modes. Run it twice as
+two independent processes and preserve the complete streams:
+
+```sh
+bazel run -c opt --config=cuda //cuda:gpu02_evidence_benchmark -- \
+  --warmups=3 --repetitions=20 \
+  > docs/evidence/gpu02-native-fp64-cuda-uniform-batch-run-1-2026-08-08.csv
+bazel run -c opt --config=cuda //cuda:gpu02_evidence_benchmark -- \
+  --warmups=3 --repetitions=20 \
+  > docs/evidence/gpu02-native-fp64-cuda-uniform-batch-run-2-2026-08-08.csv
+```
+
+Every raw CUDA row reconciles the complete measured `Execute` wall into classified upload,
+submission, synchronization, and readback intervals plus an explicit remainder that contains all
+CUDA/cuDSS setup, host packing, status/memory queries, and result association. Fresh KLU CPU
+certification remains a separate validation interval. Release time and zero post-release device
+allocation balance are recorded, while release/destructor time is excluded symmetrically from the
+CPU and GPU latency comparators. The terminal record binds the expected identity, sample, summary,
+verdict, and failure counts to all preceding records. These artifacts are experimental evidence,
+not a production speedup claim or authorization for automatic dispatch.
+The complete 2026-08-07 measurements are retained separately for comparison with the superseded
+per-member `UBATCH_SIZE=1` diagnostic; only the uniform-batch streams above bind the final GPU-02
+performance verdict. The exact pre-fix source and binary are not retained.
+
 ## Sanitizers
 
 The CPU implementation is checked separately under the pinned LLVM sanitizer runtimes:
@@ -258,6 +308,8 @@ analysis-time rejection by requesting the CUDA target directly:
 ```sh
 bazel build --config=cuda --config=asan //cuda:smoke_test
 bazel build --config=cuda --config=ubsan //cuda:smoke_test
+bazel build --config=cuda --config=asan //cuda:prepared_ac_cuda
+bazel build --config=cuda --config=ubsan //cuda:prepared_ac_cuda
 ```
 
 Both commands must fail during Bazel analysis as incompatible. A wildcard or test-suite request

@@ -37,6 +37,7 @@ cuda.redist_json(
     name = "ohmnivore_cuda_13_0_2_manifest",
     components = [
         "cccl",
+        "cublas",
         "crt",
         "culibos",
         "cudart",
@@ -96,6 +97,17 @@ http_archive(
     sha256 = "158ee4ed2ce3fdcbf52c4e47e94b0d1a8ae13344b4a835991d78a3ad20f08086",
     strip_prefix = "SuiteSparse-7.12.3",
     urls = ["https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v7.12.3.tar.gz"],
+)
+
+# GPU-02 links only the checksum-pinned static cuDSS archive. Its sole CUDA
+# library dependency is the cuBLAS component selected above from the pinned
+# CUDA 13.0.2 redistributable manifest.
+http_archive(
+    name = "cudss_0_8_0_10_cuda13",
+    build_file = "//third_party/cudss:BUILD.cudss.bazel",
+    sha256 = "ba18f5fd80dcbbe905d158caac5b3061d848442bb5abd477b5f296b4257a4937",
+    strip_prefix = "libcudss-linux-x86_64-0.8.0.10_cuda13-archive",
+    urls = ["https://developer.download.nvidia.com/compute/cudss/redist/libcudss/linux-x86_64/libcudss-linux-x86_64-0.8.0.10_cuda13-archive.tar.xz"],
 )
 
 # Root-registered fail sentinels take precedence over rules_foreign_cc's
