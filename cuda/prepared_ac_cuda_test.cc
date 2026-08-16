@@ -119,6 +119,8 @@ TEST(Gpu02PreparedAcCudaTest,
   const CudaPreparedAcStatistics &statistics = backend.statistics();
   EXPECT_EQ(statistics.preparations, 1U);
   EXPECT_EQ(statistics.structure_uploads, 1U);
+  EXPECT_EQ(statistics.values_rhs_uploads, 1U);
+  EXPECT_EQ(statistics.same_structure_refreshes, 0U);
   EXPECT_EQ(statistics.analyses, 1U);
   EXPECT_EQ(statistics.executions, 2U);
   EXPECT_EQ(statistics.factorizations, 2U * batch.members.size());
@@ -139,7 +141,7 @@ TEST(Gpu02PreparedAcCudaTest,
 }
 
 TEST(Gpu02PreparedAcCudaTest,
-     ReplacesImmutableGenerationsAndPreservesValuesRhsAndAssociations) {
+     RefreshesValuesRhsAndAssociationsWithoutReplacingStructureAnalysis) {
   const PreparedAcBatch batch_a = PrepareAnalyticBatch();
   const std::complex<double> expected_b_a{1.5, -2.0};
   const std::complex<double> expected_b_b{-0.5, 0.25};
@@ -160,9 +162,11 @@ TEST(Gpu02PreparedAcCudaTest,
     EXPECT_NEAR(member.solution[1].imag(), expected_b_b.imag(), 1.0e-13);
   }
   ExpectResultsEqual(first_a, second_a);
-  EXPECT_EQ(backend.statistics().preparations, 3U);
-  EXPECT_EQ(backend.statistics().structure_uploads, 3U);
-  EXPECT_EQ(backend.statistics().analyses, 3U);
+  EXPECT_EQ(backend.statistics().preparations, 1U);
+  EXPECT_EQ(backend.statistics().structure_uploads, 1U);
+  EXPECT_EQ(backend.statistics().values_rhs_uploads, 3U);
+  EXPECT_EQ(backend.statistics().same_structure_refreshes, 2U);
+  EXPECT_EQ(backend.statistics().analyses, 1U);
   EXPECT_EQ(backend.statistics().executions, 3U);
   EXPECT_EQ(backend.statistics().factorization_calls, 3U);
   EXPECT_EQ(backend.statistics().solve_calls, 3U);

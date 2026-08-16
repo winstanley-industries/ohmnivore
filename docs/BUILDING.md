@@ -44,6 +44,11 @@ CSV execution; CPU KLU remains the correctness authority, supported no-GPU path,
 whole-batch fallback. Exact source, linkage, architecture, and license provenance is recorded in
 `third_party/cudss/PROVENANCE.md`.
 
+GPU-02S is an evidence-only persistent-session follow-up. It reuses the same CUDA algorithm and
+backend-neutral contract, permits same-structure FP64 values/RHS refresh while retaining device
+structure and analysis, and compares long-lived CUDA ownership with a persistent parallel KLU
+worker pool. It remains unreachable from ordinary simulation and CSV output.
+
 ## Nonlinear diode and BJT analysis
 
 Phase 3A accepts exactly `Dname anode cathode modelname` and diode models in one of these forms:
@@ -292,6 +297,35 @@ The complete 2026-08-07 measurements are retained separately for comparison with
 per-member `UBATCH_SIZE=1` diagnostic; only the uniform-batch streams above bind the final GPU-02
 performance verdict. The exact pre-fix source and binary are not retained.
 
+## GPU-02S persistent-session evidence
+
+The focused compiler/corpus, CUDA refresh, and static-link tests are explicit targets:
+
+```sh
+bazel test //cpp:gpu02s_session_test
+bazel test --config=cuda //cuda:gpu02s_session_test
+bazel test --config=cuda //cuda:gpu02s_linkage_test
+```
+
+The benchmark emits fresh-child CPU/CUDA session samples for every corner prefix and a separate
+same-process diagnostic containing one cold session plus twenty steady sessions for both persistent
+backends and both validation lanes. Canonical evidence requires three warmups and twenty recorded
+fresh sessions; the candidate lane still performs and records mandatory fresh KLU certification
+outside its technical interval. Run two independent invocations:
+
+```sh
+bazel run -c opt --config=cuda //cuda:gpu02s_session_benchmark -- \
+  --warmups=3 --repetitions=20 --persistent-sessions=20 \
+  > docs/evidence/gpu02s-persistent-session-run-1-2026-08-16.csv
+bazel run -c opt --config=cuda //cuda:gpu02s_session_benchmark -- \
+  --warmups=3 --repetitions=20 --persistent-sessions=20 \
+  > docs/evidence/gpu02s-persistent-session-run-2-2026-08-16.csv
+```
+
+The session manifest is synthetic and compiler-derived, not a customer or production workload.
+Its control is permanently ineligible; a passing candidate would be only a technical crossover for
+the exact hardware, validation lane, and session envelope. Automatic dispatch remains unauthorized.
+
 ## Sanitizers
 
 The CPU implementation is checked separately under the pinned LLVM sanitizer runtimes:
@@ -310,6 +344,8 @@ bazel build --config=cuda --config=asan //cuda:smoke_test
 bazel build --config=cuda --config=ubsan //cuda:smoke_test
 bazel build --config=cuda --config=asan //cuda:prepared_ac_cuda
 bazel build --config=cuda --config=ubsan //cuda:prepared_ac_cuda
+bazel build --config=cuda --config=asan //cuda:gpu02s_session_benchmark
+bazel build --config=cuda --config=ubsan //cuda:gpu02s_session_benchmark
 ```
 
 Both commands must fail during Bazel analysis as incompatible. A wildcard or test-suite request

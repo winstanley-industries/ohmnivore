@@ -92,7 +92,7 @@ public:
   [[nodiscard]] const SparseSolverStatistics &statistics() const;
 
 private:
-  std::string cached_batch_fingerprint_;
+  std::string cached_structure_fingerprint_;
   std::unique_ptr<SparseComplexFactorization> factorization_;
   SparseSolverStatistics statistics_;
 };
@@ -122,6 +122,16 @@ ValidatePreparedAcBatch(const PreparedAcBatch &batch);
 [[nodiscard]] Result<bool>
 ValidatePreparedAcBatchResult(const PreparedAcBatch &batch,
                               const PreparedAcBatchResult &result);
+
+// Evidence-only candidate-runtime boundary. It performs the complete prepared
+// envelope, association, dimension, finiteness, residual, and backward-error
+// checks but deliberately omits fresh KLU differential certification. It is
+// not an acceptance boundary and is never used by ExecutePreparedAcBatch,
+// ordinary simulation, CSV output, or fallback. Evidence using it must still
+// call ValidatePreparedAcBatchResult before the sample can be accepted.
+[[nodiscard]] Result<bool>
+ValidatePreparedAcBatchResultForEvidence(const PreparedAcBatch &batch,
+                                         const PreparedAcBatchResult &result);
 
 // Executes an explicitly supplied backend. Fallback, when requested, discards
 // the complete preferred result and re-solves the complete batch with CPU KLU.

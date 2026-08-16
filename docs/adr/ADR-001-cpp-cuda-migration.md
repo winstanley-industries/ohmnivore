@@ -1023,6 +1023,141 @@ frozen 1.25 threshold. This evaluates rather than redefines the gate. It does no
 context startup, removing CPU certification, altering replay reuse, or starting automatic
 dispatch.
 
+## GPU-02S: Persistent-session linear-AC crossover evidence
+
+GPU-02S is a bounded evidence follow-up to the completed GPU-02 experiment. It answers whether
+native-FP64 CUDA is useful for Ohmnivore's repeated linear-AC use case: one long-lived process,
+one CUDA primary context, and multiple same-topology frequency/corner batches whose matrix values
+and right-hand sides change while the canonical sparse structure remains fixed. GPU-02S does not
+reinterpret, replace, or delete `prepared-ac-replay-v1`, either preserved GPU-02 invocation, or any
+frozen GPU-02 threshold or verdict. It does not authorize ordinary simulator routing, automatic
+dispatch, a production acceptance policy, or a general speedup claim.
+
+### Session workload and immutable-structure lifetime
+
+The separately versioned `prepared-ac-session-v1` manifest describes compiler-derived linear RLC
+circuits, not arbitrary sparse matrices. Each declared case fixes its circuit topology, dimensions,
+canonical union nonzeros, frequency grid, corner count, component scales, and deterministic corner
+transform. The generator constructs the public `Circuit` IR and calls the authoritative
+`CompileMna` and `PrepareLinearAcBatch` paths. Parsing and netlist file I/O remain excluded because
+they are backend-independent and no large external/customer netlist is represented. Evidence must
+therefore say `compiler-derived synthetic session envelope`, not `customer workload` or
+`production representative`.
+
+A session owns one backend instance. A topology generation is identified by the complete validated
+prepared structure fingerprint and uniform-batch member count. Within a topology generation:
+
+1. canonical row offsets and column indices are converted and uploaded once;
+2. the CUDA stream, events, cuDSS handle/configuration/data objects, matrix wrappers, and allocated
+   structure/value/RHS/solution buffers remain owned by the executor;
+3. cuDSS analysis runs once for the immutable sparse structure;
+4. each later corner batch must have the same structure fingerprint, dimensions, nonzeros, member
+   count, and buffer sizes but a newly validated batch/member/content envelope;
+5. every later corner repacks and uploads all complex-FP64 matrix values and RHS values, preserves
+   the structure and analysis, performs exactly one uniform-batch numeric refactorization and one
+   solve, synchronizes, reads back, and associates the complete new result envelope; and
+6. any structure, member-count, size, validation, upload, CUDA, cuDSS, allocation, or cleanup
+   mismatch fails closed. A different topology takes the existing full-generation teardown path.
+
+The executor exposes cumulative structure preparations/uploads/analyses separately from value/RHS
+refreshes. A successful same-structure refresh must increase the refresh counter without increasing
+the structure-upload or analysis counter. An exact repeated batch performs neither upload. CUDA
+types and ownership remain confined to the CUDA implementation. The CPU KLU authority and fallback
+are unchanged.
+
+### Fair persistent CPU comparator
+
+The session performance competitor is benchmark-only. It creates one fixed worker pool before the
+timed session, gives each worker private KLU state, and caches symbolic analysis by the validated
+structure fingerprint rather than by matrix values or RHS. A same-structure corner performs fresh
+numeric factor/refactor and solve work without reconstructing worker threads or symbolic state. A
+new structure invalidates every worker's symbolic state. Work assignment and result slots retain
+member order, and solve/analysis counts must reconcile exactly. This comparator remains unreachable
+from ordinary simulation.
+
+### Correctness qualification and two timing lanes
+
+Every CUDA result in every lane must pass the complete GPU-01 association, dimension, finiteness,
+residual/backward-error, fresh-KLU, and componentwise differential checks before the evidence run
+can complete. CUDA status, cuDSS status, or a residual-only result never becomes an accepted
+Ohmnivore result.
+
+GPU-02S reports two non-overlapping interpretations of the same correctly certified executions:
+
+- `inline_certified` includes complete fresh KLU certification before the result is released and
+  answers the performance of the current experimental acceptance contract; and
+- `candidate_runtime` times backend execution plus the GPU-01 envelope/association/dimension/
+  finiteness/residual/backward-error checks, then performs the mandatory fresh KLU certification
+  outside that candidate interval. A later certification failure invalidates the complete sample
+  and evidence stream. This lane isolates technical solver potential only; it is not a production
+  acceptance policy and cannot support dispatch without a later ADR.
+
+The evidence-only residual validator is named and documented as such, is not called by
+`ExecutePreparedAcBatch`, `SimulateAc`, CSV output, or fallback, and must reject every hostile
+envelope, association, dimension, non-finite, and excessive-residual class that can be rejected
+without an independent solve. Only full `ValidatePreparedAcBatchResult` remains an acceptance
+boundary.
+
+### Session timing, sampling, and crossover reporting
+
+For one topology with `C` declared corner batches, a fresh process records:
+
+```text
+T_gpu_session_cold = T_prepare_all
+                   + T_executor_create + T_context_once + T_library_once
+                   + T_structure_upload_once + T_analysis_once
+                   + sum[1..C](T_values_rhs_upload + T_factor_solve
+                              + T_sync + T_readback + T_runtime_validate)
+
+T_cpu_session = T_prepare_all + T_worker_pool_create
+              + T_symbolic_once_per_worker
+              + sum[1..C](T_numeric_solve + T_runtime_validate)
+```
+
+`inline_certified` substitutes complete fresh-KLU validation for
+`T_runtime_validate`. `candidate_runtime` records the excluded certification interval and solve
+count separately; it may not hide that work in a total labeled certified. Process creation,
+parsing, file I/O, evidence serialization, and explicit final teardown remain outside both CPU and
+GPU intervals. Teardown latency and allocation balance are reported separately.
+
+Each complete invocation records at least three untimed warmup sessions and twenty raw sessions per
+case/backend/lane. Cold session totals use fresh child processes and include one primary-context
+initialization. The same child also records first-corner latency and the later-corner steady-state
+distribution after structure analysis. A separate persistent-process diagnostic for both the fixed
+CPU worker pool and CUDA executor records one cold session followed by at least twenty timed steady
+sessions in the same process. CPU steady sessions retain the worker pool and per-worker symbolic
+analysis; CUDA steady sessions retain the primary context, library objects, allocations, structure,
+and analysis. The diagnostic applies the same lane definitions and reports a CPU/GPU steady-session
+ratio, but it is not substituted for the fresh-session total. Two complete independent invocations
+are preserved.
+
+For each case and lane, evidence reports CPU/GPU session median and P95 ratios, accepted-member
+throughput, first-result latency, later-corner median/P95, the exact corner and member counts,
+structure analyses/uploads, value/RHS refreshes, factor/solve calls, validation/certification solves,
+and peak CPU/GPU memory. It also reports the smallest observed corner/member count whose replicated
+median ratio is at least `1.25` and P95 ratio is at least `1.10`, if one exists. Cold latency is a
+separate operational result rather than a conjunctive steady-state gate. The 2 GiB peak batch-memory
+bound remains mandatory. A crossover is a property only of the exact compiler-derived case,
+hardware, lane, and measured session envelope; it is not automatic-dispatch eligibility.
+
+The v1 session corpus contains one permanently ineligible 64-point control and three large-sweep
+candidate shapes: a 33-by-33 grid with 512 frequency points, a 65-by-65 grid with 256 points, and a
+1,024-node four-source ring with 2,048 points. Every candidate contains four same-structure
+component/source corners. The batches were selected before canonical evidence from the bounded
+memory-safe upper envelope, not in response to an observed gate result. Counts and transforms are
+checksum-bound in the manifest and tested before evidence. GPU-02S may report that no crossover
+exists. Thresholds, identities, raw samples, or failing points may not be removed or redefined
+after measurement.
+
+### GPU-02S exclusions
+
+GPU-02S changes no Rust/Cargo source, ordinary `SimulateAc`, CSV output, supported CPU behavior,
+linear-AC semantics, or GPU-02 replay/evidence bytes. It adds no automatic or production-default
+dispatch, universal solver/backend abstraction, nonlinear device semantics, Newton work, transient
+GPU execution, mixed precision, MPI/NCCL/RAS, multi-node execution, domain decomposition, or
+downstream MOSFET/CMOS GPU work. Native complex FP64 cuDSS uniform batching remains the only CUDA
+algorithm.
+
 ### GPU-02 preservation and exclusions
 
 GPU-02 changes none of Phase 1--3C or GPU-01 semantics and does not edit Rust/Cargo. It adds no

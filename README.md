@@ -71,6 +71,10 @@ provides:
   over the preserved per-member diagnostic, but fresh-process context initialization and mandatory
   CPU certification still leave every frozen timing class ineligible, so this is a correct negative
   experiment rather than a production speedup claim or dispatch authorization;
+- a bounded GPU-02S persistent-session experiment using compiler-derived 64--2,048 point linear-AC
+  sweeps, same-structure value/RHS refresh without structure re-upload or re-analysis, persistent
+  CPU and CUDA owners, separate inline-certified and candidate-runtime lanes, and both honest
+  fresh-session and long-lived-process evidence; and
 - a checksum-pinned Bazel-built ngspice 46 acceptance harness for representative linear DC, AC,
   and transient circuits plus bounded forward-biased diode DC, memoryless-diode transient, and BJT
   DC fixtures; and
@@ -94,8 +98,9 @@ storage, numerical, license, and reproducibility details are recorded in
 Post-Phase 3C work was split into three bounded epics. GPU-01, the backend-neutral prepared-workload
 and evidence foundation, and GPU-02, its opt-in native-FP64 CUDA experiment, are complete. GPU-02
 now uses cuDSS's native same-pattern uniform batch; it did not meet the frozen timing gate, and
-automatic dispatch remains unauthorized. Deterministic FP64 CPU MOSFET DC authority (`NL-04`) has
-not started. MOSFET DC is independent of batched linear AC but is required before any later
+GPU-02S separately tests large repeated sweeps with persistent CPU/CUDA ownership without changing
+that result or production routing. Automatic dispatch remains unauthorized. Deterministic FP64 CPU
+MOSFET DC authority (`NL-04`) has not started. MOSFET DC is independent of batched linear AC but is required before any later
 MOSFET/CMOS CUDA work. The frozen performance thesis, parallel CPU comparison, full timing
 boundary, thresholds, exclusions, and dependency details are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md) and

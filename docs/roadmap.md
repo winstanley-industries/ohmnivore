@@ -6,8 +6,9 @@ contract in ADR-001 or a successor ADR before code changes begin.
 
 GPU-01 is complete under its exact bounded contract in ADR-001. GPU-02 is complete only as the
 explicit native-complex-FP64 CUDA correctness and crossover experiment contracted in ADR-001;
-ordinary execution and automatic dispatch remain unauthorized. NL-04 has not started. Completion
-of either GPU epic does not authorize MOSFET semantics or downstream GPU work.
+GPU-02S is the bounded persistent-session evidence follow-up and changes no production routing.
+Ordinary execution and automatic dispatch remain unauthorized. NL-04 has not started. Completion
+of any GPU experiment does not authorize MOSFET semantics or downstream GPU work.
 
 The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
 remain untrusted until the CPU differential and independent validation gates accept them. Planning
@@ -197,6 +198,31 @@ or CPU behavior.
 Nonlinear device evaluation, Newton iteration, transient execution, MOSFET execution, semantic
 changes to linear AC, mixed precision, automatic or production-default dispatch, distributed
 solving, and single-circuit domain decomposition are outside GPU-02.
+
+## GPU-02S: Persistent-session crossover evidence
+
+**Status:** Bounded evidence-only follow-up. It retains the GPU-02 executor configuration and adds
+same-structure value/RHS refresh, a compiler-derived large-sweep session corpus, a fair persistent
+CPU worker-pool comparator, and reproducible cold plus long-lived-process measurements. It does not
+change the frozen GPU-02 replay-v1 evidence or gate.
+
+GPU-02S answers the narrower Ohmnivore use-case question left open by fresh-process GPU-02:
+whether multiple frequency/corner batches in one process can amortize CUDA context, structure, and
+analysis cost. Its four cases are one permanently ineligible 64-point control plus 512-point and
+256-point grids and a 2,048-point multi-source ring, each with four same-structure component/source
+corners. Every batch is constructed through public `Circuit`, `CompileMna`, and
+`PrepareLinearAcBatch` paths.
+
+Both CPU and CUDA evidence use persistent owners. CPU workers retain private KLU symbolic state;
+CUDA retains context, stream, cuDSS objects, allocations, canonical structure, and analysis while
+refreshing complete FP64 values and RHS buffers. The `inline_certified` lane includes fresh KLU
+certification. The evidence-only `candidate_runtime` lane measures residual validation separately
+from mandatory fresh KLU certification; it is not an acceptance or dispatch policy. Fresh-child
+session and same-process steady-session ratios retain the 1.25 median, 1.10 P95, and 2 GiB bounds.
+
+GPU-02S can complete with a negative crossover verdict. Neither lane authorizes ordinary
+`SimulateAc`, CSV output, automatic dispatch, mixed precision, nonlinear or transient GPU work, or
+any downstream phase.
 
 ## Later decision boundary
 

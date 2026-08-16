@@ -7,6 +7,10 @@ exports_files(
         "BUILD.bazel",
         "MODULE.bazel",
         "MODULE.bazel.lock",
+        "README.md",
+        "docs/BUILDING.md",
+        "docs/adr/ADR-001-cpp-cuda-migration.md",
+        "docs/roadmap.md",
     ],
     visibility = ["//cuda:__pkg__"],
 )

@@ -13,6 +13,8 @@ exports_files(
         "benchmarks/prepared_ac_replay.cc",
         "benchmarks/prepared_ac_replay.h",
         "benchmarks/prepared_ac_replay_benchmark.cc",
+        "benchmarks/prepared_ac_session.cc",
+        "benchmarks/prepared_ac_session.h",
         "include/ohmnivore/compiler.h",
         "include/ohmnivore/ir.h",
         "include/ohmnivore/nonlinear.h",
@@ -272,6 +274,34 @@ cc_library(
     copts = OHMNIVORE_COPTS,
     visibility = ["//cuda:__pkg__"],
     deps = [":core"],
+)
+
+cc_library(
+    name = "prepared_ac_session",
+    testonly = True,
+    srcs = ["benchmarks/prepared_ac_session.cc"],
+    hdrs = ["benchmarks/prepared_ac_session.h"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core"],
+)
+
+cc_test(
+    name = "gpu02s_session_test",
+    size = "large",
+    srcs = [
+        "tests/google_test.h",
+        "tests/gpu02s_session_test.cc",
+    ],
+    args = ["$(rootpath //replays/prepared_ac/session_v1:corpus.csv)"],
+    copts = OHMNIVORE_COPTS,
+    data = ["//replays/prepared_ac/session_v1:corpus.csv"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        ":prepared_ac_session",
+        "@googletest//:gtest_main",
+    ],
 )
 
 cc_test(

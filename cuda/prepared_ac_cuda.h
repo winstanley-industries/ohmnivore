@@ -34,6 +34,11 @@ struct CudaPreparedAcOptions {
 struct CudaPreparedAcStatistics {
   std::uint64_t preparations = 0;
   std::uint64_t structure_uploads = 0;
+  // Values/RHS uploads include the initial preparation and every successful
+  // same-structure refresh. same_structure_refreshes is the strict subset
+  // that reused allocations, matrix wrappers, and cuDSS analysis.
+  std::uint64_t values_rhs_uploads = 0;
+  std::uint64_t same_structure_refreshes = 0;
   std::uint64_t analyses = 0;
   std::uint64_t executions = 0;
   // Logical member systems completed.

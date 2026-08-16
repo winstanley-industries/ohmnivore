@@ -206,6 +206,7 @@ ValidatePreparedAcBatchImpl(const PreparedAcBatch &batch) {
   }
 
   std::set<std::string> content_fingerprints;
+  bool canonical_structure_validated = false;
   double prior_frequency = 0.0;
   std::string circuit_id;
   std::string corner_id;
@@ -264,19 +265,31 @@ ValidatePreparedAcBatchImpl(const PreparedAcBatch &batch) {
             "prepared AC member right-hand side contains a non-finite value");
       }
     }
-    ComplexCsrMatrix matrix{
-        .rows = batch.structure.dimension,
-        .columns = batch.structure.dimension,
-        .values = member.matrix_values,
-        .column_indices = batch.structure.column_indices,
-        .row_offsets = batch.structure.row_offsets,
-    };
-    auto converted = ConvertCsrToSolverCsc(matrix);
-    if (!converted.ok()) {
+    if (!canonical_structure_validated) {
+      ComplexCsrMatrix matrix{
+          .rows = batch.structure.dimension,
+          .columns = batch.structure.dimension,
+          .values = member.matrix_values,
+          .column_indices = batch.structure.column_indices,
+          .row_offsets = batch.structure.row_offsets,
+      };
+      auto converted = ConvertCsrToSolverCsc(matrix);
+      if (!converted.ok()) {
+        return Result<bool>::Fail(
+            ErrorCode::kPreparedBatchMalformed,
+            "prepared AC member has invalid canonical structure or values: " +
+                converted.error().message);
+      }
+      canonical_structure_validated = true;
+    } else if (std::any_of(member.matrix_values.begin(),
+                           member.matrix_values.end(),
+                           [](std::complex<double> value) {
+                             return !IsFinite(value);
+                           })) {
       return Result<bool>::Fail(
           ErrorCode::kPreparedBatchMalformed,
-          "prepared AC member has invalid canonical structure or values: " +
-              converted.error().message);
+          "prepared AC member has invalid canonical structure or values: "
+          "matrix contains a non-finite value");
     }
     const std::string content_fingerprint =
         FingerprintMember(member.identity, member.matrix_values, member.rhs);
@@ -421,9 +434,12 @@ MaterializePreparedAcMatrix(const PreparedAcBatch &batch,
   }
 }
 
+namespace {
+
 Result<bool>
-ValidatePreparedAcBatchResult(const PreparedAcBatch &batch,
-                              const PreparedAcBatchResult &result) {
+ValidatePreparedAcBatchResultImpl(const PreparedAcBatch &batch,
+                                  const PreparedAcBatchResult &result,
+                                  bool certify_with_fresh_klu) {
   try {
     auto batch_valid = ValidatePreparedAcBatchImpl(batch);
     if (!batch_valid.ok()) {
@@ -520,6 +536,9 @@ ValidatePreparedAcBatchResult(const PreparedAcBatch &batch,
             "prepared AC result failed authoritative validation: " +
                 validation.error().message);
       }
+      if (!certify_with_fresh_klu) {
+        continue;
+      }
       if (cpu_authority == nullptr) {
         auto analyzed = SparseComplexFactorization::Analyze(matrix.value());
         if (!analyzed.ok()) {
@@ -568,6 +587,20 @@ ValidatePreparedAcBatchResult(const PreparedAcBatch &batch,
   }
 }
 
+} // namespace
+
+Result<bool>
+ValidatePreparedAcBatchResult(const PreparedAcBatch &batch,
+                              const PreparedAcBatchResult &result) {
+  return ValidatePreparedAcBatchResultImpl(batch, result, true);
+}
+
+Result<bool>
+ValidatePreparedAcBatchResultForEvidence(const PreparedAcBatch &batch,
+                                         const PreparedAcBatchResult &result) {
+  return ValidatePreparedAcBatchResultImpl(batch, result, false);
+}
+
 CpuKluPreparedAcBatchBackend::CpuKluPreparedAcBatchBackend() = default;
 CpuKluPreparedAcBatchBackend::~CpuKluPreparedAcBatchBackend() = default;
 CpuKluPreparedAcBatchBackend::CpuKluPreparedAcBatchBackend(
@@ -583,7 +616,7 @@ CpuKluPreparedAcBatchBackend::Execute(const PreparedAcBatch &batch) {
       return Result<PreparedAcBatchResult>::Fail(valid.error().code,
                                                  valid.error().message);
     }
-    if (cached_batch_fingerprint_ != batch.batch_fingerprint ||
+    if (cached_structure_fingerprint_ != batch.structure.fingerprint ||
         factorization_ == nullptr) {
       auto first_matrix = MaterializePreparedAcMatrix(batch, 0);
       if (!first_matrix.ok()) {
@@ -596,7 +629,7 @@ CpuKluPreparedAcBatchBackend::Execute(const PreparedAcBatch &batch) {
                                                    analyzed.error().message);
       }
       factorization_ = analyzed.TakeValue();
-      cached_batch_fingerprint_ = batch.batch_fingerprint;
+      cached_structure_fingerprint_ = batch.structure.fingerprint;
     }
 
     PreparedAcBatchResult result = MakeResultEnvelope(batch);

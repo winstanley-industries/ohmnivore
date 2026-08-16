@@ -149,7 +149,11 @@ public:
     try {
       const std::string generation = GenerationKey(batch);
       if (generation != generation_key_) {
-        Prepare(batch, generation);
+        if (CanRefreshValuesAndRhs(batch)) {
+          RefreshValuesAndRhs(batch, generation);
+        } else {
+          Prepare(batch, generation);
+        }
       }
       CheckCuda(cudaEventRecord(factor_solve_start_, stream_),
                 "cudaEventRecord(factor_solve_start)");
@@ -384,6 +388,74 @@ private:
     controlled_bytes_ += bytes;
   }
 
+  [[nodiscard]] bool
+  CanRefreshValuesAndRhs(const PreparedAcBatch &batch) const {
+    return !generation_key_.empty() && stream_ != nullptr && data_ != nullptr &&
+           matrix_ != nullptr && rhs_ != nullptr && solution_ != nullptr &&
+           batch.structure.fingerprint == prepared_structure_fingerprint_ &&
+           batch.structure.dimension == prepared_dimension_ &&
+           batch.structure.column_indices.size() == prepared_nonzeros_ &&
+           batch.members.size() == statistics_.uniform_batch_size;
+  }
+
+  void PackValuesAndRhs(const PreparedAcBatch &batch) {
+    const std::size_t member_values = CheckedMultiply(
+        batch.members.size(), batch.structure.column_indices.size(),
+        "GPU-02 member values");
+    const std::size_t member_vectors =
+        CheckedMultiply(batch.members.size(), batch.structure.dimension,
+                        "GPU-02 member vectors");
+    host_values_.clear();
+    host_rhs_.clear();
+    host_values_.reserve(member_values);
+    host_rhs_.reserve(member_vectors);
+    host_solution_.resize(member_vectors);
+    for (const PreparedAcMember &member : batch.members) {
+      for (const std::complex<double> value : member.matrix_values) {
+        host_values_.push_back(
+            make_cuDoubleComplex(value.real(), value.imag()));
+      }
+      for (const std::complex<double> value : member.rhs) {
+        host_rhs_.push_back(make_cuDoubleComplex(value.real(), value.imag()));
+      }
+    }
+  }
+
+  void RefreshValuesAndRhs(const PreparedAcBatch &batch,
+                           const std::string &generation) {
+    const std::size_t expected_values = host_values_.size();
+    const std::size_t expected_rhs = host_rhs_.size();
+    const std::size_t expected_solution = host_solution_.size();
+    const Clock::time_point host_pack_start = Clock::now();
+    PackValuesAndRhs(batch);
+    statistics_.last_host_pack_ns = ElapsedNanoseconds(host_pack_start);
+    if (host_values_.size() != expected_values ||
+        host_rhs_.size() != expected_rhs ||
+        host_solution_.size() != expected_solution) {
+      throw std::runtime_error(
+          "GPU-02 same-structure refresh changed a prepared buffer size");
+    }
+
+    const Clock::time_point upload_start = Clock::now();
+    CheckCuda(cudaMemcpyAsync(device_values_, host_values_.data(),
+                              host_values_.size() * sizeof(cuDoubleComplex),
+                              cudaMemcpyHostToDevice, stream_),
+              "cudaMemcpyAsync(refreshed matrix values)");
+    CheckCuda(cudaMemcpyAsync(device_rhs_, host_rhs_.data(),
+                              host_rhs_.size() * sizeof(cuDoubleComplex),
+                              cudaMemcpyHostToDevice, stream_),
+              "cudaMemcpyAsync(refreshed right-hand sides)");
+    CheckCuda(cudaMemsetAsync(device_solution_, 0, controlled_solution_bytes_,
+                              stream_),
+              "cudaMemsetAsync(refreshed uniform-batch solutions)");
+    CheckCuda(cudaStreamSynchronize(stream_),
+              "cudaStreamSynchronize(values/RHS refresh)");
+    statistics_.last_upload_ns = ElapsedNanoseconds(upload_start);
+    generation_key_ = generation;
+    ++statistics_.values_rhs_uploads;
+    ++statistics_.same_structure_refreshes;
+  }
+
   void Prepare(const PreparedAcBatch &batch, const std::string &generation) {
     const std::string cleanup_error = ResetAndCollectErrors();
     if (!cleanup_error.empty()) {
@@ -497,24 +569,7 @@ private:
       host_column_indices_.push_back(static_cast<std::int32_t>(column));
     }
 
-    const std::size_t member_values = CheckedMultiply(
-        batch.members.size(), batch.structure.column_indices.size(),
-        "GPU-02 member values");
-    const std::size_t member_vectors =
-        CheckedMultiply(batch.members.size(), batch.structure.dimension,
-                        "GPU-02 member vectors");
-    host_values_.reserve(member_values);
-    host_rhs_.reserve(member_vectors);
-    host_solution_.resize(member_vectors);
-    for (const PreparedAcMember &member : batch.members) {
-      for (const std::complex<double> value : member.matrix_values) {
-        host_values_.push_back(
-            make_cuDoubleComplex(value.real(), value.imag()));
-      }
-      for (const std::complex<double> value : member.rhs) {
-        host_rhs_.push_back(make_cuDoubleComplex(value.real(), value.imag()));
-      }
-    }
+    PackValuesAndRhs(batch);
     statistics_.last_host_pack_ns = ElapsedNanoseconds(host_pack_start);
 
     const Clock::time_point upload_start = Clock::now();
@@ -634,8 +689,12 @@ private:
         ElapsedNanoseconds(accounting_start);
 
     generation_key_ = generation;
+    prepared_structure_fingerprint_ = batch.structure.fingerprint;
+    prepared_dimension_ = batch.structure.dimension;
+    prepared_nonzeros_ = batch.structure.column_indices.size();
     ++statistics_.preparations;
     ++statistics_.structure_uploads;
+    ++statistics_.values_rhs_uploads;
     ++statistics_.analyses;
   }
 
@@ -793,6 +852,9 @@ private:
       stream_ = nullptr;
     }
     generation_key_.clear();
+    prepared_structure_fingerprint_.clear();
+    prepared_dimension_ = 0;
+    prepared_nonzeros_ = 0;
     numeric_factors_exist_ = false;
     controlled_bytes_ = 0;
     controlled_solution_bytes_ = 0;
@@ -819,6 +881,9 @@ private:
   std::thread::id owner_;
   CudaPreparedAcStatistics statistics_;
   std::string generation_key_;
+  std::string prepared_structure_fingerprint_;
+  std::size_t prepared_dimension_ = 0;
+  std::size_t prepared_nonzeros_ = 0;
   bool numeric_factors_exist_ = false;
   bool fault_injected_ = false;
 
