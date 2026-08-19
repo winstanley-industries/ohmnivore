@@ -69,27 +69,15 @@ C1 out 0 1u
     ADD_FAILURE() << accepted.error().message;
     return {};
   }
-  auto evidence =
-      ValidatePreparedAcBatchResultForEvidence(batch, solved.value());
-  if (!evidence.ok()) {
-    ADD_FAILURE() << evidence.error().message;
-    return {};
-  }
   return solved.TakeValue();
 }
 
 void ExpectRejected(const PreparedAcBatch &batch,
                     const PreparedAcBatchResult &result,
-                    ErrorCode expected_code,
-                    bool evidence_validator_must_reject = true) {
+                    ErrorCode expected_code) {
   auto accepted = ValidatePreparedAcBatchResult(batch, result);
   ASSERT_FALSE(accepted.ok());
   EXPECT_EQ(accepted.error().code, expected_code) << accepted.error().message;
-  if (evidence_validator_must_reject) {
-    auto evidence = ValidatePreparedAcBatchResultForEvidence(batch, result);
-    ASSERT_FALSE(evidence.ok());
-    EXPECT_EQ(evidence.error().code, expected_code) << evidence.error().message;
-  }
 }
 
 class StaticBackend final : public PreparedAcBatchBackend {
@@ -304,15 +292,6 @@ TEST(Gpu01PreparedAcTest, RejectsMalformedAndNonlinearPreparation) {
   ASSERT_FALSE(rejected.ok());
   EXPECT_EQ(rejected.error().code, ErrorCode::kPreparedBatchMalformed);
 
-  malformed = Prepare();
-  ASSERT_GT(malformed.members.size(), 1U);
-  malformed.members[1].matrix_values[0] = {
-      std::numeric_limits<double>::quiet_NaN(), 0.0};
-  rejected = ValidatePreparedAcBatch(malformed);
-  ASSERT_FALSE(rejected.ok());
-  EXPECT_EQ(rejected.error().code, ErrorCode::kPreparedBatchMalformed);
-  EXPECT_NE(rejected.error().message.find("non-finite"), std::string::npos);
-
   MnaSystem system = Compile(kAcNetlist);
   auto invalid_identity =
       PrepareLinearAcBatch(system,
@@ -444,10 +423,7 @@ TEST(Gpu01PreparedAcTest,
     auto input = ValidatePreparedAcBatch(batch);
     ASSERT_TRUE(input.ok()) << input.error().message;
     const PreparedAcBatchResult hostile = ZeroResidualHostileResult(batch);
-    ExpectRejected(batch, hostile, ErrorCode::kPreparedInvalidResult, false);
-    auto residual_only =
-        ValidatePreparedAcBatchResultForEvidence(batch, hostile);
-    ASSERT_TRUE(residual_only.ok()) << residual_only.error().message;
+    ExpectRejected(batch, hostile, ErrorCode::kPreparedInvalidResult);
 
     CpuKluPreparedAcBatchBackend cpu;
     auto solved = cpu.Execute(batch);

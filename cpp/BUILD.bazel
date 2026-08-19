@@ -54,6 +54,7 @@ cc_library(
         "src/nonlinear_internal.h",
         "src/parser.cc",
         "src/prepared_ac.cc",
+        "src/prepared_ac_internal.h",
         "src/simulator.cc",
         "src/solver.cc",
         "src/transient.cc",
@@ -279,7 +280,10 @@ cc_library(
 cc_library(
     name = "prepared_ac_session",
     testonly = True,
-    srcs = ["benchmarks/prepared_ac_session.cc"],
+    srcs = [
+        "benchmarks/prepared_ac_session.cc",
+        "src/prepared_ac_internal.h",
+    ],
     hdrs = ["benchmarks/prepared_ac_session.h"],
     copts = OHMNIVORE_COPTS,
     visibility = ["//visibility:public"],

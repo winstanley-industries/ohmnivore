@@ -52,6 +52,15 @@ BuildPreparedAcSessionCircuit(const PreparedAcSessionCase &session_case,
 PrepareAcSessionCorner(const PreparedAcSessionCase &session_case,
                        std::size_t corner_ordinal);
 
+// Evidence-only candidate-runtime boundary. It performs the prepared envelope,
+// association, dimension, finiteness, residual, and backward-error checks but
+// deliberately omits fresh KLU differential certification. This test-only
+// helper is not an acceptance boundary; every result must still pass
+// ValidatePreparedAcBatchResult before an evidence stream can complete.
+[[nodiscard]] Result<bool>
+ValidatePreparedAcBatchResultForEvidence(const PreparedAcBatch &batch,
+                                         const PreparedAcBatchResult &result);
+
 } // namespace ohmnivore::benchmarks
 
 #endif // OHMNIVORE_BENCHMARKS_PREPARED_AC_SESSION_H_

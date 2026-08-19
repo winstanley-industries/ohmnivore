@@ -1,5 +1,7 @@
 #include "cpp/benchmarks/prepared_ac_session.h"
 
+#include "cpp/src/prepared_ac_internal.h"
+
 #include <algorithm>
 #include <charconv>
 #include <cmath>
@@ -482,6 +484,12 @@ PrepareAcSessionCorner(const PreparedAcSessionCase &session_case,
         "prepared AC session corner does not match its declared shape");
   }
   return prepared;
+}
+
+Result<bool>
+ValidatePreparedAcBatchResultForEvidence(const PreparedAcBatch &batch,
+                                         const PreparedAcBatchResult &result) {
+  return internal::ValidatePreparedAcBatchResultForEvidence(batch, result);
 }
 
 } // namespace ohmnivore::benchmarks

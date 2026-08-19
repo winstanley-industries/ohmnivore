@@ -1364,9 +1364,9 @@ void ValidateResult(const PreparedAcBatch &batch,
                     PrefixSample *prefix, std::uint64_t *corner_lane_ns) {
   if (lane == ValidationLane::kCandidateRuntime) {
     const Clock::time_point runtime_start = Clock::now();
-    RequireOk(
-        ohmnivore::ValidatePreparedAcBatchResultForEvidence(batch, result),
-        "candidate-runtime validation failed");
+    RequireOk(ohmnivore::benchmarks::ValidatePreparedAcBatchResultForEvidence(
+                  batch, result),
+              "candidate-runtime validation failed");
     const std::uint64_t runtime_ns = ElapsedNanoseconds(runtime_start);
     prefix->runtime_validation_ns += runtime_ns;
     *corner_lane_ns += runtime_ns;

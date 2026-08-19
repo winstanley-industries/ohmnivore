@@ -1092,11 +1092,13 @@ GPU-02S reports two non-overlapping interpretations of the same correctly certif
   and evidence stream. This lane isolates technical solver potential only; it is not a production
   acceptance policy and cannot support dispatch without a later ADR.
 
-The evidence-only residual validator is named and documented as such, is not called by
+The evidence-only residual validator is named and documented as such and is exposed only by the
+test-only prepared-session support target, not the public `//cpp:core` API. It is not called by
 `ExecutePreparedAcBatch`, `SimulateAc`, CSV output, or fallback, and must reject every hostile
 envelope, association, dimension, non-finite, and excessive-residual class that can be rejected
 without an independent solve. Only full `ValidatePreparedAcBatchResult` remains an acceptance
-boundary.
+boundary. The public CPU KLU backend retains GPU-01's exact-batch symbolic-cache key; the
+structure-keyed cache exists only inside the benchmark-only persistent comparator.
 
 ### Session timing, sampling, and crossover reporting
 

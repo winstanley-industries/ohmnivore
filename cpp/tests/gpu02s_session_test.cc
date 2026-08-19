@@ -1,12 +1,15 @@
 #include "cpp/tests/google_test.h"
 
 #include <array>
+#include <complex>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <unistd.h>
 
@@ -188,7 +191,7 @@ TEST(Gpu02sSessionTest, RejectsMalformedOrAlteredSessionManifest) {
   ExpectMalformed(changed);
 }
 
-TEST(Gpu02sSessionTest, CpuComparatorReusesSymbolicAnalysisAcrossCorners) {
+TEST(Gpu02sSessionTest, PublicCpuAuthorityRetainsExactBatchCacheSemantics) {
   auto corpus = LoadPreparedAcSessionCorpus(CorpusPath());
   ASSERT_TRUE(corpus.ok()) << corpus.error().message;
   const PreparedAcSessionCase &item = corpus.value().cases.front();
@@ -199,8 +202,13 @@ TEST(Gpu02sSessionTest, CpuComparatorReusesSymbolicAnalysisAcrossCorners) {
 
   CpuKluPreparedAcBatchBackend backend;
   auto first_result = backend.Execute(first.value());
-  auto second_result = backend.Execute(second.value());
   ASSERT_TRUE(first_result.ok()) << first_result.error().message;
+  auto repeated_result = backend.Execute(first.value());
+  ASSERT_TRUE(repeated_result.ok()) << repeated_result.error().message;
+  EXPECT_EQ(backend.statistics().symbolic_analyses, 1U);
+  EXPECT_EQ(backend.statistics().solves, 2U * item.batch_size);
+
+  auto second_result = backend.Execute(second.value());
   ASSERT_TRUE(second_result.ok()) << second_result.error().message;
   auto first_valid =
       ValidatePreparedAcBatchResult(first.value(), first_result.value());
@@ -209,7 +217,48 @@ TEST(Gpu02sSessionTest, CpuComparatorReusesSymbolicAnalysisAcrossCorners) {
   ASSERT_TRUE(first_valid.ok()) << first_valid.error().message;
   ASSERT_TRUE(second_valid.ok()) << second_valid.error().message;
   EXPECT_EQ(backend.statistics().symbolic_analyses, 1U);
-  EXPECT_EQ(backend.statistics().solves, 2U * item.batch_size);
+  EXPECT_EQ(backend.statistics().solves, item.batch_size);
+}
+
+TEST(Gpu02sSessionTest, EvidenceValidatorIsTestOnlyAndFailsClosed) {
+  auto corpus = LoadPreparedAcSessionCorpus(CorpusPath());
+  ASSERT_TRUE(corpus.ok()) << corpus.error().message;
+  auto batch = PrepareAcSessionCorner(corpus.value().cases.front(), 0);
+  ASSERT_TRUE(batch.ok()) << batch.error().message;
+
+  CpuKluPreparedAcBatchBackend backend;
+  auto solved = backend.Execute(batch.value());
+  ASSERT_TRUE(solved.ok()) << solved.error().message;
+  auto runtime =
+      ValidatePreparedAcBatchResultForEvidence(batch.value(), solved.value());
+  ASSERT_TRUE(runtime.ok()) << runtime.error().message;
+
+  const auto expect_rejected = [&](PreparedAcBatchResult hostile) {
+    auto rejected =
+        ValidatePreparedAcBatchResultForEvidence(batch.value(), hostile);
+    ASSERT_FALSE(rejected.ok());
+  };
+
+  PreparedAcBatchResult hostile = solved.value();
+  hostile.batch_fingerprint = "v1-stale";
+  expect_rejected(std::move(hostile));
+
+  hostile = solved.value();
+  std::swap(hostile.members[0], hostile.members[1]);
+  expect_rejected(std::move(hostile));
+
+  hostile = solved.value();
+  hostile.members[0].solution.pop_back();
+  expect_rejected(std::move(hostile));
+
+  hostile = solved.value();
+  hostile.members[0].solution[0] = {std::numeric_limits<double>::quiet_NaN(),
+                                    0.0};
+  expect_rejected(std::move(hostile));
+
+  hostile = solved.value();
+  hostile.members[0].solution[0] += std::complex<double>{1.0, 0.0};
+  expect_rejected(std::move(hostile));
 }
 
 TEST(Gpu02sSessionTest, RejectsOutOfRangeCornerWithoutCompilation) {

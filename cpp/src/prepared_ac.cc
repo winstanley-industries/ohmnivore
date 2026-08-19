@@ -1,5 +1,7 @@
 #include "ohmnivore/prepared_ac.h"
 
+#include "prepared_ac_internal.h"
+
 #include <algorithm>
 #include <array>
 #include <bit>
@@ -595,9 +597,8 @@ ValidatePreparedAcBatchResult(const PreparedAcBatch &batch,
   return ValidatePreparedAcBatchResultImpl(batch, result, true);
 }
 
-Result<bool>
-ValidatePreparedAcBatchResultForEvidence(const PreparedAcBatch &batch,
-                                         const PreparedAcBatchResult &result) {
+Result<bool> internal::ValidatePreparedAcBatchResultForEvidence(
+    const PreparedAcBatch &batch, const PreparedAcBatchResult &result) {
   return ValidatePreparedAcBatchResultImpl(batch, result, false);
 }
 
@@ -616,7 +617,7 @@ CpuKluPreparedAcBatchBackend::Execute(const PreparedAcBatch &batch) {
       return Result<PreparedAcBatchResult>::Fail(valid.error().code,
                                                  valid.error().message);
     }
-    if (cached_structure_fingerprint_ != batch.structure.fingerprint ||
+    if (cached_batch_fingerprint_ != batch.batch_fingerprint ||
         factorization_ == nullptr) {
       auto first_matrix = MaterializePreparedAcMatrix(batch, 0);
       if (!first_matrix.ok()) {
@@ -629,7 +630,7 @@ CpuKluPreparedAcBatchBackend::Execute(const PreparedAcBatch &batch) {
                                                    analyzed.error().message);
       }
       factorization_ = analyzed.TakeValue();
-      cached_structure_fingerprint_ = batch.structure.fingerprint;
+      cached_batch_fingerprint_ = batch.batch_fingerprint;
     }
 
     PreparedAcBatchResult result = MakeResultEnvelope(batch);
