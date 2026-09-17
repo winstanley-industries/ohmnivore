@@ -1,1 +1,3 @@
-docs/evidence/emi01/run-*/** linguist-generated=true
+docs/evidence/emi01/run-*/** -text linguist-generated=true
+# Simulator/build logs preserve their original progress CRs and trailing spaces.
+docs/evidence/emi01/**/*.log -text -whitespace linguist-generated=true

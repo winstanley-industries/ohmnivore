@@ -1,0 +1,205 @@
+Warning: can't find the initialization file spinit.
+
+Note: No compatibility mode selected!
+
+
+Circuit: emi-01 v1 isolated pspice compatibility driver
+
+Note: gnd in a subcircuit is not set to 0 automatically
+
+Note: Compatibility modes selected: ps
+
+
+Circuit: emi-01 v1 double pulse
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+bus                                        400
+p1                                         400
+p                                          400
+sw                                         400
+drain                                      400
+d                                          400
+xlo.220                                     -3
+xlo.23                                      -3
+g                                           -3
+xlo.230                            4.74069e-10
+xlo.32                             4.74069e-10
+xlo.xm1.100                                400
+xlo.xm1.efvds_int1                         400
+xlo.xm1.101                           -3.02586
+xlo.xm1.efvgs_int1                    -3.02586
+xlo.xm1.102                           -403.026
+xlo.xm1.efvgd_int1                    -403.026
+xlo.xm1.g13_int1                             0
+xlo.xm1.105                                  0
+xlo.xm1.g14_int1                             0
+xlo.xm1.108                                  0
+xlo.xm1.48                                  -3
+xlo.xm1.12                                 400
+xlo.xm1.g41_int1                   5.51137e-07
+xlo.xm1.109                        5.51137e-07
+xlo.xm1.49                         4.74069e-10
+xlo.xm1.44                         4.74069e-10
+xlo.xm1.eibd2_int1                 5.51137e-07
+xlo.xm1.107                            1.30288
+xlo.xm1.ek2_int1                       1.30288
+xlo.xm1.106                             8.0916
+xlo.xm1.efb_int1                        8.0916
+xlo.xm1.103                            2.49946
+xlo.xm1.eremapvgs_int1                 2.49946
+xlo.xm1.104                            30.9171
+xlo.xm1.eremapvgd_int1                 30.9171
+xlo.xm1.efcond1_int1                         0
+xlo.xm1.efcond2_int1                         0
+xhi.220                                    397
+xhi.23                                     397
+gh                                         397
+xhi.230                                    400
+xhi.32                                     400
+xhi.xm1.100                        6.75612e-09
+xhi.xm1.efvds_int1                 6.75612e-09
+xhi.xm1.101                           -3.02586
+xhi.xm1.efvgs_int1                    -3.02586
+xhi.xm1.102                           -3.02586
+xhi.xm1.efvgd_int1                    -3.02586
+xhi.xm1.g13_int1                             0
+xhi.xm1.105                                  0
+xhi.xm1.g14_int1                             0
+xhi.xm1.108                                  0
+xhi.xm1.48                                 397
+xhi.xm1.12                                 400
+xhi.xm1.g41_int1                   1.90266e-14
+xhi.xm1.109                        1.90266e-14
+xhi.xm1.49                                 400
+xhi.xm1.44                                 400
+xhi.xm1.eibd2_int1                 1.90266e-14
+xhi.xm1.107                           0.889265
+xhi.xm1.ek2_int1                      0.889265
+xhi.xm1.106                        2.32465e-08
+xhi.xm1.efb_int1                   2.32465e-08
+xhi.xm1.103                            2.49946
+xhi.xm1.eremapvgs_int1                 2.49946
+xhi.xm1.104                            2.49946
+xhi.xm1.eremapvgd_int1                 2.49946
+xhi.xm1.efcond1_int1                         0
+xhi.xm1.efcond2_int1                         0
+ghdrive                                    397
+drive                                       -3
+b.xhi.xm1.befcond2#branch                    0
+b.xhi.xm1.befcond1#branch                    0
+b.xhi.xm1.beremapvgd#branch                  0
+b.xhi.xm1.beremapvgs#branch                  0
+b.xhi.xm1.befb#branch                        0
+b.xhi.xm1.bek2#branch                        0
+b.xhi.xm1.beibd2#branch                      0
+v.xhi.xm1.vds#branch                         0
+b.xhi.xm1.bg41#branch                        0
+v.xhi.xm1.vgd#branch                         0
+b.xhi.xm1.bg14#branch                        0
+b.xhi.xm1.bg13#branch                        0
+b.xhi.xm1.befvgd#branch                      0
+b.xhi.xm1.befvgs#branch                      0
+b.xhi.xm1.befvds#branch                      0
+b.xlo.xm1.befcond2#branch                    0
+b.xlo.xm1.befcond1#branch                    0
+b.xlo.xm1.beremapvgd#branch                  0
+b.xlo.xm1.beremapvgs#branch                  0
+b.xlo.xm1.befb#branch                        0
+b.xlo.xm1.bek2#branch                        0
+b.xlo.xm1.beibd2#branch                      0
+v.xlo.xm1.vds#branch                         0
+b.xlo.xm1.bg41#branch                        0
+v.xlo.xm1.vgd#branch                         0
+b.xlo.xm1.bg14#branch                        0
+b.xlo.xm1.bg13#branch                        0
+b.xlo.xm1.befvgd#branch                      0
+b.xlo.xm1.befvgs#branch                      0
+b.xlo.xm1.befvds#branch                      0
+l.xhi.ls#branch                    2.99549e-09
+l.xhi.lg#branch                    5.99999e-09
+l.xlo.ls#branch                   -9.48137e-07
+l.xlo.lg#branch                       4.06e-07
+lload#branch                       1.35093e-06
+lbus#branch                        1.35394e-06
+e.xhi.xm1.efcond2#branch                     0
+e.xhi.xm1.efcond1#branch                     0
+e.xhi.xm1.eremapvgd#branch                   0
+e.xhi.xm1.eremapvgs#branch                   0
+e.xhi.xm1.efb#branch                         0
+e.xhi.xm1.ek2#branch                         0
+e.xhi.xm1.eibd2#branch                       0
+e.xhi.xm1.efvgd#branch                       0
+e.xhi.xm1.efvgs#branch                       0
+e.xhi.xm1.efvds#branch                       0
+e.xlo.xm1.efcond2#branch                     0
+e.xlo.xm1.efcond1#branch                     0
+e.xlo.xm1.eremapvgd#branch                   0
+e.xlo.xm1.eremapvgs#branch                   0
+e.xlo.xm1.efb#branch                         0
+e.xlo.xm1.ek2#branch                         0
+e.xlo.xm1.eibd2#branch                       0
+e.xlo.xm1.efvgd#branch                       0
+e.xlo.xm1.efvgs#branch                       0
+e.xlo.xm1.efvds#branch                       0
+vgate#branch                          4.06e-07
+vhi#branch                         6.00004e-09
+vdrain#branch                      1.35414e-06
+vbus#branch                       -1.35394e-06
+
+ Reference value :  8.86288e-06 Reference value :  1.35900e-05
+No. of Data Rows : 15228
+binary raw file "waveform.raw"
+Total elapsed time (seconds) = 0.624 
+Total DRAM available = 63109.668 MB.
+DRAM currently available = 35851.625 MB.
+Maximum ngspice program size =   11.312 MB.
+Current ngspice program size =    7.750 MB.
+
+Shared ngspice pages =    5.754 MB.
+Text (code) pages =    6.738 MB.
+Stack = 0 bytes.
+Library pages =    2.887 MB.
+0 page faults, 2 vol + 1 invol = 3 context switches.
+
+Number of lines in the deck = 939
+Netlist loading time = 0.00084802
+Subckt and Param expansion time = 0.000529986
+Netlist parsing time = 0.000286373
+
+Nominal temperature = 27
+Operating temperature = 27
+Total iterations = 41217
+Transient iterations = 41212
+Circuit Equations = 133
+Circuit original non-zeroes = 308
+Circuit fill-in non-zeroes = 89
+Circuit total non-zeroes = 397
+Transient timepoints = 18516
+Accepted timepoints = 15228
+Rejected timepoints = 3288
+Total analysis time (seconds) = 0.621095
+Matrix load time = 0.27023
+Matrix synchronize time = 0
+Matrix reorder time = 5.1938E-05
+Matrix factor time = 0.0380145
+Matrix solve time = 0.0185875
+Transient analysis time = 0.620857
+Transient load time = 0.270173
+Transient sync time = 0
+Transient factor time = 0.0380072
+Transient solve time = 0.0185828
+Transient trunc time = 0.00991624
+Transient iterations for the last time point = 0
+AC analysis time = 0
+AC load time = 0
+AC sync time = 0
+AC factor time = 0
+AC solve time = 0
+ngspice-46 done
