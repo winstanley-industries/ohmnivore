@@ -160,6 +160,7 @@ checks += [
     for dt in manifest["dpt_sample_steps_s"][:2]
 ]
 assert len(checks) == 4 and all(x["pass"] for x in checks)
+assert json.loads(json.dumps({"dpt": metrics, "checks": checks}, allow_nan=False))
 for script in [
     path,
     Path("docs/evidence/emi01-v2/design/explore.py"),

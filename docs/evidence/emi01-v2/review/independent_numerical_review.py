@@ -627,7 +627,7 @@ def dpt_metrics(d, dt):
                     "polarity": polarity,
                     "peak_times_s": tt[p].tolist(),
                     "peak_amplitudes_v": wave[p].tolist(),
-                    "frequency_hz": 2 / (tt[p[2]] - tt[p[0]]),
+                    "frequency_hz": float(2 / (tt[p[2]] - tt[p[0]])),
                     "log_decrement": math.log(wave[p[0]] / wave[p[2]]) / 2,
                 }
             )
@@ -674,11 +674,19 @@ def dpt_refinement(label, a, b):
         else:
             limit = 2e-9 + 0.1 * abs(b[key])
         error = abs(a[key] - b[key])
-        metrics[key] = {"difference": error, "limit": limit, "pass": error <= limit}
+        metrics[key] = {
+            "difference": error,
+            "limit": limit,
+            "pass": bool(error <= limit),
+        }
     for key, factor in [("frequency_hz", 0.1), ("log_decrement", 0.2)]:
         error = abs(a["ringing"][key] - b["ringing"][key])
         limit = factor * abs(b["ringing"][key])
-        metrics[key] = {"difference": error, "limit": limit, "pass": error <= limit}
+        metrics[key] = {
+            "difference": error,
+            "limit": limit,
+            "pass": bool(error <= limit),
+        }
     return {
         "id": label,
         "metrics": metrics,

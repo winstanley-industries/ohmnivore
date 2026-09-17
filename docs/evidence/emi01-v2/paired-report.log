@@ -1,0 +1,21 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //reference/emi01:report (0 packages loaded, 0 targets configured)
+Analyzing: target //reference/emi01:report (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //reference/emi01:report (0 packages loaded, 0 targets configured).
+INFO: Found 1 target...
+Target //reference/emi01:report up-to-date:
+  bazel-bin/reference/emi01/report
+INFO: Elapsed time: 0.243s, Critical Path: 0.00s
+INFO: 1 process: 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: bazel-bin/reference/emi01/report <args omitted>
+/home/adam/code/ohmnivore/docs/evidence/emi01-v2/cpu-budget.json

@@ -1,0 +1,20 @@
+{
+  "schema": "emi01-v2-retained-invocation-protocol-v1",
+  "source_commit": "8e45b4232741b82ec476fb6904b80f774eaf31d0",
+  "manifest_sha256": "ec68ddb48866d8127fbdd0ecf411dfc326b6c7bc7929c10429e40edd9cd2c81f",
+  "ngspice_sha256": "fa5eaf1ed5ff33be4f250d6241f25afcacc9a5d7e56750d705816561f18b8eaa",
+  "runs": [
+    "run-1",
+    "run-2"
+  ],
+  "run_order": "sequential; both complete before raw audits, independent FFT review, builds, compression, or pushes",
+  "counts_per_invocation": 102,
+  "warmups_per_worker_count": 1,
+  "measured_samples_per_worker_count": 3,
+  "worker_counts": [
+    1,
+    4
+  ],
+  "command_time_boundary": "External /usr/bin/time includes Bazel entry and build check; internal invocation and study timings exclude build/fetch and include preparation, scheduling, simulation, validation, spectral processing and required closed-file output without fsync.",
+  "validation_commit": "8e45b4232741b82ec476fb6904b80f774eaf31d0"
+}

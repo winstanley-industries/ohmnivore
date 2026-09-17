@@ -1,0 +1,104 @@
+{
+  "cpu_budget_sha256": "45f4ce74bedfff5444ecd35cf2d9eaad6e8593a25a16bb880b2e67cf8f648170",
+  "implementation_sha256": "1b36d9ff176c75a745df0ccdfb63da9959c6b797ae3d9a387cefcc864a25c7b4",
+  "runs": [
+    {
+      "modes": {
+        "1": {
+          "cleanup_hashing_unclassified_s": 0.736014039022848,
+          "completion_latency_s": {
+            "max": 613.4981409199827,
+            "median": 306.23558593698544,
+            "min": 48.548815843998455,
+            "p95": 611.7003281849902
+          },
+          "median_counterfactual_wall_s": {
+            "10": 67.62913569000666,
+            "2": 309.45377677048964,
+            "4": 158.3123495137479,
+            "infinite": 7.283726110006683
+          },
+          "queue_s": {
+            "max": 537.2079819589853,
+            "median": 229.7886738720117,
+            "min": 0.06489406200125813,
+            "p95": 535.3550021740084
+          }
+        },
+        "4": {
+          "cleanup_hashing_unclassified_s": 0.727097388880793,
+          "completion_latency_s": {
+            "max": 208.23648987797787,
+            "median": 131.90019850200042,
+            "min": 50.43904350697994,
+            "p95": 207.48482279101154
+          },
+          "median_counterfactual_wall_s": {
+            "10": 22.989703135902527,
+            "2": 105.0067129979725,
+            "4": 53.74561004147108,
+            "infinite": 2.484507084969664
+          },
+          "queue_s": {
+            "max": 132.4352203439921,
+            "median": 50.52617126799305,
+            "min": 0.06316320699988864,
+            "p95": 131.9215053480002
+          }
+        }
+      },
+      "run": 1,
+      "terminal_sha256": "82bde66cfc0d46a7fefb028f4a2063463d15a4c726c0de10bbbc0275118c37f2"
+    },
+    {
+      "modes": {
+        "1": {
+          "cleanup_hashing_unclassified_s": 0.6945452099607792,
+          "completion_latency_s": {
+            "max": 614.2524874059891,
+            "median": 307.416298199998,
+            "min": 47.69130906401551,
+            "p95": 614.179519332014
+          },
+          "median_counterfactual_wall_s": {
+            "10": 67.89982721029955,
+            "2": 310.7071551754925,
+            "4": 158.95257519724692,
+            "infinite": 7.197995219001314
+          },
+          "queue_s": {
+            "max": 537.7071152789867,
+            "median": 230.73732893099077,
+            "min": 0.06143761600833386,
+            "p95": 537.1969869849854
+          }
+        },
+        "4": {
+          "cleanup_hashing_unclassified_s": 0.7400076211779378,
+          "completion_latency_s": {
+            "max": 208.12370682798792,
+            "median": 131.05465524402098,
+            "min": 50.76760615198873,
+            "p95": 207.60805679898476
+          },
+          "median_counterfactual_wall_s": {
+            "10": 23.03743955132086,
+            "2": 105.08950811251998,
+            "4": 53.80696526177053,
+            "infinite": 2.50412079403759
+          },
+          "queue_s": {
+            "max": 131.26965787800145,
+            "median": 50.91181668598438,
+            "min": 0.06355486300890334,
+            "p95": 131.07296319797751
+          }
+        }
+      },
+      "run": 2,
+      "terminal_sha256": "ec4f149deabc21bd24b3d8052684a0162689c2dc4b017f2a38003c273478df9f"
+    }
+  ],
+  "schema": "emi01-v2-delivery-supplement-v1",
+  "source": "Audited terminal/job records and paired cpu-budget.json; empirical nearest-rank P95, 27 measured jobs per mode."
+}

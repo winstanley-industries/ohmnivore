@@ -1,0 +1,85 @@
+{
+  "artifacts": {
+    "cpu-budget.json": "45f4ce74bedfff5444ecd35cf2d9eaad6e8593a25a16bb880b2e67cf8f648170",
+    "delivery-supplement.json": "9ffa5b6055499d4005f0630270a1df94f94008e4abd4936a705b775030e1bf81",
+    "paired-report.log": "d5147d56eaf7a7f01c65fad5d9d1d816bd1ade624bb7bb2ceb4a0ecb50ed87a6",
+    "review-independent-delivery.md": "012488628831e586d165677d5097da4e9da3627a9737a350053e346822990feb",
+    "review-numerical.md": "9bc1c5a676e17b227f4d47d2b313459e4013cc28a2981d22dd64e7cda515b9a6",
+    "review/delivery_supplement.py": "1b36d9ff176c75a745df0ccdfb63da9959c6b797ae3d9a387cefcc864a25c7b4",
+    "review/delivery_supplement_test.py": "5c95e609883c05528b45195998fe30bf3198c1131e084c53d02468bd9b4f2461",
+    "review/helper-checks-final.json": "a6e81da9360022516248ee63cf7baae8e1619f4eefd4ac2ae725d648fd68be19",
+    "review/helper-checks-final.log": "88443826022bd50aee70edfa489be5f0d31cb60668849df4bb0f4e003cd760ca",
+    "review/independent-accounting-execution.json": "b184138dfa7146342e6d9a267847359a38e4f1b8cdf34f8a72556375d38cc83d",
+    "review/independent-accounting-review.json": "9bcc2b38637feb8785d9eefe24f981a9ca0003791003519cb3e25c85f7b405e7",
+    "review/independent_accounting_review.py": "a4c1cbab26755a4e6cef2e4a98d1c9b3de119572737af168abb5822c513e9b6f",
+    "review/paired-runtime-identities.json": "9d949d72608fa9313f5734c76c8d5a9ec57e7744dc9eb795351b356b5b70ad74",
+    "review/paired-runtime-identities.log": "19bd608449d810f8c52c943682b8236c8d56c8ed717b4a012f93c8766ce40209",
+    "review/retained-run-1-numerical.json": "9cf316206196a32d92fce873b9e02fe3189702e1cbfda302c3493f66b4cf1283",
+    "review/retained-run-2-numerical.json": "2d9151ad2b2a6eeaafda3b51518389d42ece3097fc7c53b5923784175302b88c",
+    "review/runtime_identity_audit.py": "be185903e07e39cbd971c8ce74dc8cdc962e6016706568669ddd5cfac6e62d8d",
+    "validation/reporting-helpers-format.log": "8dcea382264e9f84a0982f8b7f1369f243a2970b5f7c526c63b9b63d9d0c4dbd",
+    "validation/reporting-helpers-lint.log": "9e705f89d602039398d2eb106f11233935a44ff8ed9e64a12680f37951ba241a",
+    "validation/reporting-helpers-optimized-test.log": "888a0c0ed615e57d32cf72be501b0c355f33b8613c81dfdaa99db33d7959487e",
+    "validation/reporting-helpers-test.log": "888a0c0ed615e57d32cf72be501b0c355f33b8613c81dfdaa99db33d7959487e"
+  },
+  "boundary": "Post-measurement full paired audit, independent reviews, reporting helper tests and protected-scope closure. Canonical source checks are separately retained in checks.json; their bound sources remain unchanged. No retained timing is replaced by these checks.",
+  "canonical_paired_audit_accepted": true,
+  "checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "pass": true,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--quiet",
+        "17519fc",
+        "--",
+        "cpp",
+        "cuda",
+        "src",
+        "tests",
+        "acceptance",
+        "Cargo.toml",
+        "Cargo.lock"
+      ],
+      "exit_code": 0,
+      "pass": true,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--quiet",
+        "c621e5c",
+        "--",
+        "docs/evidence/emi01",
+        "reference/emi01/manifest.json"
+      ],
+      "exit_code": 0,
+      "pass": true,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "failures": 0,
+  "frozen_implementation_commit": "8e45b4232741b82ec476fb6904b80f774eaf31d0",
+  "pass": true,
+  "reporting_helper_tests": {
+    "normal": 5,
+    "optimized": 5,
+    "passed": true
+  },
+  "schema": "emi01-v2-final-delivery-checks-v1",
+  "validated_jobs": 204
+}
