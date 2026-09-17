@@ -482,3 +482,85 @@ The raw-file/parser limit is **512 MiB**, needed because heavy's finest uniform 
 requires at least 1.28 million points with 27 saved vectors (about 277 MB). The two-million-point,
 1 GiB oracle address-space, 110 s CPU and 120 s wall limits remain unchanged. This is a declared
 accuracy/resource tradeoff, not a speedup or floor relaxation.
+
+### EMI-01 follow-up: passing and boundary reference design protocol
+
+The 2026-09-17 follow-up authorizes strengthening the external reference and merging its PR
+after validation. The original three-candidate evidence remains historical and byte-preserved.
+No EMI-02 production implementation is authorized.
+
+Before selecting the additional finite cases, explicitly labeled exploratory simulations may
+vary only filter inductance, capacitance, winding/core geometry and passive filter damping.
+Keep the same SiC model, full coupled inverter/load/harness/chassis, three operating corners,
+initialization, 200 us interval, current ports, spectral processing, 90 dBuA research mask,
+6 dB reserve and all physical limits. No reduced bus, disconnected load, altered measurement
+port, relaxed emission/stress threshold or ideal-switch substitute may create a pass.
+Explore a bounded set of engineering sensitivity cases, retaining the attempted parameter
+table and diagnostic outcomes separately from final qualification/performance evidence.
+
+The retained follow-up must freeze a versioned exact candidate set before measurements, include
+at least one candidate passing every corner and a distinct boundary candidate whose worst
+research-mask margin lies in [5,7] dB while passing every physical screen. A failing-side boundary
+is preferred to exercise rejection alongside acceptance. Both must satisfy unchanged numerical
+qualification and settling gates; near-boundary means numerical predicted classification under
+this assumed research model, not a claim robust to unmeasured hardware variation. Preserve a
+clearly failing original case in the finite study. Record mass under the same physical design
+model, with any changed damping resistance and mass accounted explicitly. Freeze exact component
+values, identities, integration refinements and counts in a further contract entry before the
+two complete retained follow-up invocations. Original results must not be relabeled as current.
+
+#### Initial exact v2 contract, before harness extension and retained evidence
+
+The explicit selector is `--reference-version=emi01-v2`; the default remains `emi01-v1`.
+The old `manifest.json` bytes stay unchanged; `manifest-v2.json` names this finite replacement
+study. Both source manifests are hash-bound. Every new terminal/metadata record, deck title,
+and performance report identifies its selected version. Unknown versions, mixed-version report
+pairs or noncanonical manifests fail closed. Historical v1 evidence is audited from detached
+commit `c621e5cfcedf2de934c8046595dbb9f7aa59e607` against absolute evidence paths, preserving its
+strict source-identity check; running new source code must not claim that old hashes still match.
+
+The ordered candidates are `light` (unchanged v1 failing control), `boundary`, and `reference`.
+The latter two share per-conductor DM inductance 330 uH, per-winding CM inductance 1 mH,
+Y capacitance 47 nF, DM geometry `[1200,160,48,135]`, and CM geometry `[800,140,40,110]` in
+the same `(Ae mm^2, le mm, turns, mean turn length mm)` convention. X capacitance is initially
+85 nF for `boundary` and 1 uF for `reference`. Geometry changes feed the same mass, copper
+resistance and flux equations; they do not establish manufacturability or core-loss behavior.
+Y damping remains exactly 21.8 ohm plus 0.2 ohm ESR, with the original mass/rating and loss
+accounting. Every other circuit element, source, model and corner is unchanged.
+
+Use integration maxima 0.625/0.3125/0.15625 ns for both new cases and the original
+2.5/1.25/0.625 ns for `light`. All output grids, spectral and waveform tolerances, DPT settings,
+settling intervals, physical limits and resource budgets remain unchanged. Qualification is
+three DPT plus 27 full-network refinement solves and 40 checks. Each full invocation then runs
+one warmup plus three measured nine-job studies with one and four workers: 102 records total.
+Retain two complete independent invocations. Exploratory design/refinement runs and their failed
+gates are separate diagnostics; they cannot substitute for either retained invocation.
+
+In addition to numerical qualification, final v2 acceptance requires `reference` to pass all
+corners and `boundary` to pass every physical screen, with minimum research margin in inclusive
+[5,7] dB over every corner, four current observables and 986 frequency bins. The predicted
+feasibility threshold remains exactly >=6 dB. Report the worst corner, observable and frequency,
+distance from 6 dB, margins at all refinements, and any classification changes. Prefer a boundary
+below 6 dB with stable refinement classification; do not infer robustness from proximity alone.
+Any necessary pre-evidence parameter/refinement revision must be recorded explicitly here before
+retained measurements. No threshold or model changes may substitute for a valid result.
+
+Rank only complete qualified candidates by computed mass, with candidate identity breaking an
+exact mass tie; execution order remains the frozen manifest order. Failures or missing corners
+exclude a candidate. A private read/execute-only snapshot of the checksum-verified canonical
+ngspice executable is made inside invocation preparation, rehashed and used by all its workers.
+Charge that preparation to the full invocation; record the actual binary identity. Do not rebuild
+or run competing studies during either retained performance invocation. New budgets describe only
+v2; v1 results remain tied to their original inputs and executable.
+
+The pre-evidence 85 nF boundary probe gave 5.9838 dB in the fast corner at 0.625 ns, only
+0.0162 dB below the 6 dB threshold. Freeze **80 nF** instead to target a failing-side boundary
+with a clearer numerical separation, retaining 330 uH and every other declared value. This is
+an explicit capacitor design change, not a moved mask or relaxed acceptance gate. Its exact
+all-corner margins and classification at all refinements must be recorded before acceptance.
+
+The enlarged geometry keeps the original assumed 10 pF per-CM-winding capacitance and 0.995
+coupling; these parasitics are not derived from winding geometry. DM self-capacitance is omitted.
+The equivalent DM gap is about 10.53 mm, with no fringing or winding-window/fill validation.
+These limits remain explicit: a v2 pass is a numerically qualified result under the declared
+hypothetical model and screens, not an optimized or manufacturable 3.8 kg hardware design.

@@ -1,0 +1,182 @@
+{
+  "schema": "emi01-v2",
+  "model": "MSC040SMA120B",
+  "model_archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+  "candidates": [
+    {
+      "id": "light",
+      "ldm_h": 1e-05,
+      "lcm_h": 0.0001,
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ]
+    },
+    {
+      "id": "boundary",
+      "ldm_h": 0.00033,
+      "lcm_h": 0.001,
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ]
+    },
+    {
+      "id": "reference",
+      "ldm_h": 0.00033,
+      "lcm_h": 0.001,
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ]
+    }
+  ],
+  "corners": [
+    {
+      "id": "nominal",
+      "bus_v": 400,
+      "tj_c": 27,
+      "l_scale": 1,
+      "c_scale": 1,
+      "stray_scale": 1,
+      "rg_scale": 1
+    },
+    {
+      "id": "fast_low_lc",
+      "bus_v": 440,
+      "tj_c": 27,
+      "l_scale": 0.9,
+      "c_scale": 0.9,
+      "stray_scale": 1.2,
+      "rg_scale": 0.8
+    },
+    {
+      "id": "hot_high_c",
+      "bus_v": 360,
+      "tj_c": 125,
+      "l_scale": 1.1,
+      "c_scale": 1.1,
+      "stray_scale": 1.2,
+      "rg_scale": 1.2
+    }
+  ],
+  "ensemble_max_steps_s": [
+    2.5e-09,
+    1.25e-09,
+    6.25e-10
+  ],
+  "ensemble_sample_steps_s": [
+    5e-09,
+    2.5e-09,
+    1.25e-09
+  ],
+  "dpt_max_steps_s": [
+    2e-09,
+    1e-09,
+    5e-10
+  ],
+  "dpt_sample_steps_s": [
+    1e-09,
+    5e-10,
+    2.5e-10
+  ],
+  "observation_s": [
+    0.0001,
+    0.0002
+  ],
+  "band_hz": [
+    150000,
+    10000000
+  ],
+  "research_mask_dbua": 90,
+  "required_margin_db": 6,
+  "workers": [
+    1,
+    4
+  ],
+  "warmups": 1,
+  "samples": 3,
+  "qualification_jobs": 30,
+  "expected_jobs": 102,
+  "limits": {
+    "wall_s": 120,
+    "cpu_s": 110,
+    "address_bytes": 1073741824,
+    "file_bytes": 536870912,
+    "raw_points": 2000000
+  },
+  "detector": "maximum periodic-Hann single-bin RMS-equivalent tone; no compliance claim",
+  "initialization": "DC operating point; no UIC; fixed model junction temperature",
+  "retries": 0,
+  "y_series_damping_ohm": 21.8,
+  "damping_resistor_mass_kg": 0.005,
+  "damping_resistor_rated_w": 15,
+  "damping_resistor_limit_w": 12,
+  "load_winding_parallel_loss_ohm": 100,
+  "numerical_options": {
+    "reltol": 1e-05,
+    "abstol_a": 1e-09,
+    "vntol_v": 1e-07,
+    "chgtol_c": 1e-16,
+    "method": "gear",
+    "maxord": 2,
+    "itl1": 300,
+    "itl4": 100
+  },
+  "spectral_accuracy": {
+    "floor_a": 1e-05,
+    "above_floor_db": 1,
+    "below_floor_absolute_a": 1e-06
+  },
+  "candidate_max_steps_s": {
+    "boundary": [
+      6.25e-10,
+      3.125e-10,
+      1.5625e-10
+    ],
+    "reference": [
+      6.25e-10,
+      3.125e-10,
+      1.5625e-10
+    ]
+  },
+  "reference_case_gates": {
+    "passing_candidate": "reference",
+    "boundary_candidate": "boundary",
+    "boundary_margin_db": [
+      5,
+      7
+    ],
+    "boundary_requires_all_physical_screens": true
+  }
+}
