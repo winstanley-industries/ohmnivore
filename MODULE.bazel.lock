@@ -304,7 +304,7 @@
     "@@rules_cuda+//cuda:extensions.bzl%toolchain": {
       "general": {
         "bzlTransitiveDigest": "VwIWEj8D73DorVwNuEHsDY+BjUiDJaPiJ89rsxxHpT4=",
-        "usagesDigest": "4o7PeX9H8VnW6oSpOXh95JWfHa8Psm1l6u/b2UEJOow=",
+        "usagesDigest": "bCMpCn8odJqo8nnHLRwCqBAIXLi296WX+Fp+1nNLEiU=",
         "recordedInputs": [
           "REPO_MAPPING:bazel_features+,bazel_features_globals bazel_features++version_extension+bazel_features_globals",
           "REPO_MAPPING:bazel_features+,bazel_features_version bazel_features++version_extension+bazel_features_version",
@@ -331,6 +331,19 @@
               "sha256": "ed845eae8c1767706b6ee91e40c608a03f6f633551a849b63f7346d32d73ee60",
               "strip_prefix": "cuda_cccl-linux-x86_64-13.0.85-archive",
               "version": "13.0.85"
+            }
+          },
+          "cuda_cublas_v13.1.0.3": {
+            "repoRuleId": "@@rules_cuda+//cuda/private:repositories.bzl%cuda_component",
+            "attributes": {
+              "component_name": "cublas",
+              "descriptive_name": "CUDA cuBLAS",
+              "urls": [
+                "https://developer.download.nvidia.com/compute/cuda/redist/libcublas/linux-x86_64/libcublas-linux-x86_64-13.1.0.3-archive.tar.xz"
+              ],
+              "sha256": "88bc951efd906032a371153ca61975e0d9c4761e4012169169a6b3a47931606e",
+              "strip_prefix": "libcublas-linux-x86_64-13.1.0.3-archive",
+              "version": "13.1.0.3"
             }
           },
           "cuda_crt_v13.0.88": {
@@ -403,6 +416,7 @@
             "attributes": {
               "components_mapping": {
                 "cccl": "@cuda_cccl_v13.0.85",
+                "cublas": "@cuda_cublas_v13.1.0.3",
                 "crt": "@cuda_crt_v13.0.88",
                 "culibos": "@cuda_culibos_v13.0.85",
                 "cudart": "@cuda_cudart_v13.0.96",

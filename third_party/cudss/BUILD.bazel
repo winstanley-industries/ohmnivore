@@ -1,0 +1,46 @@
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+exports_files([
+    "BUILD.bazel",
+    "BUILD.cudss.bazel",
+    "PROVENANCE.md",
+])
+
+filegroup(
+    name = "cuda_static_licenses",
+    srcs = [
+        "@cuda//:cublas_license",
+        "@cuda//:cudart_license",
+        "@cuda//:culibos_license",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cublas_static_archive",
+    alwayslink = True,
+    static_library = "@@rules_cuda++toolchain+cuda_cublas_v13.1.0.3//:cublas/lib/libcublas_static.a",
+)
+
+cc_import(
+    name = "cublas_lt_static_archive",
+    alwayslink = True,
+    static_library = "@@rules_cuda++toolchain+cuda_cublas_v13.1.0.3//:cublas/lib/libcublasLt_static.a",
+)
+
+cc_library(
+    name = "cublas_static",
+    linkopts = [
+        "-ldl",
+        "-lpthread",
+        "-lrt",
+    ],
+    visibility = ["//cuda:__pkg__"],
+    deps = [
+        ":cublas_lt_static_archive",
+        ":cublas_static_archive",
+        "@cuda//:cublas_headers",
+        "@cuda//:culibos_a",
+    ],
+)

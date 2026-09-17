@@ -20,6 +20,7 @@ build:ubsan --@llvm//config:ubsan=True
 build:cuda --@rules_cuda//cuda:enable=True
 build:cuda --@rules_cuda//cuda:compiler=nvcc
 build:cuda --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120
+build:cuda --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static
 build:cuda --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain
 build:cuda --linkopt=-static-libstdc++
 build:cuda --linkopt=-static-libgcc

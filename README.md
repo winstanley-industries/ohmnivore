@@ -9,7 +9,7 @@ Ohmnivore is migrating from its original Rust/wgpu prototype to a C++20 core wit
 GPU backend. The accepted rationale, invariants, and phased plan are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md).
 
-The C++ GPU-01 path preserves deterministic linear DC, AC, and transient analysis plus bounded
+The C++ path preserves deterministic linear DC, AC, and transient analysis plus bounded
 nonlinear diode DC operating-point and memoryless-diode transient analysis and strict BJT DC
 operating-point analysis on the production FP64 CPU sparse-direct correctness path. It also adds
 an explicit prepared linear-AC evidence boundary without changing ordinary simulation. It
@@ -62,16 +62,29 @@ provides:
 - a manual CPU-only evidence target containing the deterministic serial KLU authority and an
   isolated, solve-counted parallel-host KLU comparator with complete cold/prepared timing, raw
   identities/metadata, per-sample child-process memory, and a terminal completeness record;
+- one manual native-complex-FP64 CUDA prepared-AC executor using checksum-pinned static cuDSS and
+  cuBLAS, with one full native uniform batch per factor/solve phase, immutable structure
+  upload/reuse, CPU KLU certification, hostile-failure coverage, explicit full-batch fallback,
+  checked owner-thread teardown, and no ordinary simulator routing;
+- two complete GPU-02 replay-v1 evidence invocations comparing cold/prepared CUDA with both serial
+  and parallel-host KLU; native batching improved prepared factor/solve device time by 2.5x--22.8x
+  over the preserved per-member diagnostic, but fresh-process context initialization and mandatory
+  CPU certification still leave every frozen timing class ineligible, so this is a correct negative
+  experiment rather than a production speedup claim or dispatch authorization;
+- a bounded GPU-02S persistent-session experiment using compiler-derived 64--2,048 point linear-AC
+  sweeps, same-structure value/RHS refresh without structure re-upload or re-analysis, persistent
+  CPU and CUDA owners, separate inline-certified and candidate-runtime lanes, and both honest
+  fresh-session and long-lived-process evidence; and
 - a checksum-pinned Bazel-built ngspice 46 acceptance harness for representative linear DC, AC,
   and transient circuits plus bounded forward-biased diode DC, memoryless-diode transient, and BJT
   DC fixtures; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
 MOSFETs, BJT transient/charge/AC/noise/temperature behavior, and diode AC/charge/noise/temperature
-behavior have not yet been ported. CUDA circuit kernels or solver dispatch, mixed precision, and
-distributed solving are also absent. GPU-01 makes no GPU performance claim and does not alter the
-ordinary single-thread CPU execution path. Bare `.DC` is an operating-point request; DC source
-sweeps are not executed.
+behavior have not yet been ported. Ordinary CUDA solver dispatch, CUDA device-model kernels, mixed
+precision, and distributed solving are also absent. GPU-02 does not alter the ordinary
+single-thread CPU execution path or make a production performance claim. Bare `.DC` is an
+operating-point request; DC source sweeps are not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
 accepted. The differential claim is limited to the representative linear fixtures, one diode DC
@@ -82,14 +95,16 @@ storage, numerical, license, and reproducibility details are recorded in
 
 ## Post-Phase 3C roadmap
 
-Post-Phase 3C work was split into three bounded epics. GPU-01, the backend-neutral
-prepared-workload and evidence foundation, is complete. Deterministic FP64 CPU MOSFET DC authority
-(`NL-04`) and the native-FP64 CUDA batched-AC vertical slice (`GPU-02`) have not started. GPU-02
-depends on GPU-01; MOSFET DC is independent of batched linear AC but is required before any later
+Post-Phase 3C work was split into three bounded epics. GPU-01, the backend-neutral prepared-workload
+and evidence foundation, and GPU-02, its opt-in native-FP64 CUDA experiment, are complete. GPU-02
+now uses cuDSS's native same-pattern uniform batch; it did not meet the frozen timing gate, and
+GPU-02S separately tests large repeated sweeps with persistent CPU/CUDA ownership without changing
+that result or production routing. Automatic dispatch remains unauthorized. Deterministic FP64 CPU
+MOSFET DC authority (`NL-04`) has not started. MOSFET DC is independent of batched linear AC but is required before any later
 MOSFET/CMOS CUDA work. The frozen performance thesis, parallel CPU comparison, full timing
-boundary, pre-CUDA thresholds, scope exclusions, and dependency details are recorded in
+boundary, thresholds, exclusions, and dependency details are recorded in
 [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md) and
-[the C++/CUDA roadmap](docs/roadmap.md). GPU-01 does not authorize either downstream epic.
+[the C++/CUDA roadmap](docs/roadmap.md). Neither completed GPU epic authorizes downstream work.
 
 ## Build and test the C++ path
 
@@ -127,6 +142,7 @@ Run the opt-in CUDA smoke test on the reference NVIDIA platform:
 
 ```sh
 bazel test --config=cuda //:cuda_smoke_test
+bazel test --config=cuda //:gpu02_cuda_test
 ```
 
 See [Building Ohmnivore](docs/BUILDING.md) for sanitizer, lockfile, and hermeticity details.

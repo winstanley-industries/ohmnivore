@@ -5,6 +5,41 @@ load(":hermeticity.bzl", "solver_cc_boundary_manifest")
 
 package(default_visibility = ["//visibility:private"])
 
+# GPU-02 reuses the frozen GPU-01 evidence implementation under a CUDA-only
+# compile definition; ordinary CPU benchmark behavior remains unchanged.
+exports_files(
+    [
+        "BUILD.bazel",
+        "benchmarks/prepared_ac_replay.cc",
+        "benchmarks/prepared_ac_replay.h",
+        "benchmarks/prepared_ac_replay_benchmark.cc",
+        "benchmarks/prepared_ac_session.cc",
+        "benchmarks/prepared_ac_session.h",
+        "include/ohmnivore/compiler.h",
+        "include/ohmnivore/ir.h",
+        "include/ohmnivore/nonlinear.h",
+        "include/ohmnivore/parser.h",
+        "include/ohmnivore/prepared_ac.h",
+        "include/ohmnivore/simulator.h",
+        "include/ohmnivore/solver.h",
+        "include/ohmnivore/sparse.h",
+        "include/ohmnivore/status.h",
+        "include/ohmnivore/transient.h",
+        "include/ohmnivore/waveform.h",
+        "src/compiler.cc",
+        "src/nonlinear.cc",
+        "src/nonlinear_internal.h",
+        "src/parser.cc",
+        "src/prepared_ac.cc",
+        "src/prepared_ac_internal.h",
+        "src/simulator.cc",
+        "src/solver.cc",
+        "src/transient.cc",
+        "src/waveform.cc",
+    ],
+    visibility = ["//cuda:__pkg__"],
+)
+
 OHMNIVORE_COPTS = [
     "-Wall",
     "-Werror",
@@ -20,6 +55,7 @@ cc_library(
         "src/nonlinear_internal.h",
         "src/parser.cc",
         "src/prepared_ac.cc",
+        "src/prepared_ac_internal.h",
         "src/simulator.cc",
         "src/solver.cc",
         "src/transient.cc",
@@ -238,7 +274,39 @@ cc_library(
     srcs = ["benchmarks/prepared_ac_replay.cc"],
     hdrs = ["benchmarks/prepared_ac_replay.h"],
     copts = OHMNIVORE_COPTS,
+    visibility = ["//cuda:__pkg__"],
     deps = [":core"],
+)
+
+cc_library(
+    name = "prepared_ac_session",
+    testonly = True,
+    srcs = [
+        "benchmarks/prepared_ac_session.cc",
+        "src/prepared_ac_internal.h",
+    ],
+    hdrs = ["benchmarks/prepared_ac_session.h"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core"],
+)
+
+cc_test(
+    name = "gpu02s_session_test",
+    size = "large",
+    srcs = [
+        "tests/google_test.h",
+        "tests/gpu02s_session_test.cc",
+    ],
+    args = ["$(rootpath //replays/prepared_ac/session_v1:corpus.csv)"],
+    copts = OHMNIVORE_COPTS,
+    data = ["//replays/prepared_ac/session_v1:corpus.csv"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        ":prepared_ac_session",
+        "@googletest//:gtest_main",
+    ],
 )
 
 cc_test(
