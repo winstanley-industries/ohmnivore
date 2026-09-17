@@ -28,6 +28,34 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.3", dev_dependency = Tr
 bazel_dep(name = "ruff_prebuilt", version = "0.15.19.1", dev_dependency = True, repo_name = "ruff")
 bazel_dep(name = "rules_shellcheck", version = "0.6.3", dev_dependency = True)
 
+# EMI-01 reference tooling only: a checksum-pinned interpreter and binary NumPy
+# wheel. Neither dependency is part of the production C++ simulator.
+bazel_dep(name = "rules_python", version = "2.3.3", dev_dependency = True)
+bazel_dep(name = "zlib", version = "1.3.1.bcr.5", dev_dependency = True)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
+python.defaults(python_version = "3.12.13")
+python.toolchain(python_version = "3.12.13")
+use_repo(python, "python_3_12_13")
+
+emi01_pip = use_extension(
+    "@rules_python//python/extensions:pip.bzl",
+    "pip",
+    dev_dependency = True,
+)
+emi01_pip.parse(
+    download_only = True,
+    extra_pip_args = [
+        "--require-hashes",
+        "--only-binary=:all:",
+    ],
+    hub_name = "emi01_pypi",
+    python_version = "3.12.13",
+    requirements_lock = "//reference/emi01:requirements.txt",
+    target_platforms = ["linux_x86_64"],
+)
+use_repo(emi01_pip, "emi01_pypi")
+
 register_toolchains("@llvm//toolchain:all")
 
 # The selected CUDA redistributables are checksum verified. The build never
@@ -118,4 +146,12 @@ register_toolchains(
     "//third_party/ngspice:fail_automake_toolchain",
     "//third_party/ngspice:fail_m4_toolchain",
     "//third_party/ngspice:fail_pkgconfig_toolchain",
+)
+
+# EMI-01 evaluation input is fetched from its vendor, never redistributed here.
+http_file(
+    name = "emi01_microchip_model",
+    downloaded_file_path = "model.zip",
+    sha256 = "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    urls = ["https://ww1.microchip.com/downloads/aemDocuments/documents/sic/ProductDocuments/BoardDesignFiles/1200V-SMA-SiC-MOSFET-SPICE-Models.zip"],
 )

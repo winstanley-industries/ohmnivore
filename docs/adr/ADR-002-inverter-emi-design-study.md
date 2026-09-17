@@ -284,13 +284,14 @@ Study jobs contain four SiC devices in a two-leg full bridge. Both legs switch a
 A on from 1 us for 14.8 us and high-side B on from 1 us for 4.8 us; low-side gates complement them
 with 200 ns deadtime and 10 ns source edges. This is a fixed positive modulation operating segment,
 not a complete rotating-machine fundamental cycle. Each gate has 4.7 ohm external resistance.
-A 20 milliohm / 20 nH supply feeds a 10 uF DC link. Each switch node has 100 pF to chassis.
+A 20 milliohm supply feeds a 10 uF DC link; 20 nH separates that capacitor from the bridge.
+Each switch node has 100 pF to chassis.
 Each conductor crosses a series DM inductor and one CM-choke winding (dots at the inverter side,
-positive mutual coefficient 0.995); equal outward currents reinforce CM flux. Each winding has
+positive mutual coefficient 0.995); equal outward currents reinforce CM flux. Each CM winding has
 10 pF terminal capacitance; 5 pF couples the two output conductors. Filter X capacitance connects
-the outputs and two Y capacitors connect each output to chassis, all with 0.2 ohm ESR. Winding
+the outputs and two Y capacitors connect each output to chassis, all with 0.2 ohm ESR. Each Y branch also has 21.8 ohm series damping (22 ohm total). Winding
 resistances follow the physical design below. Harness: 0.1 ohm and 1 uH per conductor, coupling
-0.2, 200 pF/conductor to chassis. Load: 20 ohm + 100 uH series between conductors, with 1 nF from
+0.2, 200 pF/conductor to chassis. Load: 20 ohm in series with (100 uH || 100 ohm) between conductors, with 1 nF from
 each load terminal to chassis. Chassis returns through 1 ohm + 50 nH to DC-negative reference;
 DC-positive and DC-negative each have 100 pF to chassis. There are no disconnected return paths.
 These lumped harness/load and constant linear magnetics are declared development assumptions;
@@ -321,7 +322,7 @@ with 630 V rating. Magnetic/copper assembly and these capacitors define filter m
 
 Feasibility requires every corner's research-mask margin >= 6 dB (3 dB numerical reserve plus
 3 dB explicitly assumed model reserve), device |Vds| <= 960 V, |Id| <= 50 A, capacitor
-|V| <= 504 V, winding RMS current <= 12 A, copper+capacitor ESR loss <= 25 W, and calculated
+|V| <= 504 V, winding RMS current <= 12 A, copper+capacitor ESR+damping loss <= 25 W, and calculated
 DM/CM peak flux <= 0.20 T. DM flux is `L*i/(N*Ae)`; each CM winding's flux linkage is
 `L*(ia+k*ib)/(N*Ae)` (both windings checked). The flux constraint only gates use of the
 linear approximation; it does not simulate saturation. Fixed-temperature semiconductors and no
@@ -342,7 +343,8 @@ Every study integrates 0..200 us from its DC operating point. Discard 0..100 us;
 [100,200) us (five switching periods). Compare last two periods on the output-current grid:
 RMS difference <= 0.01 A + 1% of RMS magnitude for each conductor. Otherwise `unsettled`, no
 feasibility/ranking. Qualification repeats **every candidate/corner** at maximum integration
-steps 10, 5 and 2.5 ns and output-grid spacings 5, 2.5 and 1.25 ns. Double pulse repeats at
+steps 2.5, 1.25 and 0.625 ns for light/medium and 0.625, 0.3125 and 0.15625 ns
+for heavy. All use output-grid spacings 5, 2.5 and 1.25 ns. Double pulse repeats at
 2, 1 and 0.5 ns max step, sampled at 1, 0.5 and 0.25 ns for metric comparison. Production study
 measurements use the finest qualified level; they are external ngspice references, not production
 Ohmnivore execution.
@@ -369,19 +371,28 @@ For each adjacent integration refinement and finest-waveform output sampling ref
 conductor RMS waveform difference <= 0.02 A + 2% of reference RMS; switch Vds RMS difference
 <= 2 V + 2% of bus V; spectral-bin difference <= 1 dB wherever either amplitude is above
 20 dBuA, absolute amplitude difference <= 1 microampere below that floor. DPT 10--90% Vds edge
-durations and 50% times differ <= 2 ns + 10%; peak Vds differs <= 2 V + 2%; signed terminal
+durations and 50% times differ <= 2 ns + 10% of the corresponding reference edge duration;
+peak Vds differs <= 2 V + 2%; signed terminal
 switching energy (integral Vds*Id over fixed ±0.2 us windows around second turn-on/turn-off)
 differs <= 2 uJ + 5%; ringing frequency differs <= 10%, damping/log-decrement <= 20% when
-three same-polarity peaks are measurable above 0.2 V. Otherwise ringing telemetry is explicitly
-unresolved, not invented. DPT must exhibit finite edges, loaded second turn-on >= 10 A,
-0 < switching energy < 2 mJ, Vds peak between bus and 960 V, and observable gate/Miller dynamics.
+three same-polarity peaks are measurable above 0.2 V. Inspect both residual polarities relative
+to the nominal 400 V bus in (14.04,14.4) us; the first three peaks of a polarity must strictly
+decrease in amplitude. If both qualify, select the polarity with the earlier first peak. Otherwise
+ringing telemetry is explicitly unresolved and this frozen DPT fixture fails qualification. DPT metrics use the declared uniform
+output grid, with the 16 us endpoint included for interpolation and integration. DPT must exhibit
+finite edges, loaded second turn-on >= 10 A, 0 < switching energy < 2 mJ, Vds peak between bus and
+960 V, and observable gate/drain coupling: second-turn-on external gate voltage must decrease by
+0.2..30 V between the 90% and 10% Vds crossings, and gate voltage at both second-event 50% Vds
+crossings must lie in [-3,23] V. Retain gate samples at all crossings and full gate extrema.
+These pre-retained observability gates recognize Miller/package dynamics; they do not claim a
+flat plateau or measured hardware agreement.
 Independent tests use analytic CM/DM, DC, bin-centred sine, phase, mixed-tone and Parseval cases.
 
 ### Failure, resource, timing and evidence contracts
 
 Use `reltol=1e-5`, `abstol=1e-9 A`, `vntol=1e-7 V`, `chgtol=1e-16 C`, Gear order 2,
 `itl1=300`, `itl4=100`. No automatic retry or fallback (retry limit zero). Each simulator child
-has 120 s wall timeout, 110 s CPU limit, 1 GiB address-space limit, 256 MiB output-file limit.
+has 120 s wall timeout, 110 s CPU limit, 1 GiB address-space limit, 512 MiB output-file limit.
 Maximum accepted raw points 2,000,000; the parser applies its size budget before allocation.
 Typed terminal failures: `unsupported_input`, `provenance_mismatch`, `simulator_failure`,
 `numerical_failure`, `timeout`, `resource_limit`, `missing_output`, `malformed_output`,
@@ -417,3 +428,57 @@ device evaluation and assembly; separate costs are **unavailable**, not estimate
 its own Sparse solver in this reference; Ohmnivore's production KLU is unchanged. Profile-derived
 acceleration budgets and proposed EMI-02/03 gates are a later documentation result of EMI-01,
 frozen before any GPU implementation. No old AC speed threshold transfers to this experiment.
+
+### Pre-evidence fixture correction
+
+The first exploratory full-network run failed the unchanged settling gate: the undamped CM
+resonance persisted into the observation interval. Before retaining qualification, each Y branch
+receives 21.8 ohm explicit series damping in addition to 0.2 ohm ESR. Its dissipation is included
+in the same 25 W limit. Mass adds two assumed 5 g / 15 W pulse-rated resistors; each dissipates at
+most 12 W in the finite-domain RMS check. This is a documented engineering fixture revision, not
+a relaxation of the settling or convergence criteria. Exploratory run-1 is not retained evidence.
+
+
+### Final pre-evidence physical and numerical revision
+
+Exploratory runs exposed a nearly lossless differential load-terminal mode near 5.14 MHz:
+the two coupled harness windings have differential series inductance 1.6 uH and the two
+1.2 nF terminal-to-chassis capacitors have differential capacitance 0.6 nF. The ideal 100 uH
+load inductor isolates the series 20 ohms at that frequency. Its resonant spectral bins did
+not converge at the original 10/5/2.5 ns steps, despite passing waveform RMS checks. Tightening
+RELTOL alone did not resolve this; smaller absolute current tolerances caused timestep failure.
+Neither those trials nor a proposed higher spectral floor is accepted as qualification.
+
+Freeze the explicitly hypothetical passive load as
+`Zload(s)=20 ohm + (s*100 uH || 100 ohm)`, retaining the declared harness/chassis capacitances.
+The added 100-ohm winding-loss surrogate contributes about `8.98+j28.59 ohm` at 50 kHz and
+approaches 100 ohms at high frequency. This deliberately changes load current and power; it
+represents a bounded lossy load, not a measured motor or a fitted device model. Retain its RMS
+power, the 20-ohm load power, and load-inductor current. Load dissipation is excluded from filter
+loss/mass; no motor thermal claim follows. No production semantics are added.
+
+In both fixtures connect the 10 uF DC-link capacitor to `p1`, after the 20-milliohm supply
+resistance and **before** the 20 nH inductance. This places the declared inductance in the actual
+commutation path between the bulk capacitor and bridge. The prior capacitor connection at `p`
+bypassed that inductance at switching frequencies and under-excited DPT ringing. Keep a 4.7-ohm
+external resistor on the held-off upper DPT gate as well as the pulsed lower gate. Repeated DPT
+qualification must now resolve three strictly decaying peaks under the existing ringing rule;
+unresolved ringing is an `accuracy_failure` for this frozen fixture.
+
+Use the original declared solver options, unchanged 20 dBuA / 1 microampere spectral gate,
+and the finer ensemble integration levels **2.5, 1.25, 0.625 ns**. Output sampling remains
+5, 2.5, 1.25 ns; it is separately refined on the same finest integration waveform. DPT levels,
+mask, physical constraints, finite identities, resource limits and evidence sample counts remain
+as declared. These choices and all resulting source hashes precede both retained invocations.
+
+
+The final all-corner exploratory audit isolated remaining integration sensitivity to the heavy
+candidate's 6.5--7.5 MHz common-mode resonance. Freeze a candidate-specific integration policy:
+`heavy` uses **0.625, 0.3125, 0.15625 ns**; `light` and `medium` retain **2.5, 1.25, 0.625 ns**.
+This finite manifest override applies to every corner, and measured serial/parallel studies use
+each candidate's finest qualified step. There is no data-dependent retry or dynamic policy.
+All candidates keep the same 5/2.5/1.25 ns output grids and unchanged spectral acceptance gates.
+The raw-file/parser limit is **512 MiB**, needed because heavy's finest uniform step alone
+requires at least 1.28 million points with 27 saved vectors (about 277 MB). The two-million-point,
+1 GiB oracle address-space, 110 s CPU and 120 s wall limits remain unchanged. This is a declared
+accuracy/resource tradeoff, not a speedup or floor relaxation.
