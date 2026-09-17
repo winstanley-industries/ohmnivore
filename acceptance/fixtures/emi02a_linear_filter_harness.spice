@@ -1,0 +1,22 @@
+* EMI-02A linearized source-driven CM/DM filter plus coupled harness.
+* Coupled-element correctness only; no switching or performance qualification.
+Vcm cm 0 AC 1
+Vdm dm cm AC 0.3 90
+Rdrivep dm inp 0.1
+Rdriven cm inn 0.1
+Lcmp inp fp 400u
+Lcmn inn fn 400u
+Kcm Lcmp Lcmn 0.995
+Cxp fp fn 2u
+Cyp fp chassis 2n
+Cyn fn chassis 2n
+Rchassis chassis 0 2
+Lhp fp loadp 8u
+Lhn fn loadn 8u
+Kharness Lhp Lhn 0.2
+Cparp loadp chassis 200p
+Cparn loadn chassis 200p
+Rload loadp loadn 20
+Rreturn loadn chassis 100
+.AC LIN 101 100 100k
+.END

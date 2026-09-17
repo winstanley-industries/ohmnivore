@@ -1,0 +1,13 @@
+{
+  "command": [
+    "bazel",
+    "run",
+    "-c",
+    "opt",
+    "//reference/emi02:qualification",
+    "--",
+    "--audit=/home/adam/code/ohmnivore/docs/evidence/emi02/run-1"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 50.49430330097675
+}

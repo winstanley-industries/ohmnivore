@@ -44,7 +44,9 @@ namespace {
   return tokens;
 }
 
-[[nodiscard]] Result<double> ParseEngineeringValue(std::string_view token) {
+[[nodiscard]] Result<double>
+ParseEngineeringValue(std::string_view token,
+                      ErrorCode nonfinite_code = ErrorCode::kParse) {
   const std::string original(token);
   if (!token.empty() && token.front() == '+') {
     if (token.size() == 1 || token[1] == '+' || token[1] == '-') {
@@ -63,7 +65,10 @@ namespace {
   const char *end = token.data() + token.size();
   const auto parsed =
       std::from_chars(begin, end, value, std::chars_format::general);
-  if (parsed.ec != std::errc{} || parsed.ptr == begin) {
+  const bool unrepresentable = parsed.ec == std::errc::result_out_of_range;
+  if ((parsed.ec != std::errc{} &&
+       !(unrepresentable && nonfinite_code == ErrorCode::kNonFinite)) ||
+      parsed.ptr == begin) {
     return Result<double>::Fail(ErrorCode::kParse,
                                 "invalid engineering value '" + original + "'");
   }
@@ -93,10 +98,13 @@ namespace {
         ErrorCode::kParse, "unknown engineering suffix in '" + original + "'");
   }
 
+  const bool nonzero_before_scaling = value != 0.0;
   value *= multiplier;
-  if (!std::isfinite(value)) {
+  if (unrepresentable || !std::isfinite(value) ||
+      (nonfinite_code == ErrorCode::kNonFinite && nonzero_before_scaling &&
+       value == 0.0)) {
     return Result<double>::Fail(
-        ErrorCode::kParse, "non-finite engineering value '" + original + "'");
+        nonfinite_code, "non-finite engineering value '" + original + "'");
   }
   return Result<double>::Ok(value);
 }
@@ -190,6 +198,45 @@ struct SourceSpecifications {
            (character >= 'a' && character <= 'z') ||
            (character >= '0' && character <= '9') || character == '_';
   });
+}
+
+[[nodiscard]] Result<InductorCoupling>
+ParseInductorCoupling(const std::vector<std::string> &tokens) {
+  const auto is_model_name = [](std::string_view value) {
+    const std::string upper = Upper(value);
+    return IsAsciiModelIdentifier(value) && !value.empty() &&
+           ((value.front() >= 'a' && value.front() <= 'z') ||
+            (value.front() >= 'A' && value.front() <= 'Z')) &&
+           upper != "NAN" && upper != "INF" && upper != "INFINITY";
+  };
+  if (tokens.size() != 4) {
+    if (tokens.size() >= 5 &&
+        (Upper(tokens[3]).starts_with("L") || is_model_name(tokens[4]))) {
+      return Result<InductorCoupling>::Fail(
+          ErrorCode::kUnsupported,
+          "multiwinding and model-based coupling forms are unsupported");
+    }
+    return Result<InductorCoupling>::Fail(
+        ErrorCode::kParse, "coupling syntax is: Kname Lfirst Lsecond k");
+  }
+  if (is_model_name(tokens[3])) {
+    return Result<InductorCoupling>::Fail(
+        ErrorCode::kUnsupported, "model-based coupling is unsupported");
+  }
+  auto coefficient = ParseEngineeringValue(tokens[3], ErrorCode::kNonFinite);
+  if (!coefficient.ok()) {
+    return Result<InductorCoupling>::Fail(coefficient.error().code,
+                                          coefficient.error().message);
+  }
+  if (std::abs(coefficient.value()) > 0.999) {
+    return Result<InductorCoupling>::Fail(
+        ErrorCode::kUnsupported,
+        "coupling coefficient must be in [-0.999,0.999]");
+  }
+  return Result<InductorCoupling>::Ok({.name = tokens[0],
+                                       .first_inductor = tokens[1],
+                                       .second_inductor = tokens[2],
+                                       .coefficient = coefficient.value()});
 }
 
 [[nodiscard]] bool StartsWithCaseInsensitive(std::string_view input,
@@ -1152,6 +1199,17 @@ Result<Circuit> ParseNetlist(std::string_view input) {
     }
 
     if (tokens.empty()) {
+      continue;
+    }
+
+    if (Upper(tokens.front()).front() == 'K') {
+      auto coupling = ParseInductorCoupling(tokens);
+      if (!coupling.ok()) {
+        return Result<Circuit>::Fail(
+            coupling.error().code,
+            WithLine(line_number, coupling.error().message));
+      }
+      circuit.inductor_couplings.push_back(coupling.TakeValue());
       continue;
     }
 

@@ -1,0 +1,75 @@
+{
+  "attempts": 1,
+  "candidate": {
+    "cm_geometry": [
+      80,
+      60,
+      12,
+      40
+    ],
+    "cx_f": 4.7e-08,
+    "cy_f": 1e-09,
+    "dm_geometry": [
+      100,
+      60,
+      20,
+      45
+    ],
+    "id": "light",
+    "lcm_h": 0.0001,
+    "ldm_h": 1e-05
+  },
+  "corner": {
+    "bus_v": 400,
+    "c_scale": 1,
+    "id": "nominal",
+    "l_scale": 1,
+    "rg_scale": 1,
+    "stray_scale": 1,
+    "tj_c": 27
+  },
+  "deck_sha256": "0fb485e2c8ef4475c312ad757ed907e179ac678f2824d106a493c8befe872176",
+  "elapsed_s": 110.04286524900817,
+  "error": "resource_limit: CPU job did not complete the frozen contract",
+  "files": {
+    "import.json": "331c21aac5c07a55cd7acedf193c6d2b49fc22508ef45713c733f7758398d736"
+  },
+  "fixture": "ensemble",
+  "id": "q1-ensemble-light-nominal",
+  "import": {
+    "adapted_bytes": 29136,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "ambient_temperature_c": 27.0,
+    "archive_bytes": 28318,
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "expanded_components": 178,
+    "expression_tokens": 2132,
+    "flat_deck_sha256": "8106926325b9963a02d3771289a8fdf15846a77723523b47fb1ab121359c62ce",
+    "importer": "emi02-microchip-import-v1",
+    "instances": 8,
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_bytes": 29805,
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "mna_unknowns": 185,
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5",
+    "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+    "packages": 4,
+    "source_deck_sha256": "0fb485e2c8ef4475c312ad757ed907e179ac678f2824d106a493c8befe872176",
+    "vt_volts": 0.025864916895449997
+  },
+  "level": 1,
+  "max_step_s": 1.25e-09,
+  "process": {
+    "exit_code": -9,
+    "status": "resource_limit",
+    "wall_s": 110.03339280802174
+  },
+  "process_log_bytes": 0,
+  "process_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "reference_version": "emi01-v2",
+  "sample_step_s": 2.5e-09,
+  "solver_error": "resource_limit",
+  "status": "resource_limit"
+}

@@ -13,7 +13,11 @@ Ordinary CUDA execution and automatic dispatch remain unauthorized. EMI-01 is co
 qualified external CPU reference study. Its [v2 results and acceleration budget](emi01-v2-results.md)
 include two complete independent invocations with an all-corner passing reference, a near-boundary
 rejection and a failing control under the fixed research mask. [V1 results](emi01-results.md) remain
-historical evidence for their original candidates. NL-04 and EMI-02 onward have not started. Completion
+historical evidence for their original candidates. EMI-02 implements the bounded A-D CPU slices
+under ADR-003 through ADR-006; its [full qualification result](emi02-results.md) remains failed
+because all 27 CPU inverter runs reach the frozen resource limit. DPT comparisons and canonical
+checks pass, but EMI-02D is not qualified.
+NL-04 and EMI-03 onward have not started. Completion
 of an experiment does not itself authorize downstream work.
 
 The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
@@ -31,7 +35,7 @@ accuracy and complete study timing.
 | Stage | Deliverable | Dependency |
 |---|---|---|
 | EMI-01 | Public reference circuit/model, combined CM/DM filter candidate set, qualified CPU study, runtime breakdown, and frozen experiment contract | Complete as an external reference, including passing and near-boundary research fixtures; no production switching support or hardware qualification claimed |
-| EMI-02 | Only the missing CPU model, coupled-element, transient, and measurement semantics needed by the reference | Qualified EMI-01; separate [EMI-02A through EMI-02D proposals](../reference/emi01/CPU_GAPS.md), beginning with disjoint linear coupled-inductor pairs |
+| EMI-02 | Disjoint coupled-inductor pairs, bounded behavioral expressions/Jacobians, controlled displacement-current transient, and exact-model import/qualification | A-D implementation under [ADR-003](adr/ADR-003-emi02-cpu-qualification.md), [ADR-004](adr/ADR-004-emi02-behavioral-expressions.md), [ADR-005](adr/ADR-005-emi02-behavioral-transient.md), and [ADR-006](adr/ADR-006-emi02-model-import-qualification.md); [qualification and evidence contract](../reference/emi02/README.md) |
 | EMI-03 | Native-FP64 GPU execution of independent transient jobs, compared with persistent parallel CPU execution | Qualified EMI-02 CPU path and frozen accuracy/performance gates |
 | EMI-04 | Filter search and robustness evaluation with physical mass and emission-margin accounting | Trustworthy evaluator; CPU enumeration can start before GPU acceleration |
 

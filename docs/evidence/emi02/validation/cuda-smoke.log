@@ -1,0 +1,32 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+INFO: Found applicable config definition test:cuda in file /home/adam/code/ohmnivore/.bazelrc: --test_output=all
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --@@rules_cuda+//cuda:archs, --@@rules_cuda+//cuda:runtime, --extra_toolchains, and 1 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //cuda:smoke_test (0 packages loaded, 0 targets configured)
+Analyzing: target //cuda:smoke_test (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //cuda:smoke_test (124 packages loaded, 7231 targets configured).
+INFO: Found 1 test target...
+Target //cuda:smoke_test up-to-date:
+  bazel-bin/cuda/smoke_test
+INFO: Elapsed time: 0.638s, Critical Path: 0.01s
+INFO: 1 process: 8 action cache hit, 1 internal.
+INFO: Build completed successfully, 1 total action
+PASSED: //cuda:smoke_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-fastbuild/testlogs/cuda/smoke_test/test.log)
+INFO: From Testing //cuda:smoke_test
+==================== Test output for //cuda:smoke_test:
+backend=cuda device="NVIDIA GeForce RTX 5080" compute_capability=12.0 runtime=13000 driver=13040 global_memory_bytes=17066033152 deterministic_oracle=pass gcc_runtime=static
+================================================================================
+//cuda:smoke_test                                               (cached) PASSED in 0.6s
+
+Executed 0 out of 1 test: 1 test passes.

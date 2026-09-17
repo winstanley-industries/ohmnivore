@@ -416,7 +416,8 @@ public:
   }
 
   [[nodiscard]] Result<std::vector<double>>
-  SolveAndValidate(const CsrMatrix &matrix, const std::vector<double> &rhs) {
+  SolveAndValidate(const CsrMatrix &matrix, const std::vector<double> &rhs,
+                   std::size_t *remaining_refinements) {
     std::vector<double> solution = rhs;
     if (klu_solve(symbolic_, numeric_, static_cast<std::int32_t>(pattern_.size),
                   1, solution.data(), &common_) == 0) {
@@ -425,6 +426,52 @@ public:
           KluFailureMessage("KLU triangular solve", common_));
     }
     Result<double> validation = ValidateSparseSolution(matrix, rhs, solution);
+    bool corrected = false;
+    while (*remaining_refinements > 0 &&
+           ((validation.ok() && !corrected) ||
+            (!validation.ok() &&
+             validation.error().code == ErrorCode::kSolutionValidation))) {
+      std::vector<double> correction(matrix.rows);
+      for (std::size_t row = 0; row < matrix.rows; ++row) {
+        long double product = 0.0L;
+        for (std::size_t index = matrix.row_offsets[row];
+             index < matrix.row_offsets[row + 1]; ++index) {
+          product +=
+              static_cast<long double>(matrix.values[index]) *
+              static_cast<long double>(solution[matrix.column_indices[index]]);
+        }
+        correction[row] =
+            static_cast<double>(static_cast<long double>(rhs[row]) - product);
+        if (!std::isfinite(correction[row])) {
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite,
+              "iterative refinement residual is not finite FP64");
+        }
+      }
+      if (std::all_of(correction.begin(), correction.end(),
+                      [](double value) { return value == 0.0; }))
+        break;
+      corrected = true;
+      --*remaining_refinements;
+      ++statistics_.iterative_refinement_solves;
+      if (klu_solve(symbolic_, numeric_,
+                    static_cast<std::int32_t>(pattern_.size), 1,
+                    correction.data(), &common_) == 0) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kFactorization,
+            KluFailureMessage("KLU refinement triangular solve", common_));
+      }
+      for (std::size_t index = 0; index < solution.size(); ++index) {
+        solution[index] += correction[index];
+        if (!std::isfinite(correction[index]) ||
+            !std::isfinite(solution[index])) {
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite,
+              "iterative refinement update is not finite FP64");
+        }
+      }
+      validation = ValidateSparseSolution(matrix, rhs, solution);
+    }
     if (!validation.ok()) {
       return Result<std::vector<double>>::Fail(validation.error().code,
                                                validation.error().message);
@@ -433,7 +480,8 @@ public:
   }
 
   [[nodiscard]] Result<std::vector<double>>
-  FactorAndSolve(const CsrMatrix &matrix, const std::vector<double> &rhs) {
+  FactorAndSolve(const CsrMatrix &matrix, const std::vector<double> &rhs,
+                 std::size_t remaining_refinements = 0) {
     Result<SolverCscPattern> converted = ConvertCsrToSolverCsc(matrix);
     if (!converted.ok()) {
       return Result<std::vector<double>>::Fail(converted.error().code,
@@ -489,7 +537,8 @@ public:
       }
     }
 
-    Result<std::vector<double>> solved = SolveAndValidate(matrix, rhs);
+    Result<std::vector<double>> solved =
+        SolveAndValidate(matrix, rhs, &remaining_refinements);
     if (!solved.ok() && refactored_without_pivoting) {
       // KLU refactor deliberately preserves the first numeric pivot order.
       // If changed values make that order unstable, retain the symbolic
@@ -504,7 +553,7 @@ public:
         return Result<std::vector<double>>::Fail(factored.error().code,
                                                  factored.error().message);
       }
-      solved = SolveAndValidate(matrix, rhs);
+      solved = SolveAndValidate(matrix, rhs, &remaining_refinements);
     }
     if (!solved.ok()) {
       return solved;
@@ -594,6 +643,22 @@ SparseRealFactorization::FactorAndSolve(const CsrMatrix &matrix,
 
 const SparseSolverStatistics &SparseRealFactorization::statistics() const {
   return implementation_->statistics_;
+}
+
+Result<std::vector<double>> SparseRealFactorization::FactorAndSolveRefined(
+    const CsrMatrix &matrix, const std::vector<double> &rhs,
+    std::size_t maximum_refinements) {
+  if (maximum_refinements > 4) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kUnsupportedSize,
+        "iterative refinement allows at most four corrections");
+  }
+  try {
+    return implementation_->FactorAndSolve(matrix, rhs, maximum_refinements);
+  } catch (const std::bad_alloc &) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kFactorization, "iterative refinement allocation failed");
+  }
 }
 
 class SparseComplexFactorization::Impl {

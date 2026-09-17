@@ -1,6 +1,7 @@
 #include "ohmnivore/nonlinear.h"
 
 #include "cpp/src/nonlinear_internal.h"
+#include "ohmnivore/behavioral.h"
 
 #include <algorithm>
 #include <array>
@@ -21,6 +22,7 @@ struct AssembledNewtonSystem {
   CsrMatrix jacobian;
   std::vector<double> residual;
   std::vector<double> row_scales;
+  std::vector<double> behavioral_rhs = {};
 };
 
 [[nodiscard]] bool IsBounded(double value) {
@@ -191,10 +193,11 @@ ValidateBjtDescriptor(const MnaSystem &system,
 [[nodiscard]] Result<bool> ValidateNonlinearSystem(const MnaSystem &system) {
   const std::size_t size =
       system.node_names.size() + system.branch_names.size();
-  if (system.diode_descriptors.empty() && system.bjt_descriptors.empty()) {
+  if (system.diode_descriptors.empty() && system.bjt_descriptors.empty() &&
+      system.behavioral_descriptors.empty()) {
     return Result<bool>::Fail(
         ErrorCode::kInvalidStructure,
-        "nonlinear DC requires at least one diode or BJT");
+        "nonlinear solve requires at least one nonlinear descriptor");
   }
   if (system.g.rows != size || system.g.columns != size ||
       system.b_dc.size() != size) {
@@ -232,6 +235,33 @@ ValidateBjtDescriptor(const MnaSystem &system,
     Result<bool> valid = ValidateBjtDescriptor(system, descriptor);
     if (!valid.ok()) {
       return valid;
+    }
+  }
+  auto behavioral = ValidateBehavioralDescriptors(system);
+  if (!behavioral.ok())
+    return behavioral;
+  if (!system.behavioral_descriptors.empty()) {
+    if (!system.diode_descriptors.empty() || !system.bjt_descriptors.empty()) {
+      return Result<bool>::Fail(
+          ErrorCode::kUnsupported,
+          "behavioral points exclude native semiconductor mixtures");
+    }
+    for (const auto &capacitor : system.capacitor_initial_constraints) {
+      if ((capacitor.positive_node_index &&
+           *capacitor.positive_node_index >= system.node_names.size()) ||
+          (capacitor.negative_node_index &&
+           *capacitor.negative_node_index >= system.node_names.size()) ||
+          capacitor.positive_node_index == capacitor.negative_node_index) {
+        return Result<bool>::Fail(ErrorCode::kInvalidStructure,
+                                  "invalid Newton capacitor coordinate");
+      }
+    }
+    for (const auto &inductor : system.inductor_initial_constraints) {
+      if (inductor.branch_index < system.node_names.size() ||
+          inductor.branch_index >= size) {
+        return Result<bool>::Fail(ErrorCode::kInvalidStructure,
+                                  "invalid Newton inductor coordinate");
+      }
     }
   }
   return Result<bool>::Ok(true);
@@ -279,9 +309,13 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
       .residual = std::vector<double>(system.g.rows, 0.0),
       .row_scales = std::vector<double>(system.g.rows, 0.0),
   };
+  std::vector<long double> behavioral_rhs(
+      system.behavioral_descriptors.empty() ? 0 : system.g.rows, 0.0L);
   for (std::size_t row = 0; row < system.g.rows; ++row) {
     double product = 0.0;
     const double scaled_source = source_scale * system.b_dc[row];
+    if (!behavioral_rhs.empty())
+      behavioral_rhs[row] = scaled_source;
     if (!IsBounded(scaled_source)) {
       return Result<AssembledNewtonSystem>::Fail(
           ErrorCode::kNonFinite,
@@ -480,6 +514,57 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
     }
   }
 
+  for (const BehavioralDescriptor &descriptor : system.behavioral_descriptors) {
+    auto evaluated = EvaluateExpression(descriptor.expression, solution);
+    if (!evaluated.ok())
+      return Result<AssembledNewtonSystem>::Fail(evaluated.error().code,
+                                                 descriptor.name + ": " +
+                                                     evaluated.error().message);
+    const auto dependencies = descriptor.expression.dependencies();
+    long double affine_rhs = -static_cast<long double>(evaluated.value().value);
+    for (const auto &[column, derivative] : evaluated.value().derivatives) {
+      const long double term =
+          static_cast<long double>(derivative) * solution[column];
+      affine_rhs += term;
+      if (!std::isfinite(term) || std::abs(term) > kNonlinearMaximumMagnitude ||
+          !std::isfinite(affine_rhs) ||
+          std::abs(affine_rhs) > kNonlinearMaximumMagnitude) {
+        return Result<AssembledNewtonSystem>::Fail(
+            ErrorCode::kNonFinite, "behavioral affine RHS overflow");
+      }
+    }
+    for (const auto &row : descriptor.rows) {
+      if (active_node_equations != nullptr &&
+          row.row < system.node_names.size() &&
+          !(*active_node_equations)[row.row])
+        continue;
+      behavioral_rhs[row.row] += row.coefficient * affine_rhs;
+      if (!std::isfinite(behavioral_rhs[row.row]) ||
+          std::abs(behavioral_rhs[row.row]) > kNonlinearMaximumMagnitude) {
+        return Result<AssembledNewtonSystem>::Fail(
+            ErrorCode::kNonFinite, "behavioral RHS accumulation overflow");
+      }
+      const double value = row.coefficient * evaluated.value().value;
+      assembled.residual[row.row] += value;
+      assembled.row_scales[row.row] += std::abs(value);
+      for (const auto &[column, derivative] : evaluated.value().derivatives) {
+        const auto found =
+            std::lower_bound(dependencies.begin(), dependencies.end(), column);
+        if (found == dependencies.end() || *found != column) {
+          return Result<AssembledNewtonSystem>::Fail(
+              ErrorCode::kInvalidStructure,
+              "expression returned unbound derivative");
+        }
+        const auto offset =
+            static_cast<std::size_t>(found - dependencies.begin());
+        assembled.jacobian.values[row.jacobian_value_indices[offset]] +=
+            row.coefficient * derivative;
+      }
+    }
+  }
+
+  assembled.behavioral_rhs.assign(behavioral_rhs.begin(), behavioral_rhs.end());
+
   for (double value : assembled.jacobian.values) {
     if (!IsBounded(value)) {
       return Result<AssembledNewtonSystem>::Fail(
@@ -510,11 +595,19 @@ MaximumNormalizedResidual(const MnaSystem &system,
                           const AssembledNewtonSystem &assembled) {
   double maximum = 0.0;
   for (std::size_t row = 0; row < assembled.residual.size(); ++row) {
-    const double absolute = row < system.node_names.size()
-                                ? kNewtonCurrentAbsoluteTolerance
-                                : kNewtonVoltageAbsoluteTolerance;
-    const double tolerance =
-        absolute + kNewtonRelativeTolerance * assembled.row_scales[row];
+    const bool behavioral = !system.behavioral_descriptors.empty();
+    const double current_absolute =
+        behavioral ? BehavioralNumericalPolicy::current_absolute_tolerance
+                   : kNewtonCurrentAbsoluteTolerance;
+    const double voltage_absolute =
+        behavioral ? BehavioralNumericalPolicy::voltage_absolute_tolerance
+                   : kNewtonVoltageAbsoluteTolerance;
+    const double relative = behavioral
+                                ? BehavioralNumericalPolicy::relative_tolerance
+                                : kNewtonRelativeTolerance;
+    const double absolute =
+        row < system.node_names.size() ? current_absolute : voltage_absolute;
+    const double tolerance = absolute + relative * assembled.row_scales[row];
     const double normalized = std::abs(assembled.residual[row]) / tolerance;
     if (!IsBounded(tolerance) || tolerance <= 0.0 || !IsBounded(normalized)) {
       return Result<double>::Fail(
@@ -662,12 +755,21 @@ MaximumNormalizedUpdate(const MnaSystem &system,
                         const std::vector<double> &current) {
   double maximum = 0.0;
   for (std::size_t index = 0; index < current.size(); ++index) {
-    const double absolute = index < system.node_names.size()
-                                ? kNewtonVoltageAbsoluteTolerance
-                                : kNewtonCurrentAbsoluteTolerance;
-    const double tolerance = absolute + kNewtonRelativeTolerance *
-                                            std::max(std::abs(previous[index]),
-                                                     std::abs(current[index]));
+    const bool behavioral = !system.behavioral_descriptors.empty();
+    const double current_absolute =
+        behavioral ? BehavioralNumericalPolicy::current_absolute_tolerance
+                   : kNewtonCurrentAbsoluteTolerance;
+    const double voltage_absolute =
+        behavioral ? BehavioralNumericalPolicy::voltage_absolute_tolerance
+                   : kNewtonVoltageAbsoluteTolerance;
+    const double relative = behavioral
+                                ? BehavioralNumericalPolicy::relative_tolerance
+                                : kNewtonRelativeTolerance;
+    const double absolute =
+        index < system.node_names.size() ? voltage_absolute : current_absolute;
+    const double tolerance =
+        absolute + relative * std::max(std::abs(previous[index]),
+                                       std::abs(current[index]));
     const double difference = current[index] - previous[index];
     const double normalized = std::abs(difference) / tolerance;
     if (!IsBounded(difference) || !IsBounded(tolerance) || tolerance <= 0.0 ||
@@ -678,6 +780,45 @@ MaximumNormalizedUpdate(const MnaSystem &system,
           "value");
     }
     maximum = std::max(maximum, normalized);
+  }
+  if (!system.behavioral_descriptors.empty()) {
+    const auto compare = [&](double before, double after,
+                             double absolute) -> Result<bool> {
+      const double difference = after - before;
+      if (!IsBounded(before) || !IsBounded(after) || !IsBounded(difference)) {
+        return Result<bool>::Fail(ErrorCode::kNonFinite,
+                                  "over-bound reactive Newton coordinate");
+      }
+      const double tolerance =
+          BehavioralNumericalPolicy::newton_reactive_lte_fraction *
+          (absolute + BehavioralNumericalPolicy::lte_relative_tolerance *
+                          std::max(std::abs(before), std::abs(after)));
+      const double normalized = std::abs(difference) / tolerance;
+      if (!IsBounded(normalized) || !IsBounded(tolerance) || tolerance <= 0.0) {
+        return Result<bool>::Fail(ErrorCode::kNonFinite,
+                                  "non-finite reactive Newton update");
+      }
+      maximum = std::max(maximum, normalized);
+      return Result<bool>::Ok(true);
+    };
+    for (const auto &capacitor : system.capacitor_initial_constraints) {
+      const auto voltage = [&](const std::vector<double> &state) {
+        return NodeVoltage(state, capacitor.positive_node_index) -
+               NodeVoltage(state, capacitor.negative_node_index);
+      };
+      auto valid =
+          compare(voltage(previous), voltage(current),
+                  BehavioralNumericalPolicy::voltage_absolute_tolerance);
+      if (!valid.ok())
+        return Result<double>::Fail(valid.error().code, valid.error().message);
+    }
+    for (const auto &inductor : system.inductor_initial_constraints) {
+      auto valid = compare(
+          previous[inductor.branch_index], current[inductor.branch_index],
+          BehavioralNumericalPolicy::current_absolute_tolerance);
+      if (!valid.ok())
+        return Result<double>::Fail(valid.error().code, valid.error().message);
+    }
   }
   return Result<double>::Ok(maximum);
 }
@@ -722,7 +863,9 @@ struct AttemptResult {
                                        initial_residual.error().message);
   }
   double residual = initial_residual.value();
-  if (residual <= 1.0) {
+  // A rounded FP64 companion residual can be zero at a wrong common-mode
+  // state. Behavioral points must solve the stable affine RHS at least once.
+  if (residual <= 1.0 && system.behavioral_descriptors.empty()) {
     Result<bool> valid_jacobian =
         ValidateAcceptedJacobian(initial.value(), factorization);
     if (!valid_jacobian.ok()) {
@@ -741,11 +884,20 @@ struct AttemptResult {
         AttemptResult{.solution = std::move(solution), .iterations = 0});
   }
 
+  // Assemblies are pure functions of this attempt's immutable system and
+  // exact state. Behavioral trials can reuse their already checked assembly;
+  // the caller still independently recomputes the final original residual.
+  std::optional<AssembledNewtonSystem> current_assembly;
+  if (!system.behavioral_descriptors.empty())
+    current_assembly = initial.TakeValue();
   for (std::size_t iteration = 1; iteration <= maximum_iterations;
        ++iteration) {
     Result<AssembledNewtonSystem> assembled =
-        Assemble(system, solution, source_scale, extra_gmin_siemens,
-                 active_node_equations);
+        current_assembly.has_value()
+            ? Result<AssembledNewtonSystem>::Ok(std::move(*current_assembly))
+            : Assemble(system, solution, source_scale, extra_gmin_siemens,
+                       active_node_equations);
+    current_assembly.reset();
     if (!assembled.ok()) {
       return Result<AttemptResult>::Fail(assembled.error().code,
                                          assembled.error().message);
@@ -754,22 +906,34 @@ struct AttemptResult {
     for (double &value : right_hand_side) {
       value = -value;
     }
-    Result<std::vector<double>> delta = factorization->FactorAndSolve(
-        assembled.value().jacobian, right_hand_side);
+    if (!system.behavioral_descriptors.empty()) {
+      right_hand_side = assembled.value().behavioral_rhs;
+    }
+    Result<std::vector<double>> delta =
+        system.behavioral_descriptors.empty()
+            ? factorization->FactorAndSolve(assembled.value().jacobian,
+                                            right_hand_side)
+            : factorization->FactorAndSolveRefined(assembled.value().jacobian,
+                                                   right_hand_side);
     if (!delta.ok()) {
       return Result<AttemptResult>::Fail(delta.error().code,
                                          delta.error().message);
     }
+    std::vector<double> delta_values = delta.TakeValue();
+    if (!system.behavioral_descriptors.empty()) {
+      for (std::size_t i = 0; i < delta_values.size(); ++i)
+        delta_values[i] -= solution[i];
+    }
     std::vector<double> proposed = solution;
     for (std::size_t index = 0; index < proposed.size(); ++index) {
-      const double update_value = delta.value()[index];
+      const double update_value = delta_values[index];
       if (!IsBounded(update_value)) {
         return Result<AttemptResult>::Fail(
             ErrorCode::kNonFinite,
             "Newton delta contains a non-finite or over-bound value");
       }
       const double updated = proposed[index] + update_value;
-      if (!IsBounded(updated)) {
+      if (!IsBounded(updated) && system.behavioral_descriptors.empty()) {
         return Result<AttemptResult>::Fail(
             ErrorCode::kNonFinite,
             "Newton update produced a non-finite or over-bound value");
@@ -781,6 +945,56 @@ struct AttemptResult {
       return Result<AttemptResult>::Fail(limited.error().code,
                                          limited.error().message);
     }
+    std::optional<AssembledNewtonSystem> accepted_trial;
+    if (!system.behavioral_descriptors.empty()) {
+      bool decreased = false;
+      const auto merit = [&](const AssembledNewtonSystem &value) {
+        double maximum = 0.0;
+        for (std::size_t row = 0; row < value.residual.size(); ++row) {
+          const double absolute =
+              row < system.node_names.size()
+                  ? BehavioralNumericalPolicy::current_absolute_tolerance
+                  : BehavioralNumericalPolicy::voltage_absolute_tolerance;
+          const double tolerance =
+              absolute + BehavioralNumericalPolicy::relative_tolerance *
+                             assembled.value().row_scales[row];
+          maximum =
+              std::max(maximum, std::abs(value.residual[row]) / tolerance);
+        }
+        return maximum;
+      };
+      const double previous_merit = merit(assembled.value());
+      double scale = 1.0;
+      for (std::size_t backtrack = 0; backtrack <= 16; ++backtrack) {
+        for (std::size_t j = 0; j < proposed.size(); ++j)
+          proposed[j] = solution[j] + scale * delta_values[j];
+        auto trial = Assemble(system, proposed, source_scale,
+                              extra_gmin_siemens, active_node_equations);
+        if (trial.ok()) {
+          auto trial_norm = MaximumNormalizedResidual(system, trial.value());
+          if (!trial_norm.ok()) {
+            if (trial_norm.error().code != ErrorCode::kNonFinite) {
+              return Result<AttemptResult>::Fail(trial_norm.error().code,
+                                                 trial_norm.error().message);
+            }
+          } else if (strategy == NonlinearStrategy::kDirect ||
+                     trial_norm.value() <= 1.0 ||
+                     merit(trial.value()) < previous_merit) {
+            accepted_trial = trial.TakeValue();
+            decreased = true;
+            break;
+          }
+        } else if (trial.error().code != ErrorCode::kNonFinite) {
+          return Result<AttemptResult>::Fail(trial.error().code,
+                                             trial.error().message);
+        }
+        scale *= 0.5;
+      }
+      if (!decreased)
+        return Result<AttemptResult>::Fail(
+            ErrorCode::kNonConvergence,
+            "behavioral Newton backtracking exhausted");
+    }
     Result<double> normalized_update =
         MaximumNormalizedUpdate(system, solution, proposed);
     if (!normalized_update.ok()) {
@@ -789,8 +1003,10 @@ struct AttemptResult {
     }
     const double update = normalized_update.value();
     Result<AssembledNewtonSystem> checked =
-        Assemble(system, proposed, source_scale, extra_gmin_siemens,
-                 active_node_equations);
+        accepted_trial.has_value()
+            ? Result<AssembledNewtonSystem>::Ok(std::move(*accepted_trial))
+            : Assemble(system, proposed, source_scale, extra_gmin_siemens,
+                       active_node_equations);
     if (!checked.ok()) {
       return Result<AttemptResult>::Fail(checked.error().code,
                                          checked.error().message);
@@ -824,6 +1040,8 @@ struct AttemptResult {
       return Result<AttemptResult>::Ok(AttemptResult{
           .solution = std::move(solution), .iterations = iteration});
     }
+    if (!system.behavioral_descriptors.empty())
+      current_assembly = checked.TakeValue();
   }
   return Result<AttemptResult>::Fail(
       ErrorCode::kNonConvergence,
@@ -1199,6 +1417,18 @@ BuildDiodeResidualContribution(const MnaSystem &system,
         }
       }
     }
+    for (const auto &descriptor : system.behavioral_descriptors) {
+      auto evaluated = EvaluateExpression(descriptor.expression, solution);
+      if (!evaluated.ok())
+        return Result<std::vector<double>>::Fail(evaluated.error().code,
+                                                 evaluated.error().message);
+      for (const auto &row : descriptor.rows) {
+        residual[row.row] += row.coefficient * evaluated.value().value;
+        if (!IsBounded(residual[row.row]))
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite, "behavioral history residual overflow");
+      }
+    }
     return Result<std::vector<double>>::Ok(std::move(residual));
   } catch (const std::bad_alloc &) {
     return Result<std::vector<double>>::Fail(
@@ -1217,7 +1447,10 @@ namespace {
         ErrorCode::kInvalidStructure,
         "nonlinear point solve requires an analyzed KLU factorization");
   }
-  if (maximum_iterations > kDirectNewtonMaximumIterations) {
+  if (maximum_iterations >
+      (system.behavioral_descriptors.empty()
+           ? kDirectNewtonMaximumIterations
+           : BehavioralNumericalPolicy::dc_maximum_iterations)) {
     return Result<NonlinearPointResult>::Fail(
         ErrorCode::kInvalidStructure,
         "nonlinear point iteration limit exceeds the fixed nonlinear bound");
@@ -1285,13 +1518,18 @@ Result<NonlinearPointResult> internal::RunNonlinearPointForProjection(
 Result<NonlinearDcResult> RunNonlinearDc(const MnaSystem &system,
                                          const NonlinearDcOptions &options) {
   try {
-    if (options.direct_maximum_iterations > kDirectNewtonMaximumIterations ||
-        options.source_step_maximum_iterations >
-            kContinuationNewtonMaximumIterations ||
-        options.gmin_step_maximum_iterations >
-            kContinuationNewtonMaximumIterations ||
-        options.final_gmin_maximum_iterations >
-            kDirectNewtonMaximumIterations) {
+    const std::size_t direct_bound =
+        system.behavioral_descriptors.empty()
+            ? kDirectNewtonMaximumIterations
+            : BehavioralNumericalPolicy::dc_maximum_iterations;
+    const std::size_t continuation_bound =
+        system.behavioral_descriptors.empty()
+            ? kContinuationNewtonMaximumIterations
+            : BehavioralNumericalPolicy::dc_maximum_iterations;
+    if (options.direct_maximum_iterations > direct_bound ||
+        options.source_step_maximum_iterations > continuation_bound ||
+        options.gmin_step_maximum_iterations > continuation_bound ||
+        options.final_gmin_maximum_iterations > direct_bound) {
       return Result<NonlinearDcResult>::Fail(
           ErrorCode::kInvalidStructure,
           "nonlinear iteration options exceed the fixed Phase 3A bounds");

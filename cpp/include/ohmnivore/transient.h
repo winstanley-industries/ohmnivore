@@ -2,6 +2,7 @@
 #define OHMNIVORE_TRANSIENT_H_
 
 #include <cstddef>
+#include <functional>
 #include <vector>
 
 #include "ohmnivore/compiler.h"
@@ -27,6 +28,11 @@ struct TransientExecutionLimits {
   // Production uses the Phase 3A bound. Focused tests may only reduce it to
   // exercise deterministic nonlinear timestep retry and exhaustion.
   std::size_t nonlinear_maximum_iterations = kDirectNewtonMaximumIterations;
+  // Experimental bounded-output callers can stream accepted states. A failing
+  // observer aborts the entire run; ordinary retained results are unchanged.
+  std::function<Result<bool>(double, const std::vector<double> &)>
+      accepted_state_observer = {};
+  bool retain_output_states = true;
 };
 
 enum class TransientIntegrationMethod {
@@ -60,6 +66,7 @@ struct TransientResult {
   std::vector<std::vector<double>> states;
   std::vector<TransientStepRecord> step_trace;
   SparseSolverStatistics solver_statistics;
+  std::size_t emitted_points = 0;
 };
 
 // Builds b(t) by replacing each transient source's own DC contribution with

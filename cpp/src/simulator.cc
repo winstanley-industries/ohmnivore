@@ -59,7 +59,8 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 
 [[nodiscard]] Result<DcResult> RunDc(const MnaSystem &system) {
   std::vector<double> solution;
-  if (system.diode_descriptors.empty() && system.bjt_descriptors.empty()) {
+  if (system.diode_descriptors.empty() && system.bjt_descriptors.empty() &&
+      system.behavioral_descriptors.empty()) {
     auto solved = SolveSparseReal(system.g, system.b_dc);
     if (!solved.ok()) {
       return Result<DcResult>::Fail(solved.error().code,
@@ -90,6 +91,10 @@ inline constexpr std::size_t kMaxAcFrequencyPoints = 1'000'000;
 
 [[nodiscard]] Result<AcResult> RunAc(const MnaSystem &system,
                                      const AcAnalysis &analysis) {
+  if (!system.behavioral_descriptors.empty()) {
+    return Result<AcResult>::Fail(ErrorCode::kUnsupported,
+                                  "behavioral AC is unsupported");
+  }
   if (!system.diode_descriptors.empty()) {
     return Result<AcResult>::Fail(
         ErrorCode::kUnsupported,

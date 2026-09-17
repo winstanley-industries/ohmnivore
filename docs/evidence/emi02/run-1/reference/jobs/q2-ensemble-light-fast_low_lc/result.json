@@ -1,0 +1,187 @@
+{
+  "attempts": 1,
+  "candidate": {
+    "cm_geometry": [
+      80,
+      60,
+      12,
+      40
+    ],
+    "cx_f": 4.7e-08,
+    "cy_f": 1e-09,
+    "dm_geometry": [
+      100,
+      60,
+      20,
+      45
+    ],
+    "id": "light",
+    "lcm_h": 0.0001,
+    "ldm_h": 1e-05
+  },
+  "completion_latency_s": 786.3271690050024,
+  "corner": {
+    "bus_v": 440,
+    "c_scale": 0.9,
+    "id": "fast_low_lc",
+    "l_scale": 0.9,
+    "rg_scale": 0.8,
+    "stray_scale": 1.2,
+    "tj_c": 27
+  },
+  "deck_sha256": "63b91dc15ac1f538b1151f387509ce9115ceef77a7f9e1e336430b45dd3dc26f",
+  "diagnostic_log_bytes": 22263,
+  "diagnostic_log_sha256": "454846e0ad259dc47844364160c35d399e9ebde0b8c7ef0aeaaedab0e0f6dc45",
+  "elapsed_s": 56.46003382399795,
+  "files": {
+    "circuit.cir": "63b91dc15ac1f538b1151f387509ce9115ceef77a7f9e1e336430b45dd3dc26f",
+    "driver.cir": "16cb7fa2335b27078d516799979b372c0493891c9c29857d0d320b3d8e4fdccf",
+    "raw.header": "6dea2db297e77191058d1a7237ad9c85ecd131111144db6e13f72199a5959bfa",
+    "raw.json": "70e38671f5e708044c3503317e8a29d315cad3e1695e5fd407278b34788acb81",
+    "simulator.log": "8a209e389bb3576af2c3674a657f26c0fa3cddf663a4618e3cbb2ccc824f0e9c",
+    "spectra.f64": "cb59ce092d7eb189cd838c9a410c1efd96fd1e61cb10988a00028b16984fc09c",
+    "spectra.json": "45a10c014f82742607e5a80dc4d31883071b3a928c4836dfa55600dfcf893993"
+  },
+  "fixture": "ensemble",
+  "id": "q2-ensemble-light-fast_low_lc",
+  "level": 2,
+  "max_step_s": 6.25e-10,
+  "metrics": {
+    "load_series_resistor_w": 2702.355581755712,
+    "load_winding_loss_surrogate_w": 359.0574701022599,
+    "mass_kg": 0.22858676859999996,
+    "research_margin_db": {
+      "a": -34.15037876250537,
+      "b": -33.76237397036847,
+      "cm": -24.33328728907236,
+      "dm": -33.95279475853846
+    },
+    "rms_chassis_return_a": 2.01618708788019,
+    "rms_cm_a": 0.5728576796243996,
+    "rms_dm_a": 11.602401579796412,
+    "rms_load_inductor_a": 11.468534131454065,
+    "rms_vcm_v": 367.4623745665905,
+    "rms_vdm_v": 326.559047501027,
+    "settling": {
+      "a": {
+        "limit_a": 0.12591099164461927,
+        "pass": true,
+        "rms_difference_a": 0.059218389061939235
+      },
+      "b": {
+        "limit_a": 0.1263993017934443,
+        "pass": true,
+        "rms_difference_a": 0.059292500216133456
+      }
+    },
+    "status": "predicted_infeasible",
+    "stress": {
+      "capacitor_peak_v": 1203.7525332831037,
+      "cm_peak_t": 0.46683185074540284,
+      "damping_a_w": 3.024423861927949,
+      "damping_b_w": 2.872286389777602,
+      "device_peak_a": 32.01542303343529,
+      "device_peak_v": 645.6347909171723,
+      "dm_peak_t": 0.10725456255660572,
+      "loss_w": 18.42347873700169,
+      "winding_rms_a": 12.656687811522225
+    },
+    "stress_limits": {
+      "capacitor_peak_v": 504,
+      "cm_peak_t": 0.2,
+      "damping_a_w": 12,
+      "damping_b_w": 12,
+      "device_peak_a": 50,
+      "device_peak_v": 960,
+      "dm_peak_t": 0.2,
+      "loss_w": 25,
+      "winding_rms_a": 12
+    },
+    "violations": [
+      "capacitor_peak_v",
+      "winding_rms_a",
+      "cm_peak_t",
+      "research_mask_a",
+      "research_mask_b",
+      "research_mask_cm",
+      "research_mask_dm"
+    ]
+  },
+  "phases": {
+    "metrics_s": 0.17202896799426526,
+    "preparation_s": 0.00028599301003850996,
+    "required_output_s": 2.571845314989332,
+    "simulation_s": 53.555109210981755,
+    "validation_s": 0.14173308899626136
+  },
+  "process": {
+    "peak_rss_kib": 442372,
+    "status": "ok",
+    "system_s": 7.903398,
+    "user_s": 45.646852,
+    "wait_status": 0,
+    "wall_s": 53.555109210981755
+  },
+  "queue_s": 729.8671351810044,
+  "raw_points": 688019,
+  "raw_sha256": "22cb366523adb895c18478bd875f64a627d324a4a8ec3261bb6c3bacb7ada678",
+  "reference_version": "emi01-v2",
+  "sample_step_s": 1.25e-09,
+  "status": "predicted_infeasible",
+  "telemetry": {
+    "accepted_steps": 688019,
+    "analysis_s": 53.2542,
+    "assembly_only_s": null,
+    "device_evaluation_s": null,
+    "equations": 290,
+    "expansion_s": 0.000903495,
+    "factor_s": 4.39152,
+    "load_s": 25.5266,
+    "netlist_loading_s": 0.000987059,
+    "newton_iterations": 1881638,
+    "nonzeros": 1051,
+    "parsing_s": 0.000493788,
+    "rejected_steps": 213440,
+    "reorder_s": 0.00022066,
+    "solve_s": 1.85821,
+    "total_iterations": 1881658,
+    "truncation_s": 1.31481,
+    "unavailable_reason": "ngspice reports combined device evaluation and matrix load only"
+  },
+  "worker_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "worker_peak_rss_kib": 386492,
+  "worker_pid": 1816626
+}

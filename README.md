@@ -101,11 +101,16 @@ EMI margin. The unit of parallel work is a complete coupled circuit for one filt
 operating/tolerance corner. The primary metric is validated candidate/corner evaluations per hour
 against a fair parallel CPU baseline at fixed accuracy.
 
-The next milestone (`EMI-01`) selects a public reference circuit/model, defines the measurement and
-physical mass contracts, and records a CPU baseline and runtime breakdown. Required CPU device
-charge, coupled-inductor, transient, and spectral capabilities precede GPU transient ensembles.
-These capabilities are planned, not implemented; the existing `NL-04` MOSFET DC plan alone is
-insufficient for realistic SiC switching. Exact aviation requirements and laboratory correlation
+EMI-01 supplies the frozen external reference, measurement and mass contracts, and CPU runtime
+breakdown. EMI-02 adds disjoint coupled-inductor pairs, bounded behavioral expressions and
+Jacobians, simultaneous controlled displacement-current transient equations, and an opt-in bridge
+for the exact reference SiC model. Its [qualification harness](reference/emi02/README.md) compares
+all thirty frozen trajectories with ngspice and fails closed on incomplete or inaccurate jobs.
+See the [EMI-02 implementation and qualification results](docs/emi02-results.md).
+Full inverter qualification remains open: all 27 CPU inverter runs hit the frozen resource limit.
+The ordinary parser does not accept general behavioral sources or vendor model libraries.
+GPU transient ensembles require a qualified EMI-02 result; implementation alone does not open
+that gate. Exact aviation requirements and laboratory correlation
 remain to be established. See [ADR-002](docs/adr/ADR-002-inverter-emi-design-study.md) and
 [the C++/CUDA roadmap](docs/roadmap.md) for scope, dependencies, and acceptance gates.
 

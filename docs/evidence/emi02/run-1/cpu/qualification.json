@@ -1,0 +1,174 @@
+{
+  "checks": [
+    {
+      "id": "q0-dpt-q1-dpt",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 3.4106981683379445e-09,
+          "limit": 0.12253244243311655
+        },
+        "off_edge_s": {
+          "difference": 3.204413396480925e-11,
+          "limit": 3.2661485513465283e-09
+        },
+        "off_energy_j": {
+          "difference": 2.9298158819881484e-09,
+          "limit": 4.178359357915576e-06
+        },
+        "off_half_s": {
+          "difference": 5.947667815677936e-12,
+          "limit": 3.2661485513465283e-09
+        },
+        "on_edge_s": {
+          "difference": 5.769134241916064e-11,
+          "limit": 3.713218686792066e-09
+        },
+        "on_energy_j": {
+          "difference": 6.224692830571112e-09,
+          "limit": 8.219063496716862e-06
+        },
+        "on_half_s": {
+          "difference": 1.476328654900045e-11,
+          "limit": 3.713218686792066e-09
+        },
+        "peak_v": {
+          "difference": 1.0362953162257327e-07,
+          "limit": 10.785215353742965
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "q1-dpt-q2-dpt",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.00020075122747864604,
+          "limit": 0.12257259267861227
+        },
+        "off_edge_s": {
+          "difference": 4.079731945813027e-12,
+          "limit": 3.265740578151947e-09
+        },
+        "off_energy_j": {
+          "difference": 5.259330880484224e-10,
+          "limit": 4.178333061261174e-06
+        },
+        "off_half_s": {
+          "difference": 3.1980091097933696e-12,
+          "limit": 3.265740578151947e-09
+        },
+        "on_edge_s": {
+          "difference": 7.1588185903472554e-12,
+          "limit": 3.712502804933031e-09
+        },
+        "on_energy_j": {
+          "difference": 6.268008116933153e-10,
+          "limit": 8.219032156676277e-06
+        },
+        "on_half_s": {
+          "difference": 9.45898773295885e-12,
+          "limit": 3.712502804933031e-09
+        },
+        "peak_v": {
+          "difference": 0.015766604949362772,
+          "limit": 10.785530685841952
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "dpt-output-1e-09",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.0002007542067117285,
+          "limit": 0.12257259267861227
+        },
+        "off_edge_s": {
+          "difference": 3.612386304595685e-11,
+          "limit": 3.265740578151947e-09
+        },
+        "off_energy_j": {
+          "difference": 3.4557750988142605e-09,
+          "limit": 4.178333061261174e-06
+        },
+        "off_half_s": {
+          "difference": 9.145669454640711e-12,
+          "limit": 3.265740578151947e-09
+        },
+        "on_edge_s": {
+          "difference": 6.485015958818661e-11,
+          "limit": 3.712502804933031e-09
+        },
+        "on_energy_j": {
+          "difference": 6.8515201628253485e-09,
+          "limit": 8.219032156676277e-06
+        },
+        "on_half_s": {
+          "difference": 2.422226973847457e-11,
+          "limit": 3.712502804933031e-09
+        },
+        "peak_v": {
+          "difference": 0.015766693526529707,
+          "limit": 10.785530685841952
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "dpt-output-5e-10",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.0002007542067117285,
+          "limit": 0.12257259267861227
+        },
+        "off_edge_s": {
+          "difference": 4.079726047075583e-12,
+          "limit": 3.265740578151947e-09
+        },
+        "off_energy_j": {
+          "difference": 5.259770447012474e-10,
+          "limit": 4.178333061261174e-06
+        },
+        "off_half_s": {
+          "difference": 3.1980050677521453e-12,
+          "limit": 3.265740578151947e-09
+        },
+        "on_edge_s": {
+          "difference": 7.158818339625503e-12,
+          "limit": 3.712502804933031e-09
+        },
+        "on_energy_j": {
+          "difference": 6.26796376926959e-10,
+          "limit": 8.219032156676277e-06
+        },
+        "on_half_s": {
+          "difference": 9.458988098877083e-12,
+          "limit": 3.712502804933031e-09
+        },
+        "peak_v": {
+          "difference": 0.015766693526529707,
+          "limit": 10.785530685841952
+        }
+      },
+      "pass": true
+    }
+  ],
+  "expected_checks": 40,
+  "pass": false
+}

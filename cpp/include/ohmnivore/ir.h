@@ -37,6 +37,15 @@ struct Inductor {
   double inductance_henries;
 };
 
+// The positive terminals of the referenced windings are their dots. Couplings
+// do not introduce components, nodes, or branch-current unknowns.
+struct InductorCoupling {
+  std::string name;
+  std::string first_inductor;
+  std::string second_inductor;
+  double coefficient;
+};
+
 struct AcSourceSpecification {
   double magnitude;
   double phase_degrees;
@@ -157,6 +166,7 @@ struct Circuit {
   std::vector<Analysis> analyses;
   std::vector<DiodeModel> diode_models = {};
   std::vector<BjtModel> bjt_models = {};
+  std::vector<InductorCoupling> inductor_couplings = {};
 };
 
 } // namespace ohmnivore

@@ -1,4 +1,5 @@
 #include "ohmnivore/transient.h"
+#include "ohmnivore/behavioral.h"
 
 #include <algorithm>
 #include <cmath>
@@ -140,8 +141,10 @@ BuildNonlinearSystemForMatrix(const MnaSystem &source,
                               const std::vector<double> &right_hand_side) {
   const std::size_t node_count = source.node_names.size();
   const std::size_t size = node_count + source.branch_names.size();
-  if (source.diode_descriptors.empty() || base_matrix.rows != size ||
-      base_matrix.columns != size || right_hand_side.size() != size) {
+  if ((source.diode_descriptors.empty() &&
+       source.behavioral_descriptors.empty()) ||
+      base_matrix.rows != size || base_matrix.columns != size ||
+      right_hand_side.size() != size) {
     return Result<MnaSystem>::Fail(
         ErrorCode::kInvalidStructure,
         "nonlinear transient matrix dimensions or diode metadata are invalid");
@@ -184,6 +187,13 @@ BuildNonlinearSystemForMatrix(const MnaSystem &source,
     retain(descriptor.cathode_node_index, descriptor.cathode_node_index);
   }
 
+  for (const auto &descriptor : source.behavioral_descriptors) {
+    for (const auto &row : descriptor.rows) {
+      for (const auto column : descriptor.expression.dependencies()) {
+        entries.try_emplace(Coordinate{row.row, column}, 0.0);
+      }
+    }
+  }
   CsrMatrix union_matrix;
   union_matrix.rows = size;
   union_matrix.columns = size;
@@ -220,6 +230,10 @@ BuildNonlinearSystemForMatrix(const MnaSystem &source,
   transformed.g = std::move(union_matrix);
   transformed.b_dc = right_hand_side;
   transformed.diode_descriptors = std::move(descriptors);
+  auto remapped = RemapBehavioralDescriptors(&transformed);
+  if (!remapped.ok())
+    return Result<MnaSystem>::Fail(remapped.error().code,
+                                   remapped.error().message);
   return Result<MnaSystem>::Ok(std::move(transformed));
 }
 
@@ -272,6 +286,7 @@ public:
       total.numeric_refactorization_fallbacks +=
           current.numeric_refactorization_fallbacks;
       total.numeric_reuses += current.numeric_reuses;
+      total.iterative_refinement_solves += current.iterative_refinement_solves;
       total.solves += current.solves;
     }
     return total;
@@ -501,7 +516,8 @@ ProjectReactiveState(const MnaSystem &system,
   std::vector<double> selected_rhs;
   std::vector<bool> active_node_equations(node_count, false);
   std::vector<bool> retained_physical_row(size, false);
-  if (system.diode_descriptors.empty()) {
+  if ((system.diode_descriptors.empty() &&
+       system.behavioral_descriptors.empty())) {
     selected_dense.reserve(size * size);
     selected_rhs.reserve(size);
     for (const SelectedEquation &equation : selected_equations) {
@@ -573,7 +589,8 @@ ProjectReactiveState(const MnaSystem &system,
         context + " matrix construction failed: " + matrix.error().message);
   }
   Result<std::vector<double>> solved = [&]() {
-    if (system.diode_descriptors.empty()) {
+    if ((system.diode_descriptors.empty() &&
+         system.behavioral_descriptors.empty())) {
       return factorization_cache->Solve(matrix.value(), selected_rhs);
     }
     Result<MnaSystem> nonlinear =
@@ -613,7 +630,8 @@ ProjectReactiveState(const MnaSystem &system,
     }
   }
   std::vector<double> diode_residual(size, 0.0);
-  if (!system.diode_descriptors.empty()) {
+  if (!(system.diode_descriptors.empty() &&
+        system.behavioral_descriptors.empty())) {
     Result<std::vector<double>> evaluated =
         BuildDiodeResidualContribution(system, solved.value());
     if (!evaluated.ok()) {
@@ -624,7 +642,8 @@ ProjectReactiveState(const MnaSystem &system,
     diode_residual = evaluated.TakeValue();
   }
   for (std::size_t row = 0; row < size; ++row) {
-    if (system.diode_descriptors.empty()
+    if ((system.diode_descriptors.empty() &&
+         system.behavioral_descriptors.empty())
             ? replaceable_row[row]
             : replaceable_row[row] && !retained_physical_row[row]) {
       continue;
@@ -652,16 +671,56 @@ void SortUnique(std::vector<double> *values) {
   values->erase(std::unique(values->begin(), values->end()), values->end());
 }
 
-[[nodiscard]] Result<double>
-ComputeNormalizedLocalError(const std::vector<double> &higher_accuracy,
-                            const std::vector<double> &lower_accuracy,
-                            double estimate_multiplier) {
+[[nodiscard]] Result<double> ComputeNormalizedLocalError(
+    const MnaSystem &system, const std::vector<double> &higher_accuracy,
+    const std::vector<double> &lower_accuracy, double estimate_multiplier) {
   if (higher_accuracy.size() != lower_accuracy.size() ||
       !std::isfinite(estimate_multiplier) || estimate_multiplier <= 0.0) {
     return Result<double>::Fail(ErrorCode::kSolve,
                                 "LTE solution dimensions disagree");
   }
   double normalized_error = 0.0;
+  if (!system.behavioral_descriptors.empty()) {
+    const auto compare = [&](double high, double low,
+                             double absolute) -> Result<bool> {
+      const double scale =
+          absolute + BehavioralNumericalPolicy::lte_relative_tolerance *
+                         std::max(std::abs(high), std::abs(low));
+      const double error = estimate_multiplier * std::abs(high - low) / scale;
+      if (!std::isfinite(high) || !std::isfinite(low) ||
+          !std::isfinite(error) || scale <= 0) {
+        return Result<bool>::Fail(
+            ErrorCode::kNonFinite,
+            "behavioral reactive-state LTE is non-finite");
+      }
+      normalized_error = std::max(normalized_error, error);
+      return Result<bool>::Ok(true);
+    };
+    for (const auto &capacitor : system.capacitor_initial_constraints) {
+      const auto voltage = [&](const std::vector<double> &state) {
+        return (capacitor.positive_node_index
+                    ? state[*capacitor.positive_node_index]
+                    : 0.0) -
+               (capacitor.negative_node_index
+                    ? state[*capacitor.negative_node_index]
+                    : 0.0);
+      };
+      auto valid =
+          compare(voltage(higher_accuracy), voltage(lower_accuracy),
+                  BehavioralNumericalPolicy::voltage_absolute_tolerance);
+      if (!valid.ok())
+        return Result<double>::Fail(valid.error().code, valid.error().message);
+    }
+    for (const auto &inductor : system.inductor_initial_constraints) {
+      auto valid =
+          compare(higher_accuracy[inductor.branch_index],
+                  lower_accuracy[inductor.branch_index],
+                  BehavioralNumericalPolicy::current_absolute_tolerance);
+      if (!valid.ok())
+        return Result<double>::Fail(valid.error().code, valid.error().message);
+    }
+    return Result<double>::Ok(normalized_error);
+  }
   for (std::size_t index = 0; index < higher_accuracy.size(); ++index) {
     if (!std::isfinite(higher_accuracy[index]) ||
         !std::isfinite(lower_accuracy[index])) {
@@ -670,10 +729,19 @@ ComputeNormalizedLocalError(const std::vector<double> &higher_accuracy,
     }
     const double difference = higher_accuracy[index] - lower_accuracy[index];
     const double estimate = estimate_multiplier * std::abs(difference);
+    const bool behavioral = !system.behavioral_descriptors.empty();
+    const double absolute =
+        behavioral
+            ? (index < system.node_names.size()
+                   ? BehavioralNumericalPolicy::voltage_absolute_tolerance
+                   : BehavioralNumericalPolicy::current_absolute_tolerance)
+            : kTransientAbsoluteTolerance;
+    const double relative =
+        behavioral ? BehavioralNumericalPolicy::lte_relative_tolerance
+                   : kTransientRelativeTolerance;
     const double scale =
-        kTransientAbsoluteTolerance +
-        kTransientRelativeTolerance * std::max(std::abs(higher_accuracy[index]),
-                                               std::abs(lower_accuracy[index]));
+        absolute + relative * std::max(std::abs(higher_accuracy[index]),
+                                       std::abs(lower_accuracy[index]));
     const double component_error = estimate / scale;
     if (!std::isfinite(estimate) || !std::isfinite(scale) || scale <= 0.0 ||
         !std::isfinite(component_error)) {
@@ -927,7 +995,8 @@ SolveTransientSystem(const MnaSystem &system, const CsrMatrix &matrix,
                      std::size_t nonlinear_maximum_iterations,
                      const std::string &context,
                      SparseRealFactorizationCache *factorization_cache) {
-  if (system.diode_descriptors.empty()) {
+  if ((system.diode_descriptors.empty() &&
+       system.behavioral_descriptors.empty())) {
     Result<std::vector<double>> solved =
         factorization_cache->Solve(matrix, right_hand_side);
     if (!solved.ok()) {
@@ -985,6 +1054,56 @@ SolveTransientSystem(const MnaSystem &system, const CsrMatrix &matrix,
                                 const std::vector<double> &second) {
   return first.size() == second.size() &&
          std::equal(first.begin(), first.end(), second.begin());
+}
+
+[[nodiscard]] Result<std::vector<double>>
+SolveTrapezoidalStep(const MnaSystem &system, const std::vector<double> &state,
+                     const std::vector<double> &previous_rhs,
+                     const std::vector<double> &current_rhs, double step,
+                     std::size_t nonlinear_maximum_iterations,
+                     SparseRealFactorizationCache *factorization_cache) {
+  Result<CsrMatrix> trap_matrix =
+      FormTransientCompanionMatrix(system.g, system.c, step, 2.0);
+  if (!trap_matrix.ok()) {
+    return Result<std::vector<double>>::Fail(ErrorCode::kSolve,
+                                             trap_matrix.error().message);
+  }
+  Result<std::vector<double>> trap_rhs = BuildTrapezoidalRhs(
+      system.g, system.c, state, previous_rhs, current_rhs, step);
+  if (!trap_rhs.ok()) {
+    return Result<std::vector<double>>::Fail(ErrorCode::kSolve,
+                                             trap_rhs.error().message);
+  }
+  std::vector<double> trap_rhs_values = trap_rhs.TakeValue();
+  if (!(system.diode_descriptors.empty() &&
+        system.behavioral_descriptors.empty())) {
+    Result<std::vector<double>> previous_diode =
+        BuildDiodeResidualContribution(system, state);
+    if (!previous_diode.ok()) {
+      return Result<std::vector<double>>::Fail(previous_diode.error().code,
+                                               previous_diode.error().message);
+    }
+    for (std::size_t row = 0; row < trap_rhs_values.size(); ++row) {
+      trap_rhs_values[row] -= previous_diode.value()[row];
+      if (!std::isfinite(trap_rhs_values[row]) ||
+          std::abs(trap_rhs_values[row]) > kNonlinearMaximumMagnitude) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kNonFinite,
+            "trapezoidal diode history produced a non-finite or "
+            "over-bound value");
+      }
+    }
+  }
+  Result<std::vector<double>> trap_solution = SolveTransientSystem(
+      system, trap_matrix.value(), trap_rhs_values, state,
+      nonlinear_maximum_iterations, "trapezoidal transient solve failed",
+      factorization_cache);
+  if (!trap_solution.ok()) {
+    return Result<std::vector<double>>::Fail(trap_solution.error().code,
+                                             trap_solution.error().message);
+  }
+
+  return trap_solution;
 }
 
 struct IntegratedStepAttempt {
@@ -1053,7 +1172,7 @@ struct IntegratedStepAttempt {
                                                      refined.error().message);
         }
         Result<double> error = ComputeNormalizedLocalError(
-            refined.value(), full_step.value(), 1.0);
+            system, refined.value(), full_step.value(), 1.0);
         if (!error.ok()) {
           return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
                                                      error.error().message);
@@ -1063,77 +1182,83 @@ struct IntegratedStepAttempt {
       }
     }
   } else {
-    Result<CsrMatrix> trap_matrix =
-        FormTransientCompanionMatrix(system.g, system.c, step, 2.0);
-    if (!trap_matrix.ok()) {
-      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
-                                                 trap_matrix.error().message);
-    }
-    Result<std::vector<double>> trap_rhs = BuildTrapezoidalRhs(
-        system.g, system.c, state, previous_rhs, current_rhs, step);
-    if (!trap_rhs.ok()) {
-      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
-                                                 trap_rhs.error().message);
-    }
-    std::vector<double> trap_rhs_values = trap_rhs.TakeValue();
-    if (!system.diode_descriptors.empty()) {
-      Result<std::vector<double>> previous_diode =
-          BuildDiodeResidualContribution(system, state);
-      if (!previous_diode.ok()) {
-        return Result<IntegratedStepAttempt>::Fail(
-            previous_diode.error().code, previous_diode.error().message);
-      }
-      for (std::size_t row = 0; row < trap_rhs_values.size(); ++row) {
-        trap_rhs_values[row] -= previous_diode.value()[row];
-        if (!std::isfinite(trap_rhs_values[row]) ||
-            std::abs(trap_rhs_values[row]) > kNonlinearMaximumMagnitude) {
-          return Result<IntegratedStepAttempt>::Fail(
-              ErrorCode::kNonFinite,
-              "trapezoidal diode history produced a non-finite or "
-              "over-bound value");
-        }
-      }
-    }
-    Result<std::vector<double>> trap_solution = SolveTransientSystem(
-        system, trap_matrix.value(), trap_rhs_values, state,
-        nonlinear_maximum_iterations, "trapezoidal transient solve failed",
-        factorization_cache);
-    if (!trap_solution.ok()) {
+    auto trap_solution =
+        SolveTrapezoidalStep(system, state, previous_rhs, current_rhs, step,
+                             nonlinear_maximum_iterations, factorization_cache);
+    if (!trap_solution.ok())
       return Result<IntegratedStepAttempt>::Fail(trap_solution.error().code,
                                                  trap_solution.error().message);
-    }
+    if (!system.behavioral_descriptors.empty()) {
+      const double midpoint = time + step * 0.5;
+      if (!std::isfinite(midpoint) || midpoint <= time ||
+          midpoint >= next_time) {
+        return Result<IntegratedStepAttempt>::Fail(
+            ErrorCode::kSolve, "trapezoidal LTE midpoint is not representable");
+      }
+      auto midpoint_rhs = BuildTransientRhs(system, midpoint);
+      if (!midpoint_rhs.ok())
+        return Result<IntegratedStepAttempt>::Fail(
+            midpoint_rhs.error().code, midpoint_rhs.error().message);
+      auto first = SolveTrapezoidalStep(
+          system, state, previous_rhs, midpoint_rhs.value(), midpoint - time,
+          nonlinear_maximum_iterations, factorization_cache);
+      if (!first.ok())
+        return Result<IntegratedStepAttempt>::Fail(first.error().code,
+                                                   first.error().message);
+      auto second = SolveTrapezoidalStep(
+          system, first.value(), midpoint_rhs.value(), current_rhs,
+          next_time - midpoint, nonlinear_maximum_iterations,
+          factorization_cache);
+      if (!second.ok())
+        return Result<IntegratedStepAttempt>::Fail(second.error().code,
+                                                   second.error().message);
+      auto error = ComputeNormalizedLocalError(system, trap_solution.value(),
+                                               second.value(), 4.0 / 3.0);
+      if (!error.ok())
+        return Result<IntegratedStepAttempt>::Fail(error.error().code,
+                                                   error.error().message);
+      normalized_error = error.value();
+    } else {
 
-    Result<CsrMatrix> be_matrix =
-        FormTransientCompanionMatrix(system.g, system.c, step, 1.0);
-    if (!be_matrix.ok()) {
-      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
-                                                 be_matrix.error().message);
+      Result<CsrMatrix> be_matrix =
+          FormTransientCompanionMatrix(system.g, system.c, step, 1.0);
+      if (!be_matrix.ok()) {
+        return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                   be_matrix.error().message);
+      }
+      Result<std::vector<double>> be_rhs =
+          BuildBackwardEulerRhs(system.c, state, integration_rhs, step);
+      if (!be_rhs.ok()) {
+        return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                   be_rhs.error().message);
+      }
+      Result<std::vector<double>> be_solution = SolveTransientSystem(
+          system, be_matrix.value(), be_rhs.value(), state,
+          nonlinear_maximum_iterations, "LTE backward-Euler solve failed",
+          factorization_cache);
+      if (!be_solution.ok()) {
+        return Result<IntegratedStepAttempt>::Fail(be_solution.error().code,
+                                                   be_solution.error().message);
+      }
+      Result<double> error = ComputeNormalizedLocalError(
+          system, trap_solution.value(), be_solution.value(), 2.0 / 3.0);
+      if (!error.ok()) {
+        return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
+                                                   error.error().message);
+      }
+      normalized_error = error.value();
     }
-    Result<std::vector<double>> be_rhs =
-        BuildBackwardEulerRhs(system.c, state, integration_rhs, step);
-    if (!be_rhs.ok()) {
-      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
-                                                 be_rhs.error().message);
-    }
-    Result<std::vector<double>> be_solution = SolveTransientSystem(
-        system, be_matrix.value(), be_rhs.value(), state,
-        nonlinear_maximum_iterations, "LTE backward-Euler solve failed",
-        factorization_cache);
-    if (!be_solution.ok()) {
-      return Result<IntegratedStepAttempt>::Fail(be_solution.error().code,
-                                                 be_solution.error().message);
-    }
-    Result<double> error = ComputeNormalizedLocalError(
-        trap_solution.value(), be_solution.value(), 2.0 / 3.0);
-    if (!error.ok()) {
-      return Result<IntegratedStepAttempt>::Fail(ErrorCode::kSolve,
-                                                 error.error().message);
-    }
-    normalized_error = error.value();
     accepted_state = trap_solution.TakeValue();
   }
 
-  const double adapted_step = step * AdaptationFactor(normalized_error);
+  const double factor =
+      !system.behavioral_descriptors.empty() && !use_backward_euler
+          ? (normalized_error == 0.0
+                 ? 2.0
+                 : std::clamp(0.9 * std::cbrt(1.0 / normalized_error), 0.5,
+                              2.0))
+          : AdaptationFactor(normalized_error);
+  const double adapted_step = step * factor;
   if (!std::isfinite(adapted_step) || adapted_step <= 0.0) {
     return Result<IntegratedStepAttempt>::Fail(
         ErrorCode::kSolve,
@@ -1166,7 +1291,8 @@ namespace {
         "invalid MNA dimensions for transient initialization");
   }
   if (!use_initial_conditions) {
-    if (system.diode_descriptors.empty()) {
+    if ((system.diode_descriptors.empty() &&
+         system.behavioral_descriptors.empty())) {
       Result<std::vector<double>> solved =
           factorization_cache->Solve(system.g, system.b_dc);
       if (!solved.ok()) {
@@ -1176,7 +1302,18 @@ namespace {
       }
       return solved;
     }
-    Result<NonlinearDcResult> solved = RunNonlinearDc(system);
+    NonlinearDcOptions options;
+    if (!system.behavioral_descriptors.empty()) {
+      options.direct_maximum_iterations =
+          BehavioralNumericalPolicy::dc_maximum_iterations;
+      options.source_step_maximum_iterations =
+          BehavioralNumericalPolicy::dc_maximum_iterations;
+      options.gmin_step_maximum_iterations =
+          BehavioralNumericalPolicy::dc_maximum_iterations;
+      options.final_gmin_maximum_iterations =
+          BehavioralNumericalPolicy::dc_maximum_iterations;
+    }
+    Result<NonlinearDcResult> solved = RunNonlinearDc(system, options);
     if (!solved.ok()) {
       return Result<std::vector<double>>::Fail(
           solved.error().code,
@@ -1186,6 +1323,10 @@ namespace {
     return Result<std::vector<double>>::Ok(solved.TakeValue().solution);
   }
 
+  if (!system.behavioral_descriptors.empty())
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kUnsupported,
+        "behavioral UIC is outside the qualified initialization contract");
   const std::size_t size = system.g.rows;
   const std::vector<double> zero_reactive_state(size, 0.0);
   Result<std::vector<double>> solved =
@@ -1248,6 +1389,15 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
           ErrorCode::kUnsupported,
           "phase 3C does not support BJT transient analysis or charge storage");
     }
+    if (!system.behavioral_descriptors.empty()) {
+      auto valid = ValidateBehavioralTransient(system);
+      if (!valid.ok())
+        return Result<TransientResult>::Fail(valid.error().code,
+                                             valid.error().message);
+      if (analysis.use_initial_conditions)
+        return Result<TransientResult>::Fail(ErrorCode::kUnsupported,
+                                             "behavioral UIC is unsupported");
+    }
     SparseRealFactorizationCache factorization_cache;
     if (!std::isfinite(analysis.time_step_seconds) ||
         analysis.time_step_seconds <= 0.0 ||
@@ -1264,7 +1414,10 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
         limits.maximum_step_attempts < limits.maximum_accepted_steps ||
         !std::isfinite(limits.minimum_step_divisor) ||
         limits.minimum_step_divisor < 1.0 ||
-        limits.nonlinear_maximum_iterations > kDirectNewtonMaximumIterations) {
+        limits.nonlinear_maximum_iterations >
+            (system.behavioral_descriptors.empty()
+                 ? kDirectNewtonMaximumIterations
+                 : BehavioralNumericalPolicy::transient_maximum_iterations)) {
       return Result<TransientResult>::Fail(
           ErrorCode::kSolve, "invalid transient execution limits");
     }
@@ -1317,9 +1470,12 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
       return Result<TransientResult>::Fail(ErrorCode::kSolve,
                                            initial_rhs.error().message);
     }
-    Result<std::vector<double>> projected_initial = ProjectReactiveState(
-        system, initial.value(), initial_rhs.value(),
-        "initial transient source projection", &factorization_cache);
+    Result<std::vector<double>> projected_initial =
+        system.behavioral_descriptors.empty()
+            ? ProjectReactiveState(system, initial.value(), initial_rhs.value(),
+                                   "initial transient source projection",
+                                   &factorization_cache)
+            : Result<std::vector<double>>::Ok(initial.TakeValue());
     if (!projected_initial.ok()) {
       return Result<TransientResult>::Fail(projected_initial.error().code,
                                            projected_initial.error().message);
@@ -1335,9 +1491,35 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
     std::size_t hard_index = 0;
     std::size_t attempts = 0;
     std::size_t accepted_steps = 0;
+    double first_output_time = -1.0;
+    double last_output_time = -1.0;
+    const auto emit =
+        [&](double output_time,
+            const std::vector<double> &output_state) -> Result<bool> {
+      if (limits.accepted_state_observer) {
+        auto emitted =
+            limits.accepted_state_observer(output_time, output_state);
+        if (!emitted.ok())
+          return emitted;
+        if (!emitted.value())
+          return Result<bool>::Fail(ErrorCode::kIo,
+                                    "accepted-state observer rejected output");
+      }
+      if (limits.retain_output_states) {
+        result.times_seconds.push_back(output_time);
+        result.states.push_back(output_state);
+      }
+      if (result.emitted_points == 0)
+        first_output_time = output_time;
+      last_output_time = output_time;
+      ++result.emitted_points;
+      return Result<bool>::Ok(true);
+    };
     if (analysis.start_time_seconds == 0.0) {
-      result.times_seconds.push_back(0.0);
-      result.states.push_back(state);
+      auto emitted = emit(0.0, state);
+      if (!emitted.ok())
+        return Result<TransientResult>::Fail(emitted.error().code,
+                                             emitted.error().message);
     }
 
     while (time < analysis.stop_time_seconds) {
@@ -1374,6 +1556,12 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
         step = hard_distance;
         next_time = next_hard_point;
         lands_on_hard_point = true;
+      } else if (!system.behavioral_descriptors.empty() &&
+                 next_hard_point - next_time < minimum_step) {
+        // Avoid a rounding-sized final interval with an enormous C/h. Split
+        // the remaining distance without exceeding the requested maximum step.
+        next_time = time + hard_distance * 0.5;
+        step = next_time - time;
       }
       if (!std::isfinite(step) || step <= 0.0 || !std::isfinite(next_time) ||
           next_time <= time) {
@@ -1386,7 +1574,9 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
         return Result<TransientResult>::Fail(
             nonlinear_retry_pending ? ErrorCode::kNonConvergence
                                     : ErrorCode::kSolve,
-            "adaptive transient timestep fell below h_min");
+            "adaptive transient timestep fell below h_min at t_ns=" +
+                std::to_string(time * 1e9) +
+                " step_fs=" + std::to_string(step * 1e15));
       }
 
       const bool waveform_landing =
@@ -1429,7 +1619,8 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
           time, next_time, step, use_backward_euler, lands_on_hard_point,
           limits.nonlinear_maximum_iterations, &factorization_cache);
       if (!integrated.ok()) {
-        if (system.diode_descriptors.empty() ||
+        if ((system.diode_descriptors.empty() &&
+             system.behavioral_descriptors.empty()) ||
             integrated.error().code != ErrorCode::kNonConvergence) {
           return Result<TransientResult>::Fail(integrated.error().code,
                                                integrated.error().message);
@@ -1451,7 +1642,10 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
           return Result<TransientResult>::Fail(
               ErrorCode::kNonConvergence,
               "nonlinear transient timestep retry fell below h_min or became "
-              "unrepresentable");
+              "unrepresentable at t_ns=" +
+                  std::to_string(time * 1e9) +
+                  " step_fs=" + std::to_string(step * 1e15) + ": " +
+                  integrated.error().message);
         }
         proposed_step = retry_step;
         recovery_step = true;
@@ -1475,7 +1669,9 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
         if (adapted_step < minimum_step) {
           return Result<TransientResult>::Fail(
               ErrorCode::kSolve,
-              "adaptive transient timestep fell below h_min");
+              "adaptive transient timestep fell below h_min at t_ns=" +
+                  std::to_string(time * 1e9) +
+                  " step_fs=" + std::to_string(step * 1e15));
         }
         proposed_step = adapted_step;
         recovery_step = true;
@@ -1485,10 +1681,11 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
       std::vector<double> accepted_state =
           integrated.TakeValue().accepted_state;
       proposed_step = std::clamp(adapted_step, minimum_step, maximum_step);
-      recovery_step = false;
+      recovery_step =
+          !system.behavioral_descriptors.empty() && waveform_landing;
       nonlinear_retry_pending = false;
 
-      if (waveform_landing &&
+      if (system.behavioral_descriptors.empty() && waveform_landing &&
           !EqualVectors(integration_rhs, current_rhs.value())) {
         Result<std::vector<double>> projected = ProjectReactiveState(
             system, accepted_state, current_rhs.value(),
@@ -1522,18 +1719,20 @@ RunTransientAnalysis(const MnaSystem &system, const TranAnalysis &analysis,
       time = next_time;
 
       if (time >= analysis.start_time_seconds) {
-        result.times_seconds.push_back(time);
-        result.states.push_back(state);
+        auto emitted = emit(time, state);
+        if (!emitted.ok())
+          return Result<TransientResult>::Fail(emitted.error().code,
+                                               emitted.error().message);
       }
     }
 
-    if (time != analysis.stop_time_seconds || result.times_seconds.empty() ||
-        result.times_seconds.back() != analysis.stop_time_seconds) {
+    if (time != analysis.stop_time_seconds || result.emitted_points == 0 ||
+        last_output_time != analysis.stop_time_seconds) {
       return Result<TransientResult>::Fail(
           ErrorCode::kSolve,
           "transient analysis did not include the exact requested stop time");
     }
-    if (result.times_seconds.front() != analysis.start_time_seconds) {
+    if (first_output_time != analysis.start_time_seconds) {
       return Result<TransientResult>::Fail(
           ErrorCode::kSolve,
           "transient analysis did not include the exact output start time");
