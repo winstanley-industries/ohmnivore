@@ -1,0 +1,136 @@
+Another command (pid=331480) is running. Waiting for it to complete on the server (server_pid=40680)...
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+INFO: Found applicable config definition test:cuda in file /home/adam/code/ohmnivore/.bazelrc: --test_output=all
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --@@rules_cuda+//cuda:archs, --@@rules_cuda+//cuda:runtime, --extra_toolchains, and 1 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 6 targets (0 packages loaded, 0 targets configured)
+Analyzing: 6 targets (0 packages loaded, 1 target configured)
+
+INFO: Analyzed 6 targets (134 packages loaded, 7453 targets configured).
+[38 / 147] 1 / 6 tests; Compiling AMD/Source/amd_1.c; 1s linux-sandbox ... (32 actions running)
+INFO: From Compiling KLU/Source/klu_z_kernel.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_kernel.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c: In function 'prune':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^~
+INFO: From Compiling KLU/Source/klu_kernel.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c: In function 'prune':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^~
+INFO: From Compiling KLU/Source/klu_sort.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c: In function 'klu_sort':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+INFO: From Compiling KLU/Source/klu_z_sort.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_sort.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c: In function 'klu_z_sort':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+INFO: From Compiling KLU/Source/klu_z_diagnostics.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_diagnostics.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c: In function 'klu_z_rgrowth':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^~
+INFO: From Compiling KLU/Source/klu_diagnostics.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c: In function 'klu_rgrowth':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^~
+[124 / 159] 1 / 6 tests; Compiling cpp/src/solver.cc; 3s linux-sandbox ... (15 actions, 14 running)
+[150 / 161] 1 / 6 tests; Compiling googletest/src/gtest.cc; 2s linux-sandbox ... (3 actions running)
+[162 / 164] 4 / 6 tests; Testing //cuda:gpu02s_linkage_test; 1s linux-sandbox ... (2 actions running)
+[162 / 164] 4 / 6 tests; Testing //cuda:gpu02s_linkage_test; 11s linux-sandbox ... (2 actions running)
+[162 / 164] 4 / 6 tests; Testing //cuda:gpu02s_linkage_test; 16s linux-sandbox ... (2 actions running)
+INFO: From Testing //cuda:gpu02s_linkage_test:
+==================== Test output for //cuda:gpu02s_linkage_test:
+GPU-02 linkage passed: cuDSS and cuBLAS are embedded statically; CUDA and GCC runtimes are static; DT_NEEDED contains only the declared glibc host ABI
+================================================================================
+INFO: From Testing //cuda:gpu02_linkage_test:
+==================== Test output for //cuda:gpu02_linkage_test:
+GPU-02 linkage passed: cuDSS and cuBLAS are embedded statically; CUDA and GCC runtimes are static; DT_NEEDED contains only the declared glibc host ABI
+================================================================================
+INFO: Found 6 test targets...
+INFO: Elapsed time: 37.121s, Critical Path: 21.30s
+INFO: 88 processes: 76 action cache hit, 9 internal, 81 linux-sandbox.
+INFO: Build completed successfully, 88 total actions
+PASSED: //cuda:gpu02_prepared_ac_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-fastbuild/testlogs/cuda/gpu02_prepared_ac_test/test.log)
+INFO: From Testing //cuda:gpu02_prepared_ac_test
+==================== Test output for //cuda:gpu02_prepared_ac_test:
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from Gpu02PreparedAcCudaTest
+[ RUN      ] Gpu02PreparedAcCudaTest.SolvesExactComplexFp64CaseAndReusesOneImmutablePreparation
+[       OK ] Gpu02PreparedAcCudaTest.SolvesExactComplexFp64CaseAndReusesOneImmutablePreparation (359 ms)
+[ RUN      ] Gpu02PreparedAcCudaTest.RefreshesValuesRhsAndAssociationsWithoutReplacingStructureAnalysis
+[       OK ] Gpu02PreparedAcCudaTest.RefreshesValuesRhsAndAssociationsWithoutReplacingStructureAnalysis (11 ms)
+[ RUN      ] Gpu02PreparedAcCudaTest.BackendNeutralFailClosedWrapperAcceptsValidCudaWithoutFallback
+[       OK ] Gpu02PreparedAcCudaTest.BackendNeutralFailClosedWrapperAcceptsValidCudaWithoutFallback (10 ms)
+[ RUN      ] Gpu02PreparedAcCudaTest.CpuAcceptanceRejectsEveryHostileCudaOutputAssociationAndValueClass
+[       OK ] Gpu02PreparedAcCudaTest.CpuAcceptanceRejectsEveryHostileCudaOutputAssociationAndValueClass (9 ms)
+[ RUN      ] Gpu02PreparedAcCudaTest.LiveAllocationCudaCudssAndDataInfoFailuresInvalidateThenReprepare
+[       OK ] Gpu02PreparedAcCudaTest.LiveAllocationCudaCudssAndDataInfoFailuresInvalidateThenReprepare (84 ms)
+[ RUN      ] Gpu02PreparedAcCudaTest.PartialCudaSuccessIsRejectedAndExplicitFullBatchFallbackRecovers
+[       OK ] Gpu02PreparedAcCudaTest.PartialCudaSuccessIsRejectedAndExplicitFullBatchFallbackRecovers (11 ms)
+[----------] 6 tests from Gpu02PreparedAcCudaTest (486 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (486 ms total)
+[  PASSED  ] 6 tests.
+================================================================================
+PASSED: //cuda:gpu02_replay_differential_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-fastbuild/testlogs/cuda/gpu02_replay_differential_test/test.log)
+INFO: From Testing //cuda:gpu02_replay_differential_test
+==================== Test output for //cuda:gpu02_replay_differential_test:
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Gpu02PreparedAcCudaReplayTest
+[ RUN      ] Gpu02PreparedAcCudaReplayTest.FullFrozenReplayV1BatchDifferentiatesAgainstCpuKluAndCertifies
+[       OK ] Gpu02PreparedAcCudaReplayTest.FullFrozenReplayV1BatchDifferentiatesAgainstCpuKluAndCertifies (3526 ms)
+[----------] 1 test from Gpu02PreparedAcCudaReplayTest (3526 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (3526 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+PASSED: //cuda:gpu02s_session_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-fastbuild/testlogs/cuda/gpu02s_session_test/test.log)
+INFO: From Testing //cuda:gpu02s_session_test
+==================== Test output for //cuda:gpu02s_session_test:
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Gpu02sCudaSessionTest
+[ RUN      ] Gpu02sCudaSessionTest.CertifiesChangedCornersWithOneStructureUploadAndAnalysis
+[       OK ] Gpu02sCudaSessionTest.CertifiesChangedCornersWithOneStructureUploadAndAnalysis (459 ms)
+[----------] 1 test from Gpu02sCudaSessionTest (459 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (459 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+PASSED: //cuda:smoke_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-fastbuild/testlogs/cuda/smoke_test/test.log)
+INFO: From Testing //cuda:smoke_test
+==================== Test output for //cuda:smoke_test:
+backend=cuda device="NVIDIA GeForce RTX 5080" compute_capability=12.0 runtime=13000 driver=13040 global_memory_bytes=17066033152 deterministic_oracle=pass gcc_runtime=static
+================================================================================
+//cuda:gpu02_prepared_ac_test                                   (cached) PASSED in 0.6s
+//cuda:gpu02_replay_differential_test                           (cached) PASSED in 3.7s
+//cuda:gpu02s_session_test                                      (cached) PASSED in 0.6s
+//cuda:smoke_test                                               (cached) PASSED in 0.6s
+//cuda:gpu02_linkage_test                                                PASSED in 17.1s
+//cuda:gpu02s_linkage_test                                               PASSED in 16.9s
+
+Executed 2 out of 6 tests: 6 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

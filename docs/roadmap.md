@@ -9,8 +9,10 @@ bounded contract in ADR-001 or a successor ADR before code changes begin.
 GPU-01 is complete under its exact bounded contract in ADR-001. GPU-02 is complete only as the
 explicit native-complex-FP64 CUDA correctness and crossover experiment contracted in ADR-001;
 GPU-02S is the bounded persistent-session evidence follow-up and changes no production routing.
-Ordinary CUDA execution and automatic dispatch remain unauthorized. NL-04 and the EMI implementation
-stages have not started. Completion of an experiment does not itself authorize downstream work.
+Ordinary CUDA execution and automatic dispatch remain unauthorized. EMI-01 is complete as a
+qualified external CPU reference study; its [results and acceleration budget](emi01-results.md)
+include two complete evidence invocations. NL-04 and EMI-02 onward have not started. Completion
+of an experiment does not itself authorize downstream work.
 
 The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
 remain untrusted until the CPU differential and independent validation gates accept them. Planning
@@ -26,8 +28,8 @@ accuracy and complete study timing.
 
 | Stage | Deliverable | Dependency |
 |---|---|---|
-| EMI-01 | Public reference circuit/model, combined CM/DM filter candidate set, qualified CPU study, runtime breakdown, and frozen experiment contract | Next work; reference/model compatibility must be established |
-| EMI-02 | Only the missing CPU model, coupled-element, transient, and measurement semantics needed by the reference | EMI-01; separately bounded slices including the NL-04 foundation |
+| EMI-01 | Public reference circuit/model, combined CM/DM filter candidate set, qualified CPU study, runtime breakdown, and frozen experiment contract | Complete as an external reference; no production switching support or feasible filter claimed |
+| EMI-02 | Only the missing CPU model, coupled-element, transient, and measurement semantics needed by the reference | Qualified EMI-01; separate [EMI-02A through EMI-02D proposals](../reference/emi01/CPU_GAPS.md), beginning with disjoint linear coupled-inductor pairs |
 | EMI-03 | Native-FP64 GPU execution of independent transient jobs, compared with persistent parallel CPU execution | Qualified EMI-02 CPU path and frozen accuracy/performance gates |
 | EMI-04 | Filter search and robustness evaluation with physical mass and emission-margin accounting | Trustworthy evaluator; CPU enumeration can start before GPU acceleration |
 

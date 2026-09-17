@@ -1,0 +1,49 @@
+{
+  "boundary": "Executed after both retained invocations. Pure Python tests execute in sanitizer configurations but are not sanitizer-instrumented. Prior explicit CUDA/sanitizer analysis-failure and CUDA/AC regression checks remain indexed in checks.json.",
+  "checks": [
+    {
+      "command": "bazel lint",
+      "exit_code": 0,
+      "log": "delivery-lint.log",
+      "result": "pass",
+      "sha256": "f36fc6c16dbf800a0a8be2369894aa7d8d3aacd323ec241d3ddabae3faa723e6"
+    },
+    {
+      "command": "bazel build //...",
+      "exit_code": 0,
+      "log": "delivery-build.log",
+      "result": "54 targets; pass",
+      "sha256": "501a9ac9333f077ea4f318eb71d4d0a9508825bf695d111fb90b330af9a9f671"
+    },
+    {
+      "command": "bazel test --lockfile_mode=error //...",
+      "exit_code": 0,
+      "log": "delivery-tests.log",
+      "result": "21 tests pass",
+      "sha256": "50ec22a47ac9b847918447909a32cf98af154883dd168b55bd534dafd2f1a066"
+    },
+    {
+      "command": "bazel test --config=asan //...",
+      "exit_code": 0,
+      "log": "delivery-asan.log",
+      "result": "19 tests pass; 2 declared incompatible targets skipped",
+      "sha256": "ae0463af5a1000b516d24054e2776298c086c1b64956d0f57997d2632fbd6520"
+    },
+    {
+      "command": "bazel test --config=ubsan //...",
+      "exit_code": 0,
+      "log": "delivery-ubsan.log",
+      "result": "19 tests pass; 2 declared incompatible targets skipped",
+      "sha256": "abbf56907b0e191619b8159a74f4ab9e1045a9be37cb2bf31b083e550ee79f73"
+    },
+    {
+      "command": "bazel build //reference/emi01:study //reference/emi01:report",
+      "exit_code": 0,
+      "log": "delivery-restore-default.log",
+      "result": "pass; executable rebuild identity investigated separately",
+      "sha256": "8543cd36d633ed85dbe79878c813fbd486be3e29922879a229bfdaac7414c13a"
+    }
+  ],
+  "frozen_implementation_commit": "bf1165fe92fb5f527bbddfcb53374956d62929a5",
+  "schema": "emi01-final-delivery-checks-v1"
+}

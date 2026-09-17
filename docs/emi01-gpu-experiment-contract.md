@@ -29,8 +29,12 @@ authorization if its breakdown invalidates the opportunity described by EMI-01.
 
 ## Accuracy, failures and required output
 
-Native FP64 only. GPU results remain untrusted until fresh CPU differential checks accept the
-complete job. Preserve nonlinear residual checks, accepted-step state, rejected-step rollback,
+Native FP64 only. Generate fresh CPU reference trajectories for all nine exact inputs once per
+complete invocation. Bind them to physical/numerical inputs, CPU implementation, model and source
+identities. Each timed GPU result remains untrusted until fresh per-result CPU validation against
+those immutable trajectories accepts the complete job. Every replica still independently solves
+its complete initial-value problem; a stored trajectory cannot substitute for GPU execution.
+Preserve nonlinear residual checks, accepted-step state, rejected-step rollback,
 source breakpoints, initialization and typed failure meaning. Symbolic pattern reuse is allowed
 only under exact pattern identity; no numerical state may leak between candidates or replicas.
 CPU comparison must include raw waveform validation, every CM/DM/conductor spectral bin, switching
@@ -65,19 +69,36 @@ population-tail estimate. No competing benchmark/build may run. Keep all candida
 replicas and failure records in throughput denominators.
 
 Charge preparation, queueing/scheduling, context/model setup where cold, host/device transfers,
-device execution and synchronization, fresh CPU certification, validation/spectral processing,
+device execution and synchronization, per-result CPU validation, spectral processing,
 and closed required output files. Report one-time setup separately and cold complete-study time
-including it. A warm measurement may reuse explicitly declared context/pattern/model state;
+including it and fresh CPU qualification. Generate these CPU references independently in both
+evidence invocations; report their measured cost separately and include it in whole-invocation
+wall time. A warm measurement may reuse explicitly declared context/pattern/model/reference state;
 both CPU and GPU modes receive the same permitted reuse. Physical fsync and dependency build/fetch
 are separately excluded. Report complete invocation wall time as well as study and job latency.
 
 The proposed usefulness threshold is **at least 2.0x median and 1.5x empirical P95 complete-study
 speedup**, versus the best qualified persistent CPU mode, for both 9 and 36 jobs in each independent
-invocation. Cold complete-study time, including setup and certification, must be no slower than
-the best cold CPU study. Memory, accuracy and zero-failure gates are conjunctive. These thresholds
+invocation. Cold complete-study time, including fresh CPU qualification, setup and per-result
+validation, must be no slower than the best cold CPU study. Memory, accuracy and zero-failure
+gates are conjunctive. These thresholds
 are a new engineering acceptance budget: a substantial reduction in design-study turnaround must
 survive scheduling, certification and output costs. They are not inherited from AC or predicted
 by a factorization microbenchmark. Failure is valid negative evidence and leaves dispatch closed.
 
 Automatic dispatch, mixed precision, new physical models, general optimization and larger ensemble
 claims require separate authorization even if this proposed experiment passes.
+The warm 2.0x/1.5x gates apply only to repeated evaluations of this exact finite input set after
+charged qualification. They do not establish throughput for previously unseen candidates.
+Report cold and whole-invocation speedup separately, including qualification once in each timed
+boundary rather than adding it twice. The cold CPU comparator includes its own same required
+qualification and study output; identify common qualification cost explicitly. For novel inputs,
+generating a full CPU oracle trajectory can remove the useful acceleration budget. No cache entry
+is valid for changed physical/numerical inputs, and no broader certification or novel-candidate
+throughput claim is authorized without a separate bounded contract.
+
+After the CPU references exist, the three candidates' feasibility over all nine candidate/corner
+inputs is already known. Faster replay
+therefore does not demonstrate faster discovery or time to a new lightest feasible design. The
+EMI-01 simulator-phase counterfactual excludes additional GPU certification/transfer costs and
+is only an optimistic opportunity bound; actual experiment timings must charge those costs.
