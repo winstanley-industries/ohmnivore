@@ -1170,9 +1170,14 @@ downstream GPU work. NL-04 and every later GPU phase remain unstarted.
 
 ## Follow-up epics
 
-Post-Phase 3C work is divided into three independently reviewable epics. Their detailed planning
-contract is recorded in [the C++/CUDA roadmap](../roadmap.md). Recording an epic does not authorize
-its implementation; each epic requires an exact bounded ADR contract before code changes begin.
+The original post-Phase 3C split below records the dependencies of NL-04 and the completed GPU-01
+and GPU-02 experiments. The accepted next direction is now the combined common-mode and
+differential-mode inverter output-filter study in
+[ADR-002](ADR-002-inverter-emi-design-study.md), starting with a public reference workload and CPU
+runtime diagnosis (`EMI-01`). This updates planning priority without changing any implemented
+contract or historical AC performance verdict. The sequence is recorded in
+[the C++/CUDA roadmap](../roadmap.md). Each implementation slice still requires an exact bounded
+ADR contract before code changes begin.
 
 1. **NL-04: Deterministic FP64 CPU MOSFET DC authority.** Add a strict minimal NMOS/PMOS DC model
    on the existing Newton and KLU path, with an explicit terminal/bulk policy, analytic and ngspice
@@ -1188,9 +1193,10 @@ its implementation; each epic requires an exact bounded ADR contract before code
    the crossover thresholds frozen before implementation without weakening correctness.
 
 GPU-02 depends on GPU-01. NL-04 does not block the batched-linear-AC epics, but it and GPU-02 both
-precede any future nonlinear MOSFET/CMOS CUDA proposal. Evaluate batched AC points, parameter
-corners, Monte Carlo runs, and independent circuits before considering single-circuit domain
-decomposition.
+precede any future nonlinear MOSFET/CMOS CUDA proposal. NL-04's bounded DC semantics do not provide
+the device charge or transient behavior needed by the EMI study; those require additional CPU
+contracts and qualification under ADR-002. Evaluate independent candidate/corner simulations
+before considering single-circuit domain decomposition.
 
 Performance evidence compares complete GPU time---preparation, upload, device work,
 synchronization, readback, and CPU validation---with a fair parallel host baseline for independent

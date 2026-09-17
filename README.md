@@ -93,18 +93,27 @@ fixture, one memoryless-diode transient fixture, one BJT DC fixture, and toleran
 storage, numerical, license, and reproducibility details are recorded in
 `third_party/suitesparse/PROVENANCE.md`.
 
-## Post-Phase 3C roadmap
+## Next direction: inverter output-filter design studies
 
-Post-Phase 3C work was split into three bounded epics. GPU-01, the backend-neutral prepared-workload
-and evidence foundation, and GPU-02, its opt-in native-FP64 CUDA experiment, are complete. GPU-02
-now uses cuDSS's native same-pattern uniform batch; it did not meet the frozen timing gate, and
-GPU-02S separately tests large repeated sweeps with persistent CPU/CUDA ownership without changing
-that result or production routing. Automatic dispatch remains unauthorized. Deterministic FP64 CPU
-MOSFET DC authority (`NL-04`) has not started. MOSFET DC is independent of batched linear AC but is required before any later
-MOSFET/CMOS CUDA work. The frozen performance thesis, parallel CPU comparison, full timing
-boundary, thresholds, exclusions, and dependency details are recorded in
-[ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md) and
-[the C++/CUDA roadmap](docs/roadmap.md). Neither completed GPU epic authorizes downstream work.
+The accepted next direction is evaluating many combined common-mode and differential-mode output
+filter designs for switching motor-drive inverters, seeking lower mass with sufficient predicted
+EMI margin. The unit of parallel work is a complete coupled circuit for one filter candidate and
+operating/tolerance corner. The primary metric is validated candidate/corner evaluations per hour
+against a fair parallel CPU baseline at fixed accuracy.
+
+The next milestone (`EMI-01`) selects a public reference circuit/model, defines the measurement and
+physical mass contracts, and records a CPU baseline and runtime breakdown. Required CPU device
+charge, coupled-inductor, transient, and spectral capabilities precede GPU transient ensembles.
+These capabilities are planned, not implemented; the existing `NL-04` MOSFET DC plan alone is
+insufficient for realistic SiC switching. Exact aviation requirements and laboratory correlation
+remain to be established. See [ADR-002](docs/adr/ADR-002-inverter-emi-design-study.md) and
+[the C++/CUDA roadmap](docs/roadmap.md) for scope, dependencies, and acceptance gates.
+
+GPU-01, GPU-02, and GPU-02S remain completed prepared-linear-AC experiments. Neither GPU-02's native
+cuDSS uniform batching nor GPU-02S's persistent sessions met the frozen end-to-end performance
+gates. Their historical evidence and [ADR-001](docs/adr/ADR-001-cpp-cuda-migration.md) contracts are
+preserved. This roadmap update does not refresh those measurements or enable ordinary CUDA
+execution. Automatic dispatch remains unauthorized.
 
 ## Build and test the C++ path
 
@@ -172,7 +181,8 @@ cargo test --features ngspice-compare
 ## Documentation
 
 - [ADR-001: Migrate the Solver Core to C++20 and CUDA](docs/adr/ADR-001-cpp-cuda-migration.md)
-- [C++/CUDA Roadmap After Phase 3C](docs/roadmap.md) — planned epic boundaries and GPU evidence gate
+- [ADR-002: Batched Inverter Output-Filter Design Studies](docs/adr/ADR-002-inverter-emi-design-study.md)
+- [C++/CUDA Roadmap](docs/roadmap.md) — reference study, CPU qualification, and GPU ensemble stages
 - [Building Ohmnivore](docs/BUILDING.md)
 - [Netlist Format](docs/netlist-format.md) — active C++ subset and identified legacy-only forms
 - [Analysis Types](docs/analyses.md) — active C++ behavior and identified legacy-only behavior

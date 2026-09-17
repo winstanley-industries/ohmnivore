@@ -1,14 +1,16 @@
-# C++/CUDA Roadmap After Phase 3C
+# C++/CUDA Roadmap: Inverter EMI Design Studies
 
-This document records the agreed planning boundary after the completed deterministic FP64 CPU
-Phase 3C path. It is a roadmap, not implementation authority: each epic still requires a bounded
-contract in ADR-001 or a successor ADR before code changes begin.
+This document records the agreed direction after the deterministic FP64 CPU Phase 3C path and
+the negative GPU-02/GPU-02S performance experiments. The next priority is the combined common-mode
+and differential-mode inverter output-filter design study in
+[ADR-002](adr/ADR-002-inverter-emi-design-study.md). Each implementation slice still requires a
+bounded contract in ADR-001 or a successor ADR before code changes begin.
 
 GPU-01 is complete under its exact bounded contract in ADR-001. GPU-02 is complete only as the
 explicit native-complex-FP64 CUDA correctness and crossover experiment contracted in ADR-001;
 GPU-02S is the bounded persistent-session evidence follow-up and changes no production routing.
-Ordinary execution and automatic dispatch remain unauthorized. NL-04 has not started. Completion
-of any GPU experiment does not authorize MOSFET semantics or downstream GPU work.
+Ordinary CUDA execution and automatic dispatch remain unauthorized. NL-04 and the EMI implementation
+stages have not started. Completion of an experiment does not itself authorize downstream work.
 
 The CPU implementation remains the correctness authority and supported no-GPU path. CUDA results
 remain untrusted until the CPU differential and independent validation gates accept them. Planning
@@ -16,25 +18,36 @@ an epic does not make its syntax, model, backend, performance, or dispatch behav
 
 ## Roadmap and dependencies
 
-The next work is split into three epics so device semantics, backend preparation, and CUDA execution
-can be reviewed independently:
+The objective is to find lower-mass inverter output filters with sufficient predicted EMI margin
+by evaluating many independent filter candidates and operating/tolerance corners. Each simulation
+contains its complete coupled inverter/filter/load/chassis network. The performance metric is
+validated candidate/corner evaluations per hour against a fair parallel CPU baseline, with fixed
+accuracy and complete study timing.
 
-1. **NL-04: Deterministic FP64 CPU MOSFET DC authority.** Add the missing bounded MOSFET DC
-   semantics and the CPU oracle required by any later MOSFET or CMOS CUDA work.
-2. **GPU-01: Prepared workload and evidence foundation.** Define the backend-neutral batch
-   contract, CPU performance baseline, replay corpus, validation boundary, and falsifiable GPU
-   performance thesis. This epic contains no CUDA circuit kernel or solver dispatch.
-3. **GPU-02: Native FP64 CUDA batched-AC vertical slice.** Implement and measure one opt-in CUDA
-   path for the already-authoritative linear AC semantics.
+| Stage | Deliverable | Dependency |
+|---|---|---|
+| EMI-01 | Public reference circuit/model, combined CM/DM filter candidate set, qualified CPU study, runtime breakdown, and frozen experiment contract | Next work; reference/model compatibility must be established |
+| EMI-02 | Only the missing CPU model, coupled-element, transient, and measurement semantics needed by the reference | EMI-01; separately bounded slices including the NL-04 foundation |
+| EMI-03 | Native-FP64 GPU execution of independent transient jobs, compared with persistent parallel CPU execution | Qualified EMI-02 CPU path and frozen accuracy/performance gates |
+| EMI-04 | Filter search and robustness evaluation with physical mass and emission-margin accounting | Trustworthy evaluator; CPU enumeration can start before GPU acceleration |
 
-GPU-02 depends on GPU-01. NL-04 is independent of the batched-linear-AC path, so it does not block
-GPU-01 or GPU-02. A future nonlinear MOSFET/CMOS CUDA epic depends on both NL-04 and the evidence
-from GPU-02; it is not authorized by this roadmap.
+The first milestone is a reference study, not a production optimizer or a new CUDA algorithm.
+Qualify switching behavior with a double-pulse fixture, then evaluate a pulse train through a
+defined combined CM/DM filter and load/harness/chassis network. Freeze the circuit, model, finite
+candidate/corner set, component mass/rating data, measurement ports, spectral processing, numerical
+tolerances, and performance budget before GPU work. No original proprietary design files are
+required: a documented public surrogate is the starting point.
 
-The recommended execution order is GPU-01 followed by GPU-02. NL-04 may proceed as an independent
-bounded CPU-semantic epic, but it must land before any nonlinear MOSFET/CMOS GPU implementation.
-Do not combine NL-04 with either GPU epic: otherwise device-model defects, backend defects, and
-performance results cannot be attributed cleanly.
+The exact aviation procedure/category, limits, bandwidth, and detector have not been supplied.
+Until they are defined, use a declared research mask and make no requirements-compliance claim.
+Likewise, simulator agreement does not establish laboratory correlation. The full specification
+and unresolved inputs are in ADR-002.
+
+GPU-01 and GPU-02 remain completed linear-AC experiments. Their infrastructure and lessons can be
+reused, but they do not establish nonlinear transient performance. NL-04 remains an unstarted,
+bounded CPU MOSFET DC foundation; realistic SiC charge/capacitance, coupled CM-choke windings,
+vendor-model constructs, and EMI evaluation require additional contracts. Further synthetic-AC
+tuning is deferred in favor of the representative workload and its measured bottlenecks.
 
 ## NL-04: Deterministic FP64 CPU MOSFET DC authority
 
@@ -201,10 +214,11 @@ solving, and single-circuit domain decomposition are outside GPU-02.
 
 ## GPU-02S: Persistent-session crossover evidence
 
-**Status:** Bounded evidence-only follow-up. It retains the GPU-02 executor configuration and adds
-same-structure value/RHS refresh, a compiler-derived large-sweep session corpus, a fair persistent
-CPU worker-pool comparator, and reproducible cold plus long-lived-process measurements. It does not
-change the frozen GPU-02 replay-v1 evidence or gate.
+**Status:** Completed as a bounded negative experiment. Neither fresh nor persistent sessions met
+the declared crossover gates in either timing lane. It retains the GPU-02 executor configuration
+and adds same-structure value/RHS refresh, a compiler-derived large-sweep session corpus, a fair
+persistent CPU worker-pool comparator, and reproducible cold plus long-lived-process measurements.
+It does not change the frozen GPU-02 replay-v1 evidence or gate.
 
 GPU-02S answers the narrower Ohmnivore use-case question left open by fresh-process GPU-02:
 whether multiple frequency/corner batches in one process can amortize CUDA context, structure, and
@@ -220,16 +234,20 @@ certification. The evidence-only `candidate_runtime` lane measures residual vali
 from mandatory fresh KLU certification; it is not an acceptance or dispatch policy. Fresh-child
 session and same-process steady-session ratios retain the 1.25 median, 1.10 P95, and 2 GiB bounds.
 
-GPU-02S can complete with a negative crossover verdict. Neither lane authorizes ordinary
+GPU-02S completed with a negative crossover verdict. Neither lane authorizes ordinary
 `SimulateAc`, CSV output, automatic dispatch, mixed precision, nonlinear or transient GPU work, or
 any downstream phase.
 
 ## Later decision boundary
 
-Do not authorize a nonlinear GPU epic merely because GPU-02 is correct. A later MOSFET/CMOS CUDA
-proposal must use the landed NL-04 CPU authority, account for the entire Newton loop and linear
-solve, and show why device-resident iteration or sufficiently large independent batches amortize
-host-device coordination. Offloading device evaluation alone is not presumed to be faster.
+The accepted EMI direction is a workload decision, not a speedup claim. A nonlinear GPU proposal
+requires the CPU model/transient authority selected through EMI-01/EMI-02, including NL-04 or an
+explicit successor contract, and must account for the entire Newton loop, timestep control,
+validation, and spectral evaluation. Independent jobs retain their own timestep/retry state;
+different convergence histories and load imbalance must be measured. Offloading device evaluation
+alone is not presumed to be faster.
 
-Before considering single-circuit domain decomposition, evaluate batched AC points, parameter
-corners, Monte Carlo runs, and independent circuits using the evidence discipline above.
+Preserve the frozen AC corpora, thresholds, and evidence. Their recorded fingerprints identify
+historical inputs; this documentation revision does not refresh the performance measurements.
+New experiments require new complete evidence. Automatic dispatch, mixed precision, and
+distributed/domain-decomposed solving remain outside the initial EMI study.
