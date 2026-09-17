@@ -564,3 +564,8 @@ coupling; these parasitics are not derived from winding geometry. DM self-capaci
 The equivalent DM gap is about 10.53 mm, with no fringing or winding-window/fill validation.
 These limits remain explicit: a v2 pass is a numerically qualified result under the declared
 hypothetical model and screens, not an optimized or manufacturable 3.8 kg hardware design.
+
+Independent pre-evidence review clarified that v2 fixture-role acceptance must also enforce its
+failing control: `light` remains numerically valid and predicted infeasible at **every** original
+corner, as in v1. A missing/failed simulation cannot satisfy this role. An unexpected passing
+control fails fixture coverage without rewriting its computed result or numerical status.

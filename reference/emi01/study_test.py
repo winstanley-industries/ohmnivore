@@ -40,12 +40,13 @@ def write_document(path, value):
     path.write_text(json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + "\n")
 
 
-def frozen():
-    return json.loads((Path(__file__).parent / "manifest.json").read_bytes())
+def frozen(version="emi01-v1"):
+    name = "manifest.json" if version == "emi01-v1" else "manifest-v2.json"
+    return json.loads((Path(__file__).parent / name).read_bytes())
 
 
-def candidate_records():
-    manifest = frozen()
+def candidate_records(version="emi01-v1"):
+    manifest = frozen(version)
     return [
         {
             "id": f"w1-sample0-ensemble-{candidate['id']}-{corner['id']}",
@@ -59,13 +60,17 @@ def candidate_records():
     ]
 
 
-def audit_fixture(directory, qualification_only=True):
+def audit_fixture(directory, qualification_only=True, version="emi01-v1"):
     """Author independent all-failure evidence; do not call scheduling/count helpers."""
-    manifest_bytes = (Path(__file__).parent / "manifest.json").read_bytes()
+    name = "manifest.json" if version == "emi01-v1" else "manifest-v2.json"
+    manifest_bytes = (Path(__file__).parent / name).read_bytes()
     manifest = json.loads(manifest_bytes)
     mhash = digest(manifest_bytes)
     (directory / "manifest.json").write_bytes(manifest_bytes)
     metadata = {
+        "schema": version,
+        "ngspice_sha256": "0" * 64,
+        "oracle_snapshot": {"sha256": "0" * 64, "mode": "0500", "private": True},
         "manifest_sha256": mhash,
         "source_sha256": study.source_identities(),
         "model": {
@@ -108,6 +113,7 @@ def audit_fixture(directory, qualification_only=True):
             suffix = "" if candidate is None else f"-{candidate['id']}-{corner['id']}"
             record = {
                 "id": f"{label}-{fixture}{suffix}",
+                "reference_version": version,
                 "fixture": fixture,
                 "candidate": candidate,
                 "corner": corner,
@@ -155,8 +161,47 @@ def audit_fixture(directory, qualification_only=True):
             write_document(directory / (summary["id"] + ".json"), summary)
     count = 30 if qualification_only else 102
     assert len(records) == count
+    if version == "emi01-v2":
+        gates = {
+            "pass": False,
+            "groups": [
+                {
+                    "id": label,
+                    "applicable": True,
+                    "pass": False,
+                    "checks": [
+                        {
+                            "role": role,
+                            "candidate": candidate,
+                            "complete": True,
+                            "all_physical_screens": False,
+                            "minimum_margin_db": None,
+                            "distance_from_feasibility_db": None,
+                            "pass": False,
+                            **(
+                                {
+                                    "all_valid_settled": False,
+                                    "all_corners_predicted_infeasible": False,
+                                    "violations_consistent": False,
+                                }
+                                if role == "failing"
+                                else {}
+                            ),
+                        }
+                        for role, candidate in (
+                            ("passing", "reference"),
+                            ("boundary", "boundary"),
+                            ("failing", "light"),
+                        )
+                    ],
+                }
+                for label in ["qualification-finest"] + [s["id"] for s in summaries[1:]]
+            ],
+        }
+        write_document(directory / "reference-cases.json", gates)
     terminal = {
-        "schema": "emi01-v1",
+        "schema": version,
+        "reference_case_pass": version == "emi01-v1",
         "qualification_only": qualification_only,
         "job_ids": [r["id"] for r in records],
         "counts": {
@@ -304,6 +349,325 @@ def add_valid_ensemble_fixture(directory, terminal):
     terminal["files"][path.name] = digest(path.read_bytes())
     write_document(directory / "terminal.json", terminal)
     return record
+
+
+def role_records(boundary_margin=5.5):
+    records = candidate_records("emi01-v2")
+    for record in records:
+        margin = {"boundary": boundary_margin, "light": -20.0, "reference": 9.0}[
+            record["candidate"]["id"]
+        ]
+        record["status"] = (
+            "predicted_feasible" if margin >= 6 else "predicted_infeasible"
+        )
+        keys = (
+            "device_peak_v",
+            "device_peak_a",
+            "capacitor_peak_v",
+            "winding_rms_a",
+            "loss_w",
+            "dm_peak_t",
+            "cm_peak_t",
+            "damping_a_w",
+            "damping_b_w",
+        )
+        record["metrics"] = {
+            "research_margin_db": {name: margin for name in ("a", "b", "cm", "dm")},
+            "stress": {name: 0 for name in keys},
+            "stress_limits": {name: 1 for name in keys},
+            "settling": {name: {"pass": True} for name in ("a", "b")},
+            "violations": ["research_mask_" + name for name in ("a", "b", "cm", "dm")]
+            if margin < 6
+            else [],
+        }
+    return records
+
+
+class VersionedReferenceTest(unittest.TestCase):
+    def test_strict_selection_default_and_exact_manifest_bytes(self):
+        self.assertEqual(study.selected_manifest()["schema"], "emi01-v1")
+        self.assertEqual(study.selected_manifest("emi01-v2")["schema"], "emi01-v2")
+        with self.assertRaisesRegex(ValueError, "^unsupported_input:"):
+            study.selected_manifest("emi01-v3")
+        with self.assertRaisesRegex(ValueError, "^unsupported_input:"):
+            study.load_manifest(study.manifest_path("emi01-v2"))
+        with tempfile.TemporaryDirectory() as scratch:
+            path = Path(scratch) / "changed.json"
+            path.write_bytes(study.manifest_path().read_bytes() + b"\n")
+            with self.assertRaisesRegex(ValueError, "^unsupported_input:"):
+                study.load_manifest(path)
+
+    def test_both_protocol_counts_and_new_fine_steps(self):
+        for version in ("emi01-v1", "emi01-v2"):
+            self.assertEqual(
+                study.study_counts(frozen(version)),
+                {"qualification": 30, "total": 102, "checks": 40},
+            )
+        manifest = frozen("emi01-v2")
+        for level in range(3):
+            specs = study.make_specs(manifest, {}, f"q{level}", level=level)
+            for spec in specs:
+                self.assertEqual(spec["reference_version"], "emi01-v2")
+                expected = (
+                    2.5e-9 if spec["candidate"]["id"] == "light" else 0.625e-9
+                ) / 2**level
+                self.assertEqual(spec["max_step_s"], expected)
+        manifest["expected_jobs"] += 1
+        with self.assertRaisesRegex(ValueError, "^unsupported_input:"):
+            study.study_counts(manifest)
+
+    def test_circuit_titles_preserve_default_and_identify_v2(self):
+        self.assertEqual(study.circuits.dpt(1e-9), study.circuits.dpt(1e-9, "emi01-v1"))
+        self.assertTrue(
+            study.circuits.dpt(1e-9, "emi01-v2").startswith("EMI-01 v2 double pulse\n")
+        )
+        self.assertTrue(study.circuits.driver("emi01-v2").startswith("EMI-01 v2 "))
+        with self.assertRaisesRegex(ValueError, "^unsupported_input:"):
+            study.circuits.driver("emi01-v3")
+
+    def test_rank_by_mass_and_identity_without_changing_execution_order(self):
+        manifest = frozen("emi01-v2")
+        records = candidate_records("emi01-v2")
+        # An intentionally equal design mass distinguishes identity ties from manifest order.
+        with mock.patch.object(study.circuits, "design", return_value={"mass_kg": 1.0}):
+            ranked = study.ranking(records, True, manifest)
+        self.assertEqual(
+            [r["candidate"] for r in ranked], ["boundary", "light", "reference"]
+        )
+        self.assertTrue(all(r["predicted_feasible"] for r in ranked))
+        self.assertEqual(records[0]["candidate"]["id"], "light")
+        masses = {"light": 3.0, "boundary": 2.0, "reference": 1.0}
+        with mock.patch.object(
+            study.circuits,
+            "design",
+            side_effect=lambda candidate: {"mass_kg": masses[candidate["id"]]},
+        ):
+            ranked = study.ranking(records, True, manifest)
+        self.assertEqual(
+            [r["candidate"] for r in ranked], ["reference", "boundary", "light"]
+        )
+
+    def test_failing_control_requires_all_three_valid_settled_infeasible_corners(self):
+        manifest = frozen("emi01-v2")
+        self.assertTrue(study.reference_cases(role_records(), manifest)["pass"])
+        for mutation in (
+            "all_feasible",
+            "one_feasible",
+            "missing",
+            "failed",
+            "unsettled",
+        ):
+            records = role_records()
+            if mutation in ("all_feasible", "one_feasible"):
+                for record in records[: 3 if mutation == "all_feasible" else 1]:
+                    record["status"] = "predicted_feasible"
+                    record["metrics"]["research_margin_db"] = {
+                        name: 9 for name in ("a", "b", "cm", "dm")
+                    }
+                    record["metrics"]["violations"] = []
+            elif mutation == "missing":
+                records.pop(0)
+            elif mutation == "failed":
+                records[0]["status"] = "numerical_failure"
+            else:
+                records[0]["metrics"]["settling"]["a"]["pass"] = False
+            result = study.reference_cases(records, manifest)
+            with self.subTest(mutation=mutation):
+                self.assertFalse(result["pass"])
+                self.assertTrue(result["checks"][0]["pass"])
+                self.assertTrue(result["checks"][1]["pass"])
+                self.assertFalse(result["checks"][2]["pass"])
+
+    def test_failing_control_requires_nonempty_consistent_observed_violations(self):
+        manifest = frozen("emi01-v2")
+        for violations in (None, [], ["loss_w"], ["research_mask_a"] * 4):
+            records = role_records()
+            records[0]["metrics"]["violations"] = violations
+            with self.subTest(violations=violations):
+                result = study.reference_cases(records, manifest)
+                self.assertFalse(result["checks"][2]["pass"])
+                self.assertFalse(result["checks"][2]["violations_consistent"])
+        records = role_records()
+        for record in records[:3]:
+            record["metrics"]["research_margin_db"] = {
+                name: 9 for name in ("a", "b", "cm", "dm")
+            }
+            record["metrics"]["stress"]["loss_w"] = 2
+            record["metrics"]["violations"] = ["loss_w"]
+        result = study.reference_cases(records, manifest)
+        self.assertTrue(result["pass"])
+        self.assertFalse(result["checks"][2]["all_physical_screens"])
+        self.assertTrue(result["checks"][2]["all_valid_settled"])
+
+    def test_boundary_inclusive_limits_and_exact_feasibility_threshold(self):
+        manifest = frozen("emi01-v2")
+        for margin in (5, 5.5, 6, 7):
+            with self.subTest(margin=margin):
+                records = role_records(margin)
+                self.assertTrue(study.reference_cases(records, manifest)["pass"])
+                ranked = {
+                    r["candidate"]: r for r in study.ranking(records, True, manifest)
+                }
+                self.assertEqual(ranked["boundary"]["predicted_feasible"], margin >= 6)
+        for margin in (4.999999, 7.000001):
+            self.assertFalse(
+                study.reference_cases(role_records(margin), manifest)["pass"]
+            )
+
+    def test_missing_failed_nonfinite_or_physical_failure_cannot_fill_boundary_role(
+        self,
+    ):
+        manifest = frozen("emi01-v2")
+        for mutation in (
+            "missing",
+            "failed",
+            "physical",
+            "unsettled",
+            "missing_screen",
+            "duplicate",
+        ):
+            records = role_records()
+            index = next(
+                i for i, r in enumerate(records) if r["candidate"]["id"] == "boundary"
+            )
+            if mutation == "missing":
+                records.pop(index)
+            elif mutation == "failed":
+                records[index]["status"] = "timeout"
+            elif mutation == "physical":
+                records[index]["metrics"]["stress"]["loss_w"] = 2
+            elif mutation == "unsettled":
+                records[index]["metrics"]["settling"]["a"]["pass"] = False
+            elif mutation == "missing_screen":
+                records[index]["metrics"]["stress"].pop("loss_w")
+            else:
+                records.append(copy.deepcopy(records[index]))
+            with self.subTest(mutation=mutation):
+                self.assertFalse(study.reference_cases(records, manifest)["pass"])
+        records = role_records()
+        records[3]["metrics"]["research_margin_db"]["a"] = math.nan
+        with self.assertRaisesRegex(ValueError, "^non_finite:"):
+            study.reference_cases(records, manifest)
+
+    def test_reference_must_pass_each_corner_even_when_boundary_is_valid(self):
+        records = role_records()
+        records[-1]["status"] = "predicted_infeasible"
+        records[-1]["metrics"]["research_margin_db"]["a"] = 5.9
+        result = study.reference_cases(records, frozen("emi01-v2"))
+        self.assertFalse(result["pass"])
+        self.assertTrue(result["checks"][1]["pass"])
+
+    def test_exact_six_db_is_feasible_in_metric_classification(self):
+        # Isolate the classifier from FFT rounding; analytic normalization has separate tests.
+        manifest = frozen("emi01-v2")
+        raw = study.np.zeros((3, len(study.circuits.STUDY_NAMES)))
+        raw[:, 0] = [0, 100e-6, 200e-6]
+        raw[:, study.circuits.STUDY_NAMES.index("v(p)")] = 400
+        for peak, status in (
+            (84.000001, "predicted_infeasible"),
+            (84.0, "predicted_feasible"),
+            (83.999999, "predicted_feasible"),
+        ):
+            with mock.patch.object(
+                study.signals, "dbua", return_value=study.np.array([peak])
+            ):
+                measured, _ = study.metrics.evaluate(
+                    raw, manifest["candidates"][2], manifest["corners"][0], 1.25e-9
+                )
+            self.assertEqual(measured["status"], status)
+
+    def test_v2_audit_reconstructs_failures_and_refuses_self_consistent_role_pass(self):
+        for qualification_only in (True, False):
+            with tempfile.TemporaryDirectory() as scratch:
+                out = Path(scratch)
+                terminal = audit_fixture(out, qualification_only, "emi01-v2")
+                self.assertEqual(
+                    study.audit(out)["failures"], 30 if qualification_only else 102
+                )
+                with self.assertRaisesRegex(ValueError, "^provenance_mismatch:"):
+                    study.audit(out, "emi01-v1")
+                cases = json.loads((out / "reference-cases.json").read_bytes())
+                cases["pass"] = True
+                write_document(out / "reference-cases.json", cases)
+                terminal["reference_case_pass"] = True
+                terminal["files"]["reference-cases.json"] = digest(
+                    (out / "reference-cases.json").read_bytes()
+                )
+                write_document(out / "terminal.json", terminal)
+                with self.assertRaisesRegex(
+                    ValueError, "^malformed_output: reference case gates"
+                ):
+                    study.audit(out)
+
+    def test_version_and_snapshot_metadata_mismatch_fail_closed(self):
+        for mutation in ("version", "snapshot", "missing_hash"):
+            with tempfile.TemporaryDirectory() as scratch:
+                out = Path(scratch)
+                terminal = audit_fixture(out, version="emi01-v2")
+                path = out / "metadata.json"
+                metadata = json.loads(path.read_bytes())
+                if mutation == "version":
+                    metadata["schema"] = "emi01-v1"
+                elif mutation == "snapshot":
+                    metadata["oracle_snapshot"]["sha256"] = "1" * 64
+                else:
+                    del metadata["ngspice_sha256"]
+                write_document(path, metadata)
+                terminal["files"][path.name] = digest(path.read_bytes())
+                write_document(out / "terminal.json", terminal)
+                with self.assertRaisesRegex(ValueError, "^provenance_mismatch:"):
+                    study.audit(out)
+
+    def test_audit_cli_requires_explicit_v2_selection(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            out = Path(scratch)
+            audit_fixture(out, version="emi01-v2")
+            arguments = [
+                "study",
+                "--ngspice=/unused",
+                "--model-archive=/unused",
+                "--audit",
+                str(out),
+            ]
+            with (
+                mock.patch.object(study.sys, "argv", arguments),
+                self.assertRaisesRegex(ValueError, "^provenance_mismatch:"),
+            ):
+                study.main()
+            with (
+                mock.patch.object(
+                    study.sys, "argv", arguments + ["--reference-version=emi01-v2"]
+                ),
+                mock.patch("builtins.print") as output,
+            ):
+                study.main()
+            self.assertEqual(json.loads(output.call_args.args[0])["failures"], 30)
+
+    def test_private_oracle_snapshot_is_rehashed_and_read_execute_only(self):
+        # Minimal static ELF header: no interpreter or dynamic segment.
+        header = bytearray(64)
+        header[:6] = b"\x7fELF\x02\x01"
+        header[54:56] = (56).to_bytes(2, "little")
+        with tempfile.TemporaryDirectory() as scratch:
+            source = Path(scratch) / "canonical"
+            source.write_bytes(header)
+            private = Path(scratch) / "private"
+            private.mkdir(mode=0o700)
+            snapshot, hashed = study.snapshot_oracle(source, private)
+            self.assertEqual(hashed, digest(header))
+            self.assertEqual(snapshot.stat().st_mode & 0o777, 0o500)
+            source.write_bytes(header + b"new build")
+            self.assertEqual(snapshot.read_bytes(), header)
+            snapshot.unlink()
+            with mock.patch.object(
+                study.shutil,
+                "copyfile",
+                side_effect=lambda src, dst: dst.write_bytes(header),
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "^provenance_mismatch: oracle changed"
+                ):
+                    study.snapshot_oracle(source, private)
 
 
 class ReconciliationTests(unittest.TestCase):
@@ -608,6 +972,7 @@ class AuditTests(unittest.TestCase):
             "reference/emi01/adapter.py",
             "reference/emi01/circuits.py",
             "reference/emi01/manifest.json",
+            "reference/emi01/manifest-v2.json",
             "reference/emi01/metrics.py",
             "reference/emi01/report.py",
             "reference/emi01/requirements.txt",

@@ -145,10 +145,91 @@ def linear_algebra_budget(telemetry, qualified=True):
     }
 
 
+def margin_detail(directory, record, manifest):
+    """Locate the limiting retained spectral bin after the enclosing audit passes."""
+    if record["status"] not in study.VALID:
+        return {"status": record["status"], "minimum_margin_db": None}
+    spectrum = study.np.fromfile(
+        directory / "jobs" / record["id"] / "spectra.f64", dtype="<f8"
+    ).reshape(-1, 5)
+    row, column = study.np.unravel_index(
+        study.np.argmax(spectrum[:, 1:]), spectrum[:, 1:].shape
+    )
+    margin = manifest["research_mask_dbua"] - float(
+        study.signals.dbua(spectrum[row : row + 1, column + 1])[0]
+    )
+    return {
+        "status": record["status"],
+        "minimum_margin_db": margin,
+        "distance_from_feasibility_db": margin - manifest["required_margin_db"],
+        "worst_observable": ("a", "b", "cm", "dm")[column],
+        "worst_frequency_hz": float(spectrum[row, 0]),
+        "research_margin_db": record["metrics"]["research_margin_db"],
+    }
+
+
+def refinement_margins(directory, records, manifest):
+    result = {}
+    for candidate in manifest["candidates"]:
+        levels = []
+        for level in range(3):
+            corners = [
+                {
+                    "corner": corner["id"],
+                    **margin_detail(
+                        directory,
+                        records[f"q{level}-ensemble-{candidate['id']}-{corner['id']}"],
+                        manifest,
+                    ),
+                }
+                for corner in manifest["corners"]
+            ]
+            valid = [c for c in corners if c["minimum_margin_db"] is not None]
+            levels.append(
+                {
+                    "level": level,
+                    "corners": corners,
+                    "worst": min(valid, key=lambda c: c["minimum_margin_db"])
+                    if len(valid) == len(corners)
+                    else None,
+                }
+            )
+        result[candidate["id"]] = {
+            "levels": levels,
+            "classification_changes": [
+                {
+                    "corner": corner["id"],
+                    "from_level": level - 1,
+                    "to_level": level,
+                    "from": levels[level - 1]["corners"][index]["status"],
+                    "to": levels[level]["corners"][index]["status"],
+                }
+                for index, corner in enumerate(manifest["corners"])
+                for level in (1, 2)
+                if levels[level - 1]["corners"][index]["status"]
+                != levels[level]["corners"][index]["status"]
+            ],
+        }
+    return result
+
+
+def performance_accepted(terminal):
+    """A role-gate failure is neither a solver failure nor an accepted v2 budget."""
+    role_pass = terminal.get("reference_case_pass", terminal["schema"] == "emi01-v1")
+    return (
+        terminal["qualification_pass"] is True
+        and role_pass is True
+        and terminal["counts"]["failures"] == 0
+    )
+
+
 def summarize(directory):
     study.audit(directory)
     terminal = json.loads((directory / "terminal.json").read_bytes())
     metadata = json.loads((directory / "metadata.json").read_bytes())
+    manifest = study.selected_manifest(terminal["schema"])
+    reference_case_pass = terminal.get("reference_case_pass", True)
+    accepted = performance_accepted(terminal)
     if terminal["qualification_only"]:
         raise ValueError(
             "unsupported_input: performance report requires a complete study invocation"
@@ -160,6 +241,7 @@ def summarize(directory):
         for identity in terminal["job_ids"]
     }
     result = {
+        "reference_version": manifest["schema"],
         "counts": terminal["counts"],
         "terminal_status_counts": dict(
             sorted(Counter(r["status"] for r in records.values()).items())
@@ -170,6 +252,8 @@ def summarize(directory):
             if r["status"] in study.FAILURES
         ],
         "qualified": terminal["qualification_pass"],
+        "reference_case_pass": reference_case_pass,
+        "accepted": accepted,
         "invocation_wall_s": terminal["invocation_wall_s"],
         "one_time_setup_s": metadata["setup_s"],
         "timing_boundary": "Batch study wall excludes once-per-invocation input verification, runtime/source verification and model adaptation, reported separately as one_time_setup_s. Complete invocation_wall_s includes that setup, qualification, warmups, all measured studies, and terminal completion records. Per-job preparation remains inside batch study wall.",
@@ -180,7 +264,7 @@ def summarize(directory):
         },
         "candidates": {},
     }
-    for workers in [1, 4]:
+    for workers in manifest["workers"]:
         summaries = [
             x
             for x in terminal["study_summaries"]
@@ -211,7 +295,7 @@ def summarize(directory):
                 sample,
                 [records[i] for i in sample["job_ids"]],
                 workers,
-                qualified=terminal["qualification_pass"],
+                qualified=accepted,
             )
             for sample in summaries
         ]
@@ -245,7 +329,7 @@ def summarize(directory):
             ),
             "job_median_s": statistics.median(latency),
             "job_p95_s": nearest_rank(latency, 0.95),
-            "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; three studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+            "latency_label": f"Empirical nearest-rank P95 over {len(jobs)} measured jobs; {len(summaries)} studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
             "phase_service_totals_s": totals,
             "phase_observed_jobs": {
                 key: sum(key in x.get("phases", {}) for x in jobs) for key in totals
@@ -258,7 +342,7 @@ def summarize(directory):
                 r["id"] for r in jobs if "telemetry" not in r
             ],
             "linear_algebra_budget": linear_algebra_budget(
-                telemetry, qualified=terminal["qualification_pass"]
+                telemetry, qualified=accepted
             ),
             "peak_child_rss_kib": max(
                 (
@@ -275,10 +359,10 @@ def summarize(directory):
             "runner_peak_rss_kib": max(x["runner_peak_rss_kib"] for x in summaries),
             "counterfactual_budget": budgets,
         }
-    for candidate in ["light", "medium", "heavy"]:
+    for candidate in (c["id"] for c in manifest["candidates"]):
         jobs = [
             records[f"w1-sample0-ensemble-{candidate}-{corner}"]
-            for corner in ["nominal", "fast_low_lc", "hot_high_c"]
+            for corner in (k["id"] for k in manifest["corners"])
         ]
         result["candidates"][candidate] = {
             "mass_kg": circuits.design(jobs[0]["candidate"])["mass_kg"],
@@ -291,10 +375,15 @@ def summarize(directory):
                 for j in jobs
             ],
         }
+    if manifest["schema"] == "emi01-v2":
+        result["reference_cases"] = json.loads(
+            (directory / "reference-cases.json").read_bytes()
+        )
+        result["refinement_margins"] = refinement_margins(directory, records, manifest)
     return result
 
 
-def paired_summaries(paths):
+def paired_summaries(paths, reference_version=None):
     """Reject obvious reuse; distinct timing records are not cryptographic proof."""
     directories = [path.resolve() for path in paths]
     if len(directories) != 2 or len(set(directories)) != 2:
@@ -310,6 +399,18 @@ def paired_summaries(paths):
         raise ValueError(
             "provenance_mismatch: identical terminal records are not independent invocations"
         )
+    versions = [
+        json.loads((directory / "terminal.json").read_bytes()).get("schema")
+        for directory in directories
+    ]
+    if (
+        len(set(versions)) != 1
+        or versions[0] not in study.MANIFESTS
+        or (reference_version is not None and versions[0] != reference_version)
+    ):
+        raise ValueError(
+            "provenance_mismatch: report requires the same selected reference version"
+        )
     return [
         {**summarize(directory), "terminal_sha256": digest}
         for directory, digest in zip(directories, hashes)
@@ -321,6 +422,9 @@ def main():
     parser.add_argument("--run", type=Path, action="append")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--probe", type=Path)
+    parser.add_argument(
+        "--reference-version", choices=study.MANIFESTS, default="emi01-v1"
+    )
     args = parser.parse_args()
     if args.probe:
         records = {
@@ -348,8 +452,9 @@ def main():
     if not args.run or len(args.run) != 2 or args.out is None:
         parser.error("two --run paths and --out required")
     result = {
-        "schema": "emi01-cpu-budget-v1",
-        "runs": paired_summaries(args.run),
+        "schema": "emi01-cpu-budget-" + args.reference_version.split("-")[-1],
+        "reference_version": args.reference_version,
+        "runs": paired_summaries(args.run, args.reference_version),
         "independence_label": "Distinct invocation paths and terminal SHA256 records are required. This rejects accidental duplicate input/copies; independent execution provenance is not cryptographic proof of separate physical runs.",
         "budget_label": "Counterfactual FIFO model from measured complete-job service; no GPU implementation or GPU measurements. Infinite simulator-process acceleration retains validation, output and fitted scheduling overhead. Factor+solve-only Amdahl ceilings are a separate optimistic analysis-time model with nested timers.",
     }

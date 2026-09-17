@@ -70,8 +70,14 @@ def design(c):
     return result
 
 
-def dpt(max_step):
-    return f"""EMI-01 v1 double pulse
+def title(version):
+    if version not in {"emi01-v1", "emi01-v2"}:
+        raise ValueError("unsupported_input: unknown circuit reference version")
+    return "EMI-01 " + version.split("-")[-1]
+
+
+def dpt(max_step, version="emi01-v1"):
+    return f"""{title(version)} double pulse
 .include model.lib
 Vbus bus 0 400
 Rbus bus p1 0.02
@@ -93,11 +99,11 @@ Rg drive g 4.7
 """
 
 
-def ensemble(c, k, max_step):
+def ensemble(c, k, max_step, version="emi01-v1"):
     d = design(c)
     lc, cc, sc = k["l_scale"], k["c_scale"], k["stray_scale"]
     lines = [
-        f"EMI-01 v1 {c['id']} {k['id']}",
+        f"{title(version)} {c['id']} {k['id']}",
         ".include model.lib",
         f"Vbus bus 0 {k['bus_v']}",
         "Rbus bus p1 0.02",
@@ -150,8 +156,8 @@ def ensemble(c, k, max_step):
     return "\n".join(lines) + "\n"
 
 
-def driver():
-    return """EMI-01 v1 isolated PSpice compatibility driver
+def driver(version="emi01-v1"):
+    return f"""{title(version)} isolated PSpice compatibility driver
 .control
 set ngbehavior=ps
 set numdgt=17

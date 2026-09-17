@@ -3,12 +3,13 @@
 This is a **future experiment proposal**, frozen by EMI-01 before any GPU implementation.
 It authorizes no implementation or dispatch. First complete the separately approved CPU slices
 in [the capability-gap report](../reference/emi01/CPU_GAPS.md), preserving CPU FP64/KLU authority.
-The [EMI-01 results](emi01-results.md) supply the measured budget and feasibility decision.
+The [EMI-01 v2 results](emi01-v2-results.md) supply the current reference budget and case coverage;
+[v1 results](emi01-results.md) remain historical evidence for the original candidates.
 Historical linear-AC thresholds do not apply.
 
 ## Exact workload and electrical boundary
 
-Use the exact EMI-01 v1 manifest, fetched/adapted model identities, corrected fixtures, complete
+Use the exact [EMI-01 v2 manifest](../reference/emi01/manifest-v2.json), fetched/adapted model identities, corrected fixtures, complete
 coupled network, initial state, observation band, detector, physical constraints and output
 requirements in [ADR-002](adr/ADR-002-inverter-emi-design-study.md). One scheduled job is one
 whole candidate/corner circuit. Do not split bridge legs, windings, load or chassis into solves.
@@ -19,6 +20,8 @@ four explicitly identified replay replicas of those same nine jobs (36 jobs, rep
 order). Replicas test scheduling saturation; they are not additional physical designs or corners.
 Input identity includes replica, candidate, corner, model, topology and numerical policy.
 No random candidates, parameter search, mixed precision or distributed execution is included.
+Preserve the failing control, stable near-boundary rejection and all-corner passing reference.
+The original 6 dB reserve remains fixed; a candidate name cannot determine its classification.
 
 The CPU comparator must be the resulting qualified Ohmnivore CPU implementation with persistent
 workers, one-thread numerical libraries and private nonlinear/integration state per job. Measure

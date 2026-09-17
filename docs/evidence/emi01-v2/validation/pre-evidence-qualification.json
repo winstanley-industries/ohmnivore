@@ -1,0 +1,42 @@
+{
+  "schema": "emi01-v2-pre-evidence-probe-v1",
+  "boundary": "Intermediate source diagnostic, not retained qualification or timing. Ran alongside canonical build checks; final failing-control role checks and manifest were frozen afterward. Neither this source identity nor its timing certifies final source. Fresh complete retained invocations supersede this probe. Raw diagnostic files remain at the recorded local path.",
+  "local_path": "/tmp/emi01-v2-canonical-qualification",
+  "counts": {
+    "expected": 30,
+    "failures": 0,
+    "terminal": 30,
+    "validated": 30
+  },
+  "numerical_qualification_pass": true,
+  "reference_case_pass_under_intermediate_source": true,
+  "terminal_sha256": "626633024afaac77139502eecd652f98dbca33664c6d2a82179dd557ba37bc00",
+  "manifest_sha256": "8763b47860c2baa7f609c83ab2155a9366105ccf7b7edb081a898a460227e4ed",
+  "source_sha256": {
+    ".bazelrc": "904e9029b88b67bd8e66a6c2323f1ae01ee90e0ea5815c322a155d9b84340656",
+    ".bazelversion": "1b9487d55bea47fea50d226cc9c53bc548877ad2a318bac8fbc8b320f429e5c5",
+    "BUILD.bazel": "3c330fe60f697e0b31a726fd726fb37b52e56f978d83c9610aff1e42c9802ea7",
+    "MODULE.bazel": "da820df241f7a2b860e31a6cf5619f8a5f01e6357972d42a8c5645ed2f7cf138",
+    "MODULE.bazel.lock": "ddb740cd9d7241f71eb772d8cf2d751c54e67ccb7d2a30c38d8b1f75ec2cf422",
+    "docs/adr/ADR-002-inverter-emi-design-study.md": "99dc039b21a67a53db72b8e8d2d627af9545fbafa812c7d57ac5f234456c2340",
+    "reference/emi01/BUILD.bazel": "9fc53a55fa656def3e516110a59929107d51e12725db2c0e3511bb9374dabcb3",
+    "reference/emi01/CPU_GAPS.md": "caeb280c1e7d1da4d5b2c057509d3b955c32d995d2f7bc4a2433471ef1be17e9",
+    "reference/emi01/MODEL_PROVENANCE.md": "013ac1eeb23c220e0d991940f3f24a9a4b24f3fbae565b2ece90c55e4a098ee7",
+    "reference/emi01/README.md": "8917fa50d623e2aa81f1342be8a38c056509965bf4999bb449394f26b226fbc3",
+    "reference/emi01/adapter.py": "5030a6ff6b5f0cb0d24694b3912c7abb0fc910f5b4e92bff98de223b3d78ff02",
+    "reference/emi01/circuits.py": "5d23ab959b45a9194f766b7503eebf260bd0a14bd57f6dd4b4797e838743772c",
+    "reference/emi01/manifest-v2.json": "8763b47860c2baa7f609c83ab2155a9366105ccf7b7edb081a898a460227e4ed",
+    "reference/emi01/manifest.json": "9fcdaa19a7320d4281afe148f36f9b269e1f42e226e917dd3ff43758681f30e2",
+    "reference/emi01/metrics.py": "1e00df41d597d1a9964a4d72ad40e45ba2befd0dad9c9c71222736b8dbaab0c6",
+    "reference/emi01/report.py": "4d117fddc162ee8802973dcdd3de307274d2b91a17c3bec296e1438f1fabb571",
+    "reference/emi01/requirements.txt": "b9760e3e2043212ec2b825161a5c19d744f3066d564d570f63e7b7abb2a6c544",
+    "reference/emi01/signals.py": "b65bbed92bab180cbd9cc3cac48878cf02f03335b55626cda58dcf68b5dde54e",
+    "reference/emi01/study.py": "36fb4c077fc2cf5e1b28687bbb4635452d914a0b9d79d2542c08bc9991e47058",
+    "third_party/emi_python/BUILD.bazel": "07fcdfd5442775eb941711850b31696585a45f8cb613f8d93fe7d95d10b98135",
+    "third_party/emi_python/PROVENANCE.md": "c8345cc895b0cd29b4185789ba9ef767bd53d81bf133aa9a813f9d02a8f57027",
+    "third_party/emi_python/runtime.py": "350c67411857425fe0c7de29a7ea6d44ae08ea4df3220417f655ac94ec72e2fb",
+    "third_party/emi_python/runtime_rules.bzl": "bb88fa987cca7a940be5ee95f3fa9b6db38bb13e697917343a5c21d4e4ab0141",
+    "third_party/ngspice/BUILD.bazel": "e5288be6ffb2f883933b48e5bf40e176025da125235cf625ba398b7e09bd6cd4",
+    "third_party/ngspice/PROVENANCE.md": "ae62f8eb139383027fa7402dff2eb992a62dbeb80695c6ea84faf5ef8e65796c"
+  }
+}

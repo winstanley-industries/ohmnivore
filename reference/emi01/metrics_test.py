@@ -122,6 +122,41 @@ class StressTests(unittest.TestCase):
         self.assertIn("damping_a_w", result["violations"])
         self.assertEqual(result["status"], "predicted_infeasible")
 
+    def test_analytic_tone_on_each_side_of_unchanged_six_db_reserve(self):
+        # A coherent 150-kHz CM tone has a known RMS amplitude. These synthetic
+        # columns exercise the measurement/classification boundary, not a circuit.
+        time = np.arange(8001) * 25e-9
+        baseline = constant_study()
+        for margin, expected in [
+            (5.8, "predicted_infeasible"),
+            (6.2, "predicted_feasible"),
+        ]:
+            with self.subTest(margin=margin):
+                raw = np.column_stack(
+                    [time]
+                    + [
+                        np.full(time.shape, baseline[0, i])
+                        for i in range(1, baseline.shape[1])
+                    ]
+                )
+                amplitude_rms = 1e-6 * 10 ** ((90 - margin) / 20)
+                tone = math.sqrt(2) * amplitude_rms * np.cos(2 * math.pi * 150e3 * time)
+                for name in ["i(va)", "i(vb)"]:
+                    raw[:, circuits.STUDY_NAMES.index(name)] += tone
+                result, _ = metrics.evaluate(raw, self.candidate, self.corner, 1.25e-9)
+                self.assertEqual(result["status"], expected)
+                for observable in ["a", "b", "cm"]:
+                    self.assertAlmostEqual(
+                        result["research_margin_db"][observable], margin, delta=0.002
+                    )
+                self.assertTrue(
+                    all(
+                        value <= result["stress_limits"][name]
+                        for name, value in result["stress"].items()
+                    )
+                )
+                self.assertEqual(bool(result["violations"]), margin < 6)
+
     def test_stress_peak_includes_discarded_startup(self):
         raw = constant_study()
         raw[0, circuits.STUDY_NAMES.index("v(p)")] = 1200

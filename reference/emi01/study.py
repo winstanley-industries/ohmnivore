@@ -41,6 +41,7 @@ FAILURES = {
     "internal_failure",
 }
 HERE = Path(__file__).parent
+MANIFESTS = {"emi01-v1": "manifest.json", "emi01-v2": "manifest-v2.json"}
 # Bazel generates executable-specific stage-two bootstrap modules beside these
 # files. Their names/bytes are launcher details, not study inputs. Bind only the
 # explicit shipped source contract, identically from study, report, and tests.
@@ -52,6 +53,7 @@ SOURCE_FILES = (
     "reference/emi01/adapter.py",
     "reference/emi01/circuits.py",
     "reference/emi01/manifest.json",
+    "reference/emi01/manifest-v2.json",
     "reference/emi01/metrics.py",
     "reference/emi01/report.py",
     "reference/emi01/requirements.txt",
@@ -96,14 +98,35 @@ def write_json(path, obj):
     path.write_bytes(encoded(obj))
 
 
-def load_manifest(path):
+def manifest_path(version="emi01-v1"):
+    if version not in MANIFESTS:
+        raise ValueError("unsupported_input: unknown reference version")
+    return HERE / MANIFESTS[version]
+
+
+def study_counts(m):
+    """Counts follow the finite three-level protocol, not recorded results."""
+    cases = len(m["candidates"]) * len(m["corners"])
+    qualification = 3 * (1 + cases)
+    total = qualification + cases * len(m["workers"]) * (m["warmups"] + m["samples"])
+    if m["qualification_jobs"] != qualification or m["expected_jobs"] != total:
+        raise ValueError("unsupported_input: manifest protocol counts disagree")
+    return {"qualification": qualification, "total": total, "checks": 4 * (1 + cases)}
+
+
+def load_manifest(path, version="emi01-v1"):
     data = path.read_bytes()
     m = json.loads(data)
-    if m != json.loads((HERE / "manifest.json").read_bytes()):
+    if data != manifest_path(version).read_bytes() or m.get("schema") != version:
         raise ValueError(
-            "unsupported_input: only the frozen EMI-01 v1 manifest is supported"
+            "unsupported_input: only the selected frozen manifest bytes are supported"
         )
+    study_counts(m)
     return m, sha(data)
+
+
+def selected_manifest(version="emi01-v1"):
+    return load_manifest(manifest_path(version), version)[0]
 
 
 def check_elf(path):
@@ -120,6 +143,17 @@ def check_elf(path):
     ):
         raise ValueError("provenance_mismatch: ngspice must be static")
     return sha(data)
+
+
+def snapshot_oracle(source, directory):
+    """Bind one executable for the invocation, unaffected by later Bazel rebuilds."""
+    expected = check_elf(source)
+    snapshot = directory / "ngspice"
+    shutil.copyfile(source, snapshot)
+    snapshot.chmod(0o500)
+    if check_elf(snapshot) != expected:
+        raise ValueError("provenance_mismatch: oracle changed while snapshotting")
+    return snapshot, expected
 
 
 def execute(binary, cwd, limits):
@@ -348,16 +382,23 @@ def run_job(spec):
         work = Path(tempfile.mkdtemp(prefix="emi01-"))
         shutil.copyfile(spec["model"], work / "model.lib")
         deck = (
-            circuits.dpt(spec["max_step_s"])
+            circuits.dpt(spec["max_step_s"], spec.get("reference_version", "emi01-v1"))
             if spec["fixture"] == "dpt"
             else circuits.ensemble(
-                spec["candidate"], spec["corner"], spec["max_step_s"]
+                spec["candidate"],
+                spec["corner"],
+                spec["max_step_s"],
+                spec.get("reference_version", "emi01-v1"),
             )
         )
         (work / "circuit.cir").write_text(deck)
         (dest / "circuit.cir").write_text(deck)
-        (work / "driver.cir").write_text(circuits.driver())
-        (dest / "driver.cir").write_text(circuits.driver())
+        (work / "driver.cir").write_text(
+            circuits.driver(spec.get("reference_version", "emi01-v1"))
+        )
+        (dest / "driver.cir").write_text(
+            circuits.driver(spec.get("reference_version", "emi01-v1"))
+        )
         record["deck_sha256"] = sha(deck.encode())
         phases["preparation_s"] = time.perf_counter() - start
         process = execute(spec["binary"], work, spec["limits"])
@@ -494,6 +535,7 @@ def make_specs(m, common, label, fixture="ensemble", level=2):
             {
                 **common,
                 "id": identity,
+                "reference_version": m["schema"],
                 "fixture": fixture,
                 "candidate": c,
                 "corner": k,
@@ -522,7 +564,7 @@ def reconcile(records, expected):
     }
 
 
-def batch(specs, workers, out, label, qualified=None, started_at=None):
+def batch(specs, workers, out, label, qualified=None, started_at=None, manifest=None):
     start = time.perf_counter() if started_at is None else started_at
     records = []
     with concurrent.futures.ProcessPoolExecutor(
@@ -577,7 +619,7 @@ def batch(specs, workers, out, label, qualified=None, started_at=None):
         ),
     }
     if qualified is not None:
-        summary["ranking"] = ranking(records, qualified)
+        summary["ranking"] = ranking(records, qualified, manifest)
         summary["lightest_feasible"] = next(
             (r["candidate"] for r in summary["ranking"] if r["predicted_feasible"]),
             None,
@@ -630,12 +672,14 @@ def dpt_compare(x, y, identity):
     return check
 
 
-def qualify(out, records, write=True):
+def qualify(out, records, write=True, manifest=None):
+    manifest = selected_manifest() if manifest is None else manifest
+    expected_checks = study_counts(manifest)["checks"]
     checks = []
     by_id = {r["id"]: r for r in records}
     successful = all(r["status"] in VALID | {"qualified"} for r in records)
-    for candidate in ["light", "medium", "heavy"]:
-        for corner in ["nominal", "fast_low_lc", "hot_high_c"]:
+    for candidate in (c["id"] for c in manifest["candidates"]):
+        for corner in (k["id"] for k in manifest["corners"]):
             selected = [
                 by_id[f"q{level}-ensemble-{candidate}-{corner}"] for level in range(3)
             ]
@@ -655,7 +699,7 @@ def qualify(out, records, write=True):
                     {"id": f"{candidate}-{corner}-integration-{level}", **check}
                 )
                 previous = current
-            for old_dt in [5e-9, 2.5e-9]:
+            for old_dt in manifest["ensemble_sample_steps_s"][:2]:
                 check = metrics.output_sampling_compare(
                     previous,
                     circuits.STUDY_NAMES,
@@ -671,7 +715,7 @@ def qualify(out, records, write=True):
             )
     if ds[-1]["status"] == "qualified":
         fine = restore(out, ds[-1])
-        for dt in [1e-9, 0.5e-9]:
+        for dt in manifest["dpt_sample_steps_s"][:2]:
             checks.append(
                 dpt_compare(
                     metrics.dpt(fine, dt), ds[-1]["metrics"], f"dpt-output-{dt}"
@@ -679,9 +723,11 @@ def qualify(out, records, write=True):
             )
     result = {
         "pass": bool(
-            successful and len(checks) == 40 and all(c["pass"] for c in checks)
+            successful
+            and len(checks) == expected_checks
+            and all(c["pass"] for c in checks)
         ),
-        "expected_checks": 40,
+        "expected_checks": expected_checks,
         "checks": checks,
     }
     if write:
@@ -689,8 +735,8 @@ def qualify(out, records, write=True):
     return result
 
 
-def ranking(records, qualified):
-    frozen = json.loads((HERE / "manifest.json").read_bytes())
+def ranking(records, qualified, manifest=None):
+    frozen = selected_manifest() if manifest is None else manifest
     candidates = {c["id"]: c for c in frozen["candidates"]}
     corners = {c["id"]: c for c in frozen["corners"]}
     expected = [(c, k) for c in candidates for k in corners]
@@ -734,10 +780,133 @@ def ranking(records, qualified):
                 "mass_kg": circuits.design(candidates[name])["mass_kg"],
             }
         )
-    return result
+    return sorted(result, key=lambda row: (row["mass_kg"], row["candidate"]))
 
 
-def audit(out):
+def reference_cases(records, manifest):
+    """Fixture-role gates are separate from simulation status and refinement checks."""
+    gates = manifest.get("reference_case_gates")
+    if gates is None:
+        return {"applicable": False, "pass": True, "checks": []}
+    completeness = {
+        r["candidate"]: r["complete"] for r in ranking(records, False, manifest)
+    }
+    checks = []
+    physical_keys = {
+        "device_peak_v",
+        "device_peak_a",
+        "capacitor_peak_v",
+        "winding_rms_a",
+        "loss_w",
+        "dm_peak_t",
+        "cm_peak_t",
+        "damping_a_w",
+        "damping_b_w",
+    }
+    for role in ("passing", "boundary", "failing"):
+        candidate = gates[role + "_candidate"]
+        group = [r for r in records if r.get("candidate", {}).get("id") == candidate]
+        margins = []
+        physical = bool(completeness.get(candidate))
+        numerical = bool(completeness.get(candidate))
+        rejected = bool(completeness.get(candidate))
+        violations_consistent = bool(completeness.get(candidate))
+        for record in group:
+            measured = record.get("metrics", {})
+            metrics.finite_metrics(measured)
+            stress, limits = (
+                measured.get("stress", {}),
+                measured.get("stress_limits", {}),
+            )
+            settling = measured.get("settling", {})
+            research = measured.get("research_margin_db", {})
+            valid = (
+                record.get("status") in VALID
+                and set(stress) == set(limits) == physical_keys
+                and set(settling) == {"a", "b"}
+                and all(value.get("pass") is True for value in settling.values())
+                and set(research) == {"a", "b", "cm", "dm"}
+            )
+            numerical &= valid
+            physical &= valid and all(
+                stress[key] <= limits[key] for key in physical_keys
+            )
+            rejected &= valid and record.get("status") == "predicted_infeasible"
+            if valid:
+                margins.extend(research.values())
+            if role == "failing":
+                expected_violations = (
+                    [key for key in physical_keys if stress[key] > limits[key]]
+                    + [
+                        "research_mask_" + key
+                        for key, margin in research.items()
+                        if margin < manifest["required_margin_db"]
+                    ]
+                    if valid
+                    else []
+                )
+                observed = measured.get("violations")
+                violations_consistent &= (
+                    bool(expected_violations)
+                    and isinstance(observed, list)
+                    and sorted(observed) == sorted(expected_violations)
+                )
+        worst = min(margins) if numerical and margins else None
+        passes = bool(physical and worst is not None)
+        if role == "passing":
+            passes &= all(r["status"] == "predicted_feasible" for r in group)
+            passes &= worst is not None and worst >= manifest["required_margin_db"]
+        elif role == "boundary":
+            low, high = gates["boundary_margin_db"]
+            passes &= worst is not None and low <= worst <= high
+        else:
+            passes = bool(
+                gates["failing_requires_all_corners"] is True
+                and numerical
+                and rejected
+                and violations_consistent
+            )
+        checks.append(
+            {
+                "role": role,
+                "candidate": candidate,
+                "complete": bool(completeness.get(candidate)),
+                "all_physical_screens": bool(physical),
+                "minimum_margin_db": worst,
+                "distance_from_feasibility_db": None
+                if worst is None
+                else worst - manifest["required_margin_db"],
+                "pass": bool(passes),
+            }
+        )
+        if role == "failing":
+            checks[-1].update(
+                all_valid_settled=bool(numerical),
+                all_corners_predicted_infeasible=bool(rejected),
+                violations_consistent=bool(violations_consistent),
+            )
+    return {
+        "applicable": True,
+        "pass": all(c["pass"] for c in checks),
+        "checks": checks,
+    }
+
+
+def reference_case_groups(records, manifest, summaries):
+    by_id = {r["id"]: r for r in records}
+    fine = [r for r in records if r["id"].startswith("q2-ensemble-")]
+    groups = [{"id": "qualification-finest", **reference_cases(fine, manifest)}]
+    for summary in summaries[1:]:
+        groups.append(
+            {
+                "id": summary["id"],
+                **reference_cases([by_id[i] for i in summary["job_ids"]], manifest),
+            }
+        )
+    return {"pass": all(group["pass"] for group in groups), "groups": groups}
+
+
+def audit(out, reference_version=None):
     """Reconstruct the frozen schedule independently of claimed terminal counts."""
 
     def read(path):
@@ -827,33 +996,49 @@ def audit(out):
         return {
             "pass": bool(
                 all(r["status"] in VALID | {"qualified"} for r in records)
-                and len(checks) == 40
+                and len(checks) == counts_contract["checks"]
                 and all(c["pass"] for c in checks)
             ),
-            "expected_checks": 40,
+            "expected_checks": counts_contract["checks"],
             "checks": checks,
         }
 
     try:
         terminal = document(out / "terminal.json")
         if (
-            terminal.get("schema") != "emi01-v1"
+            terminal.get("schema") not in MANIFESTS
             or type(terminal.get("qualification_only")) is not bool
         ):
             raise ValueError("malformed_output: terminal schema or invocation mode")
-        frozen_bytes = read(HERE / "manifest.json")
+        version = terminal["schema"]
+        if reference_version is not None and version != reference_version:
+            raise ValueError(
+                "provenance_mismatch: requested and recorded reference versions differ"
+            )
+        frozen_bytes = read(manifest_path(version))
         if read(out / "manifest.json") != frozen_bytes:
             raise ValueError(
                 "provenance_mismatch: study manifest differs from frozen bytes"
             )
-        frozen = json.loads(frozen_bytes)
+        frozen, _ = load_manifest(manifest_path(version), version)
+        counts_contract = study_counts(frozen)
         mhash = sha(frozen_bytes)
         metadata = document(out / "metadata.json")
         if (
-            metadata["manifest_sha256"] != mhash
-            or metadata["source_sha256"].get("reference/emi01/manifest.json") != mhash
+            metadata.get("schema") != version
+            or metadata["manifest_sha256"] != mhash
+            or metadata["source_sha256"].get("reference/emi01/" + MANIFESTS[version])
+            != mhash
         ):
             raise ValueError("provenance_mismatch: manifest identity in metadata")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(metadata.get("ngspice_sha256"))):
+            raise ValueError("provenance_mismatch: oracle executable identity")
+        if version == "emi01-v2" and metadata.get("oracle_snapshot") != {
+            "sha256": metadata.get("ngspice_sha256"),
+            "mode": "0500",
+            "private": True,
+        }:
+            raise ValueError("provenance_mismatch: private oracle snapshot identity")
         current_sources = source_identities()
         if metadata["source_sha256"] != current_sources:
             raise ValueError(
@@ -893,6 +1078,7 @@ def audit(out):
                 expected.append(
                     {
                         "id": f"{label}-{fixture}{suffix}",
+                        "reference_version": version,
                         "fixture": fixture,
                         "candidate": candidate,
                         "corner": corner,
@@ -926,6 +1112,8 @@ def audit(out):
         required = {"metadata.json", "manifest.json", "qualification.json"} | {
             label + ".json" for label, _, _ in groups
         }
+        if version == "emi01-v2":
+            required.add("reference-cases.json")
         verify_files(out, terminal["files"], required, excluded=("terminal.json",))
         if not (out / "jobs").is_dir():
             raise ValueError("missing_output: jobs directory")
@@ -967,10 +1155,15 @@ def audit(out):
                 directory, record["files"], required, excluded=("result.json",)
             )
             deck = (
-                circuits.dpt(spec["max_step_s"])
+                circuits.dpt(
+                    spec["max_step_s"], spec.get("reference_version", "emi01-v1")
+                )
                 if spec["fixture"] == "dpt"
                 else circuits.ensemble(
-                    spec["candidate"], spec["corner"], spec["max_step_s"]
+                    spec["candidate"],
+                    spec["corner"],
+                    spec["max_step_s"],
+                    spec.get("reference_version", "emi01-v1"),
                 )
             ).encode()
             if "circuit.cir" in record["files"] and (
@@ -980,7 +1173,8 @@ def audit(out):
                 raise ValueError("provenance_mismatch: generated deck identity")
             if (
                 "driver.cir" in record["files"]
-                and read(directory / "driver.cir") != circuits.driver().encode()
+                and read(directory / "driver.cir")
+                != circuits.driver(spec.get("reference_version", "emi01-v1")).encode()
             ):
                 raise ValueError("provenance_mismatch: generated driver identity")
             if status in VALID | {"qualified"}:
@@ -1078,11 +1272,11 @@ def audit(out):
                     raise ValueError(
                         "provenance_mismatch: metrics/status differ from raw-waveform recomputation"
                     )
-                if len(records) < 30:
+                if len(records) < counts_contract["qualification"]:
                     qualification_tables[spec["id"]] = table
                 del table
             records.append(record)
-            if len(records) == 30:
+            if len(records) == counts_contract["qualification"]:
                 recomputed_qualification = qualification_result(
                     records, qualification_tables
                 )
@@ -1105,7 +1299,7 @@ def audit(out):
             if label != "qualification-study":
                 group_records = [by_id[identity] for identity in identities]
                 recomputed_ranking = ranking(
-                    group_records, recomputed_qualification["pass"]
+                    group_records, recomputed_qualification["pass"], frozen
                 )
                 lightest = next(
                     (
@@ -1140,6 +1334,16 @@ def audit(out):
             raise ValueError(
                 "malformed_output: qualification differs from audited refinement checks"
             )
+        if version == "emi01-v2":
+            cases = reference_case_groups(records, frozen, summaries)
+            if (
+                document(out / "reference-cases.json") != cases
+                or type(terminal.get("reference_case_pass")) is not bool
+                or terminal["reference_case_pass"] != cases["pass"]
+            ):
+                raise ValueError(
+                    "malformed_output: reference case gates differ from audited jobs"
+                )
         return counts
     except (KeyError, TypeError, AttributeError, OSError) as exc:
         raise ValueError(
@@ -1152,12 +1356,17 @@ def main():
     parser.add_argument("--ngspice", type=Path, required=True)
     parser.add_argument("--model-archive", type=Path, required=True)
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--reference-version", choices=MANIFESTS, default="emi01-v1")
     parser.add_argument("--audit", type=Path)
     parser.add_argument("--qualification-only", action="store_true")
     parser.add_argument("--exploratory-probe", action="store_true")
     args = parser.parse_args()
     if args.audit:
-        print(json.dumps(audit(args.audit.resolve()), sort_keys=True))
+        print(
+            json.dumps(
+                audit(args.audit.resolve(), args.reference_version), sort_keys=True
+            )
+        )
         return
     if args.out is None:
         parser.error("--out required")
@@ -1166,18 +1375,21 @@ def main():
     if out.exists():
         raise ValueError("unsupported_input: output directory must be new")
     out.mkdir(parents=True)
-    m, mhash = load_manifest(HERE / "manifest.json")
-    binary = str(args.ngspice.resolve())
-    binary_hash = check_elf(Path(binary))
+    m, mhash = load_manifest(
+        manifest_path(args.reference_version), args.reference_version
+    )
     with tempfile.TemporaryDirectory(prefix="emi01-model-") as temp:
+        snapshot, binary_hash = snapshot_oracle(args.ngspice.resolve(), Path(temp))
+        binary = str(snapshot)
         model = Path(temp) / "model.lib"
         model_info = adapter.adapt_archive(args.model_archive.resolve(), model)
         sources = source_identities()
         metadata = {
-            "schema": "emi01-v1",
+            "schema": m["schema"],
             "manifest_sha256": mhash,
             "source_sha256": sources,
             "ngspice_sha256": binary_hash,
+            "oracle_snapshot": {"sha256": binary_hash, "mode": "0500", "private": True},
             "model": model_info,
             "python": platform.python_version(),
             "numpy": np.__version__,
@@ -1200,7 +1412,7 @@ def main():
             "io_boundary": "closed files, no fsync; build/fetch excluded",
         }
         write_json(out / "metadata.json", metadata)
-        shutil.copyfile(HERE / "manifest.json", out / "manifest.json")
+        shutil.copyfile(manifest_path(args.reference_version), out / "manifest.json")
         common = {
             "out": str(out),
             "binary": binary,
@@ -1215,13 +1427,24 @@ def main():
             specs += make_specs(m, common, f"q{level}", level=level)
         if args.exploratory_probe:
             batch(
-                [specs[i] for i in [0, 1, 10, 11, 20, 21]], 4, out, "exploratory-probe"
+                [
+                    spec
+                    for spec in specs
+                    if spec["fixture"] == "dpt"
+                    or (
+                        spec["candidate"] == m["candidates"][0]
+                        and spec["corner"] == m["corners"][0]
+                    )
+                ],
+                4,
+                out,
+                "exploratory-probe",
             )
             return
         records, summ = batch(
             specs, 4, out, "qualification-study", started_at=qualification_started
         )
-        qualification = qualify(out, records)
+        qualification = qualify(out, records, manifest=m)
         summaries = [summ]
         if not args.qualification_only:
             for workers in m["workers"]:
@@ -1237,18 +1460,25 @@ def main():
                         label,
                         qualification["pass"],
                         started_at=batch_started,
+                        manifest=m,
                     )
                     records += batch_records
                     summaries.append(summary)
-        expected = 30 if args.qualification_only else m["expected_jobs"]
+        expected = study_counts(m)[
+            "qualification" if args.qualification_only else "total"
+        ]
+        cases = reference_case_groups(records, m, summaries)
+        if m["schema"] == "emi01-v2":
+            write_json(out / "reference-cases.json", cases)
         if len(records) != expected:
             raise ValueError("missing_output: invocation count")
         result = {
-            "schema": "emi01-v1",
+            "schema": m["schema"],
             "qualification_only": args.qualification_only,
             "job_ids": [r["id"] for r in records],
             "counts": reconcile(records, [r["id"] for r in records]),
             "qualification_pass": qualification["pass"],
+            "reference_case_pass": cases["pass"],
             "study_summaries": summaries,
             "invocation_wall_s": time.perf_counter() - start,
             "result_hashes": {
@@ -1269,12 +1499,13 @@ def main():
             {
                 "counts": result["counts"],
                 "qualified": qualification["pass"],
+                "reference_case_pass": cases["pass"],
                 "wall_s": result["invocation_wall_s"],
             }
         ),
         flush=True,
     )
-    if not qualification["pass"] or result["counts"]["failures"]:
+    if not qualification["pass"] or not cases["pass"] or result["counts"]["failures"]:
         raise SystemExit(1)
 
 

@@ -1,0 +1,5931 @@
+{
+  "schema": "emi01-v2-exploratory-design-v1",
+  "performance_evidence": false,
+  "qualified_retained_evidence": false,
+  "boundary": "Design selection diagnostics; full original waveforms remain local only. Canonical v2 evidence independently reruns the selected physical inputs with the frozen runner. Failed trials are not acceptance evidence.",
+  "attempted_jobs": 51,
+  "batches": [
+    {
+      "batch": 1,
+      "config": [
+        {
+          "candidate": {
+            "id": "probe1",
+            "ldm_h": 9.999999999999999e-05,
+            "lcm_h": 0.001,
+            "cx_f": 4.6999999999999995e-07,
+            "cy_f": 1e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ]
+          }
+        },
+        {
+          "candidate": {
+            "id": "probe2",
+            "ldm_h": 0.00015,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 1e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ]
+          }
+        },
+        {
+          "candidate": {
+            "id": "probe3",
+            "ldm_h": 0.00021999999999999998,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 1e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ]
+          }
+        },
+        {
+          "candidate": {
+            "id": "probe4",
+            "ldm_h": 0.00021999999999999998,
+            "lcm_h": 0.0022,
+            "cx_f": 2.2e-06,
+            "cy_f": 2.2000000000000002e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ]
+          }
+        },
+        {
+          "candidate": {
+            "id": "probe5",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.0022,
+            "cx_f": 1e-06,
+            "cy_f": 2.2000000000000002e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ]
+          }
+        },
+        {
+          "candidate": {
+            "id": "probe6",
+            "ldm_h": 0.00047,
+            "lcm_h": 0.0047,
+            "cx_f": 2.2e-06,
+            "cy_f": 4.7000000000000004e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "config": [
+          {
+            "candidate": {
+              "cm_geometry": [
+                500,
+                140,
+                60,
+                100
+              ],
+              "cx_f": 4.6999999999999995e-07,
+              "cy_f": 1e-08,
+              "dm_geometry": [
+                500,
+                140,
+                50,
+                100
+              ],
+              "id": "probe1",
+              "lcm_h": 0.001,
+              "ldm_h": 9.999999999999999e-05
+            }
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                500,
+                140,
+                60,
+                100
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 1e-08,
+              "dm_geometry": [
+                500,
+                140,
+                50,
+                100
+              ],
+              "id": "probe2",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00015
+            }
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                500,
+                140,
+                60,
+                100
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 1e-08,
+              "dm_geometry": [
+                500,
+                140,
+                50,
+                100
+              ],
+              "id": "probe3",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00021999999999999998
+            }
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                500,
+                140,
+                60,
+                100
+              ],
+              "cx_f": 2.2e-06,
+              "cy_f": 2.2000000000000002e-08,
+              "dm_geometry": [
+                500,
+                140,
+                50,
+                100
+              ],
+              "id": "probe4",
+              "lcm_h": 0.0022,
+              "ldm_h": 0.00021999999999999998
+            }
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                500,
+                140,
+                60,
+                100
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 2.2000000000000002e-08,
+              "dm_geometry": [
+                500,
+                140,
+                50,
+                100
+              ],
+              "id": "probe5",
+              "lcm_h": 0.0022,
+              "ldm_h": 0.00033
+            }
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                500,
+                140,
+                60,
+                100
+              ],
+              "cx_f": 2.2e-06,
+              "cy_f": 4.7000000000000004e-08,
+              "dm_geometry": [
+                500,
+                140,
+                50,
+                100
+              ],
+              "id": "probe6",
+              "lcm_h": 0.0047,
+              "ldm_h": 0.00047
+            }
+          }
+        ],
+        "model": {
+          "adapted_bytes": 29136,
+          "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+          "adapter_version": "emi01-microchip-ngspice-v1",
+          "archive_bytes": 28318,
+          "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+          "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+          "member_bytes": 29805,
+          "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+          "model_build_date": "2026-05-05",
+          "model_internal_version": "2026.5"
+        },
+        "ngspice_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+        "performance_evidence": false
+      },
+      "outcomes": [
+        {
+          "id": "probe1-nominal",
+          "candidate": {
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ],
+            "cx_f": 4.6999999999999995e-07,
+            "cy_f": 1e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "id": "probe1",
+            "lcm_h": 0.001,
+            "ldm_h": 9.999999999999999e-05
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1793.4113999219298,
+            "load_winding_loss_surrogate_w": 2.9364648825713853,
+            "mass_kg": 2.1699428860000003,
+            "research_margin_db": {
+              "a": -6.33312739777034,
+              "b": -6.332428637579142,
+              "cm": -6.332778021275871,
+              "dm": 12.724335339800248
+            },
+            "rms_chassis_return_a": 1.025048089174466,
+            "rms_cm_a": 0.08051632472226093,
+            "rms_dm_a": 9.469277626842953,
+            "rms_load_inductor_a": 9.46766797934337,
+            "rms_vcm_v": 243.14227676513656,
+            "rms_vdm_v": 192.40596237600553,
+            "settling": {
+              "a": {
+                "limit_a": 0.1048446002675425,
+                "pass": true,
+                "rms_difference_a": 0.03601899319186322
+              },
+              "b": {
+                "limit_a": 0.10465602874945276,
+                "pass": true,
+                "rms_difference_a": 0.0336316573904168
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 576.7000526096991,
+              "cm_peak_t": 0.07569621007644187,
+              "damping_a_w": 1.9413527081868156,
+              "damping_b_w": 1.9961416616718792,
+              "device_peak_a": 33.57147664972333,
+              "device_peak_v": 606.0042047907875,
+              "dm_peak_t": 0.06538381230793987,
+              "loss_w": 15.856528277172034,
+              "winding_rms_a": 10.003282257398862
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "capacitor_peak_v",
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "7fc2add074c755e7deec134f6be076e1b967dcb924cc780ef1f296d53277aa32",
+          "raw_points": 229985,
+          "deck_sha256": "e2d66957d54463ea1a0996ae3aadebdcd1b53d0ff7178a595b6b791c745a05fd",
+          "record_sha256": "0eabd9e5b6d12926e119aa41f2591881de6b4711088b04c6fa9c9e88d14df2ce"
+        },
+        {
+          "id": "probe2-nominal",
+          "candidate": {
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 1e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "id": "probe2",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00015
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1758.8088002120953,
+            "load_winding_loss_surrogate_w": 0.23664800828777655,
+            "mass_kg": 2.171205028,
+            "research_margin_db": {
+              "a": 5.487493377339604,
+              "b": 5.4872022769582145,
+              "cm": 5.487347825957443,
+              "dm": 22.68443291386164
+            },
+            "rms_chassis_return_a": 1.0132746387517817,
+            "rms_cm_a": 0.044852242331837947,
+            "rms_dm_a": 9.37768536178957,
+            "rms_load_inductor_a": 9.375612051504461,
+            "rms_vcm_v": 244.28172110564975,
+            "rms_vdm_v": 189.71349419621626,
+            "settling": {
+              "a": {
+                "limit_a": 0.1049035330089101,
+                "pass": true,
+                "rms_difference_a": 0.03728038282327839
+              },
+              "b": {
+                "limit_a": 0.10465597728226171,
+                "pass": true,
+                "rms_difference_a": 0.0818518377326917
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 585.1764784125313,
+              "cm_peak_t": 0.07408717529415032,
+              "damping_a_w": 1.8742018511697685,
+              "damping_b_w": 1.8994234030580472,
+              "device_peak_a": 35.95613250935094,
+              "device_peak_v": 605.8623634725884,
+              "dm_peak_t": 0.10100354350449575,
+              "loss_w": 13.528363088757187,
+              "winding_rms_a": 9.672177222913579
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "capacitor_peak_v",
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "5591c7ed8530ccde8c913792e1d24c8909e462dee632ddb118d4aad2dba76877",
+          "raw_points": 244873,
+          "deck_sha256": "a5f3f95bbcaba01be3580098cbf858c25cc506e76587bfe3e800b3e4948967eb",
+          "record_sha256": "c2d4beea19a41262bc8cf7c88975280522543bbdf439518710e3152156f50c32"
+        },
+        {
+          "id": "probe3-nominal",
+          "candidate": {
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 1e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "id": "probe3",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00021999999999999998
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1790.4365803111857,
+            "load_winding_loss_surrogate_w": 0.12092569086035505,
+            "mass_kg": 2.171205028,
+            "research_margin_db": {
+              "a": 4.930438214611414,
+              "b": 4.930442089866801,
+              "cm": 4.930440191594357,
+              "dm": 25.712328330411935
+            },
+            "rms_chassis_return_a": 1.014059439518403,
+            "rms_cm_a": 0.04057459195796946,
+            "rms_dm_a": 9.4615513123186,
+            "rms_load_inductor_a": 9.466502952404307,
+            "rms_vcm_v": 242.87717616996767,
+            "rms_vdm_v": 190.66461073896582,
+            "settling": {
+              "a": {
+                "limit_a": 0.1047439915215675,
+                "pass": true,
+                "rms_difference_a": 0.06674704372466976
+              },
+              "b": {
+                "limit_a": 0.1045189190257523,
+                "pass": true,
+                "rms_difference_a": 0.05685514291328657
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 594.6834925097208,
+              "cm_peak_t": 0.07138761099717333,
+              "damping_a_w": 1.8787848350642753,
+              "damping_b_w": 1.8910788151130136,
+              "device_peak_a": 34.703123887370964,
+              "device_peak_v": 605.9739449614663,
+              "dm_peak_t": 0.11895388404868197,
+              "loss_w": 12.779186853097347,
+              "winding_rms_a": 9.502443827025495
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "capacitor_peak_v",
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "ecd3d2dcc4002aba0e281432c6114fb1401fe999d1ee148d76c7ad4b743dda57",
+          "raw_points": 227227,
+          "deck_sha256": "71fd6582ea335683ef7d081f9bd9095071cb7a7510db44830931e4f3b731c184",
+          "record_sha256": "2ad2ceb464f9b46f1b7e4e5c93194ebf25595cbc4942e7cda6a0bba5cbaa172e"
+        },
+        {
+          "id": "probe4-nominal",
+          "candidate": {
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ],
+            "cx_f": 2.2e-06,
+            "cy_f": 2.2000000000000002e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "id": "probe4",
+            "lcm_h": 0.0022,
+            "ldm_h": 0.00021999999999999998
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "unsettled",
+          "metrics": {
+            "load_series_resistor_w": 2217.803845176672,
+            "load_winding_loss_surrogate_w": 0.15517135764867498,
+            "mass_kg": 2.1741198616,
+            "research_margin_db": {
+              "a": 9.561460717810007,
+              "b": 9.561104574839803,
+              "cm": 9.561282644596659,
+              "dm": 30.473109855206452
+            },
+            "rms_chassis_return_a": 0.9254093836755186,
+            "rms_cm_a": 0.022899166786397706,
+            "rms_dm_a": 10.530032998281852,
+            "rms_load_inductor_a": 10.560928537931257,
+            "rms_vcm_v": 209.22697153209552,
+            "rms_vdm_v": 209.63470809346552,
+            "settling": {
+              "a": {
+                "limit_a": 0.09940412576268283,
+                "pass": false,
+                "rms_difference_a": 0.5839216885998488
+              },
+              "b": {
+                "limit_a": 0.0994544733866006,
+                "pass": false,
+                "rms_difference_a": 0.5978412839843469
+              }
+            },
+            "status": "unsettled",
+            "stress": {
+              "capacitor_peak_v": 503.0656511841336,
+              "cm_peak_t": 0.086078424160505,
+              "damping_a_w": 1.2363053947213107,
+              "damping_b_w": 1.2325130811049858,
+              "device_peak_a": 38.15917905720433,
+              "device_peak_v": 606.0296092052857,
+              "dm_peak_t": 0.1529067274780182,
+              "loss_w": 11.305970007030592,
+              "winding_rms_a": 9.208548572738428
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "722b01880da8ffa544762c70365536752901e59c24b28b1e1f946f462c7e4c14",
+          "raw_points": 229437,
+          "deck_sha256": "29fe0e54122b8dbf8fb933fbd7ca9878fc46a9dc64d3da306e2a1b56227f8c8d",
+          "record_sha256": "5688a45499bfef32d05d916db8ccc8afb7238ab0932eeff185cd80aae52e8b81"
+        },
+        {
+          "id": "probe5-nominal",
+          "candidate": {
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 2.2000000000000002e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "id": "probe5",
+            "lcm_h": 0.0022,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1836.1319515404225,
+            "load_winding_loss_surrogate_w": 0.04666282907425487,
+            "mass_kg": 2.1712621816,
+            "research_margin_db": {
+              "a": 10.525131316499198,
+              "b": 10.525484548937854,
+              "cm": 10.525307972473172,
+              "dm": 29.376483837001345
+            },
+            "rms_chassis_return_a": 0.9205696895802189,
+            "rms_cm_a": 0.016937208581588807,
+            "rms_dm_a": 9.581531780247603,
+            "rms_load_inductor_a": 9.58447420459099,
+            "rms_vcm_v": 213.48412716280436,
+            "rms_vdm_v": 193.26781159220354,
+            "settling": {
+              "a": {
+                "limit_a": 0.10449275919398021,
+                "pass": true,
+                "rms_difference_a": 0.02999162708276179
+              },
+              "b": {
+                "limit_a": 0.1045968158329754,
+                "pass": true,
+                "rms_difference_a": 0.0306750627536761
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 482.3936639384853,
+              "cm_peak_t": 0.08163012547667345,
+              "damping_a_w": 1.2123354358723746,
+              "damping_b_w": 1.1995201501030555,
+              "device_peak_a": 34.26240043633132,
+              "device_peak_v": 606.0465092148207,
+              "dm_peak_t": 0.15612461870519784,
+              "loss_w": 11.260324281649329,
+              "winding_rms_a": 9.617522003815111
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "433068e0d4611be78208b41705fad3c6a27a9a834ea1b62b09b5577bf4697f52",
+          "raw_points": 217512,
+          "deck_sha256": "bab55837bc1d9f7b48ba0a50148d2c2372100839a52a70d4d9f7eebd73de4be1",
+          "record_sha256": "952e1b0fffbfc3b82280d2b7a3741d26ba2c22971a5ad84d88abfc9727ffead9"
+        },
+        {
+          "id": "probe6-nominal",
+          "candidate": {
+            "cm_geometry": [
+              500,
+              140,
+              60,
+              100
+            ],
+            "cx_f": 2.2e-06,
+            "cy_f": 4.7000000000000004e-08,
+            "dm_geometry": [
+              500,
+              140,
+              50,
+              100
+            ],
+            "id": "probe6",
+            "lcm_h": 0.0047,
+            "ldm_h": 0.00047
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2042.5694619167818,
+            "load_winding_loss_surrogate_w": 0.1296839254071078,
+            "mass_kg": 2.1742389316,
+            "research_margin_db": {
+              "a": 18.88071200830632,
+              "b": 18.87986383250471,
+              "cm": 18.880287991380214,
+              "dm": 40.62688317166306
+            },
+            "rms_chassis_return_a": 0.9490175604464453,
+            "rms_cm_a": 0.00852687689150501,
+            "rms_dm_a": 10.10605822885169,
+            "rms_load_inductor_a": 10.084482004936554,
+            "rms_vcm_v": 191.7458481277297,
+            "rms_vdm_v": 206.33458768006625,
+            "settling": {
+              "a": {
+                "limit_a": 0.11538341785489317,
+                "pass": true,
+                "rms_difference_a": 0.10781344037308126
+              },
+              "b": {
+                "limit_a": 0.11529497173834748,
+                "pass": true,
+                "rms_difference_a": 0.09868290406773014
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 465.2667879299291,
+              "cm_peak_t": 0.15715585630098342,
+              "damping_a_w": 1.461270135756486,
+              "damping_b_w": 1.643608804199766,
+              "device_peak_a": 35.724738140136395,
+              "device_peak_v": 606.0693852742166,
+              "dm_peak_t": 0.24103174878139164,
+              "loss_w": 14.870992205360368,
+              "winding_rms_a": 10.992004261832927
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "dm_peak_t"
+            ]
+          },
+          "raw_sha256": "782968eb04074b6769cdd2eb809760541d42ec72cb07493df7b02b6236a170dc",
+          "raw_points": 220864,
+          "deck_sha256": "eb78bb24ae72b479c3a91d2c87007f6b48d63dc44ac8007b05e69b38773b56c4",
+          "record_sha256": "61a93feef59939b043de24c2e148d98b00ccca19b1067feafff44ffa2a59a966"
+        }
+      ]
+    },
+    {
+      "batch": 2,
+      "config": [
+        {
+          "candidate": {
+            "id": "probe7",
+            "ldm_h": 9.999999999999999e-05,
+            "lcm_h": 0.001,
+            "cx_f": 3.8999999999999997e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ]
+        },
+        {
+          "candidate": {
+            "id": "probe8",
+            "ldm_h": 0.00011999999999999999,
+            "lcm_h": 0.001,
+            "cx_f": 4.6999999999999995e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ]
+        },
+        {
+          "candidate": {
+            "id": "probe9",
+            "ldm_h": 0.00021999999999999998,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ]
+        },
+        {
+          "candidate": {
+            "id": "probe10",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ]
+        }
+      ],
+      "metadata": {
+        "config": [
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 3.8999999999999997e-07,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                600,
+                100,
+                32,
+                90
+              ],
+              "id": "probe7",
+              "lcm_h": 0.001,
+              "ldm_h": 9.999999999999999e-05
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ]
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 4.6999999999999995e-07,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                600,
+                100,
+                32,
+                90
+              ],
+              "id": "probe8",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00011999999999999999
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ]
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1000,
+                140,
+                40,
+                120
+              ],
+              "id": "probe9",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00021999999999999998
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ]
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe10",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ]
+          }
+        ],
+        "model": {
+          "adapted_bytes": 29136,
+          "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+          "adapter_version": "emi01-microchip-ngspice-v1",
+          "archive_bytes": 28318,
+          "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+          "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+          "member_bytes": 29805,
+          "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+          "model_build_date": "2026-05-05",
+          "model_internal_version": "2026.5"
+        },
+        "ngspice_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+        "performance_evidence": false
+      },
+      "outcomes": [
+        {
+          "id": "probe10-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe10",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 2192.9136897998023,
+            "load_winding_loss_surrogate_w": 0.08831172682259121,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 9.666197285496395,
+              "b": 9.666353950197674,
+              "cm": 9.666275696007673,
+              "dm": 26.71891753224812
+            },
+            "rms_chassis_return_a": 1.1591382621152977,
+            "rms_cm_a": 0.01878899920551838,
+            "rms_dm_a": 10.471130679147016,
+            "rms_load_inductor_a": 10.474600609851748,
+            "rms_vcm_v": 214.4740901094764,
+            "rms_vdm_v": 211.1961703001516,
+            "settling": {
+              "a": {
+                "limit_a": 0.11400572348612739,
+                "pass": true,
+                "rms_difference_a": 0.020927510491342102
+              },
+              "b": {
+                "limit_a": 0.11380384703388878,
+                "pass": true,
+                "rms_difference_a": 0.019057277712717098
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 463.90243479462015,
+              "cm_peak_t": 0.0728735308050541,
+              "damping_a_w": 3.478262447576532,
+              "damping_b_w": 3.4560687922133853,
+              "device_peak_a": 36.50312429748257,
+              "device_peak_v": 646.6641585703837,
+              "dm_peak_t": 0.06978578193701114,
+              "loss_w": 17.55597585389004,
+              "winding_rms_a": 10.483686058729567
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "84db129f4f6f545cb1debc82c32a8923eb07ece32a952c0a77cacd7f49b67668",
+          "raw_points": 213261,
+          "deck_sha256": "a8159e2c7bd0dd86875781e1d2407ed058493a9530654039457414e8c9510429",
+          "record_sha256": "379e81c562aa4a2594a4a1483d2165d28ac27400213f163894ba7d7ea4ef84b1"
+        },
+        {
+          "id": "probe10-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe10",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1510.2342757385297,
+            "load_winding_loss_surrogate_w": 0.027563930311225796,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 16.06415534540548,
+              "b": 16.062936738686332,
+              "cm": 16.06354621834774,
+              "dm": 31.824679661166932
+            },
+            "rms_chassis_return_a": 0.9681336515059701,
+            "rms_cm_a": 0.011480164331285124,
+            "rms_dm_a": 8.689696847915368,
+            "rms_load_inductor_a": 8.692003465319628,
+            "rms_vcm_v": 208.76191155294532,
+            "rms_vdm_v": 175.31289465674993,
+            "settling": {
+              "a": {
+                "limit_a": 0.09517245529368089,
+                "pass": true,
+                "rms_difference_a": 0.07528243783800125
+              },
+              "b": {
+                "limit_a": 0.09530719280622721,
+                "pass": true,
+                "rms_difference_a": 0.04813180427391744
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 386.4263421282838,
+              "cm_peak_t": 0.06193818814140242,
+              "damping_a_w": 2.047017271293692,
+              "damping_b_w": 2.1079751103132924,
+              "device_peak_a": 32.01547879090394,
+              "device_peak_v": 556.5514389884576,
+              "dm_peak_t": 0.06792815332801863,
+              "loss_w": 11.321497865680444,
+              "winding_rms_a": 8.704540062790802
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "8f35aee476d80a0e717dd2da9c4ee27a8466322c8932bb14ce7863f5c0b8ee39",
+          "raw_points": 208636,
+          "deck_sha256": "d3c462782296878dfcbfb24ffd51b9eeb5787cfa3d4f6633f3033270bfbcb7d8",
+          "record_sha256": "20b920c62dc0431add5c3b52d31d9ca555201f3608a2adcf35c2cd56d8d21ed4"
+        },
+        {
+          "id": "probe10-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe10",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1839.9529487575212,
+            "load_winding_loss_surrogate_w": 0.047789071998638605,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.35519002691997,
+              "b": 15.354304258413222,
+              "cm": 15.354747271392554,
+              "dm": 29.234359401155046
+            },
+            "rms_chassis_return_a": 1.0584140190399944,
+            "rms_cm_a": 0.011817354791338672,
+            "rms_dm_a": 9.591489954995954,
+            "rms_load_inductor_a": 9.59503326071321,
+            "rms_vcm_v": 206.5206323544873,
+            "rms_vdm_v": 193.40892947536392,
+            "settling": {
+              "a": {
+                "limit_a": 0.10445808925609965,
+                "pass": true,
+                "rms_difference_a": 0.030283550375302882
+              },
+              "b": {
+                "limit_a": 0.10454607366148864,
+                "pass": true,
+                "rms_difference_a": 0.02652532164326259
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 443.10561882854586,
+              "cm_peak_t": 0.06419800252827701,
+              "damping_a_w": 2.722137247391165,
+              "damping_b_w": 2.7316845985685005,
+              "device_peak_a": 34.40932414967746,
+              "device_peak_v": 606.0731639466893,
+              "dm_peak_t": 0.06995273620625708,
+              "loss_w": 14.245324199916906,
+              "winding_rms_a": 9.654789236195592
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "f0deb6660eb7e66107e476f5d483fc18d80e31408f68e560ac7aeec18a40768d",
+          "raw_points": 220724,
+          "deck_sha256": "d8d48a8747fef56830802d452d8aa2a65d1757f1473ec34467ebe4902fb1ae93",
+          "record_sha256": "b51f7eefc82be06740b432afaf0aadc4eafb10eff67e9154142c30e9e24a4242"
+        },
+        {
+          "id": "probe7-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 3.8999999999999997e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "id": "probe7",
+            "lcm_h": 0.001,
+            "ldm_h": 9.999999999999999e-05
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2188.05704385131,
+            "load_winding_loss_surrogate_w": 8.540745387821609,
+            "mass_kg": 1.9766690776,
+            "research_margin_db": {
+              "a": -9.43577650651848,
+              "b": -9.434802703298871,
+              "cm": -9.435289618518652,
+              "dm": 8.663166881578306
+            },
+            "rms_chassis_return_a": 1.171802329505808,
+            "rms_cm_a": 0.10000131192149761,
+            "rms_dm_a": 10.458991621271506,
+            "rms_load_inductor_a": 10.455493497906424,
+            "rms_vcm_v": 223.41147134131785,
+            "rms_vdm_v": 214.16632662187308,
+            "settling": {
+              "a": {
+                "limit_a": 0.11463746678893337,
+                "pass": true,
+                "rms_difference_a": 0.013368530710508433
+              },
+              "b": {
+                "limit_a": 0.11451612513005927,
+                "pass": true,
+                "rms_difference_a": 0.013048595778255777
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 545.2148336846662,
+              "cm_peak_t": 0.07769575784733095,
+              "damping_a_w": 4.879147829611683,
+              "damping_b_w": 4.702322116574845,
+              "device_peak_a": 35.98785690867044,
+              "device_peak_v": 646.5918367737779,
+              "dm_peak_t": 0.09149868572286678,
+              "loss_w": 21.486876270272333,
+              "winding_rms_a": 11.24647848251033
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "capacitor_peak_v",
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "a5a76b4c7093b26c34ad18018cdf9961f02620a5646e3e17ab84aacded1b85e7",
+          "raw_points": 223306,
+          "deck_sha256": "89a3c44ee4ce2e06b7a78487977e881aaf4b867c74a36b20014aae8f3cb7e4a3",
+          "record_sha256": "a5f45d31e32f19872fe8894f00893941881289632e81d90bd5b496b58208264c"
+        },
+        {
+          "id": "probe7-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 3.8999999999999997e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "id": "probe7",
+            "lcm_h": 0.001,
+            "ldm_h": 9.999999999999999e-05
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1456.0298926093478,
+            "load_winding_loss_surrogate_w": 2.154091051748283,
+            "mass_kg": 1.9766690776,
+            "research_margin_db": {
+              "a": -1.9419660336164952,
+              "b": -1.9420938166370263,
+              "cm": -1.9420299251108588,
+              "dm": 13.881209208409444
+            },
+            "rms_chassis_return_a": 0.9887834560064173,
+            "rms_cm_a": 0.044053708343348326,
+            "rms_dm_a": 8.532203766932023,
+            "rms_load_inductor_a": 8.53103013924987,
+            "rms_vcm_v": 196.52004075875584,
+            "rms_vdm_v": 173.25784290886037,
+            "settling": {
+              "a": {
+                "limit_a": 0.09527041730652851,
+                "pass": true,
+                "rms_difference_a": 0.009940761394112272
+              },
+              "b": {
+                "limit_a": 0.09543443116618805,
+                "pass": true,
+                "rms_difference_a": 0.011550633801778816
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 432.3286757067534,
+              "cm_peak_t": 0.06718805674191851,
+              "damping_a_w": 2.618859295890713,
+              "damping_b_w": 2.9619494419507144,
+              "device_peak_a": 32.03032348477624,
+              "device_peak_v": 556.4607007736821,
+              "dm_peak_t": 0.08126055397521524,
+              "loss_w": 12.1025938007908,
+              "winding_rms_a": 8.997386380482746
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "0910ec46815d648dc764865f14e557eebff8fcdb1c7088a8b317860402c643b6",
+          "raw_points": 238193,
+          "deck_sha256": "aef34adf6eb9feb8825311ff88672d6f6ca232b59059115a6dd820d52aa7a719",
+          "record_sha256": "45eb05b60af42d9563619c05c3e71db2c0ec356196106dbbd92efdf1e75a3d04"
+        },
+        {
+          "id": "probe7-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 3.8999999999999997e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "id": "probe7",
+            "lcm_h": 0.001,
+            "ldm_h": 9.999999999999999e-05
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1803.2873907865282,
+            "load_winding_loss_surrogate_w": 4.189299114393238,
+            "mass_kg": 1.9766690776,
+            "research_margin_db": {
+              "a": -6.17704817461231,
+              "b": -6.176290160923884,
+              "cm": -6.176669172860301,
+              "dm": 11.274360651583578
+            },
+            "rms_chassis_return_a": 1.0877181544484797,
+            "rms_cm_a": 0.07096236659631976,
+            "rms_dm_a": 9.495232765952222,
+            "rms_load_inductor_a": 9.492875301284663,
+            "rms_vcm_v": 195.04658567154868,
+            "rms_vdm_v": 193.4120192102581,
+            "settling": {
+              "a": {
+                "limit_a": 0.10498466649513283,
+                "pass": true,
+                "rms_difference_a": 0.011561005281156896
+              },
+              "b": {
+                "limit_a": 0.10493542505576213,
+                "pass": true,
+                "rms_difference_a": 0.01267464889539751
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 472.27163773373906,
+              "cm_peak_t": 0.07236700514400424,
+              "damping_a_w": 3.9935404442489806,
+              "damping_b_w": 3.681753918173436,
+              "device_peak_a": 34.19730430566386,
+              "device_peak_v": 605.954558530077,
+              "dm_peak_t": 0.0871120419329309,
+              "loss_w": 16.43582601717683,
+              "winding_rms_a": 10.057126991950287
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "164bbecd429896f32b61d9279cca6d9a2550e726f4115c53226a6e3772c92e58",
+          "raw_points": 228541,
+          "deck_sha256": "b01cc87edb91c855b4d85a6ad43f821b6cb4d8e99aa990e1090ba7f9b4c683c1",
+          "record_sha256": "44ce1bed43a282df6b6d9d64d6964374f3a1075587953e1b5c3476071c67f217"
+        },
+        {
+          "id": "probe8-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 4.6999999999999995e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "id": "probe8",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00011999999999999999
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2175.107638666791,
+            "load_winding_loss_surrogate_w": 3.6114177519713113,
+            "mass_kg": 1.9768595895999999,
+            "research_margin_db": {
+              "a": -8.159411851384135,
+              "b": -8.158715580974615,
+              "cm": -8.159063708755951,
+              "dm": 11.81201704456744
+            },
+            "rms_chassis_return_a": 1.1616882519956822,
+            "rms_cm_a": 0.0878968101543312,
+            "rms_dm_a": 10.42834495063554,
+            "rms_load_inductor_a": 10.426573453058653,
+            "rms_vcm_v": 222.5399972078882,
+            "rms_vdm_v": 211.91295030424456,
+            "settling": {
+              "a": {
+                "limit_a": 0.11439038536940747,
+                "pass": true,
+                "rms_difference_a": 0.014161668348226584
+              },
+              "b": {
+                "limit_a": 0.11425227550560171,
+                "pass": true,
+                "rms_difference_a": 0.013325011256188754
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 523.3706403695167,
+              "cm_peak_t": 0.07748302393684882,
+              "damping_a_w": 3.918101205214366,
+              "damping_b_w": 3.918074022639324,
+              "device_peak_a": 36.614424669405125,
+              "device_peak_v": 646.5474221600567,
+              "dm_peak_t": 0.09901366404972851,
+              "loss_w": 17.81725555317942,
+              "winding_rms_a": 10.965254578554873
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "capacitor_peak_v",
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "1a832c2969438e37be660f691b15862e848e65311262dc464b63c6beafaa45ae",
+          "raw_points": 217373,
+          "deck_sha256": "60a1fd1f136f4f3032491af6b806f23bcc90f8d94d07e889b15f5d45a98071ac",
+          "record_sha256": "858d841f0d3cf6296b0ae26f41187ae1e82cd2875d7a2d95671b64ba96fac975"
+        },
+        {
+          "id": "probe8-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 4.6999999999999995e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "id": "probe8",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00011999999999999999
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1455.7112027106095,
+            "load_winding_loss_surrogate_w": 0.9594177640233221,
+            "mass_kg": 1.9768595895999999,
+            "research_margin_db": {
+              "a": -6.480633547709431,
+              "b": -6.480538172718866,
+              "cm": -6.4805858603441635,
+              "dm": 17.003352238458277
+            },
+            "rms_chassis_return_a": 0.9944163939204778,
+            "rms_cm_a": 0.07111105237269254,
+            "rms_dm_a": 8.531357997603614,
+            "rms_load_inductor_a": 8.531279564682679,
+            "rms_vcm_v": 197.79432579104326,
+            "rms_vdm_v": 172.69419759842313,
+            "settling": {
+              "a": {
+                "limit_a": 0.09520160598734163,
+                "pass": true,
+                "rms_difference_a": 0.012382317710543628
+              },
+              "b": {
+                "limit_a": 0.0953676401122785,
+                "pass": true,
+                "rms_difference_a": 0.009700093045305754
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 435.02046435300224,
+              "cm_peak_t": 0.06667331801674162,
+              "damping_a_w": 2.35033579079778,
+              "damping_b_w": 2.615367098036742,
+              "device_peak_a": 32.01719334972759,
+              "device_peak_v": 556.4409832783332,
+              "dm_peak_t": 0.08691829627572023,
+              "loss_w": 10.811577177025134,
+              "winding_rms_a": 8.867006688160126
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "ddf230a83aa17427d784723c0da7388f285da5b26e34fb084c69320388677da7",
+          "raw_points": 209706,
+          "deck_sha256": "1319228e8511bc7bc76f3d0880349c77652927f73ab0d97e31d343b723e3e411",
+          "record_sha256": "bbe3bbbfefe3b0d44c0c214b6c723f3dfcfe7b3bc1a0cf3cc01b0731fd4754bd"
+        },
+        {
+          "id": "probe8-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 4.6999999999999995e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              600,
+              100,
+              32,
+              90
+            ],
+            "id": "probe8",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00011999999999999999
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1798.167241776676,
+            "load_winding_loss_surrogate_w": 1.8293679133889749,
+            "mass_kg": 1.9768595895999999,
+            "research_margin_db": {
+              "a": -3.811194006011931,
+              "b": -3.8111136935795003,
+              "cm": -3.8111538498579876,
+              "dm": 14.405029578798022
+            },
+            "rms_chassis_return_a": 1.080877834873083,
+            "rms_cm_a": 0.05687672191406069,
+            "rms_dm_a": 9.481886030851351,
+            "rms_load_inductor_a": 9.481385808896851,
+            "rms_vcm_v": 195.6978576701103,
+            "rms_vdm_v": 192.18574478230434,
+            "settling": {
+              "a": {
+                "limit_a": 0.104854433117709,
+                "pass": true,
+                "rms_difference_a": 0.012498110359239119
+              },
+              "b": {
+                "limit_a": 0.10481496165065847,
+                "pass": true,
+                "rms_difference_a": 0.010865283300019568
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 471.7999791105673,
+              "cm_peak_t": 0.07149407814293773,
+              "damping_a_w": 3.3746730400505465,
+              "damping_b_w": 3.233154728595537,
+              "device_peak_a": 34.42196016673019,
+              "device_peak_v": 605.7696351421384,
+              "dm_peak_t": 0.09289550403260226,
+              "loss_w": 14.24963220964608,
+              "winding_rms_a": 9.877166796991888
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "529c503cd4cddf92ff938500a5d7c9df3238f666f6600055a52b5d91a568fc07",
+          "raw_points": 226532,
+          "deck_sha256": "9a25227c399301a36e8143b62e848253bc58d58e59e4140c495a4e33a371cdbe",
+          "record_sha256": "79c380e021bd5cf8816ba22d6ff665b69049cf6ada3467f6697f7bd11486605b"
+        },
+        {
+          "id": "probe9-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe9",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00021999999999999998
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2151.47456158868,
+            "load_winding_loss_surrogate_w": 0.20137926484338764,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 2.1956002875128746,
+              "b": 2.1957872075954157,
+              "cm": 2.195693756578109,
+              "dm": 23.341421445859098
+            },
+            "rms_chassis_return_a": 1.1548427594239268,
+            "rms_cm_a": 0.03335203849369546,
+            "rms_dm_a": 10.371757646813942,
+            "rms_load_inductor_a": 10.373639892229923,
+            "rms_vcm_v": 218.1662106130569,
+            "rms_vdm_v": 209.37999780512538,
+            "settling": {
+              "a": {
+                "limit_a": 0.11433951605798924,
+                "pass": true,
+                "rms_difference_a": 0.031468234302838606
+              },
+              "b": {
+                "limit_a": 0.11414715242920141,
+                "pass": true,
+                "rms_difference_a": 0.007353888289061373
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 471.97353250884544,
+              "cm_peak_t": 0.07554596639565286,
+              "damping_a_w": 3.4347093038948353,
+              "damping_b_w": 3.4069204304874283,
+              "device_peak_a": 37.04953411293302,
+              "device_peak_v": 646.6109739360926,
+              "dm_peak_t": 0.07608032857332206,
+              "loss_w": 16.256475809558847,
+              "winding_rms_a": 10.538908863524057
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "b454089cf1c5db279a188b59294a80493c1ad37d1dcb0feda47a7ef32a5e3556",
+          "raw_points": 219674,
+          "deck_sha256": "f844a6a0e50181cb7d880c6f9c72705f476fb9cf4d93a550b3f836003f60b808",
+          "record_sha256": "2c375f9c108ccbcaac31107ee1c2d54547a095bcb042fa7215091a854c68a88a"
+        },
+        {
+          "id": "probe9-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe9",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00021999999999999998
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1476.7709065493134,
+            "load_winding_loss_surrogate_w": 0.07429551076445268,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 10.048651921622977,
+              "b": 10.048790566734766,
+              "cm": 10.04872124417139,
+              "dm": 28.16683607303601
+            },
+            "rms_chassis_return_a": 0.9758889381871033,
+            "rms_cm_a": 0.017612995919350942,
+            "rms_dm_a": 8.592832941705712,
+            "rms_load_inductor_a": 8.600969540378175,
+            "rms_vcm_v": 203.64819392647954,
+            "rms_vdm_v": 172.785581168922,
+            "settling": {
+              "a": {
+                "limit_a": 0.09462619720775192,
+                "pass": true,
+                "rms_difference_a": 0.040823956730597764
+              },
+              "b": {
+                "limit_a": 0.0947892777900892,
+                "pass": true,
+                "rms_difference_a": 0.06445328320812205
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 399.56466681696446,
+              "cm_peak_t": 0.06437948869325255,
+              "damping_a_w": 2.174493915541431,
+              "damping_b_w": 2.1883510840547715,
+              "device_peak_a": 32.63349604885485,
+              "device_peak_v": 556.6457978217995,
+              "dm_peak_t": 0.0758045783554466,
+              "loss_w": 10.437720660435167,
+              "winding_rms_a": 8.595108486846634
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "53d5e6506b5702e1f0bccc3b6e79c5f20a595417e781d7598832a5a72eebdc14",
+          "raw_points": 209741,
+          "deck_sha256": "8b3ef843e8f83d60a8f725e920377323f03d2e974bcb6413d55ff57e939a30d3",
+          "record_sha256": "f8f9c669cb06082dc5a81e138bc89fdd30828cca19f23f7bd348a526d0328e3f"
+        },
+        {
+          "id": "probe9-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe9",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00021999999999999998
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 2.5e-09,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1794.3879176746814,
+            "load_winding_loss_surrogate_w": 0.11914821386013336,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 4.5523575867236445,
+              "b": 4.552308259564626,
+              "cm": 4.55233295923604,
+              "dm": 25.774653638432767
+            },
+            "rms_chassis_return_a": 1.0669576976537667,
+            "rms_cm_a": 0.022609950888416882,
+            "rms_dm_a": 9.471981035226873,
+            "rms_load_inductor_a": 9.477433578090432,
+            "rms_vcm_v": 200.1248118139682,
+            "rms_vdm_v": 190.82425354095503,
+            "settling": {
+              "a": {
+                "limit_a": 0.10466762196085216,
+                "pass": true,
+                "rms_difference_a": 0.05859402960034693
+              },
+              "b": {
+                "limit_a": 0.10468903212616862,
+                "pass": true,
+                "rms_difference_a": 0.048668282587856174
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 441.4592929247048,
+              "cm_peak_t": 0.06810885114851983,
+              "damping_a_w": 2.87489587949543,
+              "damping_b_w": 2.7950157249968104,
+              "device_peak_a": 34.65235527808733,
+              "device_peak_v": 605.9998209199042,
+              "dm_peak_t": 0.07540234139351125,
+              "loss_w": 13.287160209846375,
+              "winding_rms_a": 9.57863633558976
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "8d619b96d52be258f0f7f9eb05e16506426d3ac3fc02159b55010d0401949473",
+          "raw_points": 226526,
+          "deck_sha256": "dc352a77526bd9ca068f1ed353817f53c29469e07b46b98c471f7e10ffd72d82",
+          "record_sha256": "e96e568ddaf502ba5656a6f7ca1dcb6f4c7eb5449ab8e3e5098e5e8206eaa75a"
+        }
+      ]
+    },
+    {
+      "batch": 3,
+      "config": [
+        {
+          "candidate": {
+            "id": "probe11",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        },
+        {
+          "candidate": {
+            "id": "probe12",
+            "ldm_h": 0.00026,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        }
+      ],
+      "metadata": {
+        "config": [
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe11",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1000,
+                140,
+                40,
+                120
+              ],
+              "id": "probe12",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00026
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          }
+        ],
+        "model": {
+          "adapted_bytes": 29136,
+          "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+          "adapter_version": "emi01-microchip-ngspice-v1",
+          "archive_bytes": 28318,
+          "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+          "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+          "member_bytes": 29805,
+          "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+          "model_build_date": "2026-05-05",
+          "model_internal_version": "2026.5"
+        },
+        "ngspice_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+        "performance_evidence": false
+      },
+      "outcomes": [
+        {
+          "id": "probe11-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe11",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 2192.9129280401244,
+            "load_winding_loss_surrogate_w": 0.08831194540859488,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 10.071196017460906,
+              "b": 10.07136141404736,
+              "cm": 10.071278801553916,
+              "dm": 26.71890874193761
+            },
+            "rms_chassis_return_a": 1.159099522174536,
+            "rms_cm_a": 0.018662758089960266,
+            "rms_dm_a": 10.47112885959057,
+            "rms_load_inductor_a": 10.474598864545309,
+            "rms_vcm_v": 214.47401937440088,
+            "rms_vdm_v": 211.19612616336983,
+            "settling": {
+              "a": {
+                "limit_a": 0.1140056039069602,
+                "pass": true,
+                "rms_difference_a": 0.020974840692478923
+              },
+              "b": {
+                "limit_a": 0.11380396429076022,
+                "pass": true,
+                "rms_difference_a": 0.019090919248930784
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 463.8938938429199,
+              "cm_peak_t": 0.0729932456977099,
+              "damping_a_w": 3.4779994662403872,
+              "damping_b_w": 3.4557989389878956,
+              "device_peak_a": 36.49273960209389,
+              "device_peak_v": 646.6628177578906,
+              "dm_peak_t": 0.06972811386244797,
+              "loss_w": 17.55543219675483,
+              "winding_rms_a": 10.483682211903567
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "85d06bbe82e809c961cd2ceab31427360346a62e4bb25b6c9e2352cd4e7cca67",
+          "raw_points": 394906,
+          "deck_sha256": "96d3dd92d1e2dd16f8a1607ee6752bd45fdb7e39ec3e503abbd94be3b2d1d5d4",
+          "record_sha256": "87ed58c3b86c961a8bc0cf4273872d6d5cba6ba3c9adbe0f93087e0b86a74c32"
+        },
+        {
+          "id": "probe11-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe11",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1510.2341911679966,
+            "load_winding_loss_surrogate_w": 0.0275638779131851,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.839763227948481,
+              "b": 15.838587860578272,
+              "cm": 15.839175712523357,
+              "dm": 31.824654043065756
+            },
+            "rms_chassis_return_a": 0.9681120763837967,
+            "rms_cm_a": 0.011416469445557268,
+            "rms_dm_a": 8.68969660537258,
+            "rms_load_inductor_a": 8.692003169783984,
+            "rms_vcm_v": 208.7620242520986,
+            "rms_vdm_v": 175.3128950398764,
+            "settling": {
+              "a": {
+                "limit_a": 0.09517244658403702,
+                "pass": true,
+                "rms_difference_a": 0.07528652517166741
+              },
+              "b": {
+                "limit_a": 0.09530722315802821,
+                "pass": true,
+                "rms_difference_a": 0.048135045090339924
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 386.428280546241,
+              "cm_peak_t": 0.06193982010894081,
+              "damping_a_w": 2.0469959047069817,
+              "damping_b_w": 2.107950272405124,
+              "device_peak_a": 32.020081330088885,
+              "device_peak_v": 556.6558676518057,
+              "dm_peak_t": 0.06796959696258129,
+              "loss_w": 11.321454543150068,
+              "winding_rms_a": 8.704545216548487
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "99758951132e429929acff6f7c47c22c95aef20e72481f14b3d142f45e34a13d",
+          "raw_points": 392744,
+          "deck_sha256": "f6eda93b0068e0c4c39ce99eafce5db2566080a17f3838c1044a76d321b40ced",
+          "record_sha256": "48c833632c3248ea82a1002e5f0898680db7528a5d978b17ae707dcf6f12612a"
+        },
+        {
+          "id": "probe11-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe11",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1839.9525836950015,
+            "load_winding_loss_surrogate_w": 0.047789109643722544,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.647719928928254,
+              "b": 15.646817564976857,
+              "cm": 15.647268885355544,
+              "dm": 29.234365370521928
+            },
+            "rms_chassis_return_a": 1.0583965024741189,
+            "rms_cm_a": 0.011721595892168068,
+            "rms_dm_a": 9.59148900348018,
+            "rms_load_inductor_a": 9.5950322916796,
+            "rms_vcm_v": 206.5207564627318,
+            "rms_vdm_v": 193.4089120464175,
+            "settling": {
+              "a": {
+                "limit_a": 0.10445813416853555,
+                "pass": true,
+                "rms_difference_a": 0.030296364986774845
+              },
+              "b": {
+                "limit_a": 0.10454601514026254,
+                "pass": true,
+                "rms_difference_a": 0.02652977192150558
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 443.10067420656844,
+              "cm_peak_t": 0.06419491062705092,
+              "damping_a_w": 2.7221105663131784,
+              "damping_b_w": 2.731657241578226,
+              "device_peak_a": 34.40212632778125,
+              "device_peak_v": 606.0762427159553,
+              "dm_peak_t": 0.06999856908240311,
+              "loss_w": 14.245268113330587,
+              "winding_rms_a": 9.6547887783055
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "bc8a72304a4bd7ff9c0edcb52fc910c3ffded66865f2ea1870b3f55c6d8f83cc",
+          "raw_points": 398149,
+          "deck_sha256": "f3b50666a5edfb4143b3a4f497edd1d663ec54d45c1f15c95217c77683efdd44",
+          "record_sha256": "80f8485ff351bf9877ceaaf3abe1fd392e5acec7160f4e2094baddbe34ec6306"
+        },
+        {
+          "id": "probe12-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe12",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00026
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 2171.2680288172605,
+            "load_winding_loss_surrogate_w": 0.1466447981196095,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 9.492307692797525,
+              "b": 9.492309298384527,
+              "cm": 9.492308671625068,
+              "dm": 24.697880495678888
+            },
+            "rms_chassis_return_a": 1.1564873543793865,
+            "rms_cm_a": 0.020282201904722262,
+            "rms_dm_a": 10.419329221257595,
+            "rms_load_inductor_a": 10.423194182188091,
+            "rms_vcm_v": 216.61133820295234,
+            "rms_vdm_v": 210.12637328311652,
+            "settling": {
+              "a": {
+                "limit_a": 0.1141879045955782,
+                "pass": true,
+                "rms_difference_a": 0.04244661554377349
+              },
+              "b": {
+                "limit_a": 0.11398592587987465,
+                "pass": true,
+                "rms_difference_a": 0.0104897011349607
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 465.53313813742614,
+              "cm_peak_t": 0.07475501145225882,
+              "damping_a_w": 3.460588061658274,
+              "damping_b_w": 3.4294589525435732,
+              "device_peak_a": 36.93235265870683,
+              "device_peak_v": 646.6228496902448,
+              "dm_peak_t": 0.08240005939765609,
+              "loss_w": 16.084386210260007,
+              "winding_rms_a": 10.498061690794263
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "56b6585c3173666db397644baa06dee0ecee8b8b9be8820f089c981b2faf1451",
+          "raw_points": 395242,
+          "deck_sha256": "ed3fa221091bcd207f00a6315d2dfa77b44780417eabfe9e2e358608a76ef4a3",
+          "record_sha256": "c340e2f031213927c005ca6a565591a374b6d6d6bb69ee1c0f916c5c6c362104"
+        },
+        {
+          "id": "probe12-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe12",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00026
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1504.3909265250045,
+            "load_winding_loss_surrogate_w": 0.049279628449682325,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 13.257653043622042,
+              "b": 13.257838517476216,
+              "cm": 13.257745919291153,
+              "dm": 29.56255287891311
+            },
+            "rms_chassis_return_a": 0.9732058284520528,
+            "rms_cm_a": 0.013288883180364372,
+            "rms_dm_a": 8.672815935280328,
+            "rms_load_inductor_a": 8.680126694196396,
+            "rms_vcm_v": 205.6898053967103,
+            "rms_vdm_v": 174.4764154571774,
+            "settling": {
+              "a": {
+                "limit_a": 0.0945819112938798,
+                "pass": true,
+                "rms_difference_a": 0.026971781159976907
+              },
+              "b": {
+                "limit_a": 0.09473800548754382,
+                "pass": true,
+                "rms_difference_a": 0.014847976344069248
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 393.63441319772994,
+              "cm_peak_t": 0.0636019907537618,
+              "damping_a_w": 2.125648715920503,
+              "damping_b_w": 2.1568664435079574,
+              "device_peak_a": 32.32110706983362,
+              "device_peak_v": 556.5553484691552,
+              "dm_peak_t": 0.08340100672844704,
+              "loss_w": 10.342733617482178,
+              "winding_rms_a": 8.640722411832128
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "e4ffea343274262cdc20081c98564ff9c4f8832daeef9eaf3a852a96f67ff24c",
+          "raw_points": 391634,
+          "deck_sha256": "5c7a0b92bf7152bcc76f8af1e080bc523a11461b783e23d0af2bc2c57e044b4a",
+          "record_sha256": "4df801dd57ea62176b1599d874ff8b69daf1b2fb6224249aef5b55696e63caee"
+        },
+        {
+          "id": "probe12-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe12",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00026
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1821.7250760036318,
+            "load_winding_loss_surrogate_w": 0.08445795909146624,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 8.166056271205008,
+              "b": 8.166530592494126,
+              "cm": 8.166293481105654,
+              "dm": 27.129898312406546
+            },
+            "rms_chassis_return_a": 1.0631684341349326,
+            "rms_cm_a": 0.018695222840172204,
+            "rms_dm_a": 9.543842847915656,
+            "rms_load_inductor_a": 9.550155132614499,
+            "rms_vcm_v": 202.3198189803709,
+            "rms_vdm_v": 192.1787519611159,
+            "settling": {
+              "a": {
+                "limit_a": 0.10438073360387562,
+                "pass": true,
+                "rms_difference_a": 0.034839271234070095
+              },
+              "b": {
+                "limit_a": 0.10442809061483414,
+                "pass": true,
+                "rms_difference_a": 0.02468331788020234
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 443.97174963262796,
+              "cm_peak_t": 0.06632847927695795,
+              "damping_a_w": 2.8149346546068776,
+              "damping_b_w": 2.7664600638465338,
+              "device_peak_a": 34.46895965677584,
+              "device_peak_v": 606.0788633398004,
+              "dm_peak_t": 0.0842884495673609,
+              "loss_w": 13.09569076778144,
+              "winding_rms_a": 9.596847605232968
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "7434955547e5e408a0a2f3aa6b857a3ddb91b1b0c8a57d365b73f28ec0621a7c",
+          "raw_points": 396951,
+          "deck_sha256": "8ee9ba4639d5c1440ffe969a0979e8ceff7f3c9f1922d14b20fc6b2a9dc9c39f",
+          "record_sha256": "5e21d95d65034b88a184edbe44bbcb90538aeb66a0f5b5414cc9d461d68914cc"
+        }
+      ]
+    },
+    {
+      "batch": 4,
+      "config": [
+        {
+          "candidate": {
+            "id": "probe13",
+            "ldm_h": 0.000235,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        },
+        {
+          "candidate": {
+            "id": "probe14",
+            "ldm_h": 0.00023999999999999998,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        }
+      ],
+      "metadata": {
+        "config": [
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1000,
+                140,
+                40,
+                120
+              ],
+              "id": "probe13",
+              "lcm_h": 0.001,
+              "ldm_h": 0.000235
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1000,
+                140,
+                40,
+                120
+              ],
+              "id": "probe14",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00023999999999999998
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          }
+        ],
+        "model": {
+          "adapted_bytes": 29136,
+          "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+          "adapter_version": "emi01-microchip-ngspice-v1",
+          "archive_bytes": 28318,
+          "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+          "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+          "member_bytes": 29805,
+          "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+          "model_build_date": "2026-05-05",
+          "model_internal_version": "2026.5"
+        },
+        "ngspice_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+        "performance_evidence": false
+      },
+      "outcomes": [
+        {
+          "id": "probe13-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe13",
+            "lcm_h": 0.001,
+            "ldm_h": 0.000235
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2158.4699784437003,
+            "load_winding_loss_surrogate_w": 0.17812128302153937,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": -6.535250204336066,
+              "b": -6.535004962405679,
+              "cm": -6.53512757906222,
+              "dm": 23.874678419380444
+            },
+            "rms_chassis_return_a": 1.1627427842119529,
+            "rms_cm_a": 0.06954040050343162,
+            "rms_dm_a": 10.388592774612752,
+            "rms_load_inductor_a": 10.391420023182881,
+            "rms_vcm_v": 217.55503726776845,
+            "rms_vdm_v": 209.61857039727442,
+            "settling": {
+              "a": {
+                "limit_a": 0.1142925772019093,
+                "pass": true,
+                "rms_difference_a": 0.044581667288175954
+              },
+              "b": {
+                "limit_a": 0.1140962332849653,
+                "pass": true,
+                "rms_difference_a": 0.02320200147267734
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 469.32960729509136,
+              "cm_peak_t": 0.07646949775208711,
+              "damping_a_w": 3.4551012844990012,
+              "damping_b_w": 3.425047249600136,
+              "device_peak_a": 36.99241196681142,
+              "device_peak_v": 646.6429406343602,
+              "dm_peak_t": 0.07899303914751167,
+              "loss_w": 16.193466187123054,
+              "winding_rms_a": 10.518048272111514
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "cf3dba3d7035db4de09a16ece7d27fce5a3c7a3e2c97e65c0bd16a8d1e472ef2",
+          "raw_points": 392705,
+          "deck_sha256": "3d93f9417a5532e709d387cd240689e5ee3c54847b54e298478bfe7c1c18c89f",
+          "record_sha256": "cfdc49bfcc6650c83866922619d2c4718e5f2e02eeca7f5b22e15dfd8a2c207a"
+        },
+        {
+          "id": "probe13-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe13",
+            "lcm_h": 0.001,
+            "ldm_h": 0.000235
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1488.777297532038,
+            "load_winding_loss_surrogate_w": 0.0637391588204639,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 9.468508719640525,
+              "b": 9.468418659193361,
+              "cm": 9.468463743490986,
+              "dm": 28.703458332769074
+            },
+            "rms_chassis_return_a": 0.9748104381014556,
+            "rms_cm_a": 0.015920314679620236,
+            "rms_dm_a": 8.627688552249051,
+            "rms_load_inductor_a": 8.635796952109462,
+            "rms_vcm_v": 204.43901084972077,
+            "rms_vdm_v": 173.48915663993864,
+            "settling": {
+              "a": {
+                "limit_a": 0.0945461820515017,
+                "pass": true,
+                "rms_difference_a": 0.02170709504238669
+              },
+              "b": {
+                "limit_a": 0.09470716231365527,
+                "pass": true,
+                "rms_difference_a": 0.042779024057819554
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 397.1450058689046,
+              "cm_peak_t": 0.0637911601264456,
+              "damping_a_w": 2.157254319249395,
+              "damping_b_w": 2.176808132674409,
+              "device_peak_a": 32.482143434172116,
+              "device_peak_v": 556.56802411798,
+              "dm_peak_t": 0.07869483736694838,
+              "loss_w": 10.394889573481247,
+              "winding_rms_a": 8.609373327591141
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "54ca7ac1c97205faced6fda79e09f9f98dde02dd33df11a4b684b123804ebd42",
+          "raw_points": 392090,
+          "deck_sha256": "d0413ab6ffaaf1801f3b9efaddb5c13ed46bf9da19d6afd8f8593937e74ea231",
+          "record_sha256": "701836adfa93c112774738009f86c7bb9f7e6f5b3b99fdb0f08e738f6b3efb35"
+        },
+        {
+          "id": "probe13-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe13",
+            "lcm_h": 0.001,
+            "ldm_h": 0.000235
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1805.2491864034723,
+            "load_winding_loss_surrogate_w": 0.10480544927876168,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 10.88028094700887,
+              "b": 10.87992851008228,
+              "cm": 10.880104755094578,
+              "dm": 26.30238521681975
+            },
+            "rms_chassis_return_a": 1.065127948368592,
+            "rms_cm_a": 0.019273566090804287,
+            "rms_dm_a": 9.500594827431588,
+            "rms_load_inductor_a": 9.506650278099237,
+            "rms_vcm_v": 200.92587986811745,
+            "rms_vdm_v": 191.3371556886069,
+            "settling": {
+              "a": {
+                "limit_a": 0.10452572453386556,
+                "pass": true,
+                "rms_difference_a": 0.05312672320826689
+              },
+              "b": {
+                "limit_a": 0.10455746388036241,
+                "pass": true,
+                "rms_difference_a": 0.043391435823774804
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 442.76602414799635,
+              "cm_peak_t": 0.06731982085304855,
+              "damping_a_w": 2.8523142511564377,
+              "damping_b_w": 2.7831147685348663,
+              "device_peak_a": 34.455405231818496,
+              "device_peak_v": 606.065391352446,
+              "dm_peak_t": 0.078978823263508,
+              "loss_w": 13.20020926028057,
+              "winding_rms_a": 9.580619945220864
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "6fabc48ab0ea83625279b201f4e10fca98773979d2de74e646e6c81cceff57e0",
+          "raw_points": 396487,
+          "deck_sha256": "c2cab85d845283892f250aadd7d52da883c4df60873bc33a6caa4076c90910cc",
+          "record_sha256": "9da9a9ad6b6ea7447fbb129c712508d6272a67f64db8615bbf1d609875137902"
+        },
+        {
+          "id": "probe14-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe14",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00023999999999999998
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2161.066395310509,
+            "load_winding_loss_surrogate_w": 0.17118839017679477,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 4.349545363521912,
+              "b": 4.349837467651767,
+              "cm": 4.349691414416057,
+              "dm": 24.04507525046438
+            },
+            "rms_chassis_return_a": 1.1566130898485896,
+            "rms_cm_a": 0.03438595101562831,
+            "rms_dm_a": 10.394835262728549,
+            "rms_load_inductor_a": 10.397927414145917,
+            "rms_vcm_v": 217.3598926393972,
+            "rms_vdm_v": 209.71610740082704,
+            "settling": {
+              "a": {
+                "limit_a": 0.11427190037525706,
+                "pass": true,
+                "rms_difference_a": 0.04192792228931211
+              },
+              "b": {
+                "limit_a": 0.11407471530822758,
+                "pass": true,
+                "rms_difference_a": 0.014303816834547081
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 468.46396469828966,
+              "cm_peak_t": 0.075375088863058,
+              "damping_a_w": 3.449562853784844,
+              "damping_b_w": 3.419061148468888,
+              "device_peak_a": 36.9921699675979,
+              "device_peak_v": 646.7177491372522,
+              "dm_peak_t": 0.07885000740310347,
+              "loss_w": 16.1535756457608,
+              "winding_rms_a": 10.512680850298684
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "3f28581cdc8d21d0e187b9b83f5dd61b3f3d4fdef410a8831cf7b93b79663169",
+          "raw_points": 394952,
+          "deck_sha256": "bc04d6e66347f747d358c70b9a5f0ebb85c66a9ba062ee6c631325adcf6f28ad",
+          "record_sha256": "7c44c3a294dc6cc2892cd1a90b9fba0088a616c6761150f45181c8657a6b902b"
+        },
+        {
+          "id": "probe14-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe14",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00023999999999999998
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1492.3831192650835,
+            "load_winding_loss_surrogate_w": 0.06053392171703131,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 13.550381570972007,
+              "b": 13.550294062598923,
+              "cm": 13.550337995517594,
+              "dm": 28.878464276996183
+            },
+            "rms_chassis_return_a": 0.9744630039412255,
+            "rms_cm_a": 0.013532102543464087,
+            "rms_dm_a": 8.638130125758874,
+            "rms_load_inductor_a": 8.64614679958612,
+            "rms_vcm_v": 204.69487739134323,
+            "rms_vdm_v": 173.70829445945807,
+            "settling": {
+              "a": {
+                "limit_a": 0.09453787559006112,
+                "pass": true,
+                "rms_difference_a": 0.0173787428098499
+              },
+              "b": {
+                "limit_a": 0.09469813449108626,
+                "pass": true,
+                "rms_difference_a": 0.03572663560037263
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 396.390212156997,
+              "cm_peak_t": 0.06361627696686133,
+              "damping_a_w": 2.1504999282914175,
+              "damping_b_w": 2.1722618212760167,
+              "device_peak_a": 32.459210755203586,
+              "device_peak_v": 556.6501035171566,
+              "dm_peak_t": 0.07957403427989673,
+              "loss_w": 10.381641851242353,
+              "winding_rms_a": 8.615155949298922
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "9d361cb976875023392a80397f766f796dd5908a300ee4746babaabe755654fa",
+          "raw_points": 392220,
+          "deck_sha256": "5a1b0fc941be9224f75a8a22776404cea99ad4e481c5ab31c06379d4002a68e2",
+          "record_sha256": "08537a9ffbe42443624ce8f9358378ae3451f490291d8e722be65c7656dc75c2"
+        },
+        {
+          "id": "probe14-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1000,
+              140,
+              40,
+              120
+            ],
+            "id": "probe14",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00023999999999999998
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 1808.7864912390269,
+            "load_winding_loss_surrogate_w": 0.10039346760346265,
+            "mass_kg": 3.0648724516,
+            "research_margin_db": {
+              "a": 3.5720998689183006,
+              "b": 3.572082349247566,
+              "cm": 3.5720911144378107,
+              "dm": 26.47219829802755
+            },
+            "rms_chassis_return_a": 1.0653087741843015,
+            "rms_cm_a": 0.024891258342505197,
+            "rms_dm_a": 9.509895920003428,
+            "rms_load_inductor_a": 9.516074381103104,
+            "rms_vcm_v": 201.1962605527737,
+            "rms_vdm_v": 191.51130891549448,
+            "settling": {
+              "a": {
+                "limit_a": 0.10448759807124539,
+                "pass": true,
+                "rms_difference_a": 0.049192786598630134
+              },
+              "b": {
+                "limit_a": 0.10452209592081266,
+                "pass": true,
+                "rms_difference_a": 0.039183777987100744
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 443.0967033186983,
+              "cm_peak_t": 0.06697030184497216,
+              "damping_a_w": 2.846912132271007,
+              "damping_b_w": 2.78162104056951,
+              "device_peak_a": 34.437216299893976,
+              "device_peak_v": 606.0764091275245,
+              "dm_peak_t": 0.07972629990819176,
+              "loss_w": 13.180126620299907,
+              "winding_rms_a": 9.582847959460883
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_cm"
+            ]
+          },
+          "raw_sha256": "bb78c927e5bc69ddb483552b5e3575e4cac85f04fb25b697f350b0608ca8c0bf",
+          "raw_points": 396476,
+          "deck_sha256": "d9492ff20c29aa313c604c0b2a861dabac5c8c24b6489f5de7d61958297a3b0b",
+          "record_sha256": "764ec035d27a63e65d533283bc4a34becc39c1661b40dfa9eab2452779064d29"
+        }
+      ]
+    },
+    {
+      "batch": 5,
+      "config": [
+        {
+          "candidate": {
+            "id": "probe15",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 8.5e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        },
+        {
+          "candidate": {
+            "id": "probe16",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 1e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        },
+        {
+          "candidate": {
+            "id": "probe17",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 3.125e-10
+        },
+        {
+          "candidate": {
+            "id": "probe18",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 1.5625e-10
+        }
+      ],
+      "metadata": {
+        "config": [
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 8.5e-08,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe15",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-07,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe16",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe17",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 3.125e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 1e-06,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe18",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 1.5625e-10
+          }
+        ],
+        "model": {
+          "adapted_bytes": 29136,
+          "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+          "adapter_version": "emi01-microchip-ngspice-v1",
+          "archive_bytes": 28318,
+          "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+          "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+          "member_bytes": 29805,
+          "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+          "model_build_date": "2026-05-05",
+          "model_internal_version": "2026.5"
+        },
+        "ngspice_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+        "performance_evidence": false
+      },
+      "outcomes": [
+        {
+          "id": "probe15-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8.5e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe15",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2127.5657058429924,
+            "load_winding_loss_surrogate_w": 14.22093378783458,
+            "mass_kg": 3.806240350599999,
+            "research_margin_db": {
+              "a": 5.983801333317288,
+              "b": 6.350175573964876,
+              "cm": 9.979929070807728,
+              "dm": 6.1710734253962585
+            },
+            "rms_chassis_return_a": 1.1586215745788302,
+            "rms_cm_a": 0.018521333471825788,
+            "rms_dm_a": 10.31307250583174,
+            "rms_load_inductor_a": 10.301191486591614,
+            "rms_vcm_v": 214.46242249140735,
+            "rms_vdm_v": 213.7705364836407,
+            "settling": {
+              "a": {
+                "limit_a": 0.11450706741394856,
+                "pass": true,
+                "rms_difference_a": 0.048524183037171716
+              },
+              "b": {
+                "limit_a": 0.11432441802873727,
+                "pass": true,
+                "rms_difference_a": 0.012978468021890451
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 467.3293680112823,
+              "cm_peak_t": 0.07254502465190356,
+              "damping_a_w": 8.195633952079477,
+              "damping_b_w": 3.491862860073852,
+              "device_peak_a": 35.77788301600895,
+              "device_peak_v": 646.6634393596257,
+              "dm_peak_t": 0.06628289911395352,
+              "loss_w": 22.110352663784937,
+              "winding_rms_a": 10.341417195677401
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a"
+            ]
+          },
+          "raw_sha256": "921725ac060dba27cff468d67b9662570c3ae937378d30866acbc6c20bacd1cc",
+          "raw_points": 395283,
+          "deck_sha256": "a4ae18bc709a7b27a86bf61e1a4a612a2479ad4b15888a17332e39302bb924ac",
+          "record_sha256": "ceed8ac45419fc382cf87788cf93147afc3fe22f26328405484aa8a4e524a0fd"
+        },
+        {
+          "id": "probe15-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8.5e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe15",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1375.741418446159,
+            "load_winding_loss_surrogate_w": 4.295666360022228,
+            "mass_kg": 3.806240350599999,
+            "research_margin_db": {
+              "a": 11.157557797597462,
+              "b": 11.4802633370156,
+              "cm": 15.77141915391391,
+              "dm": 11.325474909132339
+            },
+            "rms_chassis_return_a": 0.9629435761772033,
+            "rms_cm_a": 0.011603937006435382,
+            "rms_dm_a": 8.293522147603158,
+            "rms_load_inductor_a": 8.284128473358345,
+            "rms_vcm_v": 208.70318898491047,
+            "rms_vdm_v": 170.07476453332026,
+            "settling": {
+              "a": {
+                "limit_a": 0.09463701536198404,
+                "pass": true,
+                "rms_difference_a": 0.03347069599726514
+              },
+              "b": {
+                "limit_a": 0.09477461763916258,
+                "pass": true,
+                "rms_difference_a": 0.06075493952305729
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 415.162059409344,
+              "cm_peak_t": 0.061881450249473294,
+              "damping_a_w": 3.3351049739851364,
+              "damping_b_w": 2.8792204761860707,
+              "device_peak_a": 31.466718060394598,
+              "device_peak_v": 556.6558819006675,
+              "dm_peak_t": 0.06405637717669369,
+              "loss_w": 12.91442394472492,
+              "winding_rms_a": 8.377552727746341
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "e766644bdcbd3dbd8fb4786314dcc4c0a058866faad6d8dfbcd8aeee09698c7f",
+          "raw_points": 392132,
+          "deck_sha256": "2e8f647e48d2a6a8c5130ae8da06a2d90d06ee9a2a886435babec986f7dedae0",
+          "record_sha256": "9cadf10002e91594441ccb1f978545a9585aacd3369e075b5877afa10ee596cb"
+        },
+        {
+          "id": "probe15-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8.5e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe15",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1730.095292554878,
+            "load_winding_loss_surrogate_w": 7.872259061967665,
+            "mass_kg": 3.806240350599999,
+            "research_margin_db": {
+              "a": 8.594941046003171,
+              "b": 8.874510851971309,
+              "cm": 15.72392749879684,
+              "dm": 8.738561513284367
+            },
+            "rms_chassis_return_a": 1.060123692790047,
+            "rms_cm_a": 0.0117361979723169,
+            "rms_dm_a": 9.300361250233175,
+            "rms_load_inductor_a": 9.289933162409774,
+            "rms_vcm_v": 206.48031286181993,
+            "rms_vdm_v": 191.52167254170374,
+            "settling": {
+              "a": {
+                "limit_a": 0.1045154619059065,
+                "pass": true,
+                "rms_difference_a": 0.03956083254551767
+              },
+              "b": {
+                "limit_a": 0.10460839609414466,
+                "pass": true,
+                "rms_difference_a": 0.03988947972309154
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 457.7012523077767,
+              "cm_peak_t": 0.06414616576277331,
+              "damping_a_w": 5.396952816573624,
+              "damping_b_w": 3.243922527308277,
+              "device_peak_a": 33.35563274480013,
+              "device_peak_v": 606.0762426261352,
+              "dm_peak_t": 0.06528185065338049,
+              "loss_w": 17.09299790401314,
+              "winding_rms_a": 9.417032113252223
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "6223b0eebb3a6f2664640c60694c4115a51276f8016d1049887846d15bd255e1",
+          "raw_points": 397779,
+          "deck_sha256": "5381afdd82802d168440991be23fe04d6e09fdaf1965f36ec55df8227429d25c",
+          "record_sha256": "e51e93b0ad213040211ece6c82f4db419b1e39d56de8909bffe4acc353957972"
+        },
+        {
+          "id": "probe16-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe16",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 2123.2031672467106,
+            "load_winding_loss_surrogate_w": 11.813140997491821,
+            "mass_kg": 3.8062760715999993,
+            "research_margin_db": {
+              "a": 7.255520069043072,
+              "b": 7.655725076468002,
+              "cm": 9.99208203961328,
+              "dm": 7.461707664431287
+            },
+            "rms_chassis_return_a": 1.1587301998222408,
+            "rms_cm_a": 0.018530491253560256,
+            "rms_dm_a": 10.302659692550288,
+            "rms_load_inductor_a": 10.29195050179605,
+            "rms_vcm_v": 214.46310891686588,
+            "rms_vdm_v": 212.73327230080466,
+            "settling": {
+              "a": {
+                "limit_a": 0.11438870348125213,
+                "pass": true,
+                "rms_difference_a": 0.047887708623921
+              },
+              "b": {
+                "limit_a": 0.11420450997286748,
+                "pass": true,
+                "rms_difference_a": 0.012438524373043469
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 461.1233613749964,
+              "cm_peak_t": 0.07255923617462769,
+              "damping_a_w": 7.35029549649397,
+              "damping_b_w": 3.523818820039945,
+              "device_peak_a": 35.74860107882414,
+              "device_peak_v": 646.6637979775169,
+              "dm_peak_t": 0.0664917361509286,
+              "loss_w": 21.348145746617558,
+              "winding_rms_a": 10.346928443198465
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "a740a8600cdf8453dd4619344ee8db9fd735ff183fd14c793025ecbd2dd9f37e",
+          "raw_points": 395314,
+          "deck_sha256": "b016e6d3bb15fc9ba19ec031102db8f6c3dd6361fe2d9732b60fc5b0528b9a83",
+          "record_sha256": "e37f24e4c74f10d1fc1bad44062c4deb35a30c05f0eb10ee63dd937a083fbc90"
+        },
+        {
+          "id": "probe16-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe16",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1374.8078886445885,
+            "load_winding_loss_surrogate_w": 3.31049551716431,
+            "mass_kg": 3.8062760715999993,
+            "research_margin_db": {
+              "a": 12.45025333272396,
+              "b": 12.799425659885003,
+              "cm": 15.77851550455776,
+              "dm": 12.634249483673571
+            },
+            "rms_chassis_return_a": 0.9632168240071615,
+            "rms_cm_a": 0.011591090804595652,
+            "rms_dm_a": 8.290791126612836,
+            "rms_load_inductor_a": 8.282098730603446,
+            "rms_vcm_v": 208.70719268141696,
+            "rms_vdm_v": 169.5829138393298,
+            "settling": {
+              "a": {
+                "limit_a": 0.09459069166320791,
+                "pass": true,
+                "rms_difference_a": 0.03263161735623491
+              },
+              "b": {
+                "limit_a": 0.094727440409716,
+                "pass": true,
+                "rms_difference_a": 0.059912907309010735
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 411.58993321512867,
+              "cm_peak_t": 0.06188746093828447,
+              "damping_a_w": 2.9524119472837236,
+              "damping_b_w": 2.784141962225739,
+              "device_peak_a": 31.480450934515744,
+              "device_peak_v": 556.6558715230929,
+              "dm_peak_t": 0.0640983809200014,
+              "loss_w": 12.450293538386383,
+              "winding_rms_a": 8.383443538048855
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "0d0dd3a1f4cdf16db75075428c66277d53309ba4439f2939c58d69ee015ea9c1",
+          "raw_points": 392185,
+          "deck_sha256": "8defb47e777fd8b70adc6accea19170eef3e95de32aa2c2f9aefa435f222570b",
+          "record_sha256": "f50b5f76a2cca3eba5fcc0243b88857b693761e14c20018a631bdab73665ac9b"
+        },
+        {
+          "id": "probe16-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-07,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe16",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1727.6674396511692,
+            "load_winding_loss_surrogate_w": 6.247627111538138,
+            "mass_kg": 3.8062760715999993,
+            "research_margin_db": {
+              "a": 9.881754190964557,
+              "b": 10.18504912440585,
+              "cm": 15.713114931097508,
+              "dm": 10.038961147789706
+            },
+            "rms_chassis_return_a": 1.0598636648334914,
+            "rms_cm_a": 0.011735163132078667,
+            "rms_dm_a": 9.293936518122303,
+            "rms_load_inductor_a": 9.284473827443096,
+            "rms_vcm_v": 206.48302252486326,
+            "rms_vdm_v": 190.76180733528503,
+            "settling": {
+              "a": {
+                "limit_a": 0.10443330345836599,
+                "pass": true,
+                "rms_difference_a": 0.038811060950834864
+              },
+              "b": {
+                "limit_a": 0.10452638122959346,
+                "pass": true,
+                "rms_difference_a": 0.039158060350791495
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 453.7905307737229,
+              "cm_peak_t": 0.0641514650349827,
+              "damping_a_w": 4.787842816402748,
+              "damping_b_w": 3.1884684666247796,
+              "device_peak_a": 33.3719671384292,
+              "device_peak_v": 606.0762426510668,
+              "dm_peak_t": 0.06538090786806992,
+              "loss_w": 16.45276653297465,
+              "winding_rms_a": 9.42295918999388
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "6af7ce6cd2618982d73330988c299117677ff7f7e5b9102e3c66850e2c55cc5b",
+          "raw_points": 397791,
+          "deck_sha256": "10b58aebbe813777daf920a4a203cd1f2cf32fcab1b2b13d013040cef0aa3f12",
+          "record_sha256": "fb4500f1b9bd3b35436ea5035e3640b6e96a2b1ec535f4a8e1002960b7777b20"
+        },
+        {
+          "id": "probe17-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe17",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 3.125e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 2192.912856297436,
+            "load_winding_loss_surrogate_w": 0.08831195048923894,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 10.09531828098281,
+              "b": 10.095484439625594,
+              "cm": 10.095401446578947,
+              "dm": 26.718908720591287
+            },
+            "rms_chassis_return_a": 1.1590969706742016,
+            "rms_cm_a": 0.018651684884704565,
+            "rms_dm_a": 10.471128688321263,
+            "rms_load_inductor_a": 10.474598692940456,
+            "rms_vcm_v": 214.4740196157169,
+            "rms_vdm_v": 211.1961227372757,
+            "settling": {
+              "a": {
+                "limit_a": 0.11400560705561227,
+                "pass": true,
+                "rms_difference_a": 0.02097221328045298
+              },
+              "b": {
+                "limit_a": 0.11380395409456597,
+                "pass": true,
+                "rms_difference_a": 0.019088106566943038
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 463.8932608058162,
+              "cm_peak_t": 0.07300025634048121,
+              "damping_a_w": 3.4779841123808355,
+              "damping_b_w": 3.4557830644403063,
+              "device_peak_a": 36.49037683508942,
+              "device_peak_v": 646.6918789391557,
+              "dm_peak_t": 0.06972487102273785,
+              "loss_w": 17.555401347408093,
+              "winding_rms_a": 10.483683158425222
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "d3175f420e1405e55db82d6cdc94fba848bdd7b3ab35d64a681f9e373f85e7ad",
+          "raw_points": 671938,
+          "deck_sha256": "95f0b37ef507cd558feefe1f10d0e8cfb194e0f710c7128f603b8b132e9dc264",
+          "record_sha256": "90ffd3e8800fc642227d6253038cf1796d51366fce7429237b4b562646095294"
+        },
+        {
+          "id": "probe17-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe17",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 3.125e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1510.2338461936365,
+            "load_winding_loss_surrogate_w": 0.02756388526934794,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.827518809991844,
+              "b": 15.826344993248,
+              "cm": 15.826932069400343,
+              "dm": 31.824658786127543
+            },
+            "rms_chassis_return_a": 0.9681076223766314,
+            "rms_cm_a": 0.011412639773252038,
+            "rms_dm_a": 8.689695612902202,
+            "rms_load_inductor_a": 8.692002177624254,
+            "rms_vcm_v": 208.76205679590325,
+            "rms_vdm_v": 175.31287496260788,
+            "settling": {
+              "a": {
+                "limit_a": 0.09517243279101002,
+                "pass": true,
+                "rms_difference_a": 0.07528703946666748
+              },
+              "b": {
+                "limit_a": 0.09530721384882426,
+                "pass": true,
+                "rms_difference_a": 0.04813577221190203
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 386.42842123526344,
+              "cm_peak_t": 0.061939432841191674,
+              "damping_a_w": 2.046995064132717,
+              "damping_b_w": 2.1079492908590223,
+              "device_peak_a": 32.0135684715195,
+              "device_peak_v": 556.6195166981842,
+              "dm_peak_t": 0.06797242377468035,
+              "loss_w": 11.321449109730324,
+              "winding_rms_a": 8.704541222663233
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "ea433e32f220c0371f6fdfbcb12ff3ec4130fe19e80d59f819fb4dc65904603b",
+          "raw_points": 669462,
+          "deck_sha256": "e61d43b1b9018d57f7385a82ba0d716345794386bcb8de968309c74449d43841",
+          "record_sha256": "9af275476f02488ed2d110dcf0646b1d61206419b6fc9e8aee2a1dbd18e42019"
+        },
+        {
+          "id": "probe17-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe17",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 3.125e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1839.9524027528744,
+            "load_winding_loss_surrogate_w": 0.04778909862476369,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.66575007878572,
+              "b": 15.664845693592767,
+              "cm": 15.665298025157682,
+              "dm": 29.23436537717283
+            },
+            "rms_chassis_return_a": 1.0583748451478623,
+            "rms_cm_a": 0.011714823360095689,
+            "rms_dm_a": 9.59148853194466,
+            "rms_load_inductor_a": 9.59503181055619,
+            "rms_vcm_v": 206.52076948260708,
+            "rms_vdm_v": 193.40890348414638,
+            "settling": {
+              "a": {
+                "limit_a": 0.10445813782859024,
+                "pass": true,
+                "rms_difference_a": 0.030296675773246667
+              },
+              "b": {
+                "limit_a": 0.10454601459270685,
+                "pass": true,
+                "rms_difference_a": 0.02653076625002662
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 443.1003488841419,
+              "cm_peak_t": 0.06419512034844314,
+              "damping_a_w": 2.722110781657921,
+              "damping_b_w": 2.7316575108722945,
+              "device_peak_a": 34.3979223071837,
+              "device_peak_v": 606.0677997674695,
+              "dm_peak_t": 0.07000125947271954,
+              "loss_w": 14.24526820245649,
+              "winding_rms_a": 9.654788745142783
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "dc1f52eeaa6ff6abdd90e394aa5d1adb41df491a87775b66cf2bd92c0565c8fe",
+          "raw_points": 671500,
+          "deck_sha256": "99f11418fd68ddd34cf1b572a403ab3f0a5cbfd6c34bdf5b2a016ef9279c5310",
+          "record_sha256": "f1eeb74622ca70c7266e71d64d2f02c0a3ca244f577e2bbb682263b2543c0b2d"
+        },
+        {
+          "id": "probe18-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe18",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 1.5625e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 2192.910975319921,
+            "load_winding_loss_surrogate_w": 0.08831203389788515,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 10.102245717843218,
+              "b": 10.102412084120061,
+              "cm": 10.102328987391957,
+              "dm": 26.718922028033646
+            },
+            "rms_chassis_return_a": 1.1589862550753116,
+            "rms_cm_a": 0.018648487999977363,
+            "rms_dm_a": 10.471124197561629,
+            "rms_load_inductor_a": 10.47459419690453,
+            "rms_vcm_v": 214.4740469538635,
+            "rms_vdm_v": 211.19603258676653,
+            "settling": {
+              "a": {
+                "limit_a": 0.11400557227204361,
+                "pass": true,
+                "rms_difference_a": 0.02097169809503987
+              },
+              "b": {
+                "limit_a": 0.11380391475576222,
+                "pass": true,
+                "rms_difference_a": 0.019085931786570684
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 463.89309480057995,
+              "cm_peak_t": 0.07300145842827817,
+              "damping_a_w": 3.477983574935937,
+              "damping_b_w": 3.4557828859395983,
+              "device_peak_a": 36.49945451992156,
+              "device_peak_v": 645.9786885148001,
+              "dm_peak_t": 0.06972315645400669,
+              "loss_w": 17.555391510079698,
+              "winding_rms_a": 10.483677633088815
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "366f9229ff6f1503265d82b5fab7bb9142fb2617d1b15bf3007868b97150b45d",
+          "raw_points": 1286868,
+          "deck_sha256": "68ecc1f8fe06378f5b2745ccd161b6861648e1e423aa3158dd95da11cca261de",
+          "record_sha256": "14c6c7417da53c6a551b854e90af505456d6da83441ae323f54fa3b3b23fcb6a"
+        },
+        {
+          "id": "probe18-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe18",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 1.5625e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1510.235506840719,
+            "load_winding_loss_surrogate_w": 0.027563905369949522,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.824010621421252,
+              "b": 15.822837109114644,
+              "cm": 15.823424032901414,
+              "dm": 31.82464484880788
+            },
+            "rms_chassis_return_a": 0.9681414779745683,
+            "rms_cm_a": 0.011411659335872465,
+            "rms_dm_a": 8.689700390116938,
+            "rms_load_inductor_a": 8.69200697948336,
+            "rms_vcm_v": 208.76203012512903,
+            "rms_vdm_v": 175.31296900439992,
+            "settling": {
+              "a": {
+                "limit_a": 0.09517246495861831,
+                "pass": true,
+                "rms_difference_a": 0.07528748692071785
+              },
+              "b": {
+                "limit_a": 0.09530724688713071,
+                "pass": true,
+                "rms_difference_a": 0.04813635601087085
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 386.4284803789223,
+              "cm_peak_t": 0.06193947039946279,
+              "damping_a_w": 2.0469902265485027,
+              "damping_b_w": 2.1079444294302023,
+              "device_peak_a": 32.02303821023113,
+              "device_peak_v": 556.2799070566562,
+              "dm_peak_t": 0.06797326717890337,
+              "loss_w": 11.321446143302683,
+              "winding_rms_a": 8.70454550722106
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "0a5c7aaebf0f0636fb4b4c4e773452c1d06aed2cda3444a695f9e5767e206b47",
+          "raw_points": 1286015,
+          "deck_sha256": "b47e1d676f46fcf64b6340fca76f21ae0d754fdf384dd324dac10a42b0d4e72b",
+          "record_sha256": "81b7ba69c3f8a43774ed9303ed8eef47ce4282c32ed304f440bb6c8ed6c9aae4"
+        },
+        {
+          "id": "probe18-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 1e-06,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe18",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 1.5625e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1839.9517433580745,
+            "load_winding_loss_surrogate_w": 0.04778915828173564,
+            "mass_kg": 3.8084193315999992,
+            "research_margin_db": {
+              "a": 15.670543401273221,
+              "b": 15.669638481314607,
+              "cm": 15.670091080408298,
+              "dm": 29.234377386557107
+            },
+            "rms_chassis_return_a": 1.0582324398075367,
+            "rms_cm_a": 0.011712872923051587,
+            "rms_dm_a": 9.591486813193693,
+            "rms_load_inductor_a": 9.595030103153157,
+            "rms_vcm_v": 206.52083496939022,
+            "rms_vdm_v": 193.40886764058473,
+            "settling": {
+              "a": {
+                "limit_a": 0.10445812172542762,
+                "pass": true,
+                "rms_difference_a": 0.030296745747069736
+              },
+              "b": {
+                "limit_a": 0.1045459974263503,
+                "pass": true,
+                "rms_difference_a": 0.026530789514328926
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 443.10019604547324,
+              "cm_peak_t": 0.06419525914036141,
+              "damping_a_w": 2.7221051399493597,
+              "damping_b_w": 2.73165203659349,
+              "device_peak_a": 34.40600214225239,
+              "device_peak_v": 605.4645540647757,
+              "dm_peak_t": 0.07000276340941987,
+              "loss_w": 14.245254011936568,
+              "winding_rms_a": 9.654786928532475
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "7f76b7095a05446210817388dc3bbdb87f003872e00258d1ac7734bf287b9571",
+          "raw_points": 1286402,
+          "deck_sha256": "ba448e38cb006d20c282da0d8773aa5dccefdc65ffeea08017d730ab631d78f1",
+          "record_sha256": "e4882b3b4c96aa1dcd8f876f01c7b527cd1d0e72451132616aa894fda970bad9"
+        }
+      ]
+    },
+    {
+      "batch": 6,
+      "config": [
+        {
+          "candidate": {
+            "id": "probe19_l0",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 6.25e-10
+        },
+        {
+          "candidate": {
+            "id": "probe19_l1",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 3.125e-10
+        },
+        {
+          "candidate": {
+            "id": "probe19_l2",
+            "ldm_h": 0.00033,
+            "lcm_h": 0.001,
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ]
+          },
+          "corners": [
+            "nominal",
+            "fast_low_lc",
+            "hot_high_c"
+          ],
+          "max_step_s": 1.5625e-10
+        }
+      ],
+      "metadata": {
+        "config": [
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 8e-08,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe19_l0",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 6.25e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 8e-08,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe19_l1",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 3.125e-10
+          },
+          {
+            "candidate": {
+              "cm_geometry": [
+                800,
+                140,
+                40,
+                110
+              ],
+              "cx_f": 8e-08,
+              "cy_f": 4.7e-08,
+              "dm_geometry": [
+                1200,
+                160,
+                48,
+                135
+              ],
+              "id": "probe19_l2",
+              "lcm_h": 0.001,
+              "ldm_h": 0.00033
+            },
+            "corners": [
+              "nominal",
+              "fast_low_lc",
+              "hot_high_c"
+            ],
+            "max_step_s": 1.5625e-10
+          }
+        ],
+        "model": {
+          "adapted_bytes": 29136,
+          "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+          "adapter_version": "emi01-microchip-ngspice-v1",
+          "archive_bytes": 28318,
+          "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+          "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+          "member_bytes": 29805,
+          "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+          "model_build_date": "2026-05-05",
+          "model_internal_version": "2026.5"
+        },
+        "ngspice_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+        "performance_evidence": false
+      },
+      "outcomes": [
+        {
+          "id": "probe19_l0-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l0",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2128.888570543406,
+            "load_winding_loss_surrogate_w": 14.956049270824703,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 5.5166047760596655,
+              "b": 5.871818807334819,
+              "cm": 9.97622947282639,
+              "dm": 5.697708619395243
+            },
+            "rms_chassis_return_a": 1.1585828733104409,
+            "rms_cm_a": 0.018518382202197578,
+            "rms_dm_a": 10.316227119459999,
+            "rms_load_inductor_a": 10.30399022070456,
+            "rms_vcm_v": 214.46232755317575,
+            "rms_vdm_v": 214.0856812906582,
+            "settling": {
+              "a": {
+                "limit_a": 0.11454316334150608,
+                "pass": true,
+                "rms_difference_a": 0.04873431054668261
+              },
+              "b": {
+                "limit_a": 0.11436077526681739,
+                "pass": true,
+                "rms_difference_a": 0.013158885362458008
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 469.58223804275076,
+              "cm_peak_t": 0.07254062397027651,
+              "damping_a_w": 8.458715183556912,
+              "damping_b_w": 3.4777933459206216,
+              "device_peak_a": 35.79220647705651,
+              "device_peak_v": 646.6628423692857,
+              "dm_peak_t": 0.0661810593237949,
+              "loss_w": 22.335354056596042,
+              "winding_rms_a": 10.339034046581475
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_dm"
+            ]
+          },
+          "raw_sha256": "18cf7e6a5f0c00299efa4b9ca2e8474e5fb68985006e0f353a46db2b0daa7454",
+          "raw_points": 395321,
+          "deck_sha256": "67588418fc369eb7d19b3e174415e25bd543b910aafcb423b1080889d79c435d",
+          "record_sha256": "0339bfbc059da222403a3e1c148377f3d13aa4ff142f942c85189ff1d46faef9"
+        },
+        {
+          "id": "probe19_l0-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l0",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1376.1761886499985,
+            "load_winding_loss_surrogate_w": 4.6704742150067835,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 10.681722396260497,
+              "b": 10.995779557919036,
+              "cm": 15.768810525498111,
+              "dm": 10.844472499765715
+            },
+            "rms_chassis_return_a": 0.9628347525174016,
+            "rms_cm_a": 0.011608182192739597,
+            "rms_dm_a": 8.294800511635765,
+            "rms_load_inductor_a": 8.285145584051707,
+            "rms_vcm_v": 208.70189146072488,
+            "rms_vdm_v": 170.26580069253535,
+            "settling": {
+              "a": {
+                "limit_a": 0.09465564452288618,
+                "pass": true,
+                "rms_difference_a": 0.03374869799195654
+              },
+              "b": {
+                "limit_a": 0.09479359181371369,
+                "pass": true,
+                "rms_difference_a": 0.06103400373502241
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 416.433168339325,
+              "cm_peak_t": 0.06187920634233553,
+              "damping_a_w": 3.4888774951532744,
+              "damping_b_w": 2.9073946946602027,
+              "device_peak_a": 31.47136425091387,
+              "device_peak_v": 556.655880288537,
+              "dm_peak_t": 0.06402607064277725,
+              "loss_w": 13.089730554500784,
+              "winding_rms_a": 8.37542199422139
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "7780e443eccfb542bee8c0bde9a22b7d6536a23de5638c21c7eaa408fac41236",
+          "raw_points": 392122,
+          "deck_sha256": "c8e82c677e2f0a027357111ae0ed1cc5e97fabf5ac56b3be5902a01c0bc77e03",
+          "record_sha256": "2d9623a2315a1eb072e187254223ad3682ff2a0f3d25a8e4f7312b2cf817f33e"
+        },
+        {
+          "id": "probe19_l0-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l0",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 6.25e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1730.9899803827307,
+            "load_winding_loss_surrogate_w": 8.441855007093034,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 8.121843041876218,
+              "b": 8.39362805047061,
+              "cm": 15.72773620206776,
+              "dm": 8.261061587839635
+            },
+            "rms_chassis_return_a": 1.0602192392311476,
+            "rms_cm_a": 0.011736565515419621,
+            "rms_dm_a": 9.30272922369371,
+            "rms_load_inductor_a": 9.291967037067087,
+            "rms_vcm_v": 206.47952046260534,
+            "rms_vdm_v": 191.78931741350064,
+            "settling": {
+              "a": {
+                "limit_a": 0.10454472907102884,
+                "pass": true,
+                "rms_difference_a": 0.039809777715153295
+              },
+              "b": {
+                "limit_a": 0.1046374774628882,
+                "pass": true,
+                "rms_difference_a": 0.040131389112621006
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 458.98197305366324,
+              "cm_peak_t": 0.06414416380131063,
+              "damping_a_w": 5.615855051710705,
+              "damping_b_w": 3.2583443161758954,
+              "device_peak_a": 33.35624959603907,
+              "device_peak_v": 606.0762427866118,
+              "dm_peak_t": 0.06522319412236445,
+              "loss_w": 17.314115381021836,
+              "winding_rms_a": 9.414759122125627
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "09f17a36e24a1724f3a2784450ee778f3a9101b2d0816fca427dfb007453553c",
+          "raw_points": 397708,
+          "deck_sha256": "db88fbbdbb3bcc1d6296f9f715fd6207d7b697196627c2144b8646eb204c31fc",
+          "record_sha256": "39da38e953dba35e0cd37f7143d0cb2693f4a3448059d87634c35871adab50f5"
+        },
+        {
+          "id": "probe19_l1-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l1",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 3.125e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2128.8882501428643,
+            "load_winding_loss_surrogate_w": 14.956050339432831,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 5.51660644287503,
+              "b": 5.87181756009241,
+              "cm": 10.00026104893891,
+              "dm": 5.697708884639269
+            },
+            "rms_chassis_return_a": 1.1585859606670204,
+            "rms_cm_a": 0.018506285073110626,
+            "rms_dm_a": 10.316226343269376,
+            "rms_load_inductor_a": 10.303989441273988,
+            "rms_vcm_v": 214.46231752057912,
+            "rms_vdm_v": 214.08566654088477,
+            "settling": {
+              "a": {
+                "limit_a": 0.11454316434191962,
+                "pass": true,
+                "rms_difference_a": 0.04873303919029826
+              },
+              "b": {
+                "limit_a": 0.11436076526852351,
+                "pass": true,
+                "rms_difference_a": 0.013154397657046941
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 469.58168656289115,
+              "cm_peak_t": 0.07254707002731635,
+              "damping_a_w": 8.458696217293708,
+              "damping_b_w": 3.477776930081802,
+              "device_peak_a": 35.79674172643441,
+              "device_peak_v": 646.6918544609763,
+              "dm_peak_t": 0.06618355694432629,
+              "loss_w": 22.335317509223195,
+              "winding_rms_a": 10.339034168263852
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_dm"
+            ]
+          },
+          "raw_sha256": "642e5aa4c1af6411255558c4a7c59f2c8ae7eddb2b80d2f66dc6d356d9ff4b29",
+          "raw_points": 672230,
+          "deck_sha256": "96e479085c9f1ae8af56265c61a46a6d4844bce22b00ebec2e0bf9073d04077e",
+          "record_sha256": "db5728c1721dda2ebc7e12c6910b581157c465b7d29071764d4a07b6b5db8aec"
+        },
+        {
+          "id": "probe19_l1-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l1",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 3.125e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1376.1760930529679,
+            "load_winding_loss_surrogate_w": 4.67047440086289,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 10.681725000037432,
+              "b": 10.99577973595531,
+              "cm": 15.756330831761957,
+              "dm": 10.84447396583451
+            },
+            "rms_chassis_return_a": 0.9628453836174576,
+            "rms_cm_a": 0.01159927057017766,
+            "rms_dm_a": 8.29480022359798,
+            "rms_load_inductor_a": 8.285145299333356,
+            "rms_vcm_v": 208.70192116212004,
+            "rms_vdm_v": 170.26579466162255,
+            "settling": {
+              "a": {
+                "limit_a": 0.09465563709892008,
+                "pass": true,
+                "rms_difference_a": 0.033749348279823184
+              },
+              "b": {
+                "limit_a": 0.09479358982506277,
+                "pass": true,
+                "rms_difference_a": 0.061034480745311336
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 416.43327256451346,
+              "cm_peak_t": 0.06187881070833696,
+              "damping_a_w": 3.4888720143927787,
+              "damping_b_w": 2.90739221463019,
+              "device_peak_a": 31.47872914892084,
+              "device_peak_v": 556.6195168150628,
+              "dm_peak_t": 0.0640259473832378,
+              "loss_w": 13.08972030750882,
+              "winding_rms_a": 8.375418987697442
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "78a0fa493b15498fa46d5382f144fd13509799c98b084f543642aa4d19b43e97",
+          "raw_points": 669331,
+          "deck_sha256": "cf4b0afb02d4c47711d1ed2d61875bd90f1950ed0c3ca0477c0c63947c3b942a",
+          "record_sha256": "c2986be1dbd1027f0001c3e5e48e1975cc1440be09a48ccce514af860ee3b523"
+        },
+        {
+          "id": "probe19_l1-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l1",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 3.125e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1730.989679538509,
+            "load_winding_loss_surrogate_w": 8.44185475976772,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 8.121842406617503,
+              "b": 8.393627415658088,
+              "cm": 15.745847795852015,
+              "dm": 8.261060998505968
+            },
+            "rms_chassis_return_a": 1.0601962945318724,
+            "rms_cm_a": 0.011729577052946374,
+            "rms_dm_a": 9.302728415471252,
+            "rms_load_inductor_a": 9.29196621615638,
+            "rms_vcm_v": 206.47953851329697,
+            "rms_vdm_v": 191.78930247694697,
+            "settling": {
+              "a": {
+                "limit_a": 0.10454472921684647,
+                "pass": true,
+                "rms_difference_a": 0.039810948832301546
+              },
+              "b": {
+                "limit_a": 0.10463747324535609,
+                "pass": true,
+                "rms_difference_a": 0.04013191536704398
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 458.9821049541984,
+              "cm_peak_t": 0.06414436582809467,
+              "damping_a_w": 5.615856197675807,
+              "damping_b_w": 3.258344753635282,
+              "device_peak_a": 33.36234713323512,
+              "device_peak_v": 606.0751203181746,
+              "dm_peak_t": 0.06522204196241699,
+              "loss_w": 17.31411587599652,
+              "winding_rms_a": 9.414758740129333
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "f5ad436c0e2b0ff1729db26a8fe000c47d0b1b69f4295aba4af6b8743989b1fc",
+          "raw_points": 671370,
+          "deck_sha256": "74aa427852ecceafb9226b634df67395155537a20b1217ff53b383a01d3c6e13",
+          "record_sha256": "7c2341993cc771c7fb54804250913b6d81781d5418bead1501e0c46267807b00"
+        },
+        {
+          "id": "probe19_l2-fast_low_lc",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l2",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 440,
+            "c_scale": 0.9,
+            "id": "fast_low_lc",
+            "l_scale": 0.9,
+            "rg_scale": 0.8,
+            "stray_scale": 1.2,
+            "tj_c": 27
+          },
+          "max_step_s": 1.5625e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_infeasible",
+          "metrics": {
+            "load_series_resistor_w": 2128.887076069605,
+            "load_winding_loss_surrogate_w": 14.956063581117672,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 5.516619035489455,
+              "b": 5.871829760116611,
+              "cm": 10.007124383428305,
+              "dm": 5.697721308183645
+            },
+            "rms_chassis_return_a": 1.1585370464815405,
+            "rms_cm_a": 0.0185028644349553,
+            "rms_dm_a": 10.316223496735306,
+            "rms_load_inductor_a": 10.303986623559542,
+            "rms_vcm_v": 214.46234053599892,
+            "rms_vdm_v": 214.08561135530792,
+            "settling": {
+              "a": {
+                "limit_a": 0.1145431292703888,
+                "pass": true,
+                "rms_difference_a": 0.04873120418674007
+              },
+              "b": {
+                "limit_a": 0.11436072638409367,
+                "pass": true,
+                "rms_difference_a": 0.01315121898815543
+              }
+            },
+            "status": "predicted_infeasible",
+            "stress": {
+              "capacitor_peak_v": 469.58167558796254,
+              "cm_peak_t": 0.07254806716102388,
+              "damping_a_w": 8.458694059865431,
+              "damping_b_w": 3.477774256069458,
+              "device_peak_a": 35.79427099085378,
+              "device_peak_v": 645.9786893797676,
+              "dm_peak_t": 0.06618408751483747,
+              "loss_w": 22.33530662044052,
+              "winding_rms_a": 10.339030395901299
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": [
+              "research_mask_a",
+              "research_mask_b",
+              "research_mask_dm"
+            ]
+          },
+          "raw_sha256": "1fe729d31f9663435dd7af094972a4493a9d04dc4ec0c4b1da1ed6a64a51483f",
+          "raw_points": 1286892,
+          "deck_sha256": "6dd44e06311c437d52b165506828bd523ec90078669e1f8572331682014c2d45",
+          "record_sha256": "60985318821e0ac272a5eed8490a9eb63ea6d31e2edc9751f290dab48d6bfe5a"
+        },
+        {
+          "id": "probe19_l2-hot_high_c",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l2",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 360,
+            "c_scale": 1.1,
+            "id": "hot_high_c",
+            "l_scale": 1.1,
+            "rg_scale": 1.2,
+            "stray_scale": 1.2,
+            "tj_c": 125
+          },
+          "max_step_s": 1.5625e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1376.1778014654453,
+            "load_winding_loss_surrogate_w": 4.670468763984725,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 10.681708753100764,
+              "b": 10.995763993064102,
+              "cm": 15.752742555983758,
+              "dm": 10.844457946586132
+            },
+            "rms_chassis_return_a": 0.9628522360797525,
+            "rms_cm_a": 0.01159701269107656,
+            "rms_dm_a": 8.294805373245946,
+            "rms_load_inductor_a": 8.285150455840684,
+            "rms_vcm_v": 208.7018977200461,
+            "rms_vdm_v": 170.26589483635698,
+            "settling": {
+              "a": {
+                "limit_a": 0.0946556794327912,
+                "pass": true,
+                "rms_difference_a": 0.03374937680287438
+              },
+              "b": {
+                "limit_a": 0.09479363328985335,
+                "pass": true,
+                "rms_difference_a": 0.06103433468161622
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 416.4333049032165,
+              "cm_peak_t": 0.061878843635579925,
+              "damping_a_w": 3.4888650451135805,
+              "damping_b_w": 2.907386015895263,
+              "device_peak_a": 31.48166145020761,
+              "device_peak_v": 556.279450624317,
+              "dm_peak_t": 0.06402601419701659,
+              "loss_w": 13.089715124784194,
+              "winding_rms_a": 8.37542437501765
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "115c1e082d952b881f55bc16ec7821a01604b44a92dc865b1cf043803dbd7951",
+          "raw_points": 1286272,
+          "deck_sha256": "ad99c6d3efe942b5868ccf09c21b026a7c46f0efda320b07daade7e7b0ee6cb8",
+          "record_sha256": "5b3ae3a3942da77dd72d6cbef3c7693fe83def79d8e2e26101fd6e54ef8cad0b"
+        },
+        {
+          "id": "probe19_l2-nominal",
+          "candidate": {
+            "cm_geometry": [
+              800,
+              140,
+              40,
+              110
+            ],
+            "cx_f": 8e-08,
+            "cy_f": 4.7e-08,
+            "dm_geometry": [
+              1200,
+              160,
+              48,
+              135
+            ],
+            "id": "probe19_l2",
+            "lcm_h": 0.001,
+            "ldm_h": 0.00033
+          },
+          "corner": {
+            "bus_v": 400,
+            "c_scale": 1,
+            "id": "nominal",
+            "l_scale": 1,
+            "rg_scale": 1,
+            "stray_scale": 1,
+            "tj_c": 27
+          },
+          "max_step_s": 1.5625e-10,
+          "sample_step_s": 2.5e-09,
+          "status": "predicted_feasible",
+          "metrics": {
+            "load_series_resistor_w": 1730.989997295282,
+            "load_winding_loss_surrogate_w": 8.441860867395908,
+            "mass_kg": 3.8062284435999993,
+            "research_margin_db": {
+              "a": 8.121851810141933,
+              "b": 8.393636121452985,
+              "cm": 15.750717780548257,
+              "dm": 8.261070085354817
+            },
+            "rms_chassis_return_a": 1.060033226239518,
+            "rms_cm_a": 0.011727525112019306,
+            "rms_dm_a": 9.302729268493467,
+            "rms_load_inductor_a": 9.29196710848322,
+            "rms_vcm_v": 206.47961589705633,
+            "rms_vdm_v": 191.78931761826934,
+            "settling": {
+              "a": {
+                "limit_a": 0.10454472358224973,
+                "pass": true,
+                "rms_difference_a": 0.039810667985119036
+              },
+              "b": {
+                "limit_a": 0.10463746665924226,
+                "pass": true,
+                "rms_difference_a": 0.04013155658691298
+              }
+            },
+            "status": "predicted_feasible",
+            "stress": {
+              "capacitor_peak_v": 458.98216934620024,
+              "cm_peak_t": 0.0641445077241208,
+              "damping_a_w": 5.615852057651876,
+              "damping_b_w": 3.2583431215433047,
+              "device_peak_a": 33.36719796744063,
+              "device_peak_v": 605.4644427199847,
+              "dm_peak_t": 0.06522209611324938,
+              "loss_w": 17.31411135753267,
+              "winding_rms_a": 9.414759275773532
+            },
+            "stress_limits": {
+              "capacitor_peak_v": 504,
+              "cm_peak_t": 0.2,
+              "damping_a_w": 12,
+              "damping_b_w": 12,
+              "device_peak_a": 50,
+              "device_peak_v": 960,
+              "dm_peak_t": 0.2,
+              "loss_w": 25,
+              "winding_rms_a": 12
+            },
+            "violations": []
+          },
+          "raw_sha256": "01ffc9efd4d4e5fc3836dc5fb105923693cff4be3d478480683d0d48a2cb8ab6",
+          "raw_points": 1286392,
+          "deck_sha256": "a31e2d6242ad35c2e27a243f2fd8999c48e0a4fceaaaf56d8e62a8cbcbd89542",
+          "record_sha256": "7cb932fcfb14eaa12dc5a61ea58d2b7ca713740e2cc93ee0d9146e7b6f42ef33"
+        }
+      ]
+    }
+  ]
+}

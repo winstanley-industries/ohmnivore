@@ -5,6 +5,11 @@ It does not add SiC devices, model parsing, coupled inductors or GPU transient e
 The four switches, both filtered conductors, harness, load and chassis stay coupled inside every
 ngspice job. Nine independent candidate/corner jobs define one study.
 
+The default `emi01-v1` contains the original light/medium/heavy cases. The explicitly selected
+`emi01-v2` keeps the light failing control and adds a passing reference and a near-boundary
+capacitor variant under the same model, load, corners, mask and physical limits. These are
+versioned finite studies; v1 evidence is not relabeled as measuring v2.
+
 The public Microchip model is fetched directly from its vendor with exact checksums. Original and
 mechanically adapted model text remain in temporary local directories and are never included in
 this repository or the evidence. Read [model provenance and limitations](MODEL_PROVENANCE.md),
@@ -94,3 +99,44 @@ The report audits all raw outputs first. Its acceleration projections are explic
 counterfactuals; matrix factor/solve timers are nested within ngspice analysis and never added to
 external wall-time phases. Failed or incomplete jobs cannot establish a fixed-accuracy speedup
 budget. No measured GPU throughput is claimed.
+
+## Passing and near-boundary v2 reference
+
+```sh
+bazel run //reference/emi01:study -- --reference-version=emi01-v2 --out=/absolute/new/v2-run-1
+bazel run //reference/emi01:study -- --reference-version=emi01-v2 --out=/absolute/new/v2-run-2
+bazel run //reference/emi01:study -- --reference-version=emi01-v2 --audit=/absolute/new/v2-run-1
+bazel run //reference/emi01:study -- --reference-version=emi01-v2 --audit=/absolute/new/v2-run-2
+bazel run //reference/emi01:report -- --reference-version=emi01-v2 --run=/absolute/new/v2-run-1 \
+  --run=/absolute/new/v2-run-2 --out=/absolute/new/v2-cpu-budget.json
+```
+
+`manifest-v2.json` freezes `light`, `boundary`, `reference` and the original three corners.
+The reference and boundary use the same 330 uH DM / 1 mH CM inductors and geometry, 47 nF Y
+capacitors, and respective 1 uF / 80 nF X capacitors. The original 90 dBuA mask and 6 dB reserve,
+all nine physical screens, complete 0..200 us switching network and numerical tolerances remain
+unchanged. The two new cases use 0.625/0.3125/0.15625 ns integration refinements; v2 still has
+30 qualification jobs, 40 numerical checks and 102 jobs per full invocation. Fixture-role
+acceptance additionally requires the reference to pass every corner and the boundary to pass
+all physical screens with a worst margin in [5,7] dB. Exactly 6 dB remains predicted passing.
+The light control must be numerically valid and predicted infeasible at every corner.
+Mass ranking is explicit; names and execution order cannot confer feasibility or minimum mass.
+
+The approximately 3.8 kg magnetic designs are hypothetical equivalent-volume models. Their fixed
+CM winding capacitance/coupling, omitted DM self-capacitance, unvalidated winding fill and gap
+fringing, missing core-loss model and assumed load prevent a hardware qualification claim.
+
+Source identities remain strict. To audit the original retained v1 evidence after source changes,
+use its historical source checkout rather than weakening identity checks:
+
+```sh
+git worktree add --detach /absolute/new/emi01-v1-source c621e5cfcedf2de934c8046595dbb9f7aa59e607
+cd /absolute/new/emi01-v1-source
+bazel run //reference/emi01:study -- --audit=/absolute/original/repo/docs/evidence/emi01/run-1
+bazel run //reference/emi01:study -- --audit=/absolute/original/repo/docs/evidence/emi01/run-2
+```
+
+Fresh default v1 runs use current sources and record new source identities; they do not reproduce
+historical executable bytes automatically. The documented ngspice build-path identity limitation
+still applies. Each new invocation copies and rehashes its canonical executable into a private
+read/execute-only snapshot during charged preparation and records that exact identity.

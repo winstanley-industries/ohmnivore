@@ -4,6 +4,7 @@ import copy
 import json
 import math
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -171,6 +172,63 @@ class LinearAlgebraBudgetTest(unittest.TestCase):
 
 
 class PairedInvocationsTest(unittest.TestCase):
+    def test_report_cli_requires_explicit_v2_and_writes_matching_schema(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            directory = Path(scratch)
+            paths = [directory / "one", directory / "two"]
+            for index, path in enumerate(paths):
+                path.mkdir()
+                (path / "terminal.json").write_text(
+                    json.dumps({"schema": "emi01-v2", "time": index})
+                )
+            output = directory / "report.json"
+            arguments = [
+                "report",
+                "--run",
+                str(paths[0]),
+                "--run",
+                str(paths[1]),
+                "--out",
+                str(output),
+            ]
+            with (
+                mock.patch.object(sys, "argv", arguments),
+                self.assertRaisesRegex(ValueError, "^provenance_mismatch: report"),
+            ):
+                report.main()
+            with (
+                mock.patch.object(
+                    sys, "argv", arguments + ["--reference-version=emi01-v2"]
+                ),
+                mock.patch.object(
+                    report, "summarize", return_value={"reference_version": "emi01-v2"}
+                ),
+                mock.patch("builtins.print"),
+            ):
+                report.main()
+            result = json.loads(output.read_bytes())
+            self.assertEqual(result["schema"], "emi01-cpu-budget-v2")
+            self.assertEqual(result["reference_version"], "emi01-v2")
+            self.assertEqual(len(result["runs"]), 2)
+
+    def test_mixed_or_wrong_selected_version_rejected_before_audit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            paths = [Path(directory) / "first", Path(directory) / "second"]
+            for index, path in enumerate(paths):
+                path.mkdir()
+                (path / "terminal.json").write_text(
+                    json.dumps({"schema": f"emi01-v{index + 1}", "time": index})
+                )
+            with mock.patch.object(report, "summarize") as summarize:
+                with self.assertRaisesRegex(ValueError, "^provenance_mismatch: report"):
+                    report.paired_summaries(paths)
+                (paths[0] / "terminal.json").write_text(
+                    json.dumps({"schema": "emi01-v2", "time": 0})
+                )
+                with self.assertRaisesRegex(ValueError, "^provenance_mismatch: report"):
+                    report.paired_summaries(paths, "emi01-v1")
+                summarize.assert_not_called()
+
     def test_same_resolved_path_is_rejected_before_audit(self):
         with tempfile.TemporaryDirectory() as directory:
             first = Path(directory)
@@ -202,7 +260,7 @@ class PairedInvocationsTest(unittest.TestCase):
             expected = []
             for index, path in enumerate(paths):
                 path.mkdir()
-                data = json.dumps({"time": index}).encode()
+                data = json.dumps({"schema": "emi01-v1", "time": index}).encode()
                 (path / "terminal.json").write_bytes(data)
                 expected.append(report.study.sha(data))
             with mock.patch.object(
@@ -211,6 +269,67 @@ class PairedInvocationsTest(unittest.TestCase):
                 result = report.paired_summaries(paths)
             self.assertEqual([r["terminal_sha256"] for r in result], expected)
             self.assertEqual(summarize.call_count, 2)
+
+
+class VersionedBudgetTest(unittest.TestCase):
+    def test_role_gate_failure_or_omission_blocks_otherwise_qualified_budget(self):
+        terminal = {
+            "schema": "emi01-v2",
+            "qualification_pass": True,
+            "counts": {"failures": 0},
+        }
+        for value in (None, False, True):
+            if value is not None:
+                terminal["reference_case_pass"] = value
+            accepted = report.performance_accepted(terminal)
+            result = report.counterfactual_budget(
+                {"id": "sample", "wall_s": 17}, complete_jobs(), 2, qualified=accepted
+            )
+            self.assertEqual(
+                result["status"], "counterfactual" if value is True else "unavailable"
+            )
+
+    def test_worst_bin_margin_and_classification_changes_are_reported(self):
+        manifest = report.study.selected_manifest("emi01-v2")
+        manifest["candidates"] = [manifest["candidates"][1]]
+        manifest["corners"] = [manifest["corners"][1]]
+        records = {}
+        with tempfile.TemporaryDirectory() as scratch:
+            directory = Path(scratch)
+            for level, margin in enumerate((5.5, 6.0, 6.5)):
+                identity = f"q{level}-ensemble-boundary-fast_low_lc"
+                record = {
+                    "id": identity,
+                    "status": "predicted_feasible"
+                    if margin >= 6
+                    else "predicted_infeasible",
+                    "metrics": {
+                        "research_margin_db": {"a": 10, "b": 10, "cm": margin, "dm": 10}
+                    },
+                }
+                records[identity] = record
+                job = directory / "jobs" / identity
+                job.mkdir(parents=True)
+                spectrum = report.study.np.array(
+                    [
+                        [150e3, 1e-6, 1e-6, 1e-6, 1e-6],
+                        [250e3, 1e-6, 1e-6, 1e-6 * 10 ** ((90 - margin) / 20), 1e-6],
+                    ],
+                    dtype="<f8",
+                )
+                spectrum.tofile(job / "spectra.f64")
+            result = report.refinement_margins(directory, records, manifest)["boundary"]
+        self.assertEqual(len(result["classification_changes"]), 1)
+        self.assertEqual(result["classification_changes"][0]["to_level"], 1)
+        for level, margin in zip(result["levels"], (5.5, 6, 6.5)):
+            worst = level["worst"]
+            self.assertEqual(worst["corner"], "fast_low_lc")
+            self.assertEqual(worst["worst_observable"], "cm")
+            self.assertEqual(worst["worst_frequency_hz"], 250e3)
+            self.assertAlmostEqual(worst["minimum_margin_db"], margin, places=12)
+            self.assertAlmostEqual(
+                worst["distance_from_feasibility_db"], margin - 6, places=12
+            )
 
 
 class SummaryAccountingTest(unittest.TestCase):
@@ -253,6 +372,7 @@ class SummaryAccountingTest(unittest.TestCase):
                     }
                 )
         terminal = {
+            "schema": "emi01-v1",
             "qualification_only": False,
             "counts": {"expected": 55, "terminal": 55, "validated": 0, "failures": 55},
             "qualification_pass": False,

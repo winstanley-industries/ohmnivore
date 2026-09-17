@@ -1,0 +1,52 @@
+Starting local Bazel server (9.2.0) and connecting to it...
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /tmp/ohmnivore-emi01-v1-source/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /tmp/ohmnivore-emi01-v1-source/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //reference/emi01:study (5 packages loaded, 6 targets configured)
+Analyzing: target //reference/emi01:study (5 packages loaded, 6 targets configured)
+
+Analyzing: target //reference/emi01:study (188 packages loaded, 9206 targets configured)
+
+Analyzing: target //reference/emi01:study (202 packages loaded, 27315 targets configured)
+
+Analyzing: target //reference/emi01:study (202 packages loaded, 27315 targets configured)
+
+Analyzing: target //reference/emi01:study (202 packages loaded, 27315 targets configured)
+
+Analyzing: target //reference/emi01:study (202 packages loaded, 27315 targets configured)
+
+Analyzing: target //reference/emi01:study (207 packages loaded, 33153 targets configured, 18 aspect applications)
+
+Analyzing: target //reference/emi01:study (208 packages loaded, 33621 targets configured, 101 aspect applications)
+
+INFO: Analyzed target //reference/emi01:study (211 packages loaded, 36668 targets configured, 101 aspect applications).
+[184 / 890] Creating runfiles tree bazel-out/k8-fastbuild/bin/reference/emi01/study.runfiles; 0s local ... (32 actions, 31 running)
+[416 / 890] Creating runfiles tree bazel-out/k8-fastbuild/bin/reference/emi01/study.runfiles; 1s local ... (32 actions, 31 running)
+[485 / 890] Compiling debug/stack_chk_fail_local.c [for tool]; 1s linux-sandbox ... (32 actions, 31 running)
+[526 / 890] Compiling libcxx/src/filesystem/operations.cpp; 1s linux-sandbox ... (32 actions, 31 running)
+[557 / 890] Compiling libcxx/src/filesystem/operations.cpp; 2s linux-sandbox ... (32 actions, 31 running)
+[606 / 890] Compiling libcxxabi/src/cxa_demangle.cpp [for tool]; 3s linux-sandbox ... (32 actions, 31 running)
+[650 / 890] Compiling libcxx/src/locale.cpp [for tool]; 2s linux-sandbox ... (32 actions, 31 running)
+[701 / 890] Compiling libcxx/src/locale.cpp [for tool]; 3s linux-sandbox ... (32 actions, 31 running)
+[835 / 890] Compiling libcxx/src/locale.cpp [for tool]; 5s linux-sandbox ... (7 actions, 6 running)
+[856 / 890] Compiling libcxx/src/locale.cpp; 5s linux-sandbox ... (19 actions, 18 running)
+[887 / 890] BootstrapGNUMake external/rules_foreign_cc+/toolchains/private/make [for tool]; 2s linux-sandbox
+[888 / 890] [Prepa] Foreign Cc - Configure: Building ngspice_46_build
+[888 / 890] Foreign Cc - Configure: Building ngspice_46_build; 1s linux-sandbox
+[888 / 890] Foreign Cc - Configure: Building ngspice_46_build; 11s linux-sandbox
+[888 / 890] Foreign Cc - Configure: Building ngspice_46_build; 41s linux-sandbox
+[889 / 890] [Prepa] runfiles for //reference/emi01:study
+INFO: Found 1 target...
+Target //reference/emi01:study up-to-date:
+  bazel-bin/reference/emi01/study
+INFO: Elapsed time: 87.729s, Critical Path: 66.79s
+INFO: 890 processes: 178 internal, 712 linux-sandbox.
+INFO: Build completed successfully, 890 total actions
+INFO: Running command line: bazel-bin/reference/emi01/study '--ngspice=third_party/ngspice/ngspice_46_build/bin/ngspice' '--model-archive=../+http_file+emi01_microchip_model/file/model.zip' <args omitted>
+{"expected": 102, "failures": 0, "terminal": 102, "validated": 102}

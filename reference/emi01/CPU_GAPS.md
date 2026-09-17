@@ -284,3 +284,9 @@ unvalidated physics to EMI-02A–D.
 For the final frozen DPT fixture, unresolved ringing is an accuracy failure: three strictly
 decaying same-polarity peaks above 0.2 V are required. Future CPU qualification must preserve
 that requirement and the candidate-specific integration policy recorded in ADR-002.
+
+The v2 passing/boundary reference changes only finite filter values, geometry and integration
+refinements. It requires no additional production semantics beyond EMI-02A–D above. Bind parity
+evidence to its exact versioned manifest, preserve the failing control and near-boundary rejection,
+and reproduce the all-corner passing result without changing the 6 dB reserve. Enlarged geometry
+does not validate the fixed CM parasitics, omitted DM self-capacitance, winding fill or gap fringing.

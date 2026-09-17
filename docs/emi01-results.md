@@ -1,5 +1,9 @@
 # EMI-01: coupled SiC inverter/filter CPU reference
 
+This report preserves the original **v1** study. The separately versioned
+[v2 follow-up](emi01-v2-results.md) adds passing and near-boundary reference coverage without
+changing these recorded inputs or results.
+
 This study evaluates a finite, coupled inverter/filter/load/chassis network using the public
 Microchip MSC040SMA120B dynamic model and the existing hermetic ngspice 46 oracle. Its purpose
 is a reproducible design-study baseline and an acceleration budget. It adds no production
