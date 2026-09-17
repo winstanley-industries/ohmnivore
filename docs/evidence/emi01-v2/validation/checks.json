@@ -1,0 +1,182 @@
+{
+  "schema": "emi01-v2-canonical-checks-v1",
+  "boundary": "Validation before retained v2 measurements; AC results are a separately labeled regression, not changed historical evidence.",
+  "checks": [
+    {
+      "command": [
+        "bazel",
+        "lint"
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "lint.log",
+      "sha256": "ef0ef972e57a41320075770b3d60b031e5ba489dc7c92086211664b7fb2845ba",
+      "wall_s": 2.386216829996556
+    },
+    {
+      "command": [
+        "bazel",
+        "build",
+        "//..."
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "build.log",
+      "sha256": "604ff10ed2d380a8387c3de6f4475f6f727d0202a9a45f2da8d20286f00bd0c2",
+      "wall_s": 6.470978121011285
+    },
+    {
+      "command": [
+        "bazel",
+        "test",
+        "//..."
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "tests.log",
+      "sha256": "be1ff71a750c9dd71cb78d236a956f5d3928bee493febfb5e90f0ffa796f94c7",
+      "wall_s": 8.175807876017643
+    },
+    {
+      "command": [
+        "bazel",
+        "test",
+        "--config=asan",
+        "//..."
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "asan.log",
+      "sha256": "7f01fa40dfb44b6ccb4a7d3d29e4deadeaade90b0069f0fb7581056dac60e8d9",
+      "wall_s": 73.69236715399893
+    },
+    {
+      "command": [
+        "bazel",
+        "test",
+        "--config=ubsan",
+        "//..."
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "ubsan.log",
+      "sha256": "d62fb3d68f0abd7507dbb29ff068d599c9fadcd92778c77e45e1a74856cce358",
+      "wall_s": 68.64797380997334
+    },
+    {
+      "command": [
+        "bazel",
+        "test",
+        "--lockfile_mode=error",
+        "//..."
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "lockfile.log",
+      "sha256": "2b26a59d18c8681271d958eecdd4c2f8d629639eb788d4da4f42b5ea365890b9",
+      "wall_s": 63.75898997299373
+    },
+    {
+      "command": [
+        "bazel",
+        "test",
+        "--config=cuda",
+        "//:cuda_smoke_test",
+        "//cuda:gpu02_prepared_ac_test",
+        "//cuda:gpu02_replay_differential_test",
+        "//cuda:gpu02_linkage_test",
+        "//cuda:gpu02s_session_test",
+        "//cuda:gpu02s_linkage_test"
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "cuda.log",
+      "sha256": "b0d328b54e0b90766113ab9a132b0ef21b25246787b9ce3e217500d352d8377d",
+      "wall_s": 21.956064925994724
+    },
+    {
+      "command": [
+        "bazel",
+        "build",
+        "--config=cuda",
+        "--config=asan",
+        "//cuda:smoke_test"
+      ],
+      "exit_code": 1,
+      "expected_analysis_rejection": true,
+      "pass": true,
+      "log": "cuda-asan.log",
+      "sha256": "7fd34e4919f9bb11e8a3e8307ec2f466304a5f0d79fa05dc0c3d565efffcac95",
+      "wall_s": 0.19305035000434145
+    },
+    {
+      "command": [
+        "bazel",
+        "build",
+        "--config=cuda",
+        "--config=ubsan",
+        "//cuda:smoke_test"
+      ],
+      "exit_code": 1,
+      "expected_analysis_rejection": true,
+      "pass": true,
+      "log": "cuda-ubsan.log",
+      "sha256": "2d6bac1ddb30721bace3c9bc9afa84236ee77536390711bfedc20842ae3561cf",
+      "wall_s": 0.1714654109964613
+    },
+    {
+      "command": [
+        "bazel",
+        "test",
+        "//acceptance:ngspice_acceptance_test",
+        "//cpp:gpu01_prepared_ac_test",
+        "//cpp:gpu01_replay_test"
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "focused-acceptance.log",
+      "sha256": "024e8e0204838c3acef7e1e31678084c346b4dca1c0914752f0e9ddcf85351fc",
+      "wall_s": 4.221351581974886
+    },
+    {
+      "command": [
+        "bazel",
+        "run",
+        "-c",
+        "opt",
+        "//cpp:prepared_ac_replay_benchmark",
+        "--",
+        "--warmups=2",
+        "--repetitions=9"
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "ac-regression.log",
+      "sha256": "b8f763c65764eca31f872a8a256c7d34238e6aefb90f601cb8487a08aa81a249",
+      "wall_s": 26.339811700978316
+    },
+    {
+      "command": [
+        "bazel",
+        "build",
+        "//reference/emi01:study",
+        "//reference/emi01:report"
+      ],
+      "exit_code": 0,
+      "expected_analysis_rejection": false,
+      "pass": true,
+      "log": "restore-default.log",
+      "sha256": "06eec44a61fd958285808f0e1473d71652f4c58e8cf15516d352bdc64de6db60",
+      "wall_s": 0.5111276019888464
+    }
+  ]
+}

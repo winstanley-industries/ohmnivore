@@ -1,0 +1,362 @@
+Warning: can't find the initialization file spinit.
+
+Note: No compatibility mode selected!
+
+
+Circuit: emi-01 v1 isolated pspice compatibility driver
+
+Note: gnd in a subcircuit is not set to 0 automatically
+
+Note: Compatibility modes selected: ps
+
+
+Circuit: emi-01 v1 medium fast_low_lc
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+bus                                        440
+p1                                         440
+p                                          440
+ahd                                        440
+xdah.220                                    -3
+xdah.23                                     -3
+gah                                         -3
+xdah.230                           5.80078e-08
+xdah.32                            5.80078e-08
+a                                  5.75138e-08
+xdah.xm1.100                               440
+xdah.xm1.efvds_int1                        440
+xdah.xm1.101                          -3.02586
+xdah.xm1.efvgs_int1                   -3.02586
+xdah.xm1.102                          -443.026
+xdah.xm1.efvgd_int1                   -443.026
+xdah.xm1.g13_int1                            0
+xdah.xm1.105                                 0
+xdah.xm1.g14_int1                            0
+xdah.xm1.108                                 0
+xdah.xm1.48                                 -3
+xdah.xm1.12                                440
+xdah.xm1.g41_int1                  5.51137e-07
+xdah.xm1.109                       5.51137e-07
+xdah.xm1.49                        5.80078e-08
+xdah.xm1.44                        5.80078e-08
+xdah.xm1.eibd2_int1                5.51137e-07
+xdah.xm1.107                           1.30552
+xdah.xm1.ek2_int1                      1.30552
+xdah.xm1.106                           8.11225
+xdah.xm1.efb_int1                      8.11225
+xdah.xm1.103                           2.49946
+xdah.xm1.eremapvgs_int1                2.49946
+xdah.xm1.104                           30.8327
+xdah.xm1.eremapvgd_int1                30.8327
+xdah.xm1.efcond1_int1                        0
+xdah.xm1.efcond2_int1                        0
+ald                                5.75138e-08
+xdal.220                                    20
+xdal.23                                     20
+ga                                          20
+xdal.230                           7.37069e-10
+xdal.32                            7.37069e-10
+xdal.xm1.100                       5.67767e-08
+xdal.xm1.efvds_int1                5.67767e-08
+xdal.xm1.101                           19.9741
+xdal.xm1.efvgs_int1                    19.9741
+xdal.xm1.102                           19.9741
+xdal.xm1.efvgd_int1                    19.9741
+xdal.xm1.g13_int1                  1.45414e-06
+xdal.xm1.105                       1.45414e-06
+xdal.xm1.g14_int1                            0
+xdal.xm1.108                                 0
+xdal.xm1.48                                 20
+xdal.xm1.12                        5.75138e-08
+xdal.xm1.g41_int1                  1.59895e-13
+xdal.xm1.109                       1.59895e-13
+xdal.xm1.49                        7.37069e-10
+xdal.xm1.44                        7.37069e-10
+xdal.xm1.eibd2_int1                1.59895e-13
+xdal.xm1.107                          0.889265
+xdal.xm1.ek2_int1                     0.889265
+xdal.xm1.106                       1.45414e-06
+xdal.xm1.efb_int1                  1.45414e-06
+xdal.xm1.103                           18.6047
+xdal.xm1.eremapvgs_int1                18.6047
+xdal.xm1.104                           18.6047
+xdal.xm1.eremapvgd_int1                18.6047
+xdal.xm1.efcond1_int1              1.45414e-06
+xdal.xm1.efcond2_int1                        0
+driveah                                     -3
+driveal                                     20
+ch                                           0
+ar                                 5.75138e-08
+am                                 5.75138e-08
+amr                                5.75138e-08
+fa                                 5.75138e-08
+yca                                5.75138e-08
+ha                                 5.75138e-08
+har                                5.75138e-08
+la                                 5.75138e-08
+bhd                                        440
+xdbh.220                                    -3
+xdbh.23                                     -3
+gbh                                         -3
+xdbh.230                           5.80078e-08
+xdbh.32                            5.80078e-08
+b                                  5.75138e-08
+xdbh.xm1.100                               440
+xdbh.xm1.efvds_int1                        440
+xdbh.xm1.101                          -3.02586
+xdbh.xm1.efvgs_int1                   -3.02586
+xdbh.xm1.102                          -443.026
+xdbh.xm1.efvgd_int1                   -443.026
+xdbh.xm1.g13_int1                            0
+xdbh.xm1.105                                 0
+xdbh.xm1.g14_int1                            0
+xdbh.xm1.108                                 0
+xdbh.xm1.48                                 -3
+xdbh.xm1.12                                440
+xdbh.xm1.g41_int1                  5.51137e-07
+xdbh.xm1.109                       5.51137e-07
+xdbh.xm1.49                        5.80078e-08
+xdbh.xm1.44                        5.80078e-08
+xdbh.xm1.eibd2_int1                5.51137e-07
+xdbh.xm1.107                           1.30552
+xdbh.xm1.ek2_int1                      1.30552
+xdbh.xm1.106                           8.11225
+xdbh.xm1.efb_int1                      8.11225
+xdbh.xm1.103                           2.49946
+xdbh.xm1.eremapvgs_int1                2.49946
+xdbh.xm1.104                           30.8327
+xdbh.xm1.eremapvgd_int1                30.8327
+xdbh.xm1.efcond1_int1                        0
+xdbh.xm1.efcond2_int1                        0
+bld                                5.75138e-08
+xdbl.220                                    20
+xdbl.23                                     20
+gb                                          20
+xdbl.230                           7.37069e-10
+xdbl.32                            7.37069e-10
+xdbl.xm1.100                       5.67767e-08
+xdbl.xm1.efvds_int1                5.67767e-08
+xdbl.xm1.101                           19.9741
+xdbl.xm1.efvgs_int1                    19.9741
+xdbl.xm1.102                           19.9741
+xdbl.xm1.efvgd_int1                    19.9741
+xdbl.xm1.g13_int1                  1.45414e-06
+xdbl.xm1.105                       1.45414e-06
+xdbl.xm1.g14_int1                            0
+xdbl.xm1.108                                 0
+xdbl.xm1.48                                 20
+xdbl.xm1.12                        5.75138e-08
+xdbl.xm1.g41_int1                  1.59895e-13
+xdbl.xm1.109                       1.59895e-13
+xdbl.xm1.49                        7.37069e-10
+xdbl.xm1.44                        7.37069e-10
+xdbl.xm1.eibd2_int1                1.59895e-13
+xdbl.xm1.107                          0.889265
+xdbl.xm1.ek2_int1                     0.889265
+xdbl.xm1.106                       1.45414e-06
+xdbl.xm1.efb_int1                  1.45414e-06
+xdbl.xm1.103                           18.6047
+xdbl.xm1.eremapvgs_int1                18.6047
+xdbl.xm1.104                           18.6047
+xdbl.xm1.eremapvgd_int1                18.6047
+xdbl.xm1.efcond1_int1              1.45414e-06
+xdbl.xm1.efcond2_int1                        0
+drivebh                                     -3
+drivebl                                     20
+br                                 5.75138e-08
+bm                                 5.75138e-08
+bmr                                5.75138e-08
+fb                                 5.75138e-08
+ycb                                5.75138e-08
+hb                                 5.75138e-08
+hbr                                5.75138e-08
+lb                                 5.75138e-08
+xcap                               5.75138e-08
+lr                                 5.75138e-08
+chr                                          0
+b.xdbl.xm1.befcond2#branch                   0
+b.xdbl.xm1.befcond1#branch                   0
+b.xdbl.xm1.beremapvgd#branch                 0
+b.xdbl.xm1.beremapvgs#branch                 0
+b.xdbl.xm1.befb#branch                       0
+b.xdbl.xm1.bek2#branch                       0
+b.xdbl.xm1.beibd2#branch                     0
+v.xdbl.xm1.vds#branch                        0
+b.xdbl.xm1.bg41#branch                       0
+v.xdbl.xm1.vgd#branch                        0
+b.xdbl.xm1.bg14#branch                       0
+b.xdbl.xm1.bg13#branch                       0
+b.xdbl.xm1.befvgd#branch                     0
+b.xdbl.xm1.befvgs#branch                     0
+b.xdbl.xm1.befvds#branch                     0
+b.xdbh.xm1.befcond2#branch                   0
+b.xdbh.xm1.befcond1#branch                   0
+b.xdbh.xm1.beremapvgd#branch                 0
+b.xdbh.xm1.beremapvgs#branch                 0
+b.xdbh.xm1.befb#branch                       0
+b.xdbh.xm1.bek2#branch                       0
+b.xdbh.xm1.beibd2#branch                     0
+v.xdbh.xm1.vds#branch                        0
+b.xdbh.xm1.bg41#branch                       0
+v.xdbh.xm1.vgd#branch                        0
+b.xdbh.xm1.bg14#branch                       0
+b.xdbh.xm1.bg13#branch                       0
+b.xdbh.xm1.befvgd#branch                     0
+b.xdbh.xm1.befvgs#branch                     0
+b.xdbh.xm1.befvds#branch                     0
+b.xdal.xm1.befcond2#branch                   0
+b.xdal.xm1.befcond1#branch                   0
+b.xdal.xm1.beremapvgd#branch                 0
+b.xdal.xm1.beremapvgs#branch                 0
+b.xdal.xm1.befb#branch                       0
+b.xdal.xm1.bek2#branch                       0
+b.xdal.xm1.beibd2#branch                     0
+v.xdal.xm1.vds#branch                        0
+b.xdal.xm1.bg41#branch                       0
+v.xdal.xm1.vgd#branch                        0
+b.xdal.xm1.bg14#branch                       0
+b.xdal.xm1.bg13#branch                       0
+b.xdal.xm1.befvgd#branch                     0
+b.xdal.xm1.befvgs#branch                     0
+b.xdal.xm1.befvds#branch                     0
+b.xdah.xm1.befcond2#branch                   0
+b.xdah.xm1.befcond1#branch                   0
+b.xdah.xm1.beremapvgd#branch                 0
+b.xdah.xm1.beremapvgs#branch                 0
+b.xdah.xm1.befb#branch                       0
+b.xdah.xm1.bek2#branch                       0
+b.xdah.xm1.beibd2#branch                     0
+v.xdah.xm1.vds#branch                        0
+b.xdah.xm1.bg41#branch                       0
+v.xdah.xm1.vgd#branch                        0
+b.xdah.xm1.bg14#branch                       0
+b.xdah.xm1.bg13#branch                       0
+b.xdah.xm1.befvgd#branch                     0
+b.xdah.xm1.befvgs#branch                     0
+b.xdah.xm1.befvds#branch                     0
+lch#branch                                   0
+lload#branch                       2.77556e-17
+lhb#branch                        -2.77557e-17
+lcmb#branch                                  0
+ldb#branch                                   0
+l.xdbl.ls#branch                  -1.47414e-06
+l.xdbl.lg#branch                        -4e-08
+l.xdbh.ls#branch                  -9.88137e-07
+l.xdbh.lg#branch                      4.46e-07
+lha#branch                         2.77556e-17
+lcma#branch                        2.77556e-17
+lda#branch                         2.77547e-17
+l.xdal.ls#branch                  -1.47414e-06
+l.xdal.lg#branch                        -4e-08
+l.xdah.ls#branch                  -9.88137e-07
+l.xdah.lg#branch                      4.46e-07
+lbus#branch                        2.86828e-06
+e.xdbl.xm1.efcond2#branch                    0
+e.xdbl.xm1.efcond1#branch                    0
+e.xdbl.xm1.eremapvgd#branch                  0
+e.xdbl.xm1.eremapvgs#branch                  0
+e.xdbl.xm1.efb#branch                        0
+e.xdbl.xm1.ek2#branch                        0
+e.xdbl.xm1.eibd2#branch                      0
+e.xdbl.xm1.efvgd#branch                      0
+e.xdbl.xm1.efvgs#branch                      0
+e.xdbl.xm1.efvds#branch                      0
+e.xdbh.xm1.efcond2#branch                    0
+e.xdbh.xm1.efcond1#branch                    0
+e.xdbh.xm1.eremapvgd#branch                  0
+e.xdbh.xm1.eremapvgs#branch                  0
+e.xdbh.xm1.efb#branch                        0
+e.xdbh.xm1.ek2#branch                        0
+e.xdbh.xm1.eibd2#branch                      0
+e.xdbh.xm1.efvgd#branch                      0
+e.xdbh.xm1.efvgs#branch                      0
+e.xdbh.xm1.efvds#branch                      0
+e.xdal.xm1.efcond2#branch                    0
+e.xdal.xm1.efcond1#branch                    0
+e.xdal.xm1.eremapvgd#branch                  0
+e.xdal.xm1.eremapvgs#branch                  0
+e.xdal.xm1.efb#branch                        0
+e.xdal.xm1.ek2#branch                        0
+e.xdal.xm1.eibd2#branch                      0
+e.xdal.xm1.efvgd#branch                      0
+e.xdal.xm1.efvgs#branch                      0
+e.xdal.xm1.efvds#branch                      0
+e.xdah.xm1.efcond2#branch                    0
+e.xdah.xm1.efcond1#branch                    0
+e.xdah.xm1.eremapvgd#branch                  0
+e.xdah.xm1.eremapvgs#branch                  0
+e.xdah.xm1.efb#branch                        0
+e.xdah.xm1.ek2#branch                        0
+e.xdah.xm1.eibd2#branch                      0
+e.xdah.xm1.efvgd#branch                      0
+e.xdah.xm1.efvgs#branch                      0
+e.xdah.xm1.efvds#branch                      0
+vb#branch                                    0
+vgbl#branch                             -4e-08
+vgbh#branch                           4.46e-07
+vdbl#branch                        1.43414e-06
+vdbh#branch                        1.43414e-06
+va#branch                          2.77556e-17
+vgal#branch                             -4e-08
+vgah#branch                           4.46e-07
+vdal#branch                        1.43414e-06
+vdah#branch                        1.43414e-06
+vbus#branch                       -2.86828e-06
+
+ Reference value :  1.13571e-06 Reference value :  2.55107e-06 Reference value :  5.39028e-06 Reference value :  6.25741e-06 Reference value :  6.95531e-06 Reference value :  7.66256e-06 Reference value :  8.41730e-06 Reference value :  9.19175e-06 Reference value :  9.97596e-06 Reference value :  1.07791e-05 Reference value :  1.15869e-05 Reference value :  1.24116e-05 Reference value :  1.32155e-05 Reference value :  1.40437e-05 Reference value :  1.48644e-05 Reference value :  1.56946e-05 Reference value :  1.63789e-05 Reference value :  1.74356e-05 Reference value :  1.83730e-05 Reference value :  1.92960e-05 Reference value :  2.01983e-05 Reference value :  2.09535e-05 Reference value :  2.17547e-05 Reference value :  2.36516e-05 Reference value :  2.56410e-05 Reference value :  2.62906e-05 Reference value :  2.70533e-05 Reference value :  2.77871e-05 Reference value :  2.85468e-05 Reference value :  2.93303e-05 Reference value :  3.00874e-05 Reference value :  3.08966e-05 Reference value :  3.16955e-05 Reference value :  3.25182e-05 Reference value :  3.33128e-05 Reference value :  3.41327e-05 Reference value :  3.49109e-05 Reference value :  3.57065e-05 Reference value :  3.63868e-05 Reference value :  3.74422e-05 Reference value :  3.83912e-05 Reference value :  3.92837e-05 Reference value :  4.01302e-05 Reference value :  4.09341e-05 Reference value :  4.17295e-05 Reference value :  4.37652e-05 Reference value :  4.58182e-05 Reference value :  4.63778e-05 Reference value :  4.71402e-05 Reference value :  4.79006e-05 Reference value :  4.86700e-05 Reference value :  4.94396e-05 Reference value :  5.02522e-05 Reference value :  5.10505e-05 Reference value :  5.18556e-05 Reference value :  5.26150e-05 Reference value :  5.33971e-05 Reference value :  5.41822e-05 Reference value :  5.49452e-05 Reference value :  5.57463e-05 Reference value :  5.63793e-05 Reference value :  5.74296e-05 Reference value :  5.83756e-05 Reference value :  5.93027e-05 Reference value :  6.02360e-05 Reference value :  6.10038e-05 Reference value :  6.19300e-05 Reference value :  6.40497e-05 Reference value :  6.58853e-05 Reference value :  6.64789e-05 Reference value :  6.72204e-05 Reference value :  6.79370e-05 Reference value :  6.86401e-05 Reference value :  6.93728e-05 Reference value :  7.01426e-05 Reference value :  7.09418e-05 Reference value :  7.17687e-05 Reference value :  7.25930e-05 Reference value :  7.34095e-05 Reference value :  7.42074e-05 Reference value :  7.49715e-05 Reference value :  7.57605e-05 Reference value :  7.64056e-05 Reference value :  7.75417e-05 Reference value :  7.84777e-05 Reference value :  7.93902e-05 Reference value :  8.02994e-05 Reference value :  8.10255e-05 Reference value :  8.19836e-05 Reference value :  8.40210e-05 Reference value :  8.58424e-05 Reference value :  8.64322e-05 Reference value :  8.71919e-05 Reference value :  8.79440e-05 Reference value :  8.87236e-05 Reference value :  8.95086e-05 Reference value :  9.02980e-05 Reference value :  9.11009e-05 Reference value :  9.19130e-05 Reference value :  9.26987e-05 Reference value :  9.34690e-05 Reference value :  9.42470e-05 Reference value :  9.50008e-05 Reference value :  9.58068e-05 Reference value :  9.64601e-05 Reference value :  9.75617e-05 Reference value :  9.85356e-05 Reference value :  9.94700e-05 Reference value :  1.00319e-04 Reference value :  1.01023e-04 Reference value :  1.01894e-04 Reference value :  1.03886e-04 Reference value :  1.05831e-04 Reference value :  1.06371e-04 Reference value :  1.07087e-04 Reference value :  1.07792e-04 Reference value :  1.08526e-04 Reference value :  1.09257e-04 Reference value :  1.10004e-04 Reference value :  1.10799e-04 Reference value :  1.11602e-04 Reference value :  1.12406e-04 Reference value :  1.13218e-04 Reference value :  1.14044e-04 Reference value :  1.14743e-04 Reference value :  1.15458e-04 Reference value :  1.16069e-04 Reference value :  1.17052e-04 Reference value :  1.18111e-04 Reference value :  1.19051e-04 Reference value :  1.19984e-04 Reference value :  1.20859e-04 Reference value :  1.21530e-04 Reference value :  1.23419e-04 Reference value :  1.25632e-04 Reference value :  1.26292e-04 Reference value :  1.27050e-04 Reference value :  1.27789e-04 Reference value :  1.28557e-04 Reference value :  1.29320e-04 Reference value :  1.30107e-04 Reference value :  1.30905e-04 Reference value :  1.31707e-04 Reference value :  1.32502e-04 Reference value :  1.33301e-04 Reference value :  1.34122e-04 Reference value :  1.34905e-04 Reference value :  1.35734e-04 Reference value :  1.36419e-04 Reference value :  1.37591e-04 Reference value :  1.38604e-04 Reference value :  1.39553e-04 Reference value :  1.40503e-04 Reference value :  1.41142e-04 Reference value :  1.42471e-04 Reference value :  1.44629e-04 Reference value :  1.46037e-04 Reference value :  1.46686e-04 Reference value :  1.47420e-04 Reference value :  1.48176e-04 Reference value :  1.48948e-04 Reference value :  1.49690e-04 Reference value :  1.50489e-04 Reference value :  1.51280e-04 Reference value :  1.52095e-04 Reference value :  1.52887e-04 Reference value :  1.53700e-04 Reference value :  1.54515e-04 Reference value :  1.55315e-04 Reference value :  1.56016e-04 Reference value :  1.56987e-04 Reference value :  1.58093e-04 Reference value :  1.59088e-04 Reference value :  1.60032e-04 Reference value :  1.60888e-04 Reference value :  1.61550e-04 Reference value :  1.63278e-04 Reference value :  1.65390e-04 Reference value :  1.66193e-04 Reference value :  1.66895e-04 Reference value :  1.67641e-04 Reference value :  1.68407e-04 Reference value :  1.69160e-04 Reference value :  1.69948e-04 Reference value :  1.70754e-04 Reference value :  1.71549e-04 Reference value :  1.72354e-04 Reference value :  1.73152e-04 Reference value :  1.73977e-04 Reference value :  1.74787e-04 Reference value :  1.75616e-04 Reference value :  1.76280e-04 Reference value :  1.77413e-04 Reference value :  1.78454e-04 Reference value :  1.79420e-04 Reference value :  1.80375e-04 Reference value :  1.81065e-04 Reference value :  1.82138e-04 Reference value :  1.84298e-04 Reference value :  1.85973e-04 Reference value :  1.86585e-04 Reference value :  1.87337e-04 Reference value :  1.88074e-04 Reference value :  1.88847e-04 Reference value :  1.89610e-04 Reference value :  1.90420e-04 Reference value :  1.91198e-04 Reference value :  1.92020e-04 Reference value :  1.92818e-04 Reference value :  1.93643e-04 Reference value :  1.94458e-04 Reference value :  1.95269e-04 Reference value :  1.95984e-04 Reference value :  1.96940e-04 Reference value :  1.98040e-04 Reference value :  1.98998e-04 Reference value :  1.99961e-04
+No. of Data Rows : 725547
+binary raw file "waveform.raw"
+Total elapsed time (seconds) = 54.987 
+Total DRAM available = 63109.668 MB.
+DRAM currently available = 37773.344 MB.
+Maximum ngspice program size =  160.324 MB.
+Current ngspice program size =  156.719 MB.
+
+Shared ngspice pages =    5.820 MB.
+Text (code) pages =    6.738 MB.
+Stack = 0 bytes.
+Library pages =  151.898 MB.
+0 page faults, 0 vol + 156 invol = 156 context switches.
+
+Number of lines in the deck = 1212
+Netlist loading time = 0.000884909
+Subckt and Param expansion time = 0.000898887
+Netlist parsing time = 0.00046896
+
+Nominal temperature = 27
+Operating temperature = 27
+Total iterations = 2030509
+Transient iterations = 2030489
+Circuit Equations = 290
+Circuit original non-zeroes = 714
+Circuit fill-in non-zeroes = 337
+Circuit total non-zeroes = 1051
+Transient timepoints = 976737
+Accepted timepoints = 725547
+Rejected timepoints = 251190
+Total analysis time (seconds) = 54.7056
+Matrix load time = 26.1954
+Matrix synchronize time = 0
+Matrix reorder time = 0.0001743
+Matrix factor time = 4.50913
+Matrix solve time = 1.89131
+Transient analysis time = 54.7049
+Transient load time = 26.1951
+Transient sync time = 0
+Transient factor time = 4.50908
+Transient solve time = 1.89129
+Transient trunc time = 1.34372
+Transient iterations for the last time point = 0
+AC analysis time = 0
+AC load time = 0
+AC sync time = 0
+AC factor time = 0
+AC solve time = 0
+ngspice-46 done

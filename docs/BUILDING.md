@@ -410,3 +410,27 @@ The Rust/wgpu implementation remains a migration reference, but Rust is not inst
 the Bazel phase. When an explicitly pinned legacy environment is added, its regression suite will
 be used to emit differential migration fixtures. Until then, do not present unexecuted Cargo tests
 as current validation.
+
+## EMI-01 external inverter reference
+
+The manual `//reference/emi01:study` target evaluates the finite SiC inverter/filter/load/chassis
+study outside the production simulator. It uses the unchanged static ngspice 46 build and a
+checksum-fetched vendor model with a bounded local syntax adapter. Python 3.12.13, NumPy 2.4.3
+and non-glibc runtime libraries are Bazel-pinned; no system Python/NumPy is required.
+
+```sh
+bazel test //reference/emi01:signals_test //reference/emi01:adapter_test \
+  //reference/emi01:metrics_test //reference/emi01:study_test //reference/emi01:report_test \
+  //third_party/emi_python:runtime_test
+bazel run //reference/emi01:study -- --out=/absolute/new/emi01-run-1
+bazel run //reference/emi01:study -- --out=/absolute/new/emi01-run-2
+bazel run //reference/emi01:study -- --audit=/absolute/new/emi01-run-1
+bazel run //reference/emi01:study -- --audit=/absolute/new/emi01-run-2
+```
+
+See [the reference README](../reference/emi01/README.md) for outputs, resource/timing boundaries,
+model limitations and exact reproduction. Full studies explicitly include numerical refinement,
+serial/parallel warmups and measured repetitions. They do not authorize EMI-02 or GPU execution.
+The upstream ngspice adapter/study targets follow the existing external-oracle sanitizer exclusion;
+pure parsing, numerical and accounting tests run in the canonical test suites. Prebuilt Python and
+NumPy are not sanitizer-instrumented; the production C++ sanitizer coverage is unchanged.

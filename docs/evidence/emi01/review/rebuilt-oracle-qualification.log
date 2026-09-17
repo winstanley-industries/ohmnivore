@@ -1,0 +1,51 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //reference/emi01:study (0 packages loaded, 0 targets configured)
+Analyzing: target //reference/emi01:study (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //reference/emi01:study (0 packages loaded, 0 targets configured).
+INFO: Found 1 target...
+Target //reference/emi01:study up-to-date:
+  bazel-bin/reference/emi01/study
+INFO: Elapsed time: 0.276s, Critical Path: 0.00s
+INFO: 1 process: 1 action cache hit, 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: bazel-bin/reference/emi01/study '--ngspice=third_party/ngspice/ngspice_46_build/bin/ngspice' '--model-archive=../+http_file+emi01_microchip_model/file/model.zip' <args omitted>
+q0-dpt qualified 0.637
+q0-ensemble-light-nominal predicted_infeasible 51.496
+q0-ensemble-light-fast_low_lc predicted_infeasible 54.211
+q0-ensemble-light-hot_high_c predicted_infeasible 56.224
+q0-ensemble-medium-nominal predicted_infeasible 61.1
+q0-ensemble-medium-fast_low_lc predicted_infeasible 60.775
+q0-ensemble-medium-hot_high_c predicted_infeasible 51.871
+q0-ensemble-heavy-nominal predicted_infeasible 30.748
+q0-ensemble-heavy-fast_low_lc predicted_infeasible 35.28
+q0-ensemble-heavy-hot_high_c predicted_infeasible 28.696
+q1-dpt qualified 0.891
+q1-ensemble-light-nominal predicted_infeasible 51.775
+q1-ensemble-light-fast_low_lc predicted_infeasible 56.073
+q1-ensemble-light-hot_high_c predicted_infeasible 58.677
+q1-ensemble-medium-nominal predicted_infeasible 62.485
+q1-ensemble-medium-fast_low_lc predicted_infeasible 61.576
+q1-ensemble-medium-hot_high_c predicted_infeasible 52.826
+q1-ensemble-heavy-nominal predicted_infeasible 46.527
+q1-ensemble-heavy-fast_low_lc predicted_infeasible 45.785
+q1-ensemble-heavy-hot_high_c predicted_infeasible 47.066
+q2-dpt qualified 1.382
+q2-ensemble-light-nominal predicted_infeasible 53.817
+q2-ensemble-light-fast_low_lc predicted_infeasible 57.181
+q2-ensemble-light-hot_high_c predicted_infeasible 59.054
+q2-ensemble-medium-nominal predicted_infeasible 62.288
+q2-ensemble-medium-fast_low_lc predicted_infeasible 61.887
+q2-ensemble-medium-hot_high_c predicted_infeasible 54.422
+q2-ensemble-heavy-nominal predicted_infeasible 82.754
+q2-ensemble-heavy-fast_low_lc predicted_infeasible 83.53
+q2-ensemble-heavy-hot_high_c predicted_infeasible 82.646
+{"counts": {"expected": 30, "terminal": 30, "validated": 30, "failures": 0}, "qualified": true, "wall_s": 436.7621496189968}

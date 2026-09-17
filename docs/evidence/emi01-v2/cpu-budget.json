@@ -1,0 +1,3832 @@
+{
+  "budget_label": "Counterfactual FIFO model from measured complete-job service; no GPU implementation or GPU measurements. Infinite simulator-process acceleration retains validation, output and fitted scheduling overhead. Factor+solve-only Amdahl ceilings are a separate optimistic analysis-time model with nested timers.",
+  "independence_label": "Distinct invocation paths and terminal SHA256 records are required. This rejects accidental duplicate input/copies; independent execution provenance is not cryptographic proof of separate physical runs.",
+  "reference_version": "emi01-v2",
+  "runs": [
+    {
+      "accepted": true,
+      "candidates": {
+        "boundary": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 1730.991527132413,
+                "load_winding_loss_surrogate_w": 8.441858427336307,
+                "mass_kg": 3.8062284435999993,
+                "research_margin_db": {
+                  "a": 8.121851810330554,
+                  "b": 8.393636121205304,
+                  "cm": 15.750717785823625,
+                  "dm": 8.261070085297575
+                },
+                "rms_chassis_return_a": 1.0600272951047212,
+                "rms_cm_a": 0.011727519538882836,
+                "rms_dm_a": 9.302733375631828,
+                "rms_load_inductor_a": 9.29197129312029,
+                "rms_vcm_v": 206.47829740772644,
+                "rms_vdm_v": 191.78939131630403,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10454473856164942,
+                    "pass": true,
+                    "rms_difference_a": 0.03981080936124724
+                  },
+                  "b": {
+                    "limit_a": 0.10463747205565935,
+                    "pass": true,
+                    "rms_difference_a": 0.04013005854549353
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 458.98216934620024,
+                  "cm_peak_t": 0.0641445077241208,
+                  "damping_a_w": 5.615819977277206,
+                  "damping_b_w": 3.258336392735412,
+                  "device_peak_a": 33.36719796744063,
+                  "device_peak_v": 605.4644427199847,
+                  "dm_peak_t": 0.06522209611324938,
+                  "loss_w": 17.314078163648038,
+                  "winding_rms_a": 9.414761119368563
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2128.888571773444,
+                "load_winding_loss_surrogate_w": 14.956062120807221,
+                "mass_kg": 3.8062284435999993,
+                "research_margin_db": {
+                  "a": 5.516619038826818,
+                  "b": 5.871829756616037,
+                  "cm": 10.007124386299353,
+                  "dm": 5.697721308154144
+                },
+                "rms_chassis_return_a": 1.1585277255022586,
+                "rms_cm_a": 0.018502650295628913,
+                "rms_dm_a": 10.316227115872811,
+                "rms_load_inductor_a": 10.303990343325742,
+                "rms_vcm_v": 214.4625509768795,
+                "rms_vdm_v": 214.08567316669522,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11454313894724526,
+                    "pass": true,
+                    "rms_difference_a": 0.048730305620926326
+                  },
+                  "b": {
+                    "limit_a": 0.11436073209241442,
+                    "pass": true,
+                    "rms_difference_a": 0.013151108140561158
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 469.58167558796254,
+                  "cm_peak_t": 0.07254806716102388,
+                  "damping_a_w": 8.458515457486998,
+                  "damping_b_w": 3.4777365043425514,
+                  "device_peak_a": 35.79427099085378,
+                  "device_peak_v": 645.9786893797676,
+                  "dm_peak_t": 0.06618408751483747,
+                  "loss_w": 22.33509355160257,
+                  "winding_rms_a": 10.339038260773297
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1376.179265086986,
+                "load_winding_loss_surrogate_w": 4.670466158911042,
+                "mass_kg": 3.8062284435999993,
+                "research_margin_db": {
+                  "a": 10.68170875433843,
+                  "b": 10.995763991744269,
+                  "cm": 15.752742556020522,
+                  "dm": 10.844457946617524
+                },
+                "rms_chassis_return_a": 0.9628581758532283,
+                "rms_cm_a": 0.01159703170044514,
+                "rms_dm_a": 8.294809780288691,
+                "rms_load_inductor_a": 8.285154924167921,
+                "rms_vcm_v": 208.701156394303,
+                "rms_vdm_v": 170.2659763370477,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.09465568858740933,
+                    "pass": true,
+                    "rms_difference_a": 0.033748671405011914
+                  },
+                  "b": {
+                    "limit_a": 0.09479364935212464,
+                    "pass": true,
+                    "rms_difference_a": 0.06103350102378304
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 416.4333049032165,
+                  "cm_peak_t": 0.061878843635579925,
+                  "damping_a_w": 3.488923174344102,
+                  "damping_b_w": 2.907403966480875,
+                  "device_peak_a": 31.48166145020761,
+                  "device_peak_v": 556.279450624317,
+                  "dm_peak_t": 0.06402601419701659,
+                  "loss_w": 13.089798009139328,
+                  "winding_rms_a": 8.375432424813162
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            }
+          ],
+          "mass_kg": 3.8062284435999993
+        },
+        "light": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2273.687167025719,
+                "load_winding_loss_surrogate_w": 379.2541315116564,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -36.03702063061384,
+                  "b": -35.910097010491484,
+                  "cm": -18.48699445874206,
+                  "dm": -35.970980614586296
+                },
+                "rms_chassis_return_a": 1.3415574240666288,
+                "rms_cm_a": 0.29711704334138334,
+                "rms_dm_a": 10.64146720986781,
+                "rms_load_inductor_a": 10.482925395488767,
+                "rms_vcm_v": 290.2634687111314,
+                "rms_vdm_v": 317.4927122996119,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11633288118100325,
+                    "pass": true,
+                    "rms_difference_a": 0.03236981772782331
+                  },
+                  "b": {
+                    "limit_a": 0.11658147251352441,
+                    "pass": true,
+                    "rms_difference_a": 0.0324000562534337
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 957.9971280434755,
+                  "cm_peak_t": 0.3467775857932525,
+                  "damping_a_w": 1.6570887557057796,
+                  "damping_b_w": 1.4453970130036462,
+                  "device_peak_a": 33.35915977265912,
+                  "device_peak_v": 605.1786770939517,
+                  "dm_peak_t": 0.11416305337962342,
+                  "loss_w": 19.49245648159602,
+                  "winding_rms_a": 12.39196775317563
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2702.355581755712,
+                "load_winding_loss_surrogate_w": 359.0574701022599,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -34.15037876250537,
+                  "b": -33.76237397036847,
+                  "cm": -24.33328728907236,
+                  "dm": -33.95279475853846
+                },
+                "rms_chassis_return_a": 2.01618708788019,
+                "rms_cm_a": 0.5728576796243996,
+                "rms_dm_a": 11.602401579796412,
+                "rms_load_inductor_a": 11.468534131454065,
+                "rms_vcm_v": 367.4623745665905,
+                "rms_vdm_v": 326.559047501027,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12591099164461927,
+                    "pass": true,
+                    "rms_difference_a": 0.059218389061939235
+                  },
+                  "b": {
+                    "limit_a": 0.1263993017934443,
+                    "pass": true,
+                    "rms_difference_a": 0.059292500216133456
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1203.7525332831037,
+                  "cm_peak_t": 0.46683185074540284,
+                  "damping_a_w": 3.024423861927949,
+                  "damping_b_w": 2.872286389777602,
+                  "device_peak_a": 32.01542303343529,
+                  "device_peak_v": 645.6347909171723,
+                  "dm_peak_t": 0.10725456255660572,
+                  "loss_w": 18.42347873700169,
+                  "winding_rms_a": 12.656687811522225
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1897.8402635991126,
+                "load_winding_loss_surrogate_w": 440.6834085957743,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -37.60152867912544,
+                  "b": -37.74343460178693,
+                  "cm": -9.171698683823394,
+                  "dm": -37.669422836291076
+                },
+                "rms_chassis_return_a": 0.9438983578126753,
+                "rms_cm_a": 0.17370370007879182,
+                "rms_dm_a": 9.709766096668801,
+                "rms_load_inductor_a": 9.512372380688848,
+                "rms_vcm_v": 237.71453194152025,
+                "rms_vdm_v": 319.25064739925256,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10694747826939817,
+                    "pass": true,
+                    "rms_difference_a": 0.019508796445173636
+                  },
+                  "b": {
+                    "limit_a": 0.10727871807010234,
+                    "pass": true,
+                    "rms_difference_a": 0.019506302380522277
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 706.6401735514075,
+                  "cm_peak_t": 0.2692443614421435,
+                  "damping_a_w": 0.9315945846804887,
+                  "damping_b_w": 0.4535351541070168,
+                  "device_peak_a": 37.9245825207188,
+                  "device_peak_v": 555.9294369356998,
+                  "dm_peak_t": 0.13793621839417744,
+                  "loss_w": 26.770469215885683,
+                  "winding_rms_a": 13.113873357013414
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.22858676859999996
+        },
+        "reference": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 1839.9508821612349,
+                "load_winding_loss_surrogate_w": 0.047788922121419664,
+                "mass_kg": 3.8084193315999992,
+                "research_margin_db": {
+                  "a": 15.670543396686767,
+                  "b": 15.669638476713217,
+                  "cm": 15.670091075814383,
+                  "dm": 29.234377386694483
+                },
+                "rms_chassis_return_a": 1.0582258954329509,
+                "rms_cm_a": 0.011712868518462767,
+                "rms_dm_a": 9.591484568558185,
+                "rms_load_inductor_a": 9.595027904935554,
+                "rms_vcm_v": 206.51951483261664,
+                "rms_vdm_v": 193.408817509535,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.1044581230273557,
+                    "pass": true,
+                    "rms_difference_a": 0.03029498027504388
+                  },
+                  "b": {
+                    "limit_a": 0.10454599020713917,
+                    "pass": true,
+                    "rms_difference_a": 0.02653047691564564
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 443.10019604547324,
+                  "cm_peak_t": 0.06419525914036141,
+                  "damping_a_w": 2.722086210061902,
+                  "damping_b_w": 2.731631515280775,
+                  "device_peak_a": 34.40600214225239,
+                  "device_peak_v": 605.4645540647757,
+                  "dm_peak_t": 0.07000276340941987,
+                  "loss_w": 14.245210176278476,
+                  "winding_rms_a": 9.654782944694773
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2192.9100787073976,
+                "load_winding_loss_surrogate_w": 0.08831224117814974,
+                "mass_kg": 3.8084193315999992,
+                "research_margin_db": {
+                  "a": 10.102245716701447,
+                  "b": 10.102412082978503,
+                  "cm": 10.102328986250285,
+                  "dm": 26.71892202822619
+                },
+                "rms_chassis_return_a": 1.1589771018670576,
+                "rms_cm_a": 0.018648296745641717,
+                "rms_dm_a": 10.471122057650568,
+                "rms_load_inductor_a": 10.474592035200907,
+                "rms_vcm_v": 214.474256473821,
+                "rms_vdm_v": 211.19599156105122,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11400557629604195,
+                    "pass": true,
+                    "rms_difference_a": 0.020971682180958122
+                  },
+                  "b": {
+                    "limit_a": 0.11380391476558706,
+                    "pass": true,
+                    "rms_difference_a": 0.01908536545857795
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 463.89309480057995,
+                  "cm_peak_t": 0.07300145842827817,
+                  "damping_a_w": 3.477877209554666,
+                  "damping_b_w": 3.45567185055228,
+                  "device_peak_a": 36.49945451992156,
+                  "device_peak_v": 645.9786885148001,
+                  "dm_peak_t": 0.06972315645400669,
+                  "loss_w": 17.5551694613506,
+                  "winding_rms_a": 10.483681901920082
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1510.2349735452203,
+                "load_winding_loss_surrogate_w": 0.027563286686537312,
+                "mass_kg": 3.8084193315999992,
+                "research_margin_db": {
+                  "a": 15.824010620505987,
+                  "b": 15.82283710817893,
+                  "cm": 15.823424031975918,
+                  "dm": 31.824644848951593
+                },
+                "rms_chassis_return_a": 0.9681470983423683,
+                "rms_cm_a": 0.011411677270817926,
+                "rms_dm_a": 8.689698855009826,
+                "rms_load_inductor_a": 8.692005559802238,
+                "rms_vcm_v": 208.76128814154424,
+                "rms_vdm_v": 175.3129261518715,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.09517244969354083,
+                    "pass": true,
+                    "rms_difference_a": 0.07528603544137377
+                  },
+                  "b": {
+                    "limit_a": 0.09530723776045011,
+                    "pass": true,
+                    "rms_difference_a": 0.04813501698415438
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 386.4284803789223,
+                  "cm_peak_t": 0.06193947039946279,
+                  "damping_a_w": 2.047026173886768,
+                  "damping_b_w": 2.107984079821859,
+                  "device_peak_a": 32.02303821023113,
+                  "device_peak_v": 556.2799070566562,
+                  "dm_peak_t": 0.06797326717890337,
+                  "loss_w": 11.321517639669155,
+                  "winding_rms_a": 8.704546845867691
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            }
+          ],
+          "mass_kg": 3.8084193315999992
+        }
+      },
+      "counts": {
+        "expected": 102,
+        "failures": 0,
+        "terminal": 102,
+        "validated": 102
+      },
+      "dpt": {
+        "metrics": {
+          "gate_dynamics": {
+            "drop_limits_v": [
+              0.2,
+              30.0
+            ],
+            "half_crossing_gate_limits_v": [
+              -3.0,
+              23.0
+            ],
+            "on_edge_gate_drop_v": 1.3678578261032825,
+            "pass": true
+          },
+          "load_at_second_on_a": 17.973026628519374,
+          "min_gate_v": -3.329786219313353,
+          "min_v": -20.097779776282223,
+          "off_edge_s": 1.2694124761677617e-08,
+          "off_energy_j": 4.3582497110869074e-05,
+          "off_gate_at_vds_10_50_90_v": [
+            3.24799002137182,
+            0.327632075085355,
+            0.4359346628221983
+          ],
+          "off_half_s": 1.4034719997133342e-05,
+          "on_edge_s": 1.7121127944366664e-08,
+          "on_energy_j": 0.00012423661423910045,
+          "on_gate_at_vds_10_50_90_v": [
+            9.17956128453296,
+            15.65121912919421,
+            10.547419110636243
+          ],
+          "on_half_s": 1.2024834434928135e-05,
+          "pass": true,
+          "peak_gate_v": 24.263432739970597,
+          "peak_v": 440.1084107808785,
+          "ringing": {
+            "frequency_hz": 66115702.47933827,
+            "log_decrement": 0.608456833006777,
+            "peak_amplitudes_v": [
+              40.1084107808785,
+              18.668556618221885,
+              11.877815201980411
+            ],
+            "peak_times_s": [
+              1.4045e-05,
+              1.4060000000000001e-05,
+              1.407525e-05
+            ],
+            "polarity": "positive",
+            "residual_reference_v": 400.0,
+            "status": "measured"
+          },
+          "sample_step_s": 2.5e-10
+        },
+        "status": "qualified"
+      },
+      "failures": [],
+      "invocation_wall_s": 3705.1783479059814,
+      "modes": {
+        "1": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.25317350000841543,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 613.2847076359903,
+              "fixed_non_simulation_service_s": 7.260745182953542,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 613.5378811359988,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 613.5378811359988,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.00720894520094,
+                  "predicted_wall_s": 68.11631492826565,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9758026023428246,
+                  "predicted_wall_s": 310.52589990948036,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8582456992420036,
+                  "predicted_wall_s": 159.01990929622116,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 81.65351623078047,
+                  "predicted_wall_s": 7.5139186829619575,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample0",
+              "unmodeled_overhead_s": 0.25317350000841543
+            },
+            {
+              "baseline_residual_s": 0.23941042803926393,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 610.4984114819672,
+              "fixed_non_simulation_service_s": 7.044315681967419,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 610.7378219100065,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 610.7378219100065,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.030690924536733,
+                  "predicted_wall_s": 67.62913569000666,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.976428892703363,
+                  "predicted_wall_s": 309.01077401000657,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.861830172059717,
+                  "predicted_wall_s": 158.14725006000663,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 83.84964133549032,
+                  "predicted_wall_s": 7.283726110006683,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample1",
+              "unmodeled_overhead_s": 0.23941042803926393
+            },
+            {
+              "baseline_residual_s": 0.227079023985425,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 611.5095522599877,
+              "fixed_non_simulation_service_s": 6.943843233020743,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 611.7366312839731,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 611.7366312839731,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.045679541001943,
+                  "predicted_wall_s": 67.62749315970287,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.976827161937259,
+                  "predicted_wall_s": 309.45377677048964,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.864111884909204,
+                  "predicted_wall_s": 158.3123495137479,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 85.30794357535969,
+                  "predicted_wall_s": 7.170922257006168,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample2",
+              "unmodeled_overhead_s": 0.227079023985425
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 76.17857664602343,
+          "job_p95_s": 77.40626790098031,
+          "job_service_s": 1835.2926713779452,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; 3 studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1798.9272,
+            "factor_plus_solve_fraction_of_analysis": 0.11445208010641007,
+            "factor_plus_solve_s": 205.89095999999998,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1292443667194916,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821508,
+          "peak_worker_rss_kib": 1015712,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 7.650232466927264,
+            "preparation_s": 0.023499659990193322,
+            "required_output_s": 7.311325548886089,
+            "simulation_s": 1814.0437672800035,
+            "validation_s": 5.52783238311531
+          },
+          "runner_peak_rss_kib": 1015712,
+          "service_fractions": {
+            "metrics_s": 0.0041683991802699445,
+            "preparation_s": 1.280431200793151e-05,
+            "required_output_s": 0.00398373821402377,
+            "simulation_s": 0.9884220623613192,
+            "unclassified_cleanup_hashing_fraction": 0.000401033606520218,
+            "validation_s": 0.0030119623258589
+          },
+          "study_median_s": 611.7366312839731,
+          "study_wall_s": [
+            613.5378811359988,
+            610.7378219100065,
+            611.7366312839731
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 29298210,
+            "analysis_s": 1798.9272,
+            "factor_s": 145.56371,
+            "load_s": 829.9054,
+            "newton_iterations": 64398246,
+            "rejected_steps": 1897026,
+            "solve_s": 60.32725
+          },
+          "terminal_status_counts": {
+            "predicted_feasible": 15,
+            "predicted_infeasible": 12
+          },
+          "validated_jobs_per_hour": 52.96396904006825
+        },
+        "4": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.14609151001786813,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 207.21087670899578,
+              "fixed_non_simulation_service_s": 7.250772875995608,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 207.35696821901365,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 207.35696821901365,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.019558321098488,
+                  "predicted_wall_s": 22.989703135902527,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.97613233090835,
+                  "predicted_wall_s": 104.93070983950747,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.860132301396969,
+                  "predicted_wall_s": 53.71758064975438,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 84.23331488806667,
+                  "predicted_wall_s": 2.461697826976888,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample0",
+              "unmodeled_overhead_s": 0.14609151001786813
+            },
+            {
+              "baseline_residual_s": 0.1381495479727164,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 207.39076936300262,
+              "fixed_non_simulation_service_s": 7.239152643945999,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 207.52891891097534,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 207.52891891097534,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.027334199700197,
+                  "predicted_wall_s": 22.98894826757023,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9763395404537838,
+                  "predicted_wall_s": 105.0067129979725,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.861318510494946,
+                  "predicted_wall_s": 53.74561004147108,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 83.52921195775511,
+                  "predicted_wall_s": 2.484507084969664,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample1",
+              "unmodeled_overhead_s": 0.1381495479727164
+            },
+            {
+              "baseline_residual_s": 0.14499026603880338,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 208.13890943996375,
+              "fixed_non_simulation_service_s": 7.236714613885852,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 208.28389970600256,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 208.28389970600256,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.025334840414132,
+                  "predicted_wall_s": 23.077692228474188,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9762862920108357,
+                  "predicted_wall_s": 105.3915622184868,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.861013634159042,
+                  "predicted_wall_s": 53.94539347472892,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 83.55661725714867,
+                  "predicted_wall_s": 2.4927277640381362,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample2",
+              "unmodeled_overhead_s": 0.14499026603880338
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 79.64394031101256,
+          "job_p95_s": 81.45386314200005,
+          "job_service_s": 1922.2659431719512,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; 3 studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1884.657,
+            "factor_plus_solve_fraction_of_analysis": 0.11389314342079224,
+            "factor_plus_solve_s": 214.64951000000002,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1285320642484065,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821508,
+          "peak_worker_rss_kib": 1015712,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 7.732042758027092,
+            "preparation_s": 0.02775507397018373,
+            "required_output_s": 7.735530512989499,
+            "simulation_s": 1900.5393030381238,
+            "validation_s": 5.504214399959892
+          },
+          "runner_peak_rss_kib": 1015712,
+          "service_fractions": {
+            "metrics_s": 0.00402235850116991,
+            "preparation_s": 1.4438727413744214e-05,
+            "required_output_s": 0.0040241728988992115,
+            "simulation_s": 0.9886973807079076,
+            "unclassified_cleanup_hashing_fraction": 0.00037825015392045636,
+            "validation_s": 0.002863399010689088
+          },
+          "study_median_s": 207.52891891097534,
+          "study_wall_s": [
+            207.35696821901365,
+            207.52891891097534,
+            208.28389970600256
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 29298210,
+            "analysis_s": 1884.657,
+            "factor_s": 151.66128,
+            "load_s": 875.0023,
+            "newton_iterations": 64398246,
+            "rejected_steps": 1897026,
+            "solve_s": 62.98823
+          },
+          "terminal_status_counts": {
+            "predicted_feasible": 15,
+            "predicted_infeasible": 12
+          },
+          "validated_jobs_per_hour": 156.12281974975633
+        }
+      },
+      "one_time_setup_s": 0.3151318809832446,
+      "qualified": true,
+      "reference_case_pass": true,
+      "reference_cases": {
+        "groups": [
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "qualification-finest",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-warmup1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-sample0",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-sample1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-sample2",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-warmup1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-sample0",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-sample1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-sample2",
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "reference_version": "emi01-v2",
+      "refinement_margins": {
+        "boundary": {
+          "classification_changes": [],
+          "levels": [
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 2.121843046562063,
+                  "minimum_margin_db": 8.121843046562063,
+                  "research_margin_db": {
+                    "a": 8.121843046562063,
+                    "b": 8.393628045446647,
+                    "cm": 15.7277362009563,
+                    "dm": 8.26106158839113
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -0.48339524407110446,
+                  "minimum_margin_db": 5.5166047559288955,
+                  "research_margin_db": {
+                    "a": 5.5166047559288955,
+                    "b": 5.8718188198398025,
+                    "cm": 9.976229383333063,
+                    "dm": 5.697708616978247
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 4.681722432698791,
+                  "minimum_margin_db": 10.681722432698791,
+                  "research_margin_db": {
+                    "a": 10.681722432698791,
+                    "b": 10.99577951072537,
+                    "cm": 15.768810663112191,
+                    "dm": 10.844472497335559
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                }
+              ],
+              "level": 0,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": -0.48339524407110446,
+                "minimum_margin_db": 5.5166047559288955,
+                "research_margin_db": {
+                  "a": 5.5166047559288955,
+                  "b": 5.8718188198398025,
+                  "cm": 9.976229383333063,
+                  "dm": 5.697708616978247
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 2.1218424066175032,
+                  "minimum_margin_db": 8.121842406617503,
+                  "research_margin_db": {
+                    "a": 8.121842406617503,
+                    "b": 8.393627415658088,
+                    "cm": 15.745847795852015,
+                    "dm": 8.261060998505968
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -0.4833935571249697,
+                  "minimum_margin_db": 5.51660644287503,
+                  "research_margin_db": {
+                    "a": 5.51660644287503,
+                    "b": 5.87181756009241,
+                    "cm": 10.00026104893891,
+                    "dm": 5.697708884639269
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 4.6817250000374315,
+                  "minimum_margin_db": 10.681725000037432,
+                  "research_margin_db": {
+                    "a": 10.681725000037432,
+                    "b": 10.99577973595531,
+                    "cm": 15.756330831761957,
+                    "dm": 10.84447396583451
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                }
+              ],
+              "level": 1,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": -0.4833935571249697,
+                "minimum_margin_db": 5.51660644287503,
+                "research_margin_db": {
+                  "a": 5.51660644287503,
+                  "b": 5.87181756009241,
+                  "cm": 10.00026104893891,
+                  "dm": 5.697708884639269
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 2.121851810330554,
+                  "minimum_margin_db": 8.121851810330554,
+                  "research_margin_db": {
+                    "a": 8.121851810330554,
+                    "b": 8.393636121205304,
+                    "cm": 15.750717785823625,
+                    "dm": 8.261070085297575
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -0.4833809611731823,
+                  "minimum_margin_db": 5.516619038826818,
+                  "research_margin_db": {
+                    "a": 5.516619038826818,
+                    "b": 5.871829756616037,
+                    "cm": 10.007124386299353,
+                    "dm": 5.697721308154144
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 4.68170875433843,
+                  "minimum_margin_db": 10.68170875433843,
+                  "research_margin_db": {
+                    "a": 10.68170875433843,
+                    "b": 10.995763991744269,
+                    "cm": 15.752742556020522,
+                    "dm": 10.844457946617524
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                }
+              ],
+              "level": 2,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "research_margin_db": {
+                  "a": 5.516619038826818,
+                  "b": 5.871829756616037,
+                  "cm": 10.007124386299353,
+                  "dm": 5.697721308154144
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "a"
+              }
+            }
+          ]
+        },
+        "light": {
+          "classification_changes": [],
+          "levels": [
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": -42.03702123200806,
+                  "minimum_margin_db": -36.03702123200806,
+                  "research_margin_db": {
+                    "a": -36.03702123200806,
+                    "b": -35.91009923971983,
+                    "cm": -18.486950000185345,
+                    "dm": -35.970982026942465
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -40.15038333315471,
+                  "minimum_margin_db": -34.15038333315471,
+                  "research_margin_db": {
+                    "a": -34.15038333315471,
+                    "b": -33.76238271175019,
+                    "cm": -24.33314131891325,
+                    "dm": -33.952801378367155
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": -43.74343771729612,
+                  "minimum_margin_db": -37.74343771729612,
+                  "research_margin_db": {
+                    "a": -37.60153100922568,
+                    "b": -37.74343771729612,
+                    "cm": -9.171695244687072,
+                    "dm": -37.66942556852308
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 0,
+              "worst": {
+                "corner": "hot_high_c",
+                "distance_from_feasibility_db": -43.74343771729612,
+                "minimum_margin_db": -37.74343771729612,
+                "research_margin_db": {
+                  "a": -37.60153100922568,
+                  "b": -37.74343771729612,
+                  "cm": -9.171695244687072,
+                  "dm": -37.66942556852308
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "b"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": -42.037023775296134,
+                  "minimum_margin_db": -36.037023775296134,
+                  "research_margin_db": {
+                    "a": -36.037023775296134,
+                    "b": -35.910100387363286,
+                    "cm": -18.486980586195685,
+                    "dm": -35.97098387754849
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -40.15038121023137,
+                  "minimum_margin_db": -34.15038121023137,
+                  "research_margin_db": {
+                    "a": -34.15038121023137,
+                    "b": -33.7623772932869,
+                    "cm": -24.33322499724204,
+                    "dm": -33.95279762761962
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": -43.74343587022679,
+                  "minimum_margin_db": -37.74343587022679,
+                  "research_margin_db": {
+                    "a": -37.601529574698574,
+                    "b": -37.74343587022679,
+                    "cm": -9.171695383512457,
+                    "dm": -37.66942392081444
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 1,
+              "worst": {
+                "corner": "hot_high_c",
+                "distance_from_feasibility_db": -43.74343587022679,
+                "minimum_margin_db": -37.74343587022679,
+                "research_margin_db": {
+                  "a": -37.601529574698574,
+                  "b": -37.74343587022679,
+                  "cm": -9.171695383512457,
+                  "dm": -37.66942392081444
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "b"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": -42.03702063061384,
+                  "minimum_margin_db": -36.03702063061384,
+                  "research_margin_db": {
+                    "a": -36.03702063061384,
+                    "b": -35.910097010491484,
+                    "cm": -18.48699445874206,
+                    "dm": -35.970980614586296
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -40.15037876250537,
+                  "minimum_margin_db": -34.15037876250537,
+                  "research_margin_db": {
+                    "a": -34.15037876250537,
+                    "b": -33.76237397036847,
+                    "cm": -24.33328728907236,
+                    "dm": -33.95279475853846
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": -43.74343460178693,
+                  "minimum_margin_db": -37.74343460178693,
+                  "research_margin_db": {
+                    "a": -37.60152867912544,
+                    "b": -37.74343460178693,
+                    "cm": -9.171698683823394,
+                    "dm": -37.669422836291076
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 2,
+              "worst": {
+                "corner": "hot_high_c",
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "research_margin_db": {
+                  "a": -37.60152867912544,
+                  "b": -37.74343460178693,
+                  "cm": -9.171698683823394,
+                  "dm": -37.669422836291076
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "b"
+              }
+            }
+          ]
+        },
+        "reference": {
+          "classification_changes": [],
+          "levels": [
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 9.64681784475954,
+                  "minimum_margin_db": 15.64681784475954,
+                  "research_margin_db": {
+                    "a": 15.647720209832016,
+                    "b": 15.64681784475954,
+                    "cm": 15.647269165698589,
+                    "dm": 29.234365366987006
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2950000.0,
+                  "worst_observable": "b"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": 4.071195748672238,
+                  "minimum_margin_db": 10.071195748672238,
+                  "research_margin_db": {
+                    "a": 10.071195748672238,
+                    "b": 10.071361144682413,
+                    "cm": 10.071278532477123,
+                    "dm": 26.71890874308407
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2850000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 9.83858787754923,
+                  "minimum_margin_db": 15.83858787754923,
+                  "research_margin_db": {
+                    "a": 15.839763244349882,
+                    "b": 15.83858787754923,
+                    "cm": 15.83917572920953,
+                    "dm": 31.824654041101397
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2650000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 0,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": 4.071195748672238,
+                "minimum_margin_db": 10.071195748672238,
+                "research_margin_db": {
+                  "a": 10.071195748672238,
+                  "b": 10.071361144682413,
+                  "cm": 10.071278532477123,
+                  "dm": 26.71890874308407
+                },
+                "status": "predicted_feasible",
+                "worst_frequency_hz": 2850000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 9.664845693592767,
+                  "minimum_margin_db": 15.664845693592767,
+                  "research_margin_db": {
+                    "a": 15.66575007878572,
+                    "b": 15.664845693592767,
+                    "cm": 15.665298025157682,
+                    "dm": 29.23436537717283
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2950000.0,
+                  "worst_observable": "b"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": 4.095318280982809,
+                  "minimum_margin_db": 10.09531828098281,
+                  "research_margin_db": {
+                    "a": 10.09531828098281,
+                    "b": 10.095484439625594,
+                    "cm": 10.095401446578947,
+                    "dm": 26.718908720591287
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2850000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 9.826344993248,
+                  "minimum_margin_db": 15.826344993248,
+                  "research_margin_db": {
+                    "a": 15.827518809991844,
+                    "b": 15.826344993248,
+                    "cm": 15.826932069400343,
+                    "dm": 31.824658786127543
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2650000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 1,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": 4.095318280982809,
+                "minimum_margin_db": 10.09531828098281,
+                "research_margin_db": {
+                  "a": 10.09531828098281,
+                  "b": 10.095484439625594,
+                  "cm": 10.095401446578947,
+                  "dm": 26.718908720591287
+                },
+                "status": "predicted_feasible",
+                "worst_frequency_hz": 2850000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 9.669638476713217,
+                  "minimum_margin_db": 15.669638476713217,
+                  "research_margin_db": {
+                    "a": 15.670543396686767,
+                    "b": 15.669638476713217,
+                    "cm": 15.670091075814383,
+                    "dm": 29.234377386694483
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2950000.0,
+                  "worst_observable": "b"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": 4.1022457167014466,
+                  "minimum_margin_db": 10.102245716701447,
+                  "research_margin_db": {
+                    "a": 10.102245716701447,
+                    "b": 10.102412082978503,
+                    "cm": 10.102328986250285,
+                    "dm": 26.71892202822619
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2850000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 9.82283710817893,
+                  "minimum_margin_db": 15.82283710817893,
+                  "research_margin_db": {
+                    "a": 15.824010620505987,
+                    "b": 15.82283710817893,
+                    "cm": 15.823424031975918,
+                    "dm": 31.824644848951593
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2650000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 2,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "research_margin_db": {
+                  "a": 10.102245716701447,
+                  "b": 10.102412082978503,
+                  "cm": 10.102328986250285,
+                  "dm": 26.71892202822619
+                },
+                "status": "predicted_feasible",
+                "worst_frequency_hz": 2850000.0,
+                "worst_observable": "a"
+              }
+            }
+          ]
+        }
+      },
+      "terminal_sha256": "82bde66cfc0d46a7fefb028f4a2063463d15a4c726c0de10bbbc0275118c37f2",
+      "terminal_status_counts": {
+        "predicted_feasible": 55,
+        "predicted_infeasible": 44,
+        "qualified": 3
+      },
+      "timing_boundary": "Batch study wall excludes once-per-invocation input verification, runtime/source verification and model adaptation, reported separately as one_time_setup_s. Complete invocation_wall_s includes that setup, qualification, warmups, all measured studies, and terminal completion records. Per-job preparation remains inside batch study wall."
+    },
+    {
+      "accepted": true,
+      "candidates": {
+        "boundary": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 1730.991527132413,
+                "load_winding_loss_surrogate_w": 8.441858427336307,
+                "mass_kg": 3.8062284435999993,
+                "research_margin_db": {
+                  "a": 8.121851810330554,
+                  "b": 8.393636121205304,
+                  "cm": 15.750717785823625,
+                  "dm": 8.261070085297575
+                },
+                "rms_chassis_return_a": 1.0600272951047212,
+                "rms_cm_a": 0.011727519538882836,
+                "rms_dm_a": 9.302733375631828,
+                "rms_load_inductor_a": 9.29197129312029,
+                "rms_vcm_v": 206.47829740772644,
+                "rms_vdm_v": 191.78939131630403,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10454473856164942,
+                    "pass": true,
+                    "rms_difference_a": 0.03981080936124724
+                  },
+                  "b": {
+                    "limit_a": 0.10463747205565935,
+                    "pass": true,
+                    "rms_difference_a": 0.04013005854549353
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 458.98216934620024,
+                  "cm_peak_t": 0.0641445077241208,
+                  "damping_a_w": 5.615819977277206,
+                  "damping_b_w": 3.258336392735412,
+                  "device_peak_a": 33.36719796744063,
+                  "device_peak_v": 605.4644427199847,
+                  "dm_peak_t": 0.06522209611324938,
+                  "loss_w": 17.314078163648038,
+                  "winding_rms_a": 9.414761119368563
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2128.888571773444,
+                "load_winding_loss_surrogate_w": 14.956062120807221,
+                "mass_kg": 3.8062284435999993,
+                "research_margin_db": {
+                  "a": 5.516619038826818,
+                  "b": 5.871829756616037,
+                  "cm": 10.007124386299353,
+                  "dm": 5.697721308154144
+                },
+                "rms_chassis_return_a": 1.1585277255022586,
+                "rms_cm_a": 0.018502650295628913,
+                "rms_dm_a": 10.316227115872811,
+                "rms_load_inductor_a": 10.303990343325742,
+                "rms_vcm_v": 214.4625509768795,
+                "rms_vdm_v": 214.08567316669522,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11454313894724526,
+                    "pass": true,
+                    "rms_difference_a": 0.048730305620926326
+                  },
+                  "b": {
+                    "limit_a": 0.11436073209241442,
+                    "pass": true,
+                    "rms_difference_a": 0.013151108140561158
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 469.58167558796254,
+                  "cm_peak_t": 0.07254806716102388,
+                  "damping_a_w": 8.458515457486998,
+                  "damping_b_w": 3.4777365043425514,
+                  "device_peak_a": 35.79427099085378,
+                  "device_peak_v": 645.9786893797676,
+                  "dm_peak_t": 0.06618408751483747,
+                  "loss_w": 22.33509355160257,
+                  "winding_rms_a": 10.339038260773297
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1376.179265086986,
+                "load_winding_loss_surrogate_w": 4.670466158911042,
+                "mass_kg": 3.8062284435999993,
+                "research_margin_db": {
+                  "a": 10.68170875433843,
+                  "b": 10.995763991744269,
+                  "cm": 15.752742556020522,
+                  "dm": 10.844457946617524
+                },
+                "rms_chassis_return_a": 0.9628581758532283,
+                "rms_cm_a": 0.01159703170044514,
+                "rms_dm_a": 8.294809780288691,
+                "rms_load_inductor_a": 8.285154924167921,
+                "rms_vcm_v": 208.701156394303,
+                "rms_vdm_v": 170.2659763370477,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.09465568858740933,
+                    "pass": true,
+                    "rms_difference_a": 0.033748671405011914
+                  },
+                  "b": {
+                    "limit_a": 0.09479364935212464,
+                    "pass": true,
+                    "rms_difference_a": 0.06103350102378304
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 416.4333049032165,
+                  "cm_peak_t": 0.061878843635579925,
+                  "damping_a_w": 3.488923174344102,
+                  "damping_b_w": 2.907403966480875,
+                  "device_peak_a": 31.48166145020761,
+                  "device_peak_v": 556.279450624317,
+                  "dm_peak_t": 0.06402601419701659,
+                  "loss_w": 13.089798009139328,
+                  "winding_rms_a": 8.375432424813162
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            }
+          ],
+          "mass_kg": 3.8062284435999993
+        },
+        "light": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2273.687167025719,
+                "load_winding_loss_surrogate_w": 379.2541315116564,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -36.03702063061384,
+                  "b": -35.910097010491484,
+                  "cm": -18.48699445874206,
+                  "dm": -35.970980614586296
+                },
+                "rms_chassis_return_a": 1.3415574240666288,
+                "rms_cm_a": 0.29711704334138334,
+                "rms_dm_a": 10.64146720986781,
+                "rms_load_inductor_a": 10.482925395488767,
+                "rms_vcm_v": 290.2634687111314,
+                "rms_vdm_v": 317.4927122996119,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11633288118100325,
+                    "pass": true,
+                    "rms_difference_a": 0.03236981772782331
+                  },
+                  "b": {
+                    "limit_a": 0.11658147251352441,
+                    "pass": true,
+                    "rms_difference_a": 0.0324000562534337
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 957.9971280434755,
+                  "cm_peak_t": 0.3467775857932525,
+                  "damping_a_w": 1.6570887557057796,
+                  "damping_b_w": 1.4453970130036462,
+                  "device_peak_a": 33.35915977265912,
+                  "device_peak_v": 605.1786770939517,
+                  "dm_peak_t": 0.11416305337962342,
+                  "loss_w": 19.49245648159602,
+                  "winding_rms_a": 12.39196775317563
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2702.355581755712,
+                "load_winding_loss_surrogate_w": 359.0574701022599,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -34.15037876250537,
+                  "b": -33.76237397036847,
+                  "cm": -24.33328728907236,
+                  "dm": -33.95279475853846
+                },
+                "rms_chassis_return_a": 2.01618708788019,
+                "rms_cm_a": 0.5728576796243996,
+                "rms_dm_a": 11.602401579796412,
+                "rms_load_inductor_a": 11.468534131454065,
+                "rms_vcm_v": 367.4623745665905,
+                "rms_vdm_v": 326.559047501027,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12591099164461927,
+                    "pass": true,
+                    "rms_difference_a": 0.059218389061939235
+                  },
+                  "b": {
+                    "limit_a": 0.1263993017934443,
+                    "pass": true,
+                    "rms_difference_a": 0.059292500216133456
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1203.7525332831037,
+                  "cm_peak_t": 0.46683185074540284,
+                  "damping_a_w": 3.024423861927949,
+                  "damping_b_w": 2.872286389777602,
+                  "device_peak_a": 32.01542303343529,
+                  "device_peak_v": 645.6347909171723,
+                  "dm_peak_t": 0.10725456255660572,
+                  "loss_w": 18.42347873700169,
+                  "winding_rms_a": 12.656687811522225
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1897.8402635991126,
+                "load_winding_loss_surrogate_w": 440.6834085957743,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -37.60152867912544,
+                  "b": -37.74343460178693,
+                  "cm": -9.171698683823394,
+                  "dm": -37.669422836291076
+                },
+                "rms_chassis_return_a": 0.9438983578126753,
+                "rms_cm_a": 0.17370370007879182,
+                "rms_dm_a": 9.709766096668801,
+                "rms_load_inductor_a": 9.512372380688848,
+                "rms_vcm_v": 237.71453194152025,
+                "rms_vdm_v": 319.25064739925256,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10694747826939817,
+                    "pass": true,
+                    "rms_difference_a": 0.019508796445173636
+                  },
+                  "b": {
+                    "limit_a": 0.10727871807010234,
+                    "pass": true,
+                    "rms_difference_a": 0.019506302380522277
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 706.6401735514075,
+                  "cm_peak_t": 0.2692443614421435,
+                  "damping_a_w": 0.9315945846804887,
+                  "damping_b_w": 0.4535351541070168,
+                  "device_peak_a": 37.9245825207188,
+                  "device_peak_v": 555.9294369356998,
+                  "dm_peak_t": 0.13793621839417744,
+                  "loss_w": 26.770469215885683,
+                  "winding_rms_a": 13.113873357013414
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.22858676859999996
+        },
+        "reference": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 1839.9508821612349,
+                "load_winding_loss_surrogate_w": 0.047788922121419664,
+                "mass_kg": 3.8084193315999992,
+                "research_margin_db": {
+                  "a": 15.670543396686767,
+                  "b": 15.669638476713217,
+                  "cm": 15.670091075814383,
+                  "dm": 29.234377386694483
+                },
+                "rms_chassis_return_a": 1.0582258954329509,
+                "rms_cm_a": 0.011712868518462767,
+                "rms_dm_a": 9.591484568558185,
+                "rms_load_inductor_a": 9.595027904935554,
+                "rms_vcm_v": 206.51951483261664,
+                "rms_vdm_v": 193.408817509535,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.1044581230273557,
+                    "pass": true,
+                    "rms_difference_a": 0.03029498027504388
+                  },
+                  "b": {
+                    "limit_a": 0.10454599020713917,
+                    "pass": true,
+                    "rms_difference_a": 0.02653047691564564
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 443.10019604547324,
+                  "cm_peak_t": 0.06419525914036141,
+                  "damping_a_w": 2.722086210061902,
+                  "damping_b_w": 2.731631515280775,
+                  "device_peak_a": 34.40600214225239,
+                  "device_peak_v": 605.4645540647757,
+                  "dm_peak_t": 0.07000276340941987,
+                  "loss_w": 14.245210176278476,
+                  "winding_rms_a": 9.654782944694773
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2192.9100787073976,
+                "load_winding_loss_surrogate_w": 0.08831224117814974,
+                "mass_kg": 3.8084193315999992,
+                "research_margin_db": {
+                  "a": 10.102245716701447,
+                  "b": 10.102412082978503,
+                  "cm": 10.102328986250285,
+                  "dm": 26.71892202822619
+                },
+                "rms_chassis_return_a": 1.1589771018670576,
+                "rms_cm_a": 0.018648296745641717,
+                "rms_dm_a": 10.471122057650568,
+                "rms_load_inductor_a": 10.474592035200907,
+                "rms_vcm_v": 214.474256473821,
+                "rms_vdm_v": 211.19599156105122,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11400557629604195,
+                    "pass": true,
+                    "rms_difference_a": 0.020971682180958122
+                  },
+                  "b": {
+                    "limit_a": 0.11380391476558706,
+                    "pass": true,
+                    "rms_difference_a": 0.01908536545857795
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 463.89309480057995,
+                  "cm_peak_t": 0.07300145842827817,
+                  "damping_a_w": 3.477877209554666,
+                  "damping_b_w": 3.45567185055228,
+                  "device_peak_a": 36.49945451992156,
+                  "device_peak_v": 645.9786885148001,
+                  "dm_peak_t": 0.06972315645400669,
+                  "loss_w": 17.5551694613506,
+                  "winding_rms_a": 10.483681901920082
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1510.2349735452203,
+                "load_winding_loss_surrogate_w": 0.027563286686537312,
+                "mass_kg": 3.8084193315999992,
+                "research_margin_db": {
+                  "a": 15.824010620505987,
+                  "b": 15.82283710817893,
+                  "cm": 15.823424031975918,
+                  "dm": 31.824644848951593
+                },
+                "rms_chassis_return_a": 0.9681470983423683,
+                "rms_cm_a": 0.011411677270817926,
+                "rms_dm_a": 8.689698855009826,
+                "rms_load_inductor_a": 8.692005559802238,
+                "rms_vcm_v": 208.76128814154424,
+                "rms_vdm_v": 175.3129261518715,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.09517244969354083,
+                    "pass": true,
+                    "rms_difference_a": 0.07528603544137377
+                  },
+                  "b": {
+                    "limit_a": 0.09530723776045011,
+                    "pass": true,
+                    "rms_difference_a": 0.04813501698415438
+                  }
+                },
+                "status": "predicted_feasible",
+                "stress": {
+                  "capacitor_peak_v": 386.4284803789223,
+                  "cm_peak_t": 0.06193947039946279,
+                  "damping_a_w": 2.047026173886768,
+                  "damping_b_w": 2.107984079821859,
+                  "device_peak_a": 32.02303821023113,
+                  "device_peak_v": 556.2799070566562,
+                  "dm_peak_t": 0.06797326717890337,
+                  "loss_w": 11.321517639669155,
+                  "winding_rms_a": 8.704546845867691
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": []
+              },
+              "status": "predicted_feasible"
+            }
+          ],
+          "mass_kg": 3.8084193315999992
+        }
+      },
+      "counts": {
+        "expected": 102,
+        "failures": 0,
+        "terminal": 102,
+        "validated": 102
+      },
+      "dpt": {
+        "metrics": {
+          "gate_dynamics": {
+            "drop_limits_v": [
+              0.2,
+              30.0
+            ],
+            "half_crossing_gate_limits_v": [
+              -3.0,
+              23.0
+            ],
+            "on_edge_gate_drop_v": 1.3678578261032825,
+            "pass": true
+          },
+          "load_at_second_on_a": 17.973026628519374,
+          "min_gate_v": -3.329786219313353,
+          "min_v": -20.097779776282223,
+          "off_edge_s": 1.2694124761677617e-08,
+          "off_energy_j": 4.3582497110869074e-05,
+          "off_gate_at_vds_10_50_90_v": [
+            3.24799002137182,
+            0.327632075085355,
+            0.4359346628221983
+          ],
+          "off_half_s": 1.4034719997133342e-05,
+          "on_edge_s": 1.7121127944366664e-08,
+          "on_energy_j": 0.00012423661423910045,
+          "on_gate_at_vds_10_50_90_v": [
+            9.17956128453296,
+            15.65121912919421,
+            10.547419110636243
+          ],
+          "on_half_s": 1.2024834434928135e-05,
+          "pass": true,
+          "peak_gate_v": 24.263432739970597,
+          "peak_v": 440.1084107808785,
+          "ringing": {
+            "frequency_hz": 66115702.47933827,
+            "log_decrement": 0.608456833006777,
+            "peak_amplitudes_v": [
+              40.1084107808785,
+              18.668556618221885,
+              11.877815201980411
+            ],
+            "peak_times_s": [
+              1.4045e-05,
+              1.4060000000000001e-05,
+              1.407525e-05
+            ],
+            "polarity": "positive",
+            "residual_reference_v": 400.0,
+            "status": "measured"
+          },
+          "sample_step_s": 2.5e-10
+        },
+        "status": "qualified"
+      },
+      "failures": [],
+      "invocation_wall_s": 3716.73983974001,
+      "modes": {
+        "1": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.22643819192308,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 613.9898769400606,
+              "fixed_non_simulation_service_s": 6.971557027078234,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 614.2163151319837,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 614.2163151319837,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.0459186770775,
+                  "predicted_wall_s": 67.89982721029955,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.976833506731006,
+                  "predicted_wall_s": 310.7071551754925,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.864148249059774,
+                  "predicted_wall_s": 158.95257519724692,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 85.33158142569636,
+                  "predicted_wall_s": 7.197995219001314,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample0",
+              "unmodeled_overhead_s": 0.22643819192308
+            },
+            {
+              "baseline_residual_s": 0.22151819104328752,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 612.1938568449696,
+              "fixed_non_simulation_service_s": 6.962071607937105,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 612.4153750360128,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 612.4153750360128,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.045113069306495,
+                  "predicted_wall_s": 67.70676832268364,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9768121310503046,
+                  "predicted_wall_s": 309.7994824174966,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8640257396317774,
+                  "predicted_wall_s": 158.4915361082385,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 85.25199686693364,
+                  "predicted_wall_s": 7.1835897989803925,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample1",
+              "unmodeled_overhead_s": 0.22151819104328752
+            },
+            {
+              "baseline_residual_s": 0.2269846549606882,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 614.0617550810275,
+              "fixed_non_simulation_service_s": 7.011017738026567,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 614.2887397359882,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 614.2887397359882,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.041226490616268,
+                  "predicted_wall_s": 67.94307612728736,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9767089590765017,
+                  "predicted_wall_s": 310.7633710644877,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8634345069464584,
+                  "predicted_wall_s": 159.0006867287375,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 84.86992769319328,
+                  "predicted_wall_s": 7.238002392987255,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample2",
+              "unmodeled_overhead_s": 0.2269846549606882
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 76.52118564999546,
+          "job_p95_s": 77.05550042100367,
+          "job_service_s": 1840.2454888660577,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; 3 studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1801.628,
+            "factor_plus_solve_fraction_of_analysis": 0.1141971428063951,
+            "factor_plus_solve_s": 205.74077,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1289193660632275,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821764,
+          "peak_worker_rss_kib": 1015964,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 7.6355094690516125,
+            "preparation_s": 0.02333355401060544,
+            "required_output_s": 7.297975849971408,
+            "simulation_s": 1819.3008424930158,
+            "validation_s": 5.2932822900475
+          },
+          "runner_peak_rss_kib": 1015964,
+          "service_fractions": {
+            "metrics_s": 0.004149179832391027,
+            "preparation_s": 1.2679587670112079e-05,
+            "required_output_s": 0.0039657621193074375,
+            "simulation_s": 0.9886185585022421,
+            "unclassified_cleanup_hashing_fraction": 0.00037741986825290397,
+            "validation_s": 0.0028764000901364373
+          },
+          "study_median_s": 614.2163151319837,
+          "study_wall_s": [
+            614.2163151319837,
+            612.4153750360128,
+            614.2887397359882
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 29298210,
+            "analysis_s": 1801.628,
+            "factor_s": 145.60605999999999,
+            "load_s": 831.0852,
+            "newton_iterations": 64398246,
+            "rejected_steps": 1897026,
+            "solve_s": 60.13471
+          },
+          "terminal_status_counts": {
+            "predicted_feasible": 15,
+            "predicted_infeasible": 12
+          },
+          "validated_jobs_per_hour": 52.75014551353596
+        },
+        "4": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.1358005569782108,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 208.0332713460375,
+              "fixed_non_simulation_service_s": 7.5468160840682685,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 208.16907190301572,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 208.16907190301572,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 8.979141148291342,
+                  "predicted_wall_s": 23.183628418919398,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9750502305885382,
+                  "predicted_wall_s": 105.39938107851776,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8539454118276164,
+                  "predicted_wall_s": 54.014535666268785,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 82.05252114810266,
+                  "predicted_wall_s": 2.5370222509955056,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample0",
+              "unmodeled_overhead_s": 0.1358005569782108
+            },
+            {
+              "baseline_residual_s": 0.13754426903324202,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 207.51704954498564,
+              "fixed_non_simulation_service_s": 7.742150502017466,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 207.65459381401888,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 207.65459381401888,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.01378789736696,
+                  "predicted_wall_s": 23.03743955132086,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9759783592447862,
+                  "predicted_wall_s": 105.08950811251998,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8592511732222894,
+                  "predicted_wall_s": 53.80696526177053,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 82.92515053924421,
+                  "predicted_wall_s": 2.50412079403759,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample1",
+              "unmodeled_overhead_s": 0.13754426903324202
+            },
+            {
+              "baseline_residual_s": 0.14399133503320627,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 206.66211490996648,
+              "fixed_non_simulation_service_s": 7.290417297044769,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 206.80610624499968,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 206.80610624499968,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 8.998312358924265,
+                  "predicted_wall_s": 22.982765878303326,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9755645708777734,
+                  "predicted_wall_s": 104.6820282635017,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.856884513591078,
+                  "predicted_wall_s": 53.61998927275272,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 83.12074821168738,
+                  "predicted_wall_s": 2.4880202680360526,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample2",
+              "unmodeled_overhead_s": 0.14399133503320627
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 78.32107142501627,
+          "job_p95_s": 80.6497832069872,
+          "job_service_s": 1906.9417174850823,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; 3 studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1868.1094,
+            "factor_plus_solve_fraction_of_analysis": 0.113783892956162,
+            "factor_plus_solve_s": 212.56076000000002,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1283929416897107,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821508,
+          "peak_worker_rss_kib": 1015964,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 8.279058045940474,
+            "preparation_s": 0.026493243989534676,
+            "required_output_s": 7.8628541639773175,
+            "simulation_s": 1884.3623336019518,
+            "validation_s": 5.67097080804524
+          },
+          "runner_peak_rss_kib": 1015964,
+          "service_fractions": {
+            "metrics_s": 0.004341537011870023,
+            "preparation_s": 1.3893053860332219e-05,
+            "required_output_s": 0.004123279747818945,
+            "simulation_s": 0.9881593738937607,
+            "unclassified_cleanup_hashing_fraction": 0.0003880599047116906,
+            "validation_s": 0.0029738563879782567
+          },
+          "study_median_s": 207.65459381401888,
+          "study_wall_s": [
+            208.16907190301572,
+            207.65459381401888,
+            206.80610624499968
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 29298210,
+            "analysis_s": 1868.1094,
+            "factor_s": 150.39803,
+            "load_s": 866.0182,
+            "newton_iterations": 64398246,
+            "rejected_steps": 1897026,
+            "solve_s": 62.16273
+          },
+          "terminal_status_counts": {
+            "predicted_feasible": 15,
+            "predicted_infeasible": 12
+          },
+          "validated_jobs_per_hour": 156.02833245778478
+        }
+      },
+      "one_time_setup_s": 0.3012994939927012,
+      "qualified": true,
+      "reference_case_pass": true,
+      "reference_cases": {
+        "groups": [
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "qualification-finest",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-warmup1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-sample0",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-sample1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w1-sample2",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-warmup1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-sample0",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-sample1",
+            "pass": true
+          },
+          {
+            "applicable": true,
+            "checks": [
+              {
+                "all_physical_screens": true,
+                "candidate": "reference",
+                "complete": true,
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "pass": true,
+                "role": "passing"
+              },
+              {
+                "all_physical_screens": true,
+                "candidate": "boundary",
+                "complete": true,
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "pass": true,
+                "role": "boundary"
+              },
+              {
+                "all_corners_predicted_infeasible": true,
+                "all_physical_screens": false,
+                "all_valid_settled": true,
+                "candidate": "light",
+                "complete": true,
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "pass": true,
+                "role": "failing",
+                "violations_consistent": true
+              }
+            ],
+            "id": "w4-sample2",
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "reference_version": "emi01-v2",
+      "refinement_margins": {
+        "boundary": {
+          "classification_changes": [],
+          "levels": [
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 2.121843046562063,
+                  "minimum_margin_db": 8.121843046562063,
+                  "research_margin_db": {
+                    "a": 8.121843046562063,
+                    "b": 8.393628045446647,
+                    "cm": 15.7277362009563,
+                    "dm": 8.26106158839113
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -0.48339524407110446,
+                  "minimum_margin_db": 5.5166047559288955,
+                  "research_margin_db": {
+                    "a": 5.5166047559288955,
+                    "b": 5.8718188198398025,
+                    "cm": 9.976229383333063,
+                    "dm": 5.697708616978247
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 4.681722432698791,
+                  "minimum_margin_db": 10.681722432698791,
+                  "research_margin_db": {
+                    "a": 10.681722432698791,
+                    "b": 10.99577951072537,
+                    "cm": 15.768810663112191,
+                    "dm": 10.844472497335559
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                }
+              ],
+              "level": 0,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": -0.48339524407110446,
+                "minimum_margin_db": 5.5166047559288955,
+                "research_margin_db": {
+                  "a": 5.5166047559288955,
+                  "b": 5.8718188198398025,
+                  "cm": 9.976229383333063,
+                  "dm": 5.697708616978247
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 2.1218424066175032,
+                  "minimum_margin_db": 8.121842406617503,
+                  "research_margin_db": {
+                    "a": 8.121842406617503,
+                    "b": 8.393627415658088,
+                    "cm": 15.745847795852015,
+                    "dm": 8.261060998505968
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -0.4833935571249697,
+                  "minimum_margin_db": 5.51660644287503,
+                  "research_margin_db": {
+                    "a": 5.51660644287503,
+                    "b": 5.87181756009241,
+                    "cm": 10.00026104893891,
+                    "dm": 5.697708884639269
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 4.6817250000374315,
+                  "minimum_margin_db": 10.681725000037432,
+                  "research_margin_db": {
+                    "a": 10.681725000037432,
+                    "b": 10.99577973595531,
+                    "cm": 15.756330831761957,
+                    "dm": 10.84447396583451
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                }
+              ],
+              "level": 1,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": -0.4833935571249697,
+                "minimum_margin_db": 5.51660644287503,
+                "research_margin_db": {
+                  "a": 5.51660644287503,
+                  "b": 5.87181756009241,
+                  "cm": 10.00026104893891,
+                  "dm": 5.697708884639269
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 2.121851810330554,
+                  "minimum_margin_db": 8.121851810330554,
+                  "research_margin_db": {
+                    "a": 8.121851810330554,
+                    "b": 8.393636121205304,
+                    "cm": 15.750717785823625,
+                    "dm": 8.261070085297575
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -0.4833809611731823,
+                  "minimum_margin_db": 5.516619038826818,
+                  "research_margin_db": {
+                    "a": 5.516619038826818,
+                    "b": 5.871829756616037,
+                    "cm": 10.007124386299353,
+                    "dm": 5.697721308154144
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 4.68170875433843,
+                  "minimum_margin_db": 10.68170875433843,
+                  "research_margin_db": {
+                    "a": 10.68170875433843,
+                    "b": 10.995763991744269,
+                    "cm": 15.752742556020522,
+                    "dm": 10.844457946617524
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                }
+              ],
+              "level": 2,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": -0.4833809611731823,
+                "minimum_margin_db": 5.516619038826818,
+                "research_margin_db": {
+                  "a": 5.516619038826818,
+                  "b": 5.871829756616037,
+                  "cm": 10.007124386299353,
+                  "dm": 5.697721308154144
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "a"
+              }
+            }
+          ]
+        },
+        "light": {
+          "classification_changes": [],
+          "levels": [
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": -42.03702123200806,
+                  "minimum_margin_db": -36.03702123200806,
+                  "research_margin_db": {
+                    "a": -36.03702123200806,
+                    "b": -35.91009923971983,
+                    "cm": -18.486950000185345,
+                    "dm": -35.970982026942465
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -40.15038333315471,
+                  "minimum_margin_db": -34.15038333315471,
+                  "research_margin_db": {
+                    "a": -34.15038333315471,
+                    "b": -33.76238271175019,
+                    "cm": -24.33314131891325,
+                    "dm": -33.952801378367155
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": -43.74343771729612,
+                  "minimum_margin_db": -37.74343771729612,
+                  "research_margin_db": {
+                    "a": -37.60153100922568,
+                    "b": -37.74343771729612,
+                    "cm": -9.171695244687072,
+                    "dm": -37.66942556852308
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 0,
+              "worst": {
+                "corner": "hot_high_c",
+                "distance_from_feasibility_db": -43.74343771729612,
+                "minimum_margin_db": -37.74343771729612,
+                "research_margin_db": {
+                  "a": -37.60153100922568,
+                  "b": -37.74343771729612,
+                  "cm": -9.171695244687072,
+                  "dm": -37.66942556852308
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "b"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": -42.037023775296134,
+                  "minimum_margin_db": -36.037023775296134,
+                  "research_margin_db": {
+                    "a": -36.037023775296134,
+                    "b": -35.910100387363286,
+                    "cm": -18.486980586195685,
+                    "dm": -35.97098387754849
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -40.15038121023137,
+                  "minimum_margin_db": -34.15038121023137,
+                  "research_margin_db": {
+                    "a": -34.15038121023137,
+                    "b": -33.7623772932869,
+                    "cm": -24.33322499724204,
+                    "dm": -33.95279762761962
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": -43.74343587022679,
+                  "minimum_margin_db": -37.74343587022679,
+                  "research_margin_db": {
+                    "a": -37.601529574698574,
+                    "b": -37.74343587022679,
+                    "cm": -9.171695383512457,
+                    "dm": -37.66942392081444
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 1,
+              "worst": {
+                "corner": "hot_high_c",
+                "distance_from_feasibility_db": -43.74343587022679,
+                "minimum_margin_db": -37.74343587022679,
+                "research_margin_db": {
+                  "a": -37.601529574698574,
+                  "b": -37.74343587022679,
+                  "cm": -9.171695383512457,
+                  "dm": -37.66942392081444
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "b"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": -42.03702063061384,
+                  "minimum_margin_db": -36.03702063061384,
+                  "research_margin_db": {
+                    "a": -36.03702063061384,
+                    "b": -35.910097010491484,
+                    "cm": -18.48699445874206,
+                    "dm": -35.970980614586296
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": -40.15037876250537,
+                  "minimum_margin_db": -34.15037876250537,
+                  "research_margin_db": {
+                    "a": -34.15037876250537,
+                    "b": -33.76237397036847,
+                    "cm": -24.33328728907236,
+                    "dm": -33.95279475853846
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": -43.74343460178693,
+                  "minimum_margin_db": -37.74343460178693,
+                  "research_margin_db": {
+                    "a": -37.60152867912544,
+                    "b": -37.74343460178693,
+                    "cm": -9.171698683823394,
+                    "dm": -37.669422836291076
+                  },
+                  "status": "predicted_infeasible",
+                  "worst_frequency_hz": 150000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 2,
+              "worst": {
+                "corner": "hot_high_c",
+                "distance_from_feasibility_db": -43.74343460178693,
+                "minimum_margin_db": -37.74343460178693,
+                "research_margin_db": {
+                  "a": -37.60152867912544,
+                  "b": -37.74343460178693,
+                  "cm": -9.171698683823394,
+                  "dm": -37.669422836291076
+                },
+                "status": "predicted_infeasible",
+                "worst_frequency_hz": 150000.0,
+                "worst_observable": "b"
+              }
+            }
+          ]
+        },
+        "reference": {
+          "classification_changes": [],
+          "levels": [
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 9.64681784475954,
+                  "minimum_margin_db": 15.64681784475954,
+                  "research_margin_db": {
+                    "a": 15.647720209832016,
+                    "b": 15.64681784475954,
+                    "cm": 15.647269165698589,
+                    "dm": 29.234365366987006
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2950000.0,
+                  "worst_observable": "b"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": 4.071195748672238,
+                  "minimum_margin_db": 10.071195748672238,
+                  "research_margin_db": {
+                    "a": 10.071195748672238,
+                    "b": 10.071361144682413,
+                    "cm": 10.071278532477123,
+                    "dm": 26.71890874308407
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2850000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 9.83858787754923,
+                  "minimum_margin_db": 15.83858787754923,
+                  "research_margin_db": {
+                    "a": 15.839763244349882,
+                    "b": 15.83858787754923,
+                    "cm": 15.83917572920953,
+                    "dm": 31.824654041101397
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2650000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 0,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": 4.071195748672238,
+                "minimum_margin_db": 10.071195748672238,
+                "research_margin_db": {
+                  "a": 10.071195748672238,
+                  "b": 10.071361144682413,
+                  "cm": 10.071278532477123,
+                  "dm": 26.71890874308407
+                },
+                "status": "predicted_feasible",
+                "worst_frequency_hz": 2850000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 9.664845693592767,
+                  "minimum_margin_db": 15.664845693592767,
+                  "research_margin_db": {
+                    "a": 15.66575007878572,
+                    "b": 15.664845693592767,
+                    "cm": 15.665298025157682,
+                    "dm": 29.23436537717283
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2950000.0,
+                  "worst_observable": "b"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": 4.095318280982809,
+                  "minimum_margin_db": 10.09531828098281,
+                  "research_margin_db": {
+                    "a": 10.09531828098281,
+                    "b": 10.095484439625594,
+                    "cm": 10.095401446578947,
+                    "dm": 26.718908720591287
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2850000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 9.826344993248,
+                  "minimum_margin_db": 15.826344993248,
+                  "research_margin_db": {
+                    "a": 15.827518809991844,
+                    "b": 15.826344993248,
+                    "cm": 15.826932069400343,
+                    "dm": 31.824658786127543
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2650000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 1,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": 4.095318280982809,
+                "minimum_margin_db": 10.09531828098281,
+                "research_margin_db": {
+                  "a": 10.09531828098281,
+                  "b": 10.095484439625594,
+                  "cm": 10.095401446578947,
+                  "dm": 26.718908720591287
+                },
+                "status": "predicted_feasible",
+                "worst_frequency_hz": 2850000.0,
+                "worst_observable": "a"
+              }
+            },
+            {
+              "corners": [
+                {
+                  "corner": "nominal",
+                  "distance_from_feasibility_db": 9.669638476713217,
+                  "minimum_margin_db": 15.669638476713217,
+                  "research_margin_db": {
+                    "a": 15.670543396686767,
+                    "b": 15.669638476713217,
+                    "cm": 15.670091075814383,
+                    "dm": 29.234377386694483
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2950000.0,
+                  "worst_observable": "b"
+                },
+                {
+                  "corner": "fast_low_lc",
+                  "distance_from_feasibility_db": 4.1022457167014466,
+                  "minimum_margin_db": 10.102245716701447,
+                  "research_margin_db": {
+                    "a": 10.102245716701447,
+                    "b": 10.102412082978503,
+                    "cm": 10.102328986250285,
+                    "dm": 26.71892202822619
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2850000.0,
+                  "worst_observable": "a"
+                },
+                {
+                  "corner": "hot_high_c",
+                  "distance_from_feasibility_db": 9.82283710817893,
+                  "minimum_margin_db": 15.82283710817893,
+                  "research_margin_db": {
+                    "a": 15.824010620505987,
+                    "b": 15.82283710817893,
+                    "cm": 15.823424031975918,
+                    "dm": 31.824644848951593
+                  },
+                  "status": "predicted_feasible",
+                  "worst_frequency_hz": 2650000.0,
+                  "worst_observable": "b"
+                }
+              ],
+              "level": 2,
+              "worst": {
+                "corner": "fast_low_lc",
+                "distance_from_feasibility_db": 4.1022457167014466,
+                "minimum_margin_db": 10.102245716701447,
+                "research_margin_db": {
+                  "a": 10.102245716701447,
+                  "b": 10.102412082978503,
+                  "cm": 10.102328986250285,
+                  "dm": 26.71892202822619
+                },
+                "status": "predicted_feasible",
+                "worst_frequency_hz": 2850000.0,
+                "worst_observable": "a"
+              }
+            }
+          ]
+        }
+      },
+      "terminal_sha256": "ec4f149deabc21bd24b3d8052684a0162689c2dc4b017f2a38003c273478df9f",
+      "terminal_status_counts": {
+        "predicted_feasible": 55,
+        "predicted_infeasible": 44,
+        "qualified": 3
+      },
+      "timing_boundary": "Batch study wall excludes once-per-invocation input verification, runtime/source verification and model adaptation, reported separately as one_time_setup_s. Complete invocation_wall_s includes that setup, qualification, warmups, all measured studies, and terminal completion records. Per-job preparation remains inside batch study wall."
+    }
+  ],
+  "schema": "emi01-cpu-budget-v2"
+}

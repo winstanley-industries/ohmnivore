@@ -1,0 +1,47 @@
+{
+  "expected": 9,
+  "failures": 0,
+  "id": "w4-sample2",
+  "job_ids": [
+    "w4-sample2-ensemble-light-nominal",
+    "w4-sample2-ensemble-light-fast_low_lc",
+    "w4-sample2-ensemble-light-hot_high_c",
+    "w4-sample2-ensemble-boundary-nominal",
+    "w4-sample2-ensemble-boundary-fast_low_lc",
+    "w4-sample2-ensemble-boundary-hot_high_c",
+    "w4-sample2-ensemble-reference-nominal",
+    "w4-sample2-ensemble-reference-fast_low_lc",
+    "w4-sample2-ensemble-reference-hot_high_c"
+  ],
+  "job_median_s": 78.32107142501627,
+  "job_p95_s": 79.97864316400955,
+  "lightest_feasible": "reference",
+  "peak_child_rss_kib": 821508,
+  "ranking": [
+    {
+      "candidate": "light",
+      "complete": true,
+      "mass_kg": 0.22858676859999996,
+      "predicted_feasible": false
+    },
+    {
+      "candidate": "boundary",
+      "complete": true,
+      "mass_kg": 3.8062284435999993,
+      "predicted_feasible": false
+    },
+    {
+      "candidate": "reference",
+      "complete": true,
+      "mass_kg": 3.8084193315999992,
+      "predicted_feasible": true
+    }
+  ],
+  "runner_peak_rss_kib": 1015964,
+  "terminal": 9,
+  "time_to_lightest_feasible_s": 206.7598737179942,
+  "validated": 9,
+  "validated_jobs_per_hour": 156.66848812295837,
+  "wall_s": 206.80610624499968,
+  "workers": 4
+}

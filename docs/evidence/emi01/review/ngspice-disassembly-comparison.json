@@ -1,0 +1,64 @@
+{
+  "instruction_lines": 1390343,
+  "differing_lines": 35574,
+  "hex_operand_normalized_shape_mismatches": 0,
+  "comment_target_address_delta_counts": {
+    "8": 26421,
+    "16": 9151,
+    "0": 2
+  },
+  "differing_without_comment_count": 0,
+  "first_differing_lines": [
+    [
+      "  401e23:\tlea    0x70659e(%rip),%rdi        # b083c8 <_IO_stdin_used+0x4a3c8>",
+      "  401e23:\tlea    0x7065a6(%rip),%rdi        # b083d0 <_IO_stdin_used+0x4a3d0>"
+    ],
+    [
+      "  401fd4:\tlea    0x706425(%rip),%rdi        # b08400 <_IO_stdin_used+0x4a400>",
+      "  401fd4:\tlea    0x70642d(%rip),%rdi        # b08408 <_IO_stdin_used+0x4a408>"
+    ],
+    [
+      "  40206c:\tlea    0x7063ad(%rip),%rdi        # b08420 <_IO_stdin_used+0x4a420>",
+      "  40206c:\tlea    0x7063b5(%rip),%rdi        # b08428 <_IO_stdin_used+0x4a428>"
+    ],
+    [
+      "  402078:\tlea    0x7063a1(%rip),%rdi        # b08420 <_IO_stdin_used+0x4a420>",
+      "  402078:\tlea    0x7063a9(%rip),%rdi        # b08428 <_IO_stdin_used+0x4a428>"
+    ],
+    [
+      "  40226b:\tlea    0x7061de(%rip),%rdi        # b08450 <_IO_stdin_used+0x4a450>",
+      "  40226b:\tlea    0x7061e6(%rip),%rdi        # b08458 <_IO_stdin_used+0x4a458>"
+    ],
+    [
+      "  4023a3:\tlea    0x706156(%rip),%rdi        # b08500 <_IO_stdin_used+0x4a500>",
+      "  4023a3:\tlea    0x70615e(%rip),%rdi        # b08508 <_IO_stdin_used+0x4a508>"
+    ],
+    [
+      "  402525:\tlea    0x705f24(%rip),%rdi        # b08450 <_IO_stdin_used+0x4a450>",
+      "  402525:\tlea    0x705f2c(%rip),%rdi        # b08458 <_IO_stdin_used+0x4a458>"
+    ],
+    [
+      "  402be4:\tlea    0x705835(%rip),%rdi        # b08420 <_IO_stdin_used+0x4a420>",
+      "  402be4:\tlea    0x70583d(%rip),%rdi        # b08428 <_IO_stdin_used+0x4a428>"
+    ],
+    [
+      "  402d86:\tlea    0x70594b(%rip),%rdi        # b086d8 <_IO_stdin_used+0x4a6d8>",
+      "  402d86:\tlea    0x705953(%rip),%rdi        # b086e0 <_IO_stdin_used+0x4a6e0>"
+    ],
+    [
+      "  402e07:\tlea    0x70593a(%rip),%rsi        # b08748 <_IO_stdin_used+0x4a748>",
+      "  402e07:\tlea    0x705942(%rip),%rsi        # b08750 <_IO_stdin_used+0x4a750>"
+    ],
+    [
+      "  402e13:\tlea    0x7058e6(%rip),%rsi        # b08700 <_IO_stdin_used+0x4a700>",
+      "  402e13:\tlea    0x7058ee(%rip),%rsi        # b08708 <_IO_stdin_used+0x4a708>"
+    ],
+    [
+      "  402e2f:\tlea    0x705912(%rip),%rdi        # b08748 <_IO_stdin_used+0x4a748>",
+      "  402e2f:\tlea    0x70591a(%rip),%rdi        # b08750 <_IO_stdin_used+0x4a750>"
+    ]
+  ],
+  "first_without_comment": [],
+  "first_shape_mismatches": [],
+  "normalization": "Strip disassembler comment; replace only 0x-prefixed hexadecimal operand literals; preserve mnemonics, register names, addressing punctuation, and signs. Comparison is descriptive, not a semantic proof."
+}

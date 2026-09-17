@@ -1,0 +1,72 @@
+{
+  "schema": "emi01-validation-v1",
+  "checks": [
+    {
+      "command": "bazel lint",
+      "result": "pass",
+      "log": "lint.log",
+      "sha256": "e75f09212dfc9fcc659e90f14e8b420ba5c708a34880e1c0c7ec5b63792552da"
+    },
+    {
+      "command": "bazel build //...",
+      "result": "pass",
+      "log": "build.log",
+      "sha256": "a745fea76b2738fa2c1531f5f1b9b4b06003ff2d41ab15cda7850f86b5e3b592"
+    },
+    {
+      "command": "bazel test --lockfile_mode=error //...",
+      "result": "21 passed",
+      "log": "tests-lockfile.log",
+      "sha256": "de5fcbea8e55c5ab1184a5af8d1522c011c35544f15a5ff16bb93fb653a531e2"
+    },
+    {
+      "command": "bazel test --config=asan //...",
+      "result": "18 passed, 2 incompatible skipped",
+      "log": "asan-full.log",
+      "sha256": "c75dafdba938307947c0529e3daa70dd8ab677ea8378816fdc086539797ca2a3"
+    },
+    {
+      "command": "bazel test --config=ubsan //...",
+      "result": "18 passed, 2 incompatible skipped",
+      "log": "ubsan-full.log",
+      "sha256": "b8a09d29763dc9ec1114c8a40e353a77957ebf5c531c03616a21dfedef5241bc"
+    },
+    {
+      "command": "bazel test --config=asan //reference/emi01:signals_test //reference/emi01:metrics_test //reference/emi01:study_test //reference/emi01:report_test //third_party/emi_python:runtime_test",
+      "result": "5 passed",
+      "log": "asan-reference.log",
+      "sha256": "885c9f0e4f51e3a73ba8ac51b47a208e523b17783cf590629ffc0d667c57d3af"
+    },
+    {
+      "command": "bazel test --config=ubsan //reference/emi01:signals_test //reference/emi01:metrics_test //reference/emi01:study_test //reference/emi01:report_test //third_party/emi_python:runtime_test",
+      "result": "5 passed",
+      "log": "ubsan-reference.log",
+      "sha256": "3eaaae7b1ca113872f6fdaa14ed35581b39cd6502c699d61f5e2b66bd4daad2d"
+    },
+    {
+      "command": "bazel test --config=cuda //:cuda_smoke_test //cuda:gpu02_prepared_ac_test //cuda:gpu02_replay_differential_test //cuda:gpu02_linkage_test //cuda:gpu02s_session_test //cuda:gpu02s_linkage_test",
+      "result": "6 passed",
+      "log": "cuda.log",
+      "sha256": "800150b26267a786fffa853288a5c12461f6c7780c4f7083e48daf60e107f1a4"
+    },
+    {
+      "command": "bazel build --config=cuda --config=asan //cuda:smoke_test",
+      "result": "expected explicit analysis-time incompatibility",
+      "log": "cuda-asan.log",
+      "sha256": "813ff4fd0209d8f2dce3938bf148a99a59065f7a580670431b6735378cb51514"
+    },
+    {
+      "command": "bazel build --config=cuda --config=ubsan //cuda:smoke_test",
+      "result": "expected explicit analysis-time incompatibility",
+      "log": "cuda-ubsan.log",
+      "sha256": "b5f95b915acb04661ab94abebf0105377061e9a332ece2914e587295b1930192"
+    },
+    {
+      "command": "bazel run -c opt //cpp:prepared_ac_replay_benchmark -- --warmups=2 --repetitions=9",
+      "result": "complete:715 identities,144 samples,16 summaries,0 failures",
+      "log": "ac-regression.log",
+      "sha256": "201bf35f4d9a83c77125c6fdb8fe07a1efb306065d943e07ec9215af7e06e703"
+    }
+  ],
+  "note": "Full sanitizer suites precede final Python-only refinements; later focused runs cover the reference targets. Final lockfile test covers all 21 tests. Production C++/CUDA/Rust and historical AC inputs/evidence are unchanged from17519fc. Python configs check compatibility, not sanitizer instrumentation of the prebuilt interpreter/NumPy."
+}

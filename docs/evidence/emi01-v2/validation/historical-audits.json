@@ -1,0 +1,32 @@
+{
+  "schema": "emi01-v1-historical-audits-v1",
+  "source_commit": "c621e5cfcedf2de934c8046595dbb9f7aa59e607",
+  "source_checkout": "/tmp/ohmnivore-emi01-v1-source",
+  "method": "Canonical Bazel audit from detached historical source against unchanged absolute original evidence paths; no new simulations or performance samples.",
+  "checks": [
+    {
+      "run": 1,
+      "log": "v1-run-1-audit.log",
+      "sha256": "cdf881a3d0852a9264f1f4609477074a4fd65bf92ef6d0711799ae2b8a122280",
+      "exit_code": 0,
+      "counts": {
+        "expected": 102,
+        "failures": 0,
+        "terminal": 102,
+        "validated": 102
+      }
+    },
+    {
+      "run": 2,
+      "log": "v1-run-2-audit.log",
+      "sha256": "310fdabe3581e8ecdac678cf0fc1595d4b07523d64b689f150464d5fa10229a8",
+      "exit_code": 0,
+      "counts": {
+        "expected": 102,
+        "failures": 0,
+        "terminal": 102,
+        "validated": 102
+      }
+    }
+  ]
+}

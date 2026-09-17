@@ -1,5 +1,18 @@
 package(default_visibility = ["//visibility:private"])
 
+filegroup(
+    name = "emi01_provenance_inputs",
+    srcs = [
+        ".bazelrc",
+        ".bazelversion",
+        "BUILD.bazel",
+        "MODULE.bazel",
+        "MODULE.bazel.lock",
+        "docs/adr/ADR-002-inverter-emi-design-study.md",
+    ],
+    visibility = ["//reference/emi01:__pkg__"],
+)
+
 exports_files(
     [
         ".bazelrc",

@@ -1,0 +1,17 @@
+{
+  "status": "pass",
+  "scope": "Post-measurement diagnostic validation; no simulation or gate changes",
+  "frozen_source_commit": "8e45b4232741b82ec476fb6904b80f774eaf31d0",
+  "change": "Explicitly convert independently derived DPT ringing frequency to Python float and refinement pass values to Python bool for JSON; add DPT report serialization regression. Comparisons and thresholds unchanged.",
+  "historical_validation": "helper-checks.json",
+  "files": {
+    "docs/evidence/emi01-v2/review/independent_numerical_review.py": "bcf5da9b1dd6963612c0e7e0b6b9e2cc9b7f71858b8542f804770138278911c3",
+    "docs/evidence/emi01-v2/review/independent_numerical_review_test.py": "dd8b3db3c083efc313c0aa527956f511abecd5a613390c23d20ffdb385fb9476",
+    "docs/evidence/emi01-v2/review/helper-checks-final.log": "88443826022bd50aee70edfa489be5f0d31cb60668849df4bb0f4e003cd760ca",
+    "reference/emi01/manifest-v2.json": "ec68ddb48866d8127fbdd0ecf411dfc326b6c7bc7929c10429e40edd9cd2c81f"
+  },
+  "numerical_reports": {
+    "retained-run-1-numerical.json": "9cf316206196a32d92fce873b9e02fe3189702e1cbfda302c3493f66b4cf1283",
+    "retained-run-2-numerical.json": "2d9151ad2b2a6eeaafda3b51518389d42ece3097fc7c53b5923784175302b88c"
+  }
+}

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/adam/code/ohmnivore/docs/evidence/emi01/review/runtime_identity_audit.py", line 58, in <module>
+    assert metadata[key] == value, (directory, key, "runtime identity mismatch")
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (PosixPath('docs/evidence/emi01/run-1'), 'ngspice_sha256', 'runtime identity mismatch')

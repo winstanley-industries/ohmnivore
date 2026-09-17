@@ -1,0 +1,2099 @@
+{
+  "budget_label": "Counterfactual FIFO model from measured complete-job service; no GPU implementation or GPU measurements. Infinite simulator-process acceleration retains validation, output and fitted scheduling overhead. Factor+solve-only Amdahl ceilings are a separate optimistic analysis-time model with nested timers.",
+  "independence_label": "Distinct invocation paths and terminal SHA256 records are required. This rejects accidental duplicate input/copies; independent execution provenance is not cryptographic proof of separate physical runs.",
+  "runs": [
+    {
+      "candidates": {
+        "heavy": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2420.858980800781,
+                "load_winding_loss_surrogate_w": 243.395716379258,
+                "mass_kg": 0.6688346131599999,
+                "research_margin_db": {
+                  "a": -2.7389974707092932,
+                  "b": 0.6338534284851107,
+                  "cm": 6.539770499573777,
+                  "dm": -1.1623079459135823
+                },
+                "rms_chassis_return_a": 1.1538156068868828,
+                "rms_cm_a": 0.09647318258076527,
+                "rms_dm_a": 10.988749050174686,
+                "rms_load_inductor_a": 10.889997366007796,
+                "rms_vcm_v": 295.2265733175272,
+                "rms_vdm_v": 290.4736490027076,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12027264261306973,
+                    "pass": true,
+                    "rms_difference_a": 0.023960554422055545
+                  },
+                  "b": {
+                    "limit_a": 0.11954140511224215,
+                    "pass": true,
+                    "rms_difference_a": 0.022803190937757158
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 716.7255900082221,
+                  "cm_peak_t": 0.26929464667305547,
+                  "damping_a_w": 2.0115136287953934,
+                  "damping_b_w": 5.048985418988275,
+                  "device_peak_a": 30.872037863259422,
+                  "device_peak_v": 605.3140243583601,
+                  "dm_peak_t": 0.16491493365234505,
+                  "loss_w": 58.40804481552862,
+                  "winding_rms_a": 15.596287092109995
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 3715.59145022241,
+                "load_winding_loss_surrogate_w": 589.9030526687872,
+                "mass_kg": 0.6688346131599999,
+                "research_margin_db": {
+                  "a": -6.635040329592513,
+                  "b": -3.2040081447989763,
+                  "cm": 5.001007117140702,
+                  "dm": -5.034732732958531
+                },
+                "rms_chassis_return_a": 1.3017228062855666,
+                "rms_cm_a": 0.1364358555139548,
+                "rms_dm_a": 13.599092565266982,
+                "rms_load_inductor_a": 13.413131538464445,
+                "rms_vcm_v": 316.06817006750003,
+                "rms_vdm_v": 400.55264128652806,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.1464080062563196,
+                    "pass": true,
+                    "rms_difference_a": 0.04198030521967858
+                  },
+                  "b": {
+                    "limit_a": 0.14550280699745086,
+                    "pass": true,
+                    "rms_difference_a": 0.041920018362853105
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 807.488220163318,
+                  "cm_peak_t": 0.28642184946904786,
+                  "damping_a_w": 2.1318822498089616,
+                  "damping_b_w": 6.803155261182974,
+                  "device_peak_a": 35.02466002071937,
+                  "device_peak_v": 645.8017395614694,
+                  "dm_peak_t": 0.18029565778810822,
+                  "loss_w": 107.35549543327076,
+                  "winding_rms_a": 20.017083474498428
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1723.4248668915611,
+                "load_winding_loss_surrogate_w": 98.1149658225666,
+                "mass_kg": 0.6688346131599999,
+                "research_margin_db": {
+                  "a": -0.09361578225814071,
+                  "b": 2.8921895027563806,
+                  "cm": 2.892277441997905,
+                  "dm": 1.6921232744361703
+                },
+                "rms_chassis_return_a": 1.430584013276175,
+                "rms_cm_a": 0.14026173412828966,
+                "rms_dm_a": 9.275292189029427,
+                "rms_load_inductor_a": 9.230087101641544,
+                "rms_vcm_v": 339.59670366828107,
+                "rms_vdm_v": 221.9015069577998,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10310268792511587,
+                    "pass": true,
+                    "rms_difference_a": 0.028166836000787784
+                  },
+                  "b": {
+                    "limit_a": 0.10240935899740812,
+                    "pass": true,
+                    "rms_difference_a": 0.02942369369013001
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 795.8185422453074,
+                  "cm_peak_t": 0.34564106405611184,
+                  "damping_a_w": 4.2068666158658115,
+                  "damping_b_w": 6.971796589574892,
+                  "device_peak_a": 29.045344016975946,
+                  "device_peak_v": 556.0839849671515,
+                  "dm_peak_t": 0.14976429192659882,
+                  "loss_w": 37.282224830177,
+                  "winding_rms_a": 12.359618548953609
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.6688346131599999
+        },
+        "light": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2273.687167025719,
+                "load_winding_loss_surrogate_w": 379.2541315116564,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -36.03702063061384,
+                  "b": -35.910097010491484,
+                  "cm": -18.48699445874206,
+                  "dm": -35.970980614586296
+                },
+                "rms_chassis_return_a": 1.3415574240666288,
+                "rms_cm_a": 0.29711704334138334,
+                "rms_dm_a": 10.64146720986781,
+                "rms_load_inductor_a": 10.482925395488767,
+                "rms_vcm_v": 290.2634687111314,
+                "rms_vdm_v": 317.4927122996119,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11633288118100325,
+                    "pass": true,
+                    "rms_difference_a": 0.03236981772782331
+                  },
+                  "b": {
+                    "limit_a": 0.11658147251352441,
+                    "pass": true,
+                    "rms_difference_a": 0.0324000562534337
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 957.9971280434755,
+                  "cm_peak_t": 0.3467775857932525,
+                  "damping_a_w": 1.6570887557057796,
+                  "damping_b_w": 1.4453970130036462,
+                  "device_peak_a": 33.35915977265912,
+                  "device_peak_v": 605.1786770939517,
+                  "dm_peak_t": 0.11416305337962342,
+                  "loss_w": 19.49245648159602,
+                  "winding_rms_a": 12.39196775317563
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2702.355581755712,
+                "load_winding_loss_surrogate_w": 359.0574701022599,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -34.15037876250537,
+                  "b": -33.76237397036847,
+                  "cm": -24.33328728907236,
+                  "dm": -33.95279475853846
+                },
+                "rms_chassis_return_a": 2.01618708788019,
+                "rms_cm_a": 0.5728576796243996,
+                "rms_dm_a": 11.602401579796412,
+                "rms_load_inductor_a": 11.468534131454065,
+                "rms_vcm_v": 367.4623745665905,
+                "rms_vdm_v": 326.559047501027,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12591099164461927,
+                    "pass": true,
+                    "rms_difference_a": 0.059218389061939235
+                  },
+                  "b": {
+                    "limit_a": 0.1263993017934443,
+                    "pass": true,
+                    "rms_difference_a": 0.059292500216133456
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1203.7525332831037,
+                  "cm_peak_t": 0.46683185074540284,
+                  "damping_a_w": 3.024423861927949,
+                  "damping_b_w": 2.872286389777602,
+                  "device_peak_a": 32.01542303343529,
+                  "device_peak_v": 645.6347909171723,
+                  "dm_peak_t": 0.10725456255660572,
+                  "loss_w": 18.42347873700169,
+                  "winding_rms_a": 12.656687811522225
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1897.8402635991126,
+                "load_winding_loss_surrogate_w": 440.6834085957743,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -37.60152867912544,
+                  "b": -37.74343460178693,
+                  "cm": -9.171698683823394,
+                  "dm": -37.669422836291076
+                },
+                "rms_chassis_return_a": 0.9438983578126753,
+                "rms_cm_a": 0.17370370007879182,
+                "rms_dm_a": 9.709766096668801,
+                "rms_load_inductor_a": 9.512372380688848,
+                "rms_vcm_v": 237.71453194152025,
+                "rms_vdm_v": 319.25064739925256,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10694747826939817,
+                    "pass": true,
+                    "rms_difference_a": 0.019508796445173636
+                  },
+                  "b": {
+                    "limit_a": 0.10727871807010234,
+                    "pass": true,
+                    "rms_difference_a": 0.019506302380522277
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 706.6401735514075,
+                  "cm_peak_t": 0.2692443614421435,
+                  "damping_a_w": 0.9315945846804887,
+                  "damping_b_w": 0.4535351541070168,
+                  "device_peak_a": 37.9245825207188,
+                  "device_peak_v": 555.9294369356998,
+                  "dm_peak_t": 0.13793621839417744,
+                  "loss_w": 26.770469215885683,
+                  "winding_rms_a": 13.113873357013414
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.22858676859999996
+        },
+        "medium": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2402.929079094195,
+                "load_winding_loss_surrogate_w": 262.91455140989154,
+                "mass_kg": 0.40374589815999995,
+                "research_margin_db": {
+                  "a": -19.322090423390506,
+                  "b": -14.175722567121852,
+                  "cm": -7.8637079195257655,
+                  "dm": -16.96682282307927
+                },
+                "rms_chassis_return_a": 1.3677058853365767,
+                "rms_cm_a": 0.19845189090432142,
+                "rms_dm_a": 10.946817654582546,
+                "rms_load_inductor_a": 10.840594437155673,
+                "rms_vcm_v": 334.12562314687545,
+                "rms_vdm_v": 294.5746133720184,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11937630382323768,
+                    "pass": true,
+                    "rms_difference_a": 0.032729817700801966
+                  },
+                  "b": {
+                    "limit_a": 0.11958424074906933,
+                    "pass": true,
+                    "rms_difference_a": 0.034158500404994165
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 955.0656441644394,
+                  "cm_peak_t": 0.2931915637274948,
+                  "damping_a_w": 2.962121117565134,
+                  "damping_b_w": 3.1009702627123468,
+                  "device_peak_a": 34.093869219546306,
+                  "device_peak_v": 605.6574409007771,
+                  "dm_peak_t": 0.10865826161152863,
+                  "loss_w": 19.02416262614843,
+                  "winding_rms_a": 11.030013099395866
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2818.3426602409036,
+                "load_winding_loss_surrogate_w": 286.19011601657843,
+                "mass_kg": 0.40374589815999995,
+                "research_margin_db": {
+                  "a": -23.363403710014126,
+                  "b": -16.247578273629117,
+                  "cm": -13.768509780047708,
+                  "dm": -20.24190974785958
+                },
+                "rms_chassis_return_a": 1.4960562121393277,
+                "rms_cm_a": 0.26453812244162317,
+                "rms_dm_a": 11.8536092630269,
+                "rms_load_inductor_a": 11.749702334779577,
+                "rms_vcm_v": 355.9927734324243,
+                "rms_vdm_v": 313.9913852391005,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12848064716769803,
+                    "pass": true,
+                    "rms_difference_a": 0.036589545489433634
+                  },
+                  "b": {
+                    "limit_a": 0.12865017500835152,
+                    "pass": true,
+                    "rms_difference_a": 0.036749948989107974
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1033.231949988598,
+                  "cm_peak_t": 0.29448159199002066,
+                  "damping_a_w": 2.975088818867162,
+                  "damping_b_w": 3.084713323058949,
+                  "device_peak_a": 34.96802221228288,
+                  "device_peak_v": 646.2229742201001,
+                  "dm_peak_t": 0.10720060344082054,
+                  "loss_w": 18.719352948691025,
+                  "winding_rms_a": 11.835604941478021
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 2033.0768019081975,
+                "load_winding_loss_surrogate_w": 238.7284113036796,
+                "mass_kg": 0.40374589815999995,
+                "research_margin_db": {
+                  "a": -16.136384490205856,
+                  "b": -11.813305999286442,
+                  "cm": -3.0435550289401476,
+                  "dm": -14.169072238577627
+                },
+                "rms_chassis_return_a": 2.080553665902875,
+                "rms_cm_a": 0.34817375852025856,
+                "rms_dm_a": 10.065407551440973,
+                "rms_load_inductor_a": 9.963083715408066,
+                "rms_vcm_v": 427.2059226584052,
+                "rms_vdm_v": 275.2519596642934,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11066278671823147,
+                    "pass": true,
+                    "rms_difference_a": 0.06393669706419948
+                  },
+                  "b": {
+                    "limit_a": 0.11079940911785474,
+                    "pass": true,
+                    "rms_difference_a": 0.06287602355325936
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1102.8844128735673,
+                  "cm_peak_t": 0.4799840516694408,
+                  "damping_a_w": 7.532210952877178,
+                  "damping_b_w": 7.695552887544096,
+                  "device_peak_a": 34.74985588726656,
+                  "device_peak_v": 556.3239719411223,
+                  "dm_peak_t": 0.11017742302925393,
+                  "loss_w": 28.71962450035054,
+                  "winding_rms_a": 10.37509704338723
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.40374589815999995
+        }
+      },
+      "counts": {
+        "expected": 102,
+        "failures": 0,
+        "terminal": 102,
+        "validated": 102
+      },
+      "dpt": {
+        "metrics": {
+          "gate_dynamics": {
+            "drop_limits_v": [
+              0.2,
+              30.0
+            ],
+            "half_crossing_gate_limits_v": [
+              -3.0,
+              23.0
+            ],
+            "on_edge_gate_drop_v": 1.3678578261032825,
+            "pass": true
+          },
+          "load_at_second_on_a": 17.973026628519374,
+          "min_gate_v": -3.329786219313353,
+          "min_v": -20.097779776282223,
+          "off_edge_s": 1.2694124761677617e-08,
+          "off_energy_j": 4.3582497110869074e-05,
+          "off_gate_at_vds_10_50_90_v": [
+            3.24799002137182,
+            0.327632075085355,
+            0.4359346628221983
+          ],
+          "off_half_s": 1.4034719997133342e-05,
+          "on_edge_s": 1.7121127944366664e-08,
+          "on_energy_j": 0.00012423661423910045,
+          "on_gate_at_vds_10_50_90_v": [
+            9.17956128453296,
+            15.65121912919421,
+            10.547419110636243
+          ],
+          "on_half_s": 1.2024834434928135e-05,
+          "pass": true,
+          "peak_gate_v": 24.263432739970597,
+          "peak_v": 440.1084107808785,
+          "ringing": {
+            "frequency_hz": 66115702.47933827,
+            "log_decrement": 0.608456833006777,
+            "peak_amplitudes_v": [
+              40.1084107808785,
+              18.668556618221885,
+              11.877815201980411
+            ],
+            "peak_times_s": [
+              1.4045e-05,
+              1.4060000000000001e-05,
+              1.407525e-05
+            ],
+            "polarity": "positive",
+            "residual_reference_v": 400.0,
+            "status": "measured"
+          },
+          "sample_step_s": 2.5e-10
+        },
+        "status": "qualified"
+      },
+      "failures": [],
+      "invocation_wall_s": 3333.1990831820003,
+      "modes": {
+        "1": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.19874776602955535,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 539.4400698809768,
+              "fixed_non_simulation_service_s": 5.82570406596642,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 539.6388176470064,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 539.6388176470064,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.086987364566548,
+                  "predicted_wall_s": 59.385888413497014,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.977918792893104,
+                  "predicted_wall_s": 272.83163473950117,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8703750330989886,
+                  "predicted_wall_s": 139.42804328574857,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 89.57475845038292,
+                  "predicted_wall_s": 6.024451831995975,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample0",
+              "unmodeled_overhead_s": 0.19874776602955535
+            },
+            {
+              "baseline_residual_s": 0.19944622402545065,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 541.2445221389935,
+              "fixed_non_simulation_service_s": 5.76192328799516,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 541.4439683630189,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 541.4439683630189,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.09842615133507,
+                  "predicted_wall_s": 59.50962939712045,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.978219541902306,
+                  "predicted_wall_s": 273.7026689375198,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.872102908652743,
+                  "predicted_wall_s": 139.8320192247702,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 90.82543319471169,
+                  "predicted_wall_s": 5.96136951202061,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample1",
+              "unmodeled_overhead_s": 0.19944622402545065
+            },
+            {
+              "baseline_residual_s": 0.19730184198124334,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 544.8986777280224,
+              "fixed_non_simulation_service_s": 5.676184388023103,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 545.0959795700037,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 545.0959795700037,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.115967458691813,
+                  "predicted_wall_s": 59.79573556400427,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9786794492450646,
+                  "predicted_wall_s": 275.484732900004,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8747471551071264,
+                  "predicted_wall_s": 140.67910956500418,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 92.8062071185958,
+                  "predicted_wall_s": 5.873486230004346,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample2",
+              "unmodeled_overhead_s": 0.19730184198124334
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 55.531402666005306,
+          "job_p95_s": 76.20577621899429,
+          "job_service_s": 1625.5832697479927,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; three studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1596.443,
+            "factor_plus_solve_fraction_of_analysis": 0.11463702744163118,
+            "factor_plus_solve_s": 183.01148,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1294802595034812,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821000,
+          "peak_worker_rss_kib": 1010104,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 6.110406564141158,
+            "preparation_s": 0.022252088063396513,
+            "required_output_s": 5.980685324029764,
+            "simulation_s": 1608.319458006008,
+            "validation_s": 4.558307892992161
+          },
+          "runner_peak_rss_kib": 1010104,
+          "service_fractions": {
+            "metrics_s": 0.003758900991327518,
+            "preparation_s": 1.3688679305149443e-05,
+            "required_output_s": 0.0036791011788383653,
+            "simulation_s": 0.9893799277691502,
+            "unclassified_cleanup_hashing_fraction": 0.00036427532429639253,
+            "validation_s": 0.002804106057082401
+          },
+          "study_median_s": 541.4439683630189,
+          "study_wall_s": [
+            539.6388176470064,
+            541.4439683630189,
+            545.0959795700037
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 24036600,
+            "analysis_s": 1596.443,
+            "factor_s": 128.9071,
+            "load_s": 748.9965,
+            "newton_iterations": 58019652,
+            "rejected_steps": 3982212,
+            "solve_s": 54.10438
+          },
+          "terminal_status_counts": {
+            "predicted_infeasible": 27
+          },
+          "validated_jobs_per_hour": 59.83998694815444
+        },
+        "4": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.12601221501245163,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 184.8354991179949,
+              "fixed_non_simulation_service_s": 5.993050591030624,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 184.96151133300737,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 184.96151133300737,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.066725336176457,
+                  "predicted_wall_s": 20.40003468451905,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9773844259342899,
+                  "predicted_wall_s": 93.53846875051386,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.867307473271925,
+                  "predicted_wall_s": 47.8269474592671,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 89.09882239631713,
+                  "predicted_wall_s": 2.075914208049653,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample0",
+              "unmodeled_overhead_s": 0.12601221501245163
+            },
+            {
+              "baseline_residual_s": 0.1305919149890542,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 182.36863656301284,
+              "fixed_non_simulation_service_s": 6.092131237062858,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 182.4992284780019,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 182.4992284780019,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.050347872968366,
+                  "predicted_wall_s": 20.16488548722991,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.976950969551139,
+                  "predicted_wall_s": 92.31348237201746,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8648215495277976,
+                  "predicted_wall_s": 47.22060931902524,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 86.99420704046783,
+                  "predicted_wall_s": 2.097831967053935,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample1",
+              "unmodeled_overhead_s": 0.1305919149890542
+            },
+            {
+              "baseline_residual_s": 0.127661803009687,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 184.05931819198304,
+              "fixed_non_simulation_service_s": 6.285233913047705,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 184.18697999499273,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 184.18697999499273,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.010034333092065,
+                  "predicted_wall_s": 20.442428206795014,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.975787761920676,
+                  "predicted_wall_s": 93.22204719799629,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.858548409246569,
+                  "predicted_wall_s": 47.73478532849549,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 86.91529188954799,
+                  "predicted_wall_s": 2.119155053049326,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample2",
+              "unmodeled_overhead_s": 0.127661803009687
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 59.30141760001425,
+          "job_p95_s": 80.0723505379865,
+          "job_service_s": 1706.1729698720155,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; three studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1674.6826,
+            "factor_plus_solve_fraction_of_analysis": 0.11443662219933495,
+            "factor_plus_solve_s": 191.64502,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.12922465525115,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821000,
+          "peak_worker_rss_kib": 1010104,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 6.5022267730673775,
+            "preparation_s": 0.026318118907511234,
+            "required_output_s": 6.512509806983871,
+            "simulation_s": 1687.8025541308743,
+            "validation_s": 4.718443787947763
+          },
+          "runner_peak_rss_kib": 1010104,
+          "service_fractions": {
+            "metrics_s": 0.0038110009289123404,
+            "preparation_s": 1.542523493938919e-05,
+            "required_output_s": 0.003817027887549052,
+            "simulation_s": 0.9892329698890264,
+            "unclassified_cleanup_hashing_fraction": 0.00035806290746742686,
+            "validation_s": 0.0027655131521053845
+          },
+          "study_median_s": 184.18697999499273,
+          "study_wall_s": [
+            184.96151133300737,
+            182.4992284780019,
+            184.18697999499273
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 24036600,
+            "analysis_s": 1674.6826,
+            "factor_s": 135.09162,
+            "load_s": 787.5879,
+            "newton_iterations": 58019652,
+            "rejected_steps": 3982212,
+            "solve_s": 56.553399999999996
+          },
+          "terminal_status_counts": {
+            "predicted_infeasible": 27
+          },
+          "validated_jobs_per_hour": 175.90819937913537
+        }
+      },
+      "one_time_setup_s": 0.2984323730051983,
+      "qualified": true,
+      "terminal_sha256": "68aafdb695edc2e3d50bc08f19a8dcdc0114f2aa0ac88370824051db86409b35",
+      "terminal_status_counts": {
+        "predicted_infeasible": 99,
+        "qualified": 3
+      },
+      "timing_boundary": "Batch study wall excludes once-per-invocation input verification, runtime/source verification and model adaptation, reported separately as one_time_setup_s. Complete invocation_wall_s includes that setup, qualification, warmups, all measured studies, and terminal completion records. Per-job preparation remains inside batch study wall."
+    },
+    {
+      "candidates": {
+        "heavy": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2420.858980800781,
+                "load_winding_loss_surrogate_w": 243.395716379258,
+                "mass_kg": 0.6688346131599999,
+                "research_margin_db": {
+                  "a": -2.7389974707092932,
+                  "b": 0.6338534284851107,
+                  "cm": 6.539770499573777,
+                  "dm": -1.1623079459135823
+                },
+                "rms_chassis_return_a": 1.1538156068868828,
+                "rms_cm_a": 0.09647318258076527,
+                "rms_dm_a": 10.988749050174686,
+                "rms_load_inductor_a": 10.889997366007796,
+                "rms_vcm_v": 295.2265733175272,
+                "rms_vdm_v": 290.4736490027076,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12027264261306973,
+                    "pass": true,
+                    "rms_difference_a": 0.023960554422055545
+                  },
+                  "b": {
+                    "limit_a": 0.11954140511224215,
+                    "pass": true,
+                    "rms_difference_a": 0.022803190937757158
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 716.7255900082221,
+                  "cm_peak_t": 0.26929464667305547,
+                  "damping_a_w": 2.0115136287953934,
+                  "damping_b_w": 5.048985418988275,
+                  "device_peak_a": 30.872037863259422,
+                  "device_peak_v": 605.3140243583601,
+                  "dm_peak_t": 0.16491493365234505,
+                  "loss_w": 58.40804481552862,
+                  "winding_rms_a": 15.596287092109995
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 3715.59145022241,
+                "load_winding_loss_surrogate_w": 589.9030526687872,
+                "mass_kg": 0.6688346131599999,
+                "research_margin_db": {
+                  "a": -6.635040329592513,
+                  "b": -3.2040081447989763,
+                  "cm": 5.001007117140702,
+                  "dm": -5.034732732958531
+                },
+                "rms_chassis_return_a": 1.3017228062855666,
+                "rms_cm_a": 0.1364358555139548,
+                "rms_dm_a": 13.599092565266982,
+                "rms_load_inductor_a": 13.413131538464445,
+                "rms_vcm_v": 316.06817006750003,
+                "rms_vdm_v": 400.55264128652806,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.1464080062563196,
+                    "pass": true,
+                    "rms_difference_a": 0.04198030521967858
+                  },
+                  "b": {
+                    "limit_a": 0.14550280699745086,
+                    "pass": true,
+                    "rms_difference_a": 0.041920018362853105
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 807.488220163318,
+                  "cm_peak_t": 0.28642184946904786,
+                  "damping_a_w": 2.1318822498089616,
+                  "damping_b_w": 6.803155261182974,
+                  "device_peak_a": 35.02466002071937,
+                  "device_peak_v": 645.8017395614694,
+                  "dm_peak_t": 0.18029565778810822,
+                  "loss_w": 107.35549543327076,
+                  "winding_rms_a": 20.017083474498428
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1723.4248668915611,
+                "load_winding_loss_surrogate_w": 98.1149658225666,
+                "mass_kg": 0.6688346131599999,
+                "research_margin_db": {
+                  "a": -0.09361578225814071,
+                  "b": 2.8921895027563806,
+                  "cm": 2.892277441997905,
+                  "dm": 1.6921232744361703
+                },
+                "rms_chassis_return_a": 1.430584013276175,
+                "rms_cm_a": 0.14026173412828966,
+                "rms_dm_a": 9.275292189029427,
+                "rms_load_inductor_a": 9.230087101641544,
+                "rms_vcm_v": 339.59670366828107,
+                "rms_vdm_v": 221.9015069577998,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10310268792511587,
+                    "pass": true,
+                    "rms_difference_a": 0.028166836000787784
+                  },
+                  "b": {
+                    "limit_a": 0.10240935899740812,
+                    "pass": true,
+                    "rms_difference_a": 0.02942369369013001
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 795.8185422453074,
+                  "cm_peak_t": 0.34564106405611184,
+                  "damping_a_w": 4.2068666158658115,
+                  "damping_b_w": 6.971796589574892,
+                  "device_peak_a": 29.045344016975946,
+                  "device_peak_v": 556.0839849671515,
+                  "dm_peak_t": 0.14976429192659882,
+                  "loss_w": 37.282224830177,
+                  "winding_rms_a": 12.359618548953609
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.6688346131599999
+        },
+        "light": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2273.687167025719,
+                "load_winding_loss_surrogate_w": 379.2541315116564,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -36.03702063061384,
+                  "b": -35.910097010491484,
+                  "cm": -18.48699445874206,
+                  "dm": -35.970980614586296
+                },
+                "rms_chassis_return_a": 1.3415574240666288,
+                "rms_cm_a": 0.29711704334138334,
+                "rms_dm_a": 10.64146720986781,
+                "rms_load_inductor_a": 10.482925395488767,
+                "rms_vcm_v": 290.2634687111314,
+                "rms_vdm_v": 317.4927122996119,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11633288118100325,
+                    "pass": true,
+                    "rms_difference_a": 0.03236981772782331
+                  },
+                  "b": {
+                    "limit_a": 0.11658147251352441,
+                    "pass": true,
+                    "rms_difference_a": 0.0324000562534337
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 957.9971280434755,
+                  "cm_peak_t": 0.3467775857932525,
+                  "damping_a_w": 1.6570887557057796,
+                  "damping_b_w": 1.4453970130036462,
+                  "device_peak_a": 33.35915977265912,
+                  "device_peak_v": 605.1786770939517,
+                  "dm_peak_t": 0.11416305337962342,
+                  "loss_w": 19.49245648159602,
+                  "winding_rms_a": 12.39196775317563
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2702.355581755712,
+                "load_winding_loss_surrogate_w": 359.0574701022599,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -34.15037876250537,
+                  "b": -33.76237397036847,
+                  "cm": -24.33328728907236,
+                  "dm": -33.95279475853846
+                },
+                "rms_chassis_return_a": 2.01618708788019,
+                "rms_cm_a": 0.5728576796243996,
+                "rms_dm_a": 11.602401579796412,
+                "rms_load_inductor_a": 11.468534131454065,
+                "rms_vcm_v": 367.4623745665905,
+                "rms_vdm_v": 326.559047501027,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12591099164461927,
+                    "pass": true,
+                    "rms_difference_a": 0.059218389061939235
+                  },
+                  "b": {
+                    "limit_a": 0.1263993017934443,
+                    "pass": true,
+                    "rms_difference_a": 0.059292500216133456
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1203.7525332831037,
+                  "cm_peak_t": 0.46683185074540284,
+                  "damping_a_w": 3.024423861927949,
+                  "damping_b_w": 2.872286389777602,
+                  "device_peak_a": 32.01542303343529,
+                  "device_peak_v": 645.6347909171723,
+                  "dm_peak_t": 0.10725456255660572,
+                  "loss_w": 18.42347873700169,
+                  "winding_rms_a": 12.656687811522225
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 1897.8402635991126,
+                "load_winding_loss_surrogate_w": 440.6834085957743,
+                "mass_kg": 0.22858676859999996,
+                "research_margin_db": {
+                  "a": -37.60152867912544,
+                  "b": -37.74343460178693,
+                  "cm": -9.171698683823394,
+                  "dm": -37.669422836291076
+                },
+                "rms_chassis_return_a": 0.9438983578126753,
+                "rms_cm_a": 0.17370370007879182,
+                "rms_dm_a": 9.709766096668801,
+                "rms_load_inductor_a": 9.512372380688848,
+                "rms_vcm_v": 237.71453194152025,
+                "rms_vdm_v": 319.25064739925256,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.10694747826939817,
+                    "pass": true,
+                    "rms_difference_a": 0.019508796445173636
+                  },
+                  "b": {
+                    "limit_a": 0.10727871807010234,
+                    "pass": true,
+                    "rms_difference_a": 0.019506302380522277
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 706.6401735514075,
+                  "cm_peak_t": 0.2692443614421435,
+                  "damping_a_w": 0.9315945846804887,
+                  "damping_b_w": 0.4535351541070168,
+                  "device_peak_a": 37.9245825207188,
+                  "device_peak_v": 555.9294369356998,
+                  "dm_peak_t": 0.13793621839417744,
+                  "loss_w": 26.770469215885683,
+                  "winding_rms_a": 13.113873357013414
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "winding_rms_a",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.22858676859999996
+        },
+        "medium": {
+          "corners": [
+            {
+              "id": "nominal",
+              "metrics": {
+                "load_series_resistor_w": 2402.929079094195,
+                "load_winding_loss_surrogate_w": 262.91455140989154,
+                "mass_kg": 0.40374589815999995,
+                "research_margin_db": {
+                  "a": -19.322090423390506,
+                  "b": -14.175722567121852,
+                  "cm": -7.8637079195257655,
+                  "dm": -16.96682282307927
+                },
+                "rms_chassis_return_a": 1.3677058853365767,
+                "rms_cm_a": 0.19845189090432142,
+                "rms_dm_a": 10.946817654582546,
+                "rms_load_inductor_a": 10.840594437155673,
+                "rms_vcm_v": 334.12562314687545,
+                "rms_vdm_v": 294.5746133720184,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11937630382323768,
+                    "pass": true,
+                    "rms_difference_a": 0.032729817700801966
+                  },
+                  "b": {
+                    "limit_a": 0.11958424074906933,
+                    "pass": true,
+                    "rms_difference_a": 0.034158500404994165
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 955.0656441644394,
+                  "cm_peak_t": 0.2931915637274948,
+                  "damping_a_w": 2.962121117565134,
+                  "damping_b_w": 3.1009702627123468,
+                  "device_peak_a": 34.093869219546306,
+                  "device_peak_v": 605.6574409007771,
+                  "dm_peak_t": 0.10865826161152863,
+                  "loss_w": 19.02416262614843,
+                  "winding_rms_a": 11.030013099395866
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "fast_low_lc",
+              "metrics": {
+                "load_series_resistor_w": 2818.3426602409036,
+                "load_winding_loss_surrogate_w": 286.19011601657843,
+                "mass_kg": 0.40374589815999995,
+                "research_margin_db": {
+                  "a": -23.363403710014126,
+                  "b": -16.247578273629117,
+                  "cm": -13.768509780047708,
+                  "dm": -20.24190974785958
+                },
+                "rms_chassis_return_a": 1.4960562121393277,
+                "rms_cm_a": 0.26453812244162317,
+                "rms_dm_a": 11.8536092630269,
+                "rms_load_inductor_a": 11.749702334779577,
+                "rms_vcm_v": 355.9927734324243,
+                "rms_vdm_v": 313.9913852391005,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.12848064716769803,
+                    "pass": true,
+                    "rms_difference_a": 0.036589545489433634
+                  },
+                  "b": {
+                    "limit_a": 0.12865017500835152,
+                    "pass": true,
+                    "rms_difference_a": 0.036749948989107974
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1033.231949988598,
+                  "cm_peak_t": 0.29448159199002066,
+                  "damping_a_w": 2.975088818867162,
+                  "damping_b_w": 3.084713323058949,
+                  "device_peak_a": 34.96802221228288,
+                  "device_peak_v": 646.2229742201001,
+                  "dm_peak_t": 0.10720060344082054,
+                  "loss_w": 18.719352948691025,
+                  "winding_rms_a": 11.835604941478021
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            },
+            {
+              "id": "hot_high_c",
+              "metrics": {
+                "load_series_resistor_w": 2033.0768019081975,
+                "load_winding_loss_surrogate_w": 238.7284113036796,
+                "mass_kg": 0.40374589815999995,
+                "research_margin_db": {
+                  "a": -16.136384490205856,
+                  "b": -11.813305999286442,
+                  "cm": -3.0435550289401476,
+                  "dm": -14.169072238577627
+                },
+                "rms_chassis_return_a": 2.080553665902875,
+                "rms_cm_a": 0.34817375852025856,
+                "rms_dm_a": 10.065407551440973,
+                "rms_load_inductor_a": 9.963083715408066,
+                "rms_vcm_v": 427.2059226584052,
+                "rms_vdm_v": 275.2519596642934,
+                "settling": {
+                  "a": {
+                    "limit_a": 0.11066278671823147,
+                    "pass": true,
+                    "rms_difference_a": 0.06393669706419948
+                  },
+                  "b": {
+                    "limit_a": 0.11079940911785474,
+                    "pass": true,
+                    "rms_difference_a": 0.06287602355325936
+                  }
+                },
+                "status": "predicted_infeasible",
+                "stress": {
+                  "capacitor_peak_v": 1102.8844128735673,
+                  "cm_peak_t": 0.4799840516694408,
+                  "damping_a_w": 7.532210952877178,
+                  "damping_b_w": 7.695552887544096,
+                  "device_peak_a": 34.74985588726656,
+                  "device_peak_v": 556.3239719411223,
+                  "dm_peak_t": 0.11017742302925393,
+                  "loss_w": 28.71962450035054,
+                  "winding_rms_a": 10.37509704338723
+                },
+                "stress_limits": {
+                  "capacitor_peak_v": 504,
+                  "cm_peak_t": 0.2,
+                  "damping_a_w": 12,
+                  "damping_b_w": 12,
+                  "device_peak_a": 50,
+                  "device_peak_v": 960,
+                  "dm_peak_t": 0.2,
+                  "loss_w": 25,
+                  "winding_rms_a": 12
+                },
+                "violations": [
+                  "capacitor_peak_v",
+                  "loss_w",
+                  "cm_peak_t",
+                  "research_mask_a",
+                  "research_mask_b",
+                  "research_mask_cm",
+                  "research_mask_dm"
+                ]
+              },
+              "status": "predicted_infeasible"
+            }
+          ],
+          "mass_kg": 0.40374589815999995
+        }
+      },
+      "counts": {
+        "expected": 102,
+        "failures": 0,
+        "terminal": 102,
+        "validated": 102
+      },
+      "dpt": {
+        "metrics": {
+          "gate_dynamics": {
+            "drop_limits_v": [
+              0.2,
+              30.0
+            ],
+            "half_crossing_gate_limits_v": [
+              -3.0,
+              23.0
+            ],
+            "on_edge_gate_drop_v": 1.3678578261032825,
+            "pass": true
+          },
+          "load_at_second_on_a": 17.973026628519374,
+          "min_gate_v": -3.329786219313353,
+          "min_v": -20.097779776282223,
+          "off_edge_s": 1.2694124761677617e-08,
+          "off_energy_j": 4.3582497110869074e-05,
+          "off_gate_at_vds_10_50_90_v": [
+            3.24799002137182,
+            0.327632075085355,
+            0.4359346628221983
+          ],
+          "off_half_s": 1.4034719997133342e-05,
+          "on_edge_s": 1.7121127944366664e-08,
+          "on_energy_j": 0.00012423661423910045,
+          "on_gate_at_vds_10_50_90_v": [
+            9.17956128453296,
+            15.65121912919421,
+            10.547419110636243
+          ],
+          "on_half_s": 1.2024834434928135e-05,
+          "pass": true,
+          "peak_gate_v": 24.263432739970597,
+          "peak_v": 440.1084107808785,
+          "ringing": {
+            "frequency_hz": 66115702.47933827,
+            "log_decrement": 0.608456833006777,
+            "peak_amplitudes_v": [
+              40.1084107808785,
+              18.668556618221885,
+              11.877815201980411
+            ],
+            "peak_times_s": [
+              1.4045e-05,
+              1.4060000000000001e-05,
+              1.407525e-05
+            ],
+            "polarity": "positive",
+            "residual_reference_v": 400.0,
+            "status": "measured"
+          },
+          "sample_step_s": 2.5e-10
+        },
+        "status": "qualified"
+      },
+      "failures": [],
+      "invocation_wall_s": 3338.4802659800043,
+      "modes": {
+        "1": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.1943708759790752,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 540.8363070620399,
+              "fixed_non_simulation_service_s": 5.727422516967636,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 541.0306779380189,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 541.0306779380189,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.103251967102615,
+                  "predicted_wall_s": 59.432681847453935,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9783462231058706,
+                  "predicted_wall_s": 273.4762356654828,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8728310272000885,
+                  "predicted_wall_s": 139.69901452921476,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 91.3626400040275,
+                  "predicted_wall_s": 5.921793392946711,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample0",
+              "unmodeled_overhead_s": 0.1943708759790752
+            },
+            {
+              "baseline_residual_s": 0.19833118695532903,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 536.8810863790277,
+              "fixed_non_simulation_service_s": 5.761607973021455,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 537.079417565983,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 537.079417565983,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.091963112008479,
+                  "predicted_wall_s": 59.07188700057741,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.978049697186186,
+                  "predicted_wall_s": 271.5196783629799,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8711269848247425,
+                  "predicted_wall_s": 138.73980876147834,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 90.1149161341565,
+                  "predicted_wall_s": 5.959939159976784,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample1",
+              "unmodeled_overhead_s": 0.19833118695532903
+            },
+            {
+              "baseline_residual_s": 0.20060319497133605,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 537.8758433410258,
+              "fixed_non_simulation_service_s": 5.775707031018101,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 538.0764465359971,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 538.0764465359971,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.091229383263133,
+                  "predicted_wall_s": 59.1863238569902,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9780304018251524,
+                  "predicted_wall_s": 272.02637838099326,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.871016134643829,
+                  "predicted_wall_s": 139.00134430349135,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 90.0348921306061,
+                  "predicted_wall_s": 5.976310225989437,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w1-sample2",
+              "unmodeled_overhead_s": 0.20060319497133605
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 55.028112729021814,
+          "job_p95_s": 76.20752631101641,
+          "job_service_s": 1615.5932367820933,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; three studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1587.3077,
+            "factor_plus_solve_fraction_of_analysis": 0.1153933166203377,
+            "factor_plus_solve_s": 183.1647,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1304459018775153,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821000,
+          "peak_worker_rss_kib": 1014552,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 6.137583636969794,
+            "preparation_s": 0.022204239008715376,
+            "required_output_s": 5.8598338500305545,
+            "simulation_s": 1598.328499261086,
+            "validation_s": 4.651542470935965
+          },
+          "runner_peak_rss_kib": 1014552,
+          "service_fractions": {
+            "metrics_s": 0.003798965913718797,
+            "preparation_s": 1.3743706338447752e-05,
+            "required_output_s": 0.0036270477720630077,
+            "simulation_s": 0.9893136854451094,
+            "unclassified_cleanup_hashing_fraction": 0.00036740270418833543,
+            "validation_s": 0.0028791544585819234
+          },
+          "study_median_s": 538.0764465359971,
+          "study_wall_s": [
+            541.0306779380189,
+            537.079417565983,
+            538.0764465359971
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 24036600,
+            "analysis_s": 1587.3077,
+            "factor_s": 129.1644,
+            "load_s": 744.7982,
+            "newton_iterations": 58019652,
+            "rejected_steps": 3982212,
+            "solve_s": 54.0003
+          },
+          "terminal_status_counts": {
+            "predicted_infeasible": 27
+          },
+          "validated_jobs_per_hour": 60.21449221311057
+        },
+        "4": {
+          "counterfactual_budget": [
+            {
+              "baseline_residual_s": 0.1275057760067284,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 184.4465601950069,
+              "fixed_non_simulation_service_s": 6.059568758995738,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 184.57406597101362,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 184.57406597101362,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.051239079367793,
+                  "predicted_wall_s": 20.392132430989292,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9769745922475368,
+                  "predicted_wall_s": 93.36188067100011,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.864956974217978,
+                  "predicted_wall_s": 47.75578802099335,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 86.29577214136295,
+                  "predicted_wall_s": 2.138854099001037,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample0",
+              "unmodeled_overhead_s": 0.1275057760067284
+            },
+            {
+              "baseline_residual_s": 0.13076727197039872,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 186.08893232003902,
+              "fixed_non_simulation_service_s": 6.140730675979285,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 186.21969959200942,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 186.21969959200942,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.052051391546467,
+                  "predicted_wall_s": 20.572099244367564,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9764733999738842,
+                  "predicted_wall_s": 94.21816635350115,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.8620850692565356,
+                  "predicted_wall_s": 48.21739973424701,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 89.23732594225926,
+                  "predicted_wall_s": 2.086791570967762,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample1",
+              "unmodeled_overhead_s": 0.13076727197039872
+            },
+            {
+              "baseline_residual_s": 0.12687174198799767,
+              "calibration_status": "nonnegative_residual",
+              "fifo_model_wall_s": 185.25925281902892,
+              "fixed_non_simulation_service_s": 6.202453496051021,
+              "label": "Model only, no GPU measurement. Scale the complete simulator-process phase, including launch, netlist parsing, initialization, integration and raw output. Preserve other measured job service and nonnegative fitted scheduling/startup/summary overhead. A negative signed residual is exposed, not interpreted as negative overhead; speed=1 then does not reproduce measured wall time.",
+              "measured_wall_s": 185.3861245610169,
+              "simulation_only_acceleration": {
+                "1": {
+                  "predicted_speedup": 1.0,
+                  "predicted_wall_s": 185.3861245610169,
+                  "unbounded_ideal_model": false
+                },
+                "10": {
+                  "predicted_speedup": 9.048001392040865,
+                  "predicted_wall_s": 20.489179491516552,
+                  "unbounded_ideal_model": false
+                },
+                "2": {
+                  "predicted_speedup": 1.9763333768809692,
+                  "predicted_wall_s": 93.80306315202324,
+                  "unbounded_ideal_model": false
+                },
+                "4": {
+                  "predicted_speedup": 3.862240612227256,
+                  "predicted_wall_s": 47.99963108826341,
+                  "unbounded_ideal_model": false
+                },
+                "infinite": {
+                  "predicted_speedup": 86.09385419575352,
+                  "predicted_wall_s": 2.1533026520046405,
+                  "unbounded_ideal_model": false
+                }
+              },
+              "status": "counterfactual",
+              "study": "w4-sample2",
+              "unmodeled_overhead_s": 0.12687174198799767
+            }
+          ],
+          "counts": {
+            "expected": 27,
+            "failures": 0,
+            "terminal": 27,
+            "validated": 27
+          },
+          "job_median_s": 58.98616733899689,
+          "job_p95_s": 81.1984768770053,
+          "job_service_s": 1715.7168960920535,
+          "latency_label": "Empirical nearest-rank P95 over 27 measured jobs; three studies do not estimate a population tail. Failed-job service may be unavailable/zero; inspect failure counts.",
+          "linear_algebra_budget": {
+            "analysis_s": 1684.4427,
+            "factor_plus_solve_fraction_of_analysis": 0.11440460396782864,
+            "factor_plus_solve_s": 192.708,
+            "label": "Optimistic Amdahl model for removing only measured matrix factorization+solve from ngspice analysis; zero acceleration overhead assumed. The remaining analysis work is serial. Factor/solve timers are nested inside analysis, not additional wall-time phases. Excludes process launch, external validation/output, scheduling, data transfer and GPU setup; not an end-to-end or measured GPU speedup.",
+            "optimistic_analysis_only_speedup_ceiling": 1.1291838287330849,
+            "status": "counterfactual",
+            "unbounded_ideal_model": false
+          },
+          "peak_child_rss_kib": 821000,
+          "peak_worker_rss_kib": 1014552,
+          "phase_observed_jobs": {
+            "metrics_s": 27,
+            "preparation_s": 27,
+            "required_output_s": 27,
+            "simulation_s": 27,
+            "validation_s": 27
+          },
+          "phase_service_totals_s": {
+            "metrics_s": 6.459443923959043,
+            "preparation_s": 0.027369439107133076,
+            "required_output_s": 6.536437453964027,
+            "simulation_s": 1697.3141431610275,
+            "validation_s": 4.772183860040968
+          },
+          "runner_peak_rss_kib": 1014552,
+          "service_fractions": {
+            "metrics_s": 0.003764865834609391,
+            "preparation_s": 1.5952188364801546e-05,
+            "required_output_s": 0.0038097412625895865,
+            "simulation_s": 0.9892740154433738,
+            "unclassified_cleanup_hashing_fraction": 0.0003539734645838788,
+            "validation_s": 0.002781451806478524
+          },
+          "study_median_s": 185.3861245610169,
+          "study_wall_s": [
+            184.57406597101362,
+            186.21969959200942,
+            185.3861245610169
+          ],
+          "telemetry_jobs": 27,
+          "telemetry_missing_job_ids": [],
+          "telemetry_sum": {
+            "accepted_steps": 24036600,
+            "analysis_s": 1684.4427,
+            "factor_s": 135.84077,
+            "load_s": 793.4133,
+            "newton_iterations": 58019652,
+            "rejected_steps": 3982212,
+            "solve_s": 56.86723
+          },
+          "terminal_status_counts": {
+            "predicted_infeasible": 27
+          },
+          "validated_jobs_per_hour": 174.77036146432874
+        }
+      },
+      "one_time_setup_s": 0.29927952599246055,
+      "qualified": true,
+      "terminal_sha256": "6a53b691412525090f7a104f95f90d6a55cb65508477faa37463d05f21285930",
+      "terminal_status_counts": {
+        "predicted_infeasible": 99,
+        "qualified": 3
+      },
+      "timing_boundary": "Batch study wall excludes once-per-invocation input verification, runtime/source verification and model adaptation, reported separately as one_time_setup_s. Complete invocation_wall_s includes that setup, qualification, warmups, all measured studies, and terminal completion records. Per-job preparation remains inside batch study wall."
+    }
+  ],
+  "schema": "emi01-cpu-budget-v1"
+}

@@ -1,0 +1,65 @@
+{
+  "artifacts_sha256": {
+    "compare_rebuilt_reference.py": "e5dd4157d072bb9aa1141e359b5640d9077611dc4093b45ee5652b82b3d3f104",
+    "ngspice-disassembly-comparison.json": "2db3d5901fb6eef6e8ccf9677787f786c62e11e93e732e307d75c3f9781c6c84",
+    "ngspice-elf-comparison.json": "ad8e76898385a10866b4d002494b830c79ba4dbc5306eb984c80b32cfd36083a",
+    "ngspice-recovery.json": "4f9eb3fc19b6639572e82126b51d5781418ab5c8c94550e6e31a42c581a65edb",
+    "paired-runtime-identities.json": "94ad53e05f30b05d4e7fc9685c1baf4aa96b94c1add4592ba5f63e222e9285ff",
+    "post-validation-runtime-recheck.log": "633cce17d8a5d3ad809aa5e3d29165544081480362c53bc8fd1c1a6599eae0c8",
+    "rebuilt-oracle-qualification.json": "6f5358c440f3b220911bc606cdf84676a96f9e40889dba0baf8cdae3da28f07e",
+    "rebuilt-oracle-qualification.log": "c6502fccfb74bccc4c6cdc1493cbe335c0acf9743457bf29bf05a23f0c02395e",
+    "rebuilt-reference-comparison.json": "6a30686d336b0c115a3d4b0c978d7f141a8602ab467e881976df5b529aa8f237",
+    "rebuilt-reference-comparison.log": "c2f63b44fe73d39f179ed0f9e08b533b4531a55525c1ce3f169c9afc383aad7a",
+    "recover_measured_ngspice.py": "bd28b201f8537e967b02bd3c5222ffed5a6aaa74ca4044d49d9f3cc22e07666f"
+  },
+  "byte_reproducible_build": false,
+  "cause": "Autoconf installation-prefix strings embed absolute rules_foreign_cc sandbox paths in NGSPICEBINDIR/NGSPICEDATADIR. SOURCE_DATE_EPOCH and compiler file-prefix mapping do not normalize those configured literal strings.",
+  "comparison_scope": "All original binary waveform payload bytes (header dates excluded), derived metrics, spectra and frozen qualification checks. CPU timing, OS resource usage and timestamp-bearing headers are not claimed identical.",
+  "frozen_implementation_commit": "bf1165fe92fb5f527bbddfcb53374956d62929a5",
+  "historical_recovery": {
+    "artifact_location": "/tmp/emi01-recovered-measured-ngspice",
+    "changed_bytes_from_preserved_exploratory": 6,
+    "complete_sha256_match": true,
+    "executable_is_not_vendored": true,
+    "method": "Equal-length replacement of only the two observed install-prefix sandbox-number strings in the preserved exploratory binary. Candidate accepted only when complete SHA256 equals retained metadata.",
+    "recovered_bytes": 18616040,
+    "sandbox_id": 946
+  },
+  "initial_post_rebuild_artifact_recheck": {
+    "log": "post-validation-runtime-recheck.log",
+    "pass": false,
+    "reason": "ngspice_sha256 differed from both retained metadata records"
+  },
+  "limits": [
+    "Bit-identical rebuilding of the reference executable remains unsupported by the current absolute-prefix build packaging.",
+    "Exact historical recovery is a full-hash identity result, not a general executable-equivalence argument.",
+    "ELF/disassembly normalization is descriptive; the fresh30-job comparison establishes numerical reproduction only for the frozen qualification workload.",
+    "Retained timings belong to the recorded historical executable; diagnostic timing is not a third performance sample.",
+    "Hashes and local process observations are not independent execution attestation."
+  ],
+  "rebuilt_default_sha256": "afb6b34834e82ff0f4e075b3d72b9b7d507df5c34a55a63f35b21ba478ec2f6b",
+  "rebuilt_diagnostic": {
+    "all_30_jobs_exact_numerical_match": true,
+    "all_40_qualification_checks_exact_equal": true,
+    "command": "bazel run //reference/emi01:study -- --qualification-only --out=/tmp/emi01-rebuilt-oracle-qualification",
+    "counts": {
+      "expected": 30,
+      "failures": 0,
+      "terminal": 30,
+      "validated": 30
+    },
+    "duplicate_raw_retained_in_repository": false,
+    "exit_code": 0,
+    "metadata_sha256": "d1aa4222e746506e43d2a8a645e21a345c6093addec1a43c0a5000c27ff472fa",
+    "performance_evidence": false,
+    "python_executable_sha256": "a73ad9c67b1c4809adf0b21ef544d942218e6afff998bc1bdaf1d55575ef4075",
+    "qualification_pass": true,
+    "qualification_sha256": "6f5358c440f3b220911bc606cdf84676a96f9e40889dba0baf8cdae3da28f07e",
+    "raw_location": "/tmp/emi01-rebuilt-oracle-qualification",
+    "same_frozen_source_model_and_job_identities": true,
+    "source_identity_count": 24,
+    "terminal_sha256": "65d65a28bc1a937e0a60331d04e5a99eb9b8c3423a905b7fb1a077a25ea9b57a"
+  },
+  "recorded_reference_sha256": "b2574df80f88a02b3d0597206277b189686e8708dcf8449fec42f250e41d74a6",
+  "schema": "emi01-build-reproducibility-v1"
+}

@@ -1,9 +1,18 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load(":hermetic_posix_tools.bzl", "hermetic_copy", "hermetic_posix_tools")
 
 package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "provenance_inputs",
+    srcs = [
+        "BUILD.bazel",
+        "PROVENANCE.md",
+    ],
+    visibility = ["//reference/emi01:__pkg__"],
+)
 
 exports_files([
     "ngspice-static-hicum-link.patch",
@@ -19,8 +28,8 @@ cc_binary(
 
 hermetic_posix_tools(
     name = "hermetic_posix_tools",
-    busybox = "@busybox_1_35_0_x86_64_musl//file",
     builder = ":hermetic_tools_builder",
+    busybox = "@busybox_1_35_0_x86_64_musl//file",
 )
 
 [
@@ -76,11 +85,11 @@ toolchain(
 
 hermetic_copy(
     name = "pinned_ngspice_libstdcxx",
+    src = "@ohmnivore_cuda_gcc15//:lib64/libstdc++.a",
     builder = ":hermetic_tools_builder",
     # A distinct output name prevents libtool from replacing the declared
     # archive with the relocated sibling libstdc++.la/shared-library metadata.
     output_name = "pinned_ngspice_libstdcxx.a",
-    src = "@ohmnivore_cuda_gcc15//:lib64/libstdc++.a",
 )
 
 configure_make(
@@ -94,6 +103,21 @@ configure_make(
         ":hermetic_posix_tools",
         ":pinned_ngspice_libstdcxx",
         "@ohmnivore_cuda_gcc15//:all_files",
+    ],
+    configure_options = [
+        "--disable-cider",
+        "--disable-dependency-tracking",
+        "--disable-klu",
+        "--disable-maintainer-mode",
+        "--disable-openmp",
+        "--disable-osdi",
+        "--disable-shared",
+        "--disable-xspice",
+        "--enable-static",
+        "--with-editline=no",
+        "--with-fftw3=no",
+        "--with-readline=no",
+        "--without-x",
     ],
     configure_prefix = " ".join([
         "$$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/sha256sum /bin/bash | $$EXT_BUILD_ROOT$$/$(execpath :hermetic_posix_tools)/grep -qx '3efccc187bafa75ff1e37d246270ab3e7aa559f242c7a52bf3ec2a1b5450bdbd  /bin/bash' &&",
@@ -118,21 +142,6 @@ configure_make(
         "lt_cv_path_MAGIC_CMD=:",
         "LIBS=\"$$EXT_BUILD_ROOT$$/$(execpath :pinned_ngspice_libstdcxx) -Wl,--start-group $$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot/usr/lib/libm-2.28.a $$EXT_BUILD_ROOT$$/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/sysroot/usr/lib/libmvec.a -Wl,--end-group\"",
     ]),
-    configure_options = [
-        "--disable-cider",
-        "--disable-dependency-tracking",
-        "--disable-klu",
-        "--disable-maintainer-mode",
-        "--disable-openmp",
-        "--disable-osdi",
-        "--disable-shared",
-        "--disable-xspice",
-        "--enable-static",
-        "--with-editline=no",
-        "--with-fftw3=no",
-        "--with-readline=no",
-        "--without-x",
-    ],
     env = {
         "AUTOCONF": "false",
         "AUTOMAKE": "false",
@@ -161,5 +170,8 @@ filegroup(
     name = "ngspice_binary",
     srcs = [":ngspice_46_build"],
     output_group = "ngspice",
-    visibility = ["//acceptance:__pkg__"],
+    visibility = [
+        "//acceptance:__pkg__",
+        "//reference/emi01:__pkg__",
+    ],
 )

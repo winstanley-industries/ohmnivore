@@ -1,0 +1,350 @@
+{
+  "review_method": "Independent standard-library schedule, hash, stored-spectrum, classification and timing arithmetic; no production helpers, waveform recomputation or simulation.",
+  "implementation_sha256": "a4c1cbab26755a4e6cef2e4a98d1c9b3de119572737af168abb5822c513e9b6f",
+  "frozen_source_commit": "8e45b4232741b82ec476fb6904b80f774eaf31d0",
+  "manifest_sha256": "ec68ddb48866d8127fbdd0ecf411dfc326b6c7bc7929c10429e40edd9cd2c81f",
+  "invocation_protocol_sha256": "129d35d6da8b9afc007801825156197a999db333436a8807de1496a173729981",
+  "runs": [
+    {
+      "run": 1,
+      "metadata_sha256": "5637b3f57ba1825946faa814c96f36f24be3b5a5e5c9b5534529847ea2c1006f",
+      "terminal_sha256": "82bde66cfc0d46a7fefb028f4a2063463d15a4c726c0de10bbbc0275118c37f2",
+      "small_job_artifacts_verified": 708,
+      "source_files_verified": 25,
+      "status_counts": {
+        "qualified": 3,
+        "predicted_infeasible": 44,
+        "predicted_feasible": 55
+      },
+      "qualification_checks": 40,
+      "role_groups": 9,
+      "invocation_wall_s": 3705.1783479059814,
+      "setup_s": 0.3151318809832446,
+      "modes": {
+        "1": {
+          "study_median_s": 611.7366312839731,
+          "jobs_per_hour": 52.96396904006825,
+          "job_p95_s": 77.40626790098031,
+          "lightest_median_s": 611.7003281849902
+        },
+        "4": {
+          "study_median_s": 207.52891891097534,
+          "jobs_per_hour": 156.12281974975633,
+          "job_p95_s": 81.45386314200005,
+          "lightest_median_s": 207.48482279101154
+        }
+      },
+      "refinement_levels": {
+        "light": [
+          {
+            "level": 0,
+            "worst": {
+              "corner": "hot_high_c",
+              "frequency_hz": 150000.0,
+              "observable": "b",
+              "margin_db": -37.74343771729612
+            },
+            "statuses": [
+              "predicted_infeasible",
+              "predicted_infeasible",
+              "predicted_infeasible"
+            ]
+          },
+          {
+            "level": 1,
+            "worst": {
+              "corner": "hot_high_c",
+              "frequency_hz": 150000.0,
+              "observable": "b",
+              "margin_db": -37.74343587022679
+            },
+            "statuses": [
+              "predicted_infeasible",
+              "predicted_infeasible",
+              "predicted_infeasible"
+            ]
+          },
+          {
+            "level": 2,
+            "worst": {
+              "corner": "hot_high_c",
+              "frequency_hz": 150000.0,
+              "observable": "b",
+              "margin_db": -37.74343460178693
+            },
+            "statuses": [
+              "predicted_infeasible",
+              "predicted_infeasible",
+              "predicted_infeasible"
+            ]
+          }
+        ],
+        "boundary": [
+          {
+            "level": 0,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 150000.0,
+              "observable": "a",
+              "margin_db": 5.5166047559288955
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_infeasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 1,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 150000.0,
+              "observable": "a",
+              "margin_db": 5.51660644287503
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_infeasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 2,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 150000.0,
+              "observable": "a",
+              "margin_db": 5.516619038826818
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_infeasible",
+              "predicted_feasible"
+            ]
+          }
+        ],
+        "reference": [
+          {
+            "level": 0,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 2850000.0,
+              "observable": "a",
+              "margin_db": 10.071195748672238
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_feasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 1,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 2850000.0,
+              "observable": "a",
+              "margin_db": 10.09531828098281
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_feasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 2,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 2850000.0,
+              "observable": "a",
+              "margin_db": 10.102245716701447
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_feasible",
+              "predicted_feasible"
+            ]
+          }
+        ]
+      },
+      "peak_child_rss_kib": 821764,
+      "peak_worker_rss_kib": 1015712,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "metadata_sha256": "eb05349441bdb286a09442a08980cbb56f75e35c8650caabaf1021866ecd31b7",
+      "terminal_sha256": "ec4f149deabc21bd24b3d8052684a0162689c2dc4b017f2a38003c273478df9f",
+      "small_job_artifacts_verified": 708,
+      "source_files_verified": 25,
+      "status_counts": {
+        "qualified": 3,
+        "predicted_infeasible": 44,
+        "predicted_feasible": 55
+      },
+      "qualification_checks": 40,
+      "role_groups": 9,
+      "invocation_wall_s": 3716.73983974001,
+      "setup_s": 0.3012994939927012,
+      "modes": {
+        "1": {
+          "study_median_s": 614.2163151319837,
+          "jobs_per_hour": 52.75014551353596,
+          "job_p95_s": 77.05550042100367,
+          "lightest_median_s": 614.179519332014
+        },
+        "4": {
+          "study_median_s": 207.65459381401888,
+          "jobs_per_hour": 156.02833245778478,
+          "job_p95_s": 80.6497832069872,
+          "lightest_median_s": 207.60805679898476
+        }
+      },
+      "refinement_levels": {
+        "light": [
+          {
+            "level": 0,
+            "worst": {
+              "corner": "hot_high_c",
+              "frequency_hz": 150000.0,
+              "observable": "b",
+              "margin_db": -37.74343771729612
+            },
+            "statuses": [
+              "predicted_infeasible",
+              "predicted_infeasible",
+              "predicted_infeasible"
+            ]
+          },
+          {
+            "level": 1,
+            "worst": {
+              "corner": "hot_high_c",
+              "frequency_hz": 150000.0,
+              "observable": "b",
+              "margin_db": -37.74343587022679
+            },
+            "statuses": [
+              "predicted_infeasible",
+              "predicted_infeasible",
+              "predicted_infeasible"
+            ]
+          },
+          {
+            "level": 2,
+            "worst": {
+              "corner": "hot_high_c",
+              "frequency_hz": 150000.0,
+              "observable": "b",
+              "margin_db": -37.74343460178693
+            },
+            "statuses": [
+              "predicted_infeasible",
+              "predicted_infeasible",
+              "predicted_infeasible"
+            ]
+          }
+        ],
+        "boundary": [
+          {
+            "level": 0,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 150000.0,
+              "observable": "a",
+              "margin_db": 5.5166047559288955
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_infeasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 1,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 150000.0,
+              "observable": "a",
+              "margin_db": 5.51660644287503
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_infeasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 2,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 150000.0,
+              "observable": "a",
+              "margin_db": 5.516619038826818
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_infeasible",
+              "predicted_feasible"
+            ]
+          }
+        ],
+        "reference": [
+          {
+            "level": 0,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 2850000.0,
+              "observable": "a",
+              "margin_db": 10.071195748672238
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_feasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 1,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 2850000.0,
+              "observable": "a",
+              "margin_db": 10.09531828098281
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_feasible",
+              "predicted_feasible"
+            ]
+          },
+          {
+            "level": 2,
+            "worst": {
+              "corner": "fast_low_lc",
+              "frequency_hz": 2850000.0,
+              "observable": "a",
+              "margin_db": 10.102245716701447
+            },
+            "statuses": [
+              "predicted_feasible",
+              "predicted_feasible",
+              "predicted_feasible"
+            ]
+          }
+        ]
+      },
+      "peak_child_rss_kib": 821764,
+      "peak_worker_rss_kib": 1015964,
+      "pass": true
+    }
+  ],
+  "cross_run_exact_metrics_and_indexed_payload_matches": 102,
+  "within_run_finest_replay_matches_per_run": 72,
+  "cpu_budget_sha256": "45f4ce74bedfff5444ecd35cf2d9eaad6e8593a25a16bb880b2e67cf8f648170",
+  "counterfactual_samples_checked": 12,
+  "delivery_supplement_sha256": "9ffa5b6055499d4005f0630270a1df94f94008e4abd4936a705b775030e1bf81",
+  "delivery_supplement_checked": true,
+  "pass": true
+}

@@ -1,0 +1,46 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 54 targets (0 packages loaded, 0 targets configured)
+Analyzing: 54 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 54 targets (0 packages loaded, 0 targets configured).
+[22 / 28] 15 / 21 tests; Testing //reference/emi01:metrics_test; 1s linux-sandbox ... (6 actions running)
+[27 / 28] 20 / 21 tests; Testing //cpp:gpu02s_session_test; 2s linux-sandbox
+[27 / 28] 21 / 21 tests; Testing //cpp:gpu02s_session_test; 7s linux-sandbox
+INFO: Found 33 targets and 21 test targets...
+INFO: Elapsed time: 8.150s, Critical Path: 7.86s
+INFO: 20 processes: 4 action cache hit, 1 internal, 25 linux-sandbox.
+INFO: Build completed successfully, 20 total actions
+//reference/emi01:report_test                                   (cached) PASSED in 0.5s
+//reference/emi01:study_test                                    (cached) PASSED in 2.3s
+//acceptance:ngspice_acceptance_test                                     PASSED in 2.0s
+//cpp:gpu01_prepared_ac_test                                             PASSED in 0.1s
+//cpp:gpu01_replay_test                                                  PASSED in 0.3s
+//cpp:gpu02s_session_test                                                PASSED in 7.8s
+//cpp:phase1_test                                                        PASSED in 0.1s
+//cpp:phase2a_test                                                       PASSED in 0.1s
+//cpp:phase2b_test                                                       PASSED in 0.0s
+//cpp:phase2c_parser_test                                                PASSED in 0.0s
+//cpp:phase2c_simulator_test                                             PASSED in 0.1s
+//cpp:phase2c_transient_test                                             PASSED in 0.2s
+//cpp:phase2d_solver_test                                                PASSED in 0.0s
+//cpp:phase3a_test                                                       PASSED in 0.1s
+//cpp:phase3b_test                                                       PASSED in 0.1s
+//cpp:phase3c_test                                                       PASSED in 0.1s
+//cpp:solver_hermeticity_test                                            PASSED in 0.2s
+//reference/emi01:adapter_test                                           PASSED in 0.3s
+//reference/emi01:metrics_test                                           PASSED in 0.7s
+//reference/emi01:signals_test                                           PASSED in 0.5s
+//third_party/emi_python:runtime_test                                    PASSED in 0.4s
+
+Executed 19 out of 21 tests: 21 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

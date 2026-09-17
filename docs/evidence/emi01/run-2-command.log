@@ -1,0 +1,123 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //reference/emi01:study (0 packages loaded, 0 targets configured)
+Analyzing: target //reference/emi01:study (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //reference/emi01:study (0 packages loaded, 0 targets configured).
+INFO: Found 1 target...
+Target //reference/emi01:study up-to-date:
+  bazel-bin/reference/emi01/study
+INFO: Elapsed time: 0.244s, Critical Path: 0.00s
+INFO: 1 process: 1 action cache hit, 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: bazel-bin/reference/emi01/study '--ngspice=third_party/ngspice/ngspice_46_build/bin/ngspice' '--model-archive=../+http_file+emi01_microchip_model/file/model.zip' <args omitted>
+q0-dpt qualified 0.645
+q0-ensemble-light-nominal predicted_infeasible 51.493
+q0-ensemble-light-fast_low_lc predicted_infeasible 55.132
+q0-ensemble-light-hot_high_c predicted_infeasible 57.306
+q0-ensemble-medium-nominal predicted_infeasible 62.14
+q0-ensemble-medium-fast_low_lc predicted_infeasible 60.634
+q0-ensemble-medium-hot_high_c predicted_infeasible 53.075
+q0-ensemble-heavy-nominal predicted_infeasible 30.537
+q0-ensemble-heavy-fast_low_lc predicted_infeasible 35.805
+q0-ensemble-heavy-hot_high_c predicted_infeasible 29.387
+q1-dpt qualified 0.917
+q1-ensemble-light-nominal predicted_infeasible 53.297
+q1-ensemble-light-fast_low_lc predicted_infeasible 55.957
+q1-ensemble-light-hot_high_c predicted_infeasible 57.33
+q1-ensemble-medium-nominal predicted_infeasible 63.655
+q1-ensemble-medium-fast_low_lc predicted_infeasible 60.661
+q1-ensemble-medium-hot_high_c predicted_infeasible 52.449
+q1-ensemble-heavy-nominal predicted_infeasible 46.297
+q1-ensemble-heavy-fast_low_lc predicted_infeasible 46.693
+q1-ensemble-heavy-hot_high_c predicted_infeasible 47.241
+q2-dpt qualified 1.637
+q2-ensemble-light-nominal predicted_infeasible 52.947
+q2-ensemble-light-fast_low_lc predicted_infeasible 57.623
+q2-ensemble-light-hot_high_c predicted_infeasible 59.367
+q2-ensemble-medium-nominal predicted_infeasible 61.734
+q2-ensemble-medium-fast_low_lc predicted_infeasible 61.194
+q2-ensemble-medium-hot_high_c predicted_infeasible 54.045
+q2-ensemble-heavy-nominal predicted_infeasible 84.352
+q2-ensemble-heavy-fast_low_lc predicted_infeasible 83.488
+q2-ensemble-heavy-hot_high_c predicted_infeasible 83.45
+w1-warmup1-ensemble-light-nominal predicted_infeasible 49.493
+w1-warmup1-ensemble-light-fast_low_lc predicted_infeasible 52.763
+w1-warmup1-ensemble-light-hot_high_c predicted_infeasible 53.051
+w1-warmup1-ensemble-medium-nominal predicted_infeasible 56.304
+w1-warmup1-ensemble-medium-fast_low_lc predicted_infeasible 55.99
+w1-warmup1-ensemble-medium-hot_high_c predicted_infeasible 48.858
+w1-warmup1-ensemble-heavy-nominal predicted_infeasible 75.602
+w1-warmup1-ensemble-heavy-fast_low_lc predicted_infeasible 76.819
+w1-warmup1-ensemble-heavy-hot_high_c predicted_infeasible 76.593
+w1-sample0-ensemble-light-nominal predicted_infeasible 48.517
+w1-sample0-ensemble-light-fast_low_lc predicted_infeasible 51.416
+w1-sample0-ensemble-light-hot_high_c predicted_infeasible 52.527
+w1-sample0-ensemble-medium-nominal predicted_infeasible 56.369
+w1-sample0-ensemble-medium-fast_low_lc predicted_infeasible 55.827
+w1-sample0-ensemble-medium-hot_high_c predicted_infeasible 48.605
+w1-sample0-ensemble-heavy-nominal predicted_infeasible 75.932
+w1-sample0-ensemble-heavy-fast_low_lc predicted_infeasible 76.384
+w1-sample0-ensemble-heavy-hot_high_c predicted_infeasible 75.258
+w1-sample1-ensemble-light-nominal predicted_infeasible 48.514
+w1-sample1-ensemble-light-fast_low_lc predicted_infeasible 51.647
+w1-sample1-ensemble-light-hot_high_c predicted_infeasible 53.276
+w1-sample1-ensemble-medium-nominal predicted_infeasible 56.519
+w1-sample1-ensemble-medium-fast_low_lc predicted_infeasible 55.028
+w1-sample1-ensemble-medium-hot_high_c predicted_infeasible 47.982
+w1-sample1-ensemble-heavy-nominal predicted_infeasible 73.842
+w1-sample1-ensemble-heavy-fast_low_lc predicted_infeasible 75.874
+w1-sample1-ensemble-heavy-hot_high_c predicted_infeasible 74.198
+w1-sample2-ensemble-light-nominal predicted_infeasible 48.834
+w1-sample2-ensemble-light-fast_low_lc predicted_infeasible 51.179
+w1-sample2-ensemble-light-hot_high_c predicted_infeasible 52.106
+w1-sample2-ensemble-medium-nominal predicted_infeasible 56.063
+w1-sample2-ensemble-medium-fast_low_lc predicted_infeasible 54.841
+w1-sample2-ensemble-medium-hot_high_c predicted_infeasible 47.774
+w1-sample2-ensemble-heavy-nominal predicted_infeasible 76.208
+w1-sample2-ensemble-heavy-fast_low_lc predicted_infeasible 75.404
+w1-sample2-ensemble-heavy-hot_high_c predicted_infeasible 75.467
+w4-warmup1-ensemble-light-nominal predicted_infeasible 50.64
+w4-warmup1-ensemble-light-fast_low_lc predicted_infeasible 54.961
+w4-warmup1-ensemble-light-hot_high_c predicted_infeasible 56.352
+w4-warmup1-ensemble-medium-nominal predicted_infeasible 60.48
+w4-warmup1-ensemble-medium-fast_low_lc predicted_infeasible 58.392
+w4-warmup1-ensemble-medium-hot_high_c predicted_infeasible 50.842
+w4-warmup1-ensemble-heavy-nominal predicted_infeasible 80.39
+w4-warmup1-ensemble-heavy-fast_low_lc predicted_infeasible 79.309
+w4-warmup1-ensemble-heavy-hot_high_c predicted_infeasible 77.334
+w4-sample0-ensemble-light-nominal predicted_infeasible 50.775
+w4-sample0-ensemble-light-fast_low_lc predicted_infeasible 54.477
+w4-sample0-ensemble-light-hot_high_c predicted_infeasible 55.807
+w4-sample0-ensemble-medium-nominal predicted_infeasible 59.013
+w4-sample0-ensemble-medium-fast_low_lc predicted_infeasible 58.441
+w4-sample0-ensemble-medium-hot_high_c predicted_infeasible 52.383
+w4-sample0-ensemble-heavy-nominal predicted_infeasible 81.714
+w4-sample0-ensemble-heavy-fast_low_lc predicted_infeasible 81.198
+w4-sample0-ensemble-heavy-hot_high_c predicted_infeasible 77.587
+w4-sample1-ensemble-light-nominal predicted_infeasible 50.359
+w4-sample1-ensemble-light-fast_low_lc predicted_infeasible 56.402
+w4-sample1-ensemble-light-hot_high_c predicted_infeasible 56.357
+w4-sample1-ensemble-medium-nominal predicted_infeasible 59.328
+w4-sample1-ensemble-medium-fast_low_lc predicted_infeasible 58.986
+w4-sample1-ensemble-medium-hot_high_c predicted_infeasible 52.269
+w4-sample1-ensemble-heavy-nominal predicted_infeasible 80.872
+w4-sample1-ensemble-heavy-fast_low_lc predicted_infeasible 79.575
+w4-sample1-ensemble-heavy-hot_high_c predicted_infeasible 77.464
+w4-sample2-ensemble-light-nominal predicted_infeasible 51.824
+w4-sample2-ensemble-light-fast_low_lc predicted_infeasible 56.31
+w4-sample2-ensemble-light-hot_high_c predicted_infeasible 56.144
+w4-sample2-ensemble-medium-nominal predicted_infeasible 60.219
+w4-sample2-ensemble-medium-fast_low_lc predicted_infeasible 59.018
+w4-sample2-ensemble-medium-hot_high_c predicted_infeasible 51.417
+w4-sample2-ensemble-heavy-nominal predicted_infeasible 80.12
+w4-sample2-ensemble-heavy-fast_low_lc predicted_infeasible 79.964
+w4-sample2-ensemble-heavy-hot_high_c predicted_infeasible 77.698
+{"counts": {"expected": 102, "terminal": 102, "validated": 102, "failures": 0}, "qualified": true, "wall_s": 3338.4802659800043}
