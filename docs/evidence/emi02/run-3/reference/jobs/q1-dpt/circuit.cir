@@ -1,0 +1,19 @@
+EMI-01 v2 double pulse
+.include model.lib
+Vbus bus 0 400
+Rbus bus p1 0.02
+Lbus p1 p 20n
+Cbus p1 0 10u
+Lload p sw 200u
+Rload sw drain 0.005
+Vdrain drain d 0
+Xlo d g 0 MSC040SMA120B
+Xhi p gh drain MSC040SMA120B
+Vhi ghdrive drain -3
+Rgh ghdrive gh 4.7
+Vgate drive 0 PWL(0 -3 1u -3 1.01u 20 10u 20 10.01u -3 12u -3 12.01u 20 14u 20 14.01u -3)
+Rg drive g 4.7
+.options reltol=1e-5 abstol=1e-9 vntol=1e-7 chgtol=1e-16 method=gear maxord=2 itl1=300 itl4=100
+.tran 5.0000000000000003e-10 16u 0 1.0000000000000001e-09
+.save v(d) v(g) i(lload) i(vdrain)
+.end

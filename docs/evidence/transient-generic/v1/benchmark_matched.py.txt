@@ -1,0 +1,27 @@
+import subprocess,json,time,hashlib,csv,statistics,math
+from pathlib import Path
+r=Path(__file__).parent
+binaries={'baseline':Path('/home/adam/code/ohmnivore-transient-baseline/bazel-out/k8-opt/bin/cpp/transient_accuracy_benchmark'),'candidate':Path('/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cpp/transient_accuracy_benchmark')}
+records=[];rows={v:[] for v in binaries}
+for index,variant in enumerate(['baseline','candidate','candidate','baseline']):
+ p=r/f'matched-corpus-{index}-{variant}.csv';cmd=['taskset','-c','4',str(binaries[variant]),'11'];start=time.monotonic()
+ with p.open('w') as f: process=subprocess.run(cmd,stdout=f,stderr=subprocess.PIPE,text=True,timeout=180)
+ record={'variant':variant,'command':cmd,'returncode':process.returncode,'wall_s':time.monotonic()-start,'binary_sha256':hashlib.sha256(binaries[variant].read_bytes()).hexdigest(),'csv':p.name,'csv_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'stderr':process.stderr}
+ records.append(record);(r/'matched-corpus-execution.json').write_text(json.dumps(records,indent=2));print(variant,index,record['wall_s'],process.returncode,flush=True)
+ assert process.returncode==0
+ data=list(csv.DictReader(p.open()));assert len(data)==21*2*2*11
+ rows[variant]+=data
+summary={'baseline_commit':'0899911151c6a2b49b8d1d60a1103a0cd20031d2','repetitions_per_case':22,'warmups_discarded_per_case':4,'measured_repetitions':18,'cases':[]}
+keys=sorted({(x['case'],x['policy'],x['refinement']) for x in rows['baseline']})
+for key in keys:
+ groups={v:[x for x in xs if (x['case'],x['policy'],x['refinement'])==key] for v,xs in rows.items()}
+ deterministic=[k for k in groups['baseline'][0] if k not in ['repetition','seconds']]
+ assert all(len(g)==22 for g in groups.values())
+ for k in deterministic:assert len({x[k] for g in groups.values() for x in g})==1,(key,k)
+ times={v:[float(x['seconds']) for x in g if int(x['repetition'])>=2] for v,g in groups.items()}
+ med={v:statistics.median(t) for v,t in times.items()}
+ row={'case':key[0],'policy':key[1],'refinement':key[2],'accuracy_pass':groups['baseline'][0]['pass']=='1','baseline_median_s':med['baseline'],'candidate_median_s':med['candidate'],'candidate_over_baseline':med['candidate']/med['baseline'],'numerical_and_work_fields_identical':True,'baseline_range_s':[min(times['baseline']),max(times['baseline'])],'candidate_range_s':[min(times['candidate']),max(times['candidate'])]}
+ summary['cases'].append(row)
+fine=[x for x in summary['cases'] if x['refinement']=='1'];assert all(x['accuracy_pass'] for x in fine)
+summary['fine_case_count']=len(fine);summary['fine_geomean_candidate_over_baseline']=math.exp(statistics.mean(math.log(x['candidate_over_baseline']) for x in fine));summary['fine_worst_ratio']=max(x['candidate_over_baseline'] for x in fine)
+(r/'matched-corpus-summary.json').write_text(json.dumps(summary,indent=2));print('fine geometric ratio',summary['fine_geomean_candidate_over_baseline'],'worst',summary['fine_worst_ratio'],flush=True)

@@ -162,6 +162,12 @@ TEST(Emi02PreparedTransient,
       .column_indices = {0, 1, 2, 3, 1, 0, 1, 2, 3},
       .row_offsets = {0, 4, 5, 8, 9}};
   EqualMatrix(prepared.value()->matrix(), expected);
+  EXPECT_EQ(prepared.value()->numeric_entry_count(), original_c.values.size());
+  EXPECT_LT(prepared.value()->numeric_entry_count(), expected.values.size());
+  // Different input pairs with the same checked scale have identical values.
+  const auto same_scale = prepared.value()->Form(1, 2);
+  ASSERT_TRUE(same_scale.ok());
+  EqualMatrix(*same_scale.value(), expected);
   EXPECT_TRUE(std::signbit(prepared.value()->matrix().values[1]));
   EXPECT_TRUE(std::signbit(prepared.value()->matrix().values[2]));
   const auto *const storage = prepared.value()->matrix().values.data();
@@ -245,11 +251,43 @@ TEST(Emi02PreparedTransient,
     EqualMatrix(*recovered.value(), expected.value());
   };
   reject_then_recover(0, 1, "finite and positive");
+  // Even a previously used ratio cannot excuse invalid inputs.
+  reject_then_recover(-4, -1, "finite and positive");
   reject_then_recover(1, std::numeric_limits<double>::infinity(),
                       "finite and positive");
   reject_then_recover(std::numeric_limits<double>::denorm_min(), 1, "scaling");
   // This fails on the second entry, after the first numeric slot was changed.
   reject_then_recover(.25, 1, "matrix produced");
+}
+
+TEST(Emi02PreparedTransient, ConstantCompanionStillChecksScalingInputs) {
+  const CsrMatrix g{.rows = 1,
+                    .columns = 1,
+                    .values = {-0.0},
+                    .column_indices = {0},
+                    .row_offsets = {0, 1}};
+  const CsrMatrix c{.rows = 1,
+                    .columns = 1,
+                    .values = {},
+                    .column_indices = {},
+                    .row_offsets = {0, 0}};
+  auto prepared = internal::PreparedTransientCompanion::Create(g, c, 1, 1);
+  ASSERT_TRUE(prepared.ok());
+  EXPECT_EQ(prepared.value()->numeric_entry_count(), 0U);
+  const auto reused = prepared.value()->Form(.5, .5);
+  ASSERT_TRUE(reused.ok());
+  EqualMatrix(*reused.value(), g);
+  const auto overflow =
+      prepared.value()->Form(std::numeric_limits<double>::denorm_min(), 1);
+  const auto checked = FormTransientCompanionMatrix(
+      g, c, std::numeric_limits<double>::denorm_min(), 1);
+  ASSERT_FALSE(overflow.ok());
+  ASSERT_FALSE(checked.ok());
+  EXPECT_EQ(overflow.error().code, checked.error().code);
+  EXPECT_EQ(overflow.error().message, checked.error().message);
+  const auto recovered = prepared.value()->Form(1, 1);
+  ASSERT_TRUE(recovered.ok());
+  EqualMatrix(*recovered.value(), g);
 }
 
 TEST(Emi02PreparedTransient,

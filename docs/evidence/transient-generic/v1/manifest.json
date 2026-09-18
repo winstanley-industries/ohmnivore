@@ -1,0 +1,55 @@
+{
+  "baseline_commit": "0899911151c6a2b49b8d1d60a1103a0cd20031d2",
+  "build": [
+    "bazel",
+    "build",
+    "-c",
+    "opt",
+    "//cpp:transient_accuracy_benchmark"
+  ],
+  "current_corpus_sources": {
+    "cpp/benchmarks/transient_accuracy_benchmark.cc": "31268d0569856b7c2039c8634036b8d28d5ab8ef7bef5b393a21e65015fe3770",
+    "cpp/tests/transient_accuracy_cases.cc": "680486b88278c3aa7f02d9c555b818bb28b0d5a27592a1427883a27b3dfb25fc",
+    "cpp/tests/transient_accuracy_cases.h": "5293387d08a23b1b316947b3271781b415e957dba58d6c9486763f537c9aa672"
+  },
+  "final_maximum_step_divisors": [
+    1,
+    32
+  ],
+  "endpoint_experiment_maximum_step_divisors": [
+    1,
+    2
+  ],
+  "endpoint_policy_2": "rejected interval-scaled history",
+  "initial_incomplete_baseline_minimum_step_divisor": 10000,
+  "subsequent_minimum_step_divisor": 1000000,
+  "nonlinear_iteration_bound": 100,
+  "excluded_timing_attempt": "Initial short-EMI timing comparison used a nonoptimized baseline build. Those timings are discarded; no speedup or acceptance conclusion uses them.",
+  "artifacts": {
+    "baseline-admitted.csv": "b64c2a3cdfe0c975ea0dad846b0252c70cc9e1d42f5f228596bce5913aa819f5",
+    "baseline.csv": "b3c699bce5cdc02282aa0cbda47c5452dbb5386d81333e8e2782b65d911665df",
+    "interval-screen.csv": "6f07ba7b1e1fd94f212a693bcf9925b1bd3dce6101be295f214ef456ca1df5ee",
+    "matched-corpus-0-baseline.csv": "49e1205f738f730886ee4fc7d70f27a507a2bceef7a4b8df86beff98c012a287",
+    "matched-corpus-1-candidate.csv": "8a79b6df87d20bc1d2288e60eb9415b587eb6a6965d560274946d82b0eccd1c7",
+    "matched-corpus-2-candidate.csv": "7fb6bceb82ce81b62d9578bc51ceffdad999a39e35be6fd3cf7faa039f81b1fe",
+    "matched-corpus-3-baseline.csv": "63da2b539451409acb660afea0d10edaa003d4ba285caadbd43cbcbf1bcf037a",
+    "matched-corpus-execution.json": "8ac2f640c141e4079466e63ce3a9d96ef79f192ae2fb9608a408dd465cb27a90",
+    "matched-corpus-summary.json": "a1c36c139a1f83694e606bc856ae30d9d6f369dcde5cd832b2a5db58f5d195b8",
+    "rejected-cache-benchmark/matched-corpus-0-baseline.csv": "afcaa104d810ee6ba1c3a7d3266105e109a5195c050205c5d97ee99e5eac38b7",
+    "rejected-cache-benchmark/matched-corpus-1-candidate.csv": "65306df49682cfcfa1497a04a56bc62ceb325fa38f3af87944d9dfc62e812baa",
+    "rejected-cache-benchmark/matched-corpus-2-candidate.csv": "e40fa39cd61366252d0695883079a1eee3b498ddbd44b32d9df1bb49064b8ffd",
+    "rejected-cache-benchmark/matched-corpus-3-baseline.csv": "9aec63c81badd9c8759ea517133c2a00809f5dd29f970a33f2c72afa0b30a6d6",
+    "rejected-cache-benchmark/matched-corpus-execution.json": "eefae6d416318e6d91aae78b166f4388bf67093f2e5548cfa96e26b41c174b41",
+    "rejected-cache-benchmark/matched-corpus-summary.json": "cca53e08b62305df337d5880e326ce739fbf0c8a7a4949cda413fa23f1503818",
+    "benchmark_matched.py.txt": "ddc1260f337d75967df556a6e6e8633baf6dc4cf5f411fced2f5d9786b1441e5",
+    "rejected-interval-policy.patch.gz": "9345a8633c1804440bb2a80de7527159b57eb13f10761c227959d82fd775984d",
+    "corpus-only.patch.gz": "41ae2b09ceac988003d6328fb0503421d04738529505cfd1eec660ab7d7990fa",
+    "rejected-companion-cache.patch.gz": "e67716fc9c6784078d08dbf9b4d07e10503f6fbd4d6c6cb725bcaf532212822a",
+    "README.md": "befd2b364bae8aaa5dadbc938e82bfb25b0f66d7b0fe1969bc99ac61a842fe80"
+  },
+  "compressed_patch_sources": {
+    "rejected-interval-policy.patch.gz": "b5ad45950dbf686f5b9f158fd4054a8f302db1925d4e1c34abc78bece7cb8721",
+    "corpus-only.patch.gz": "08609fce0998842be123441717ca76fa852debf135b38596068cd9823c7e251d",
+    "rejected-companion-cache.patch.gz": "d5408318c7f974cacf5ee33cc019b5128ae0a523c940fbd2451370b36bb647d8"
+  }
+}

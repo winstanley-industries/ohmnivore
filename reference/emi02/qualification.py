@@ -33,6 +33,7 @@ SOURCE_FILES = (
     "docs/adr/ADR-004-emi02-behavioral-expressions.md",
     "docs/adr/ADR-005-emi02-behavioral-transient.md",
     "docs/adr/ADR-006-emi02-model-import-qualification.md",
+    "docs/adr/ADR-007-generic-transient-improvements.md",
 )
 
 

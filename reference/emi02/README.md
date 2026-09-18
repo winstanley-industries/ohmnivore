@@ -26,6 +26,14 @@ system and KLU backward-error checks remain mandatory. CPU statistics schema
 `emi02-cpu-v2` records method `trapezoidal`, estimator
 `derivative-history-audited-v1`, audit/fallback counts and KLU work counts.
 
+ADR-007 adds a generic analytic transient corpus and exact companion-matrix
+preparation. An admitted immutable companion updates only entries present in C;
+immutable G-only entries retain their already checked values. This changes no numerical policy or tolerance. The endpoint-scaling
+experiment was rejected after broader circuits exposed increased global error.
+Run `bazel test //cpp:transient_accuracy_test` for the independent accuracy and
+prepared/checked trajectory gates; per-case benchmarks also retain coarse
+stress-case failures rather than treating local error tolerance as a global bound.
+
 ```sh
 bazel test //reference/emi02:importer_test \
   //reference/emi02:importer_oracle_test //reference/emi02:device_dynamic_test \

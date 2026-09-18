@@ -41,6 +41,9 @@ public:
   [[nodiscard]] static Result<std::unique_ptr<PreparedTransientCompanion>>
   Create(const CsrMatrix &g, const CsrMatrix &c, double step, double alpha);
   [[nodiscard]] const CsrMatrix &matrix() const { return matrix_; }
+  [[nodiscard]] std::size_t numeric_entry_count() const {
+    return entries_.size();
+  }
   [[nodiscard]] Result<const CsrMatrix *> Form(double step, double alpha);
   [[nodiscard]] Result<std::vector<double>>
   BackwardEulerRhs(const std::vector<double> &state,
@@ -54,8 +57,8 @@ public:
 
 private:
   struct UnionEntry {
+    std::size_t value_index;
     std::size_t g_index;
-    std::size_t c_index;
   };
   PreparedTransientCompanion(CsrMatrix g, CsrMatrix c, CsrMatrix matrix,
                              std::vector<UnionEntry> entries)

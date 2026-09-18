@@ -1,0 +1,66 @@
+[
+  {
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "4",
+      "/home/adam/code/ohmnivore-transient-baseline/bazel-out/k8-opt/bin/cpp/transient_accuracy_benchmark",
+      "11"
+    ],
+    "returncode": 0,
+    "wall_s": 8.953166933963075,
+    "binary_sha256": "fb4464c2bc2f57cb67be84ccf043e87ec2f257ad3a5e3c0e6151e68c9808aaf3",
+    "csv": "matched-corpus-0-baseline.csv",
+    "csv_sha256": "49e1205f738f730886ee4fc7d70f27a507a2bceef7a4b8df86beff98c012a287",
+    "stderr": ""
+  },
+  {
+    "variant": "candidate",
+    "command": [
+      "taskset",
+      "-c",
+      "4",
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cpp/transient_accuracy_benchmark",
+      "11"
+    ],
+    "returncode": 0,
+    "wall_s": 8.86513631301932,
+    "binary_sha256": "2b9e1e6dace917c807cb4dfe7ff259230154ff5eadc049d44bc4a1ea39393bbc",
+    "csv": "matched-corpus-1-candidate.csv",
+    "csv_sha256": "8a79b6df87d20bc1d2288e60eb9415b587eb6a6965d560274946d82b0eccd1c7",
+    "stderr": ""
+  },
+  {
+    "variant": "candidate",
+    "command": [
+      "taskset",
+      "-c",
+      "4",
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cpp/transient_accuracy_benchmark",
+      "11"
+    ],
+    "returncode": 0,
+    "wall_s": 8.977507550967857,
+    "binary_sha256": "2b9e1e6dace917c807cb4dfe7ff259230154ff5eadc049d44bc4a1ea39393bbc",
+    "csv": "matched-corpus-2-candidate.csv",
+    "csv_sha256": "7fb6bceb82ce81b62d9578bc51ceffdad999a39e35be6fd3cf7faa039f81b1fe",
+    "stderr": ""
+  },
+  {
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "4",
+      "/home/adam/code/ohmnivore-transient-baseline/bazel-out/k8-opt/bin/cpp/transient_accuracy_benchmark",
+      "11"
+    ],
+    "returncode": 0,
+    "wall_s": 8.880636476969812,
+    "binary_sha256": "fb4464c2bc2f57cb67be84ccf043e87ec2f257ad3a5e3c0e6151e68c9808aaf3",
+    "csv": "matched-corpus-3-baseline.csv",
+    "csv_sha256": "63da2b539451409acb660afea0d10edaa003d4ba285caadbd43cbcbf1bcf037a",
+    "stderr": ""
+  }
+]

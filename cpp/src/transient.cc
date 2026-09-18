@@ -1118,7 +1118,7 @@ PreparedTransientCompanion::Create(const CsrMatrix &g, const CsrMatrix &c,
         first.error().code, first.error().message);
   constexpr auto missing = std::numeric_limits<std::size_t>::max();
   std::vector<UnionEntry> entries;
-  entries.reserve(first.value().values.size());
+  entries.reserve(c.values.size());
   for (std::size_t row = 0; row < g.rows; ++row) {
     std::size_t gi = g.row_offsets[row];
     std::size_t ci = c.row_offsets[row];
@@ -1129,7 +1129,13 @@ PreparedTransientCompanion::Create(const CsrMatrix &g, const CsrMatrix &c,
           gi < g.row_offsets[row + 1] && g.column_indices[gi] == column;
       const bool has_c =
           ci < c.row_offsets[row + 1] && c.column_indices[ci] == column;
-      entries.push_back({has_g ? gi++ : missing, has_c ? ci++ : missing});
+      const auto g_index = has_g ? gi++ : missing;
+      // G-only values are immutable and already initialized by the checked
+      // factory. Only coordinates present in C can depend on alpha / step.
+      if (has_c) {
+        entries.push_back({index, g_index});
+        ++ci;
+      }
     }
   }
   return Result<std::unique_ptr<PreparedTransientCompanion>>::Ok(
@@ -1154,15 +1160,14 @@ Result<const CsrMatrix *> PreparedTransientCompanion::Form(double step,
   for (std::size_t index = 0; index < entries_.size(); ++index) {
     const auto entry = entries_[index];
     const double value =
-        entry.c_index == missing ? g_.values[entry.g_index]
-        : entry.g_index == missing
-            ? factor * c_.values[entry.c_index]
-            : g_.values[entry.g_index] + factor * c_.values[entry.c_index];
+        entry.g_index == missing
+            ? factor * c_.values[index]
+            : g_.values[entry.g_index] + factor * c_.values[index];
     if (!std::isfinite(value))
       return Result<const CsrMatrix *>::Fail(
           ErrorCode::kSolve,
           "transient companion matrix produced a non-finite value");
-    matrix_.values[index] = value;
+    matrix_.values[entry.value_index] = value;
   }
   return Result<const CsrMatrix *>::Ok(&matrix_);
 }

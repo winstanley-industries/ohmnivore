@@ -53,6 +53,32 @@ OHMNIVORE_COPTS = [
 ]
 
 cc_library(
+    name = "transient_accuracy_cases",
+    testonly = True,
+    srcs = ["tests/transient_accuracy_cases.cc"],
+    hdrs = ["tests/transient_accuracy_cases.h"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)
+
+cc_binary(
+    name = "transient_accuracy_benchmark",
+    testonly = True,
+    srcs = ["benchmarks/transient_accuracy_benchmark.cc"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", ":transient_accuracy_cases"],
+)
+
+cc_test(
+    name = "transient_accuracy_test",
+    size = "medium",
+    srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/transient_accuracy_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", ":transient_accuracy_cases", "@googletest//:gtest_main"],
+)
+
+cc_library(
     name = "core",
     srcs = [
         "src/behavioral.cc",
