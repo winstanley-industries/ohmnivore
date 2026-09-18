@@ -1,5 +1,9 @@
 #include "ohmnivore/solver.h"
 
+#ifdef OHMNIVORE_EMI03_PROFILE
+#include "cpp/benchmarks/emi03_profile.h"
+#endif
+
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -437,6 +441,7 @@ ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
 // current immutable matrix has already passed the complete canonical-pattern
 // and finite-value checks before any KLU operation. Public validation always
 // performs its independent structural validation above.
+#ifndef OHMNIVORE_EMI03_CUDA
 [[nodiscard]] Result<double> ValidateKnownSparseRealSolution(
     const CsrMatrix &matrix, const std::vector<double> &rhs,
     const std::vector<double> &solution, std::vector<double> *correction,
@@ -449,6 +454,7 @@ ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
                                 "sparse solution validation allocation failed");
   }
 }
+#endif
 
 void ConfigureKlu(klu_common *common) {
   static_cast<void>(klu_defaults(common));
@@ -549,6 +555,9 @@ ValidateSparseSolution(const ComplexCsrMatrix &matrix,
   }
 }
 
+// Only the opt-in EMI-03 binary supplies the real implementation from CUDA.
+// Ordinary core builds compile exactly the authoritative KLU path below.
+#ifndef OHMNIVORE_EMI03_CUDA
 class SparseRealFactorization::Impl {
 public:
   Impl(SolverCscPattern pattern, const CsrMatrix &matrix)
@@ -707,6 +716,9 @@ public:
   FactorAndSolve(const CsrMatrix &matrix, const std::vector<double> &rhs,
                  std::size_t remaining_refinements = 0,
                  bool finite_inputs_admitted = false) {
+#ifdef OHMNIVORE_EMI03_PROFILE
+    const emi03_profile::Scope profile(emi03_profile::Phase::kLinearSolve);
+#endif
     if (matrix.rows == pattern_.size && matrix.columns == pattern_.size &&
         matrix.values.size() == analyzed_column_indices_.size() &&
         matrix.row_offsets == analyzed_row_offsets_ &&
@@ -938,6 +950,8 @@ Result<std::vector<double>> SparseRealFactorization::FactorAndSolveAdmitted(
             : "iterative refinement allocation failed");
   }
 }
+
+#endif
 
 class SparseComplexFactorization::Impl {
 public:

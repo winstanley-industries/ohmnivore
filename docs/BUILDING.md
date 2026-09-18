@@ -458,3 +458,40 @@ infeasibility. `--probe` is diagnostic only and always rejects a qualification c
 See [the bridge README](../reference/emi02/README.md) for resource limits, source/model
 identities, raw evidence, audit, and the reserved `vt` compatibility discovery. Proprietary
 model text and flattened decks are temporary and must not be committed.
+
+## EMI-03 opt-in transient ensembles
+
+The experimental CUDA worker combines batched native-FP64 behavioral expression
+evaluation and real cuDSS solves with the qualified host transient controller.
+Ordinary CPU simulation continues to use KLU. The CPU comparator and GPU worker
+share the same persistent request/output protocol and private per-job state.
+
+```sh
+bazel test //reference/emi03:ensemble_test //reference/emi03:worker_process_test
+bazel test -c opt --config=cuda //cuda:emi03_cuda_test //cuda:emi03_linkage_test
+bazel build -c opt --config=cuda //cuda:emi03_gpu_worker
+bazel run -c opt //reference/emi03:ensemble -- \
+  --gpu=/absolute/path/to/emi03_gpu_worker --out=/absolute/new/emi03-run-1
+bazel run -c opt //reference/emi03:ensemble -- \
+  --gpu=/absolute/path/to/emi03_gpu_worker --out=/absolute/new/emi03-run-2
+bazel run -c opt //reference/emi03:ensemble -- \
+  --gpu=/absolute/path/to/emi03_gpu_worker --audit=/absolute/existing/emi03-run-1
+```
+
+Copy the built GPU binary to a stable absolute path before switching Bazel
+configurations. Every invocation snapshots its CPU/GPU/oracle binaries, regenerates
+CPU/reference trajectories and retains every terminal job record. Failed GPU
+qualification prevents performance collection. The harness requires fresh output
+directories; it cannot repair a failed invocation by retrying selected jobs.
+
+An optional CPU phase diagnostic verifies full waveform/metric/work-count parity
+between an ordinary and instrumented complete job:
+
+```sh
+bazel run -c opt //cpp:emi03_profile -- --out=/absolute/new/emi03-profile
+```
+
+Expression scopes nest inside assembly and add measurable instrumentation overhead;
+they cannot be added to the assembly time or used as performance evidence. See
+[ADR-008](adr/ADR-008-emi03-transient-ensembles.md) and the
+[ensemble harness](../reference/emi03/README.md) for the precise scope and gates.

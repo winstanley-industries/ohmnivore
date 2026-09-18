@@ -12,6 +12,7 @@ SANITIZER_INCOMPATIBILITY = select({
 
 py_library(
     name = "support",
+    visibility = ["//reference/emi03:__pkg__", "//cpp:__pkg__"],
     srcs = ["importer.py", "qualification.py"],
     data = ["BUILD.bazel", "README.md", "//:emi02_provenance_inputs"],
     deps = ["//reference/emi01:support"],

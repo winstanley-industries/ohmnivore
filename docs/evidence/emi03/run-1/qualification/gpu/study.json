@@ -1,0 +1,1472 @@
+{
+  "completed_jobs": 30,
+  "device_baseline_bytes": 3510632448,
+  "device_incremental_peak_bytes": 5013241856,
+  "device_sampled_peak_bytes": 8523874304,
+  "device_samples": 6,
+  "expected_jobs": 30,
+  "jobs": [
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": null,
+      "completion_latency_s": 0.5620317930006422,
+      "corner": null,
+      "deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+      "elapsed_s": 0.5607200629892759,
+      "error": "resource_limit: complete job rejected",
+      "files": {
+        "import.json": "2be38fd38d98aa6f733f54c21d7864755952ba52fd218f808b869602fc9b5863",
+        "process.json": "602be0060486f0ed0b32dd18c8fd613d662f0401f41bc150b02c6e361a0e3ef7"
+      },
+      "fixture": "dpt",
+      "flattened_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545",
+      "gpu_telemetry_missing": true,
+      "id": "q0-dpt",
+      "import": {
+        "adapted_bytes": 29136,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "ambient_temperature_c": 27.0,
+        "archive_bytes": 28318,
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "expanded_components": 73,
+        "expression_tokens": 1066,
+        "flat_deck_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545",
+        "importer": "emi02-microchip-import-v1",
+        "instances": 4,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_bytes": 29805,
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "mna_unknowns": 80,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "packages": 2,
+        "source_deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+        "vt_volts": 0.025864916895449997
+      },
+      "level": 0,
+      "max_step_s": 2e-09,
+      "process": {
+        "cpu_s": 0.23000000000000004,
+        "exit_code": -9,
+        "input": "/home/adam/emi03-work/tmp/emi03-job-w5ejkqo6/input.cir",
+        "status": "resource_limit",
+        "wall_s": 0.5414809939684346,
+        "worker_pid": 3225064,
+        "worker_request": 1
+      },
+      "queue_s": 0.0011934250360354781,
+      "reference_version": "emi01-v2",
+      "request_attempted": true,
+      "request_input": "/home/adam/emi03-work/tmp/emi03-job-w5ejkqo6/input.cir",
+      "sample_step_s": 1e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.6050856860238127,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "deck_sha256": "e455550b0c4bf7754fff310e4f3fc9a19e6999e96d5d11db778292253155cd65",
+      "elapsed_s": 0.6031975520309061,
+      "error": "resource_limit: complete job rejected",
+      "files": {
+        "import.json": "bab165822d0c847c82ab0647fb52909c31384ac667b581466dec8a78df3d1e64",
+        "process.json": "1c6ddc7e3af023d136c3d82c0d3b2e33d9eec647c4706f4429248172dfcfdcc6"
+      },
+      "fixture": "ensemble",
+      "flattened_sha256": "f94a57f71efba1d4cfb1403285f5207f88ef0a0994834bced823b19247ea51ce",
+      "gpu_telemetry_missing": true,
+      "id": "q0-ensemble-light-nominal",
+      "import": {
+        "adapted_bytes": 29136,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "ambient_temperature_c": 27.0,
+        "archive_bytes": 28318,
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "expanded_components": 178,
+        "expression_tokens": 2132,
+        "flat_deck_sha256": "f94a57f71efba1d4cfb1403285f5207f88ef0a0994834bced823b19247ea51ce",
+        "importer": "emi02-microchip-import-v1",
+        "instances": 8,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_bytes": 29805,
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "mna_unknowns": 185,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "packages": 4,
+        "source_deck_sha256": "e455550b0c4bf7754fff310e4f3fc9a19e6999e96d5d11db778292253155cd65",
+        "vt_volts": 0.025864916895449997
+      },
+      "level": 0,
+      "max_step_s": 2.5e-09,
+      "process": {
+        "cpu_s": 0.23000000000000004,
+        "exit_code": -9,
+        "input": "/home/adam/emi03-work/tmp/emi03-job-pq1avp3u/input.cir",
+        "status": "resource_limit",
+        "wall_s": 0.581545325985644,
+        "worker_pid": 3225066,
+        "worker_request": 1
+      },
+      "queue_s": 0.0018260360229760408,
+      "reference_version": "emi01-v2",
+      "request_attempted": true,
+      "request_input": "/home/adam/emi03-work/tmp/emi03-job-pq1avp3u/input.cir",
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5785878260503523,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "deck_sha256": "d3a8d5d8ae530178e072e8c90bdb9f1cf6dc4db81485f3d7167c8ebba4730cfe",
+      "elapsed_s": 0.5763081940240227,
+      "error": "resource_limit: complete job rejected",
+      "files": {
+        "import.json": "28cbef3295514ebfeeee7cdd2a2db7368f36fa57745924f539d3801de0665c84",
+        "process.json": "32b850256ce63724147cd81084bd4ebd1ba635b0560bbf918f3188b637fe5d9b"
+      },
+      "fixture": "ensemble",
+      "flattened_sha256": "2c0056043bdd2dc6a4524704220443990ef4b4b323927858c445cce3784b32eb",
+      "gpu_telemetry_missing": true,
+      "id": "q0-ensemble-light-fast_low_lc",
+      "import": {
+        "adapted_bytes": 29136,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "ambient_temperature_c": 27.0,
+        "archive_bytes": 28318,
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "expanded_components": 178,
+        "expression_tokens": 2132,
+        "flat_deck_sha256": "2c0056043bdd2dc6a4524704220443990ef4b4b323927858c445cce3784b32eb",
+        "importer": "emi02-microchip-import-v1",
+        "instances": 8,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_bytes": 29805,
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "mna_unknowns": 185,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "packages": 4,
+        "source_deck_sha256": "d3a8d5d8ae530178e072e8c90bdb9f1cf6dc4db81485f3d7167c8ebba4730cfe",
+        "vt_volts": 0.025864916895449997
+      },
+      "level": 0,
+      "max_step_s": 2.5e-09,
+      "process": {
+        "cpu_s": 0.24999999999999997,
+        "exit_code": -9,
+        "input": "/home/adam/emi03-work/tmp/emi03-job-l3fchfvt/input.cir",
+        "status": "resource_limit",
+        "wall_s": 0.5528251869836822,
+        "worker_pid": 3225065,
+        "worker_request": 1
+      },
+      "queue_s": 0.0010340330190956593,
+      "reference_version": "emi01-v2",
+      "request_attempted": true,
+      "request_input": "/home/adam/emi03-work/tmp/emi03-job-l3fchfvt/input.cir",
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5936311969999224,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "deck_sha256": "ba7ead976bb44ab072db0a6271069a6caebb47a1f3c48a6b96fcf891d6dec6d2",
+      "elapsed_s": 0.5909587889909744,
+      "error": "resource_limit: complete job rejected",
+      "files": {
+        "import.json": "b0f2c573f856bf4122672e0f7016882fe4bdaef00d3c01c014b310cf249adb44",
+        "process.json": "6feb9f8578aaaec25b7cd75b8db35ed5f24d3ebdb583d91e68504c53fab64825"
+      },
+      "fixture": "ensemble",
+      "flattened_sha256": "5e581601d700c417c7d67c384dd7bd548f8a6fae9f1d01c84caa7dd583c777ae",
+      "gpu_telemetry_missing": true,
+      "id": "q0-ensemble-light-hot_high_c",
+      "import": {
+        "adapted_bytes": 29136,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "ambient_temperature_c": 27.0,
+        "archive_bytes": 28318,
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "expanded_components": 178,
+        "expression_tokens": 2132,
+        "flat_deck_sha256": "5e581601d700c417c7d67c384dd7bd548f8a6fae9f1d01c84caa7dd583c777ae",
+        "importer": "emi02-microchip-import-v1",
+        "instances": 8,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_bytes": 29805,
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "mna_unknowns": 185,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "packages": 4,
+        "source_deck_sha256": "ba7ead976bb44ab072db0a6271069a6caebb47a1f3c48a6b96fcf891d6dec6d2",
+        "vt_volts": 0.025864916895449997
+      },
+      "level": 0,
+      "max_step_s": 2.5e-09,
+      "process": {
+        "cpu_s": 0.25,
+        "exit_code": -9,
+        "input": "/home/adam/emi03-work/tmp/emi03-job-c9qq7fv8/input.cir",
+        "status": "resource_limit",
+        "wall_s": 0.5658296920009889,
+        "worker_pid": 3225067,
+        "worker_request": 1
+      },
+      "queue_s": 0.0011514960206113756,
+      "reference_version": "emi01-v2",
+      "request_attempted": true,
+      "request_input": "/home/adam/emi03-work/tmp/emi03-job-c9qq7fv8/input.cir",
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5613304839935154,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 1.0970979928970337e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q0-ensemble-boundary-nominal",
+      "level": 0,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5613191919983365,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5618310940335505,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 7.664959412068129e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q0-ensemble-boundary-fast_low_lc",
+      "level": 0,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5618230890249833,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5623462519724853,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 8.906994480639696e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q0-ensemble-boundary-hot_high_c",
+      "level": 0,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5623370740213431,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5628935410059057,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 7.664959412068129e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q0-ensemble-reference-nominal",
+      "level": 0,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5628856960101984,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5634015050018206,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 7.3740375228226185e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q0-ensemble-reference-fast_low_lc",
+      "level": 0,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5633939399849623,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5639290460385382,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 1.9417027942836285e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q0-ensemble-reference-hot_high_c",
+      "level": 0,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5639093689969741,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": null,
+      "completion_latency_s": 0.5644616769859567,
+      "corner": null,
+      "elapsed_s": 1.1602009180933237e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "dpt",
+      "id": "q1-dpt",
+      "level": 1,
+      "max_step_s": 1e-09,
+      "queue_s": 0.5644497349858284,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 5e-10,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5649966429919004,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 8.435978088527918e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-light-nominal",
+      "level": 1,
+      "max_step_s": 1.25e-09,
+      "queue_s": 0.5649878170224838,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5655100170406513,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 7.504015229642391e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-light-fast_low_lc",
+      "level": 1,
+      "max_step_s": 1.25e-09,
+      "queue_s": 0.5655023530125618,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5660330100217834,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 7.574970368295908e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-light-hot_high_c",
+      "level": 1,
+      "max_step_s": 1.25e-09,
+      "queue_s": 0.5660251150256954,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.566532909986563,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 7.463968358933926e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-boundary-nominal",
+      "level": 1,
+      "max_step_s": 3.125e-10,
+      "queue_s": 0.5665252550388686,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5746957539813593,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 1.0701012797653675e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-boundary-fast_low_lc",
+      "level": 1,
+      "max_step_s": 3.125e-10,
+      "queue_s": 0.5746847729897127,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5763728690217249,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 9.979004971683025e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-boundary-hot_high_c",
+      "level": 1,
+      "max_step_s": 3.125e-10,
+      "queue_s": 0.576362579013221,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5782659320393577,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 1.01790064945817e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-reference-nominal",
+      "level": 1,
+      "max_step_s": 3.125e-10,
+      "queue_s": 0.5782554020406678,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5809464200283401,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 9.968993254005909e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-reference-fast_low_lc",
+      "level": 1,
+      "max_step_s": 3.125e-10,
+      "queue_s": 0.5809361300198361,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5825574780465104,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 8.485978469252586e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q1-ensemble-reference-hot_high_c",
+      "level": 1,
+      "max_step_s": 3.125e-10,
+      "queue_s": 0.5825487820548005,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": null,
+      "completion_latency_s": 0.5828284919844009,
+      "corner": null,
+      "elapsed_s": 1.0229996405541897e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "dpt",
+      "id": "q2-dpt",
+      "level": 2,
+      "max_step_s": 5e-10,
+      "queue_s": 0.582817961985711,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 2.5e-10,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5854500280111097,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 9.808980394154787e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-light-nominal",
+      "level": 2,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.585439958027564,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5856346790096723,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 9.93796857073903e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-light-fast_low_lc",
+      "level": 2,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5856244700262323,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          80,
+          60,
+          12,
+          40
+        ],
+        "cx_f": 4.7e-08,
+        "cy_f": 1e-09,
+        "dm_geometry": [
+          100,
+          60,
+          20,
+          45
+        ],
+        "id": "light",
+        "lcm_h": 0.0001,
+        "ldm_h": 1e-05
+      },
+      "completion_latency_s": 0.5876518280128948,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 9.868992492556572e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-light-hot_high_c",
+      "level": 2,
+      "max_step_s": 6.25e-10,
+      "queue_s": 0.5876417080289684,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5877215699874796,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 5.351100116968155e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-boundary-nominal",
+      "level": 2,
+      "max_step_s": 1.5625e-10,
+      "queue_s": 0.5876677979831584,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5898751729982905,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 8.315953891724348e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-boundary-fast_low_lc",
+      "level": 2,
+      "max_step_s": 1.5625e-10,
+      "queue_s": 0.5898666370194405,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 8e-08,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "boundary",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5907412620144896,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 8.585979230701923e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-boundary-hot_high_c",
+      "level": 2,
+      "max_step_s": 1.5625e-10,
+      "queue_s": 0.5907324849977158,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5920332010136917,
+      "corner": {
+        "bus_v": 400,
+        "c_scale": 1,
+        "id": "nominal",
+        "l_scale": 1,
+        "rg_scale": 1,
+        "stray_scale": 1,
+        "tj_c": 27
+      },
+      "elapsed_s": 9.889015927910805e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-reference-nominal",
+      "level": 2,
+      "max_step_s": 1.5625e-10,
+      "queue_s": 0.5920230619958602,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5921024870476685,
+      "corner": {
+        "bus_v": 440,
+        "c_scale": 0.9,
+        "id": "fast_low_lc",
+        "l_scale": 0.9,
+        "rg_scale": 0.8,
+        "stray_scale": 1.2,
+        "tj_c": 27
+      },
+      "elapsed_s": 9.989016689360142e-06,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-reference-fast_low_lc",
+      "level": 2,
+      "max_step_s": 1.5625e-10,
+      "queue_s": 0.5920921670040116,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    },
+    {
+      "attempts": 1,
+      "backend": "cuda-fp64",
+      "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+      "candidate": {
+        "cm_geometry": [
+          800,
+          140,
+          40,
+          110
+        ],
+        "cx_f": 1e-06,
+        "cy_f": 4.7e-08,
+        "dm_geometry": [
+          1200,
+          160,
+          48,
+          135
+        ],
+        "id": "reference",
+        "lcm_h": 0.001,
+        "ldm_h": 0.00033
+      },
+      "completion_latency_s": 0.5945041009690613,
+      "corner": {
+        "bus_v": 360,
+        "c_scale": 1.1,
+        "id": "hot_high_c",
+        "l_scale": 1.1,
+        "rg_scale": 1.2,
+        "stray_scale": 1.2,
+        "tj_c": 125
+      },
+      "elapsed_s": 1.0339019354432821e-05,
+      "error": "resource_limit: complete job rejected",
+      "files": {},
+      "fixture": "ensemble",
+      "id": "q2-ensemble-reference-hot_high_c",
+      "level": 2,
+      "max_step_s": 1.5625e-10,
+      "queue_s": 0.594493510958273,
+      "reference_version": "emi01-v2",
+      "request_attempted": false,
+      "sample_step_s": 1.25e-09,
+      "status": "resource_limit"
+    }
+  ],
+  "pass": false,
+  "peak_device_bytes_upper_bound": 0,
+  "peak_host_bytes": 3864162304,
+  "schema": "emi03-ensemble-v1"
+}

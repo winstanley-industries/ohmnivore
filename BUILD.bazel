@@ -1,6 +1,17 @@
 package(default_visibility = ["//visibility:private"])
 
 filegroup(
+    name = "emi03_provenance_inputs",
+    srcs = [
+        "docs/adr/ADR-008-emi03-transient-ensembles.md",
+        "docs/emi01-gpu-experiment-contract.md",
+        "//cpp:benchmarks/emi03_worker.cc",
+        "//cuda:emi03_provenance_inputs",
+    ],
+    visibility = ["//reference/emi03:__pkg__"],
+)
+
+filegroup(
     name = "emi01_provenance_inputs",
     srcs = [
         ".bazelrc",

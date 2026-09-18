@@ -1,0 +1,133 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+INFO: Found applicable config definition test:cuda in file /home/adam/code/ohmnivore/.bazelrc: --test_output=all
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --@@rules_cuda+//cuda:archs, --@@rules_cuda+//cuda:runtime, --extra_toolchains, and 1 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 3 targets (1 packages loaded, 0 targets configured)
+Analyzing: 3 targets (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (11 packages loaded, 4225 targets configured).
+[121 / 196] Compiling cpp/src/expression.cc; 1s linux-sandbox ... (30 actions, 29 running)
+INFO: From Compiling KLU/Source/klu_diagnostics.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c: In function 'klu_rgrowth':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^~
+INFO: From Compiling KLU/Source/klu_sort.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c: In function 'klu_sort':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+INFO: From Compiling KLU/Source/klu_kernel.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c: In function 'prune':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^~
+INFO: From Compiling KLU/Source/klu_z_sort.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_sort.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c: In function 'klu_z_sort':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+INFO: From Compiling KLU/Source/klu_z_diagnostics.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_diagnostics.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c: In function 'klu_z_rgrowth':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^~
+INFO: From Testing //cuda:smoke_test:
+==================== Test output for //cuda:smoke_test:
+backend=cuda device="NVIDIA GeForce RTX 5080" compute_capability=12.0 runtime=13000 driver=13040 global_memory_bytes=17066033152 deterministic_oracle=pass gcc_runtime=static
+================================================================================
+INFO: From Compiling KLU/Source/klu_z_kernel.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_kernel.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c: In function 'prune':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^~
+[176 / 196] 1 / 3 tests; Compiling cpp/src/expression.cc; 2s linux-sandbox ... (10 actions running)
+[185 / 196] 1 / 3 tests; Compiling cpp/src/nonlinear.cc; 4s linux-sandbox ... (4 actions, 3 running)
+[192 / 196] 1 / 3 tests; Linking cuda/emi03_gpu_worker; 1s linux-sandbox ... (2 actions running)
+[193 / 196] 1 / 3 tests; Linking cuda/emi03_gpu_worker; 4s linux-sandbox ... (2 actions, 1 running)
+INFO: From Testing //cuda:emi03_cuda_test:
+==================== Test output for //cuda:emi03_cuda_test:
+[==========] Running 19 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from Emi03Expression
+[ RUN      ] Emi03Expression.AllOperationsAndDerivativesMatchCpuAuthority
+[       OK ] Emi03Expression.AllOperationsAndDerivativesMatchCpuAuthority (234 ms)
+[ RUN      ] Emi03Expression.LazyIfAndValueOnlyDerivativeBoundaryPreserveErrors
+[       OK ] Emi03Expression.LazyIfAndValueOnlyDerivativeBoundaryPreserveErrors (0 ms)
+[ RUN      ] Emi03Expression.ConstantOnlyZeroStateAndStrictDivisionAreSupported
+[       OK ] Emi03Expression.ConstantOnlyZeroStateAndStrictDivisionAreSupported (0 ms)
+[ RUN      ] Emi03Expression.DuplicateDependenciesAccumulateInOriginalAdOrder
+[       OK ] Emi03Expression.DuplicateDependenciesAccumulateInOriginalAdOrder (0 ms)
+[ RUN      ] Emi03Expression.DependencyChecksIncludeInactiveArms
+[       OK ] Emi03Expression.DependencyChecksIncludeInactiveArms (0 ms)
+[ RUN      ] Emi03Expression.ProgramOwnershipOrderAndChangingStateStayPrivate
+[       OK ] Emi03Expression.ProgramOwnershipOrderAndChangingStateStayPrivate (0 ms)
+[ RUN      ] Emi03Expression.UncompiledAndWrongStateAreTypedFailures
+[       OK ] Emi03Expression.UncompiledAndWrongStateAreTypedFailures (0 ms)
+[----------] 7 tests from Emi03Expression (239 ms total)
+
+[----------] 2 tests from Emi03ExpressionFailures
+[ RUN      ] Emi03ExpressionFailures.NonfiniteReadbackAndAllocationFailClosed
+[       OK ] Emi03ExpressionFailures.NonfiniteReadbackAndAllocationFailClosed (0 ms)
+[ RUN      ] Emi03ExpressionFailures.FiniteCorruptionRequiresDifferentialValidation
+[       OK ] Emi03ExpressionFailures.FiniteCorruptionRequiresDifferentialValidation (0 ms)
+[----------] 2 tests from Emi03ExpressionFailures (1 ms total)
+
+[----------] 7 tests from Emi03RealSolver
+[ RUN      ] Emi03RealSolver.PivotingRefactorReuseAndOriginalEquationValidation
+[       OK ] Emi03RealSolver.PivotingRefactorReuseAndOriginalEquationValidation (12 ms)
+[ RUN      ] Emi03RealSolver.RowEquilibrationPreservesMixedPhysicalUnits
+[       OK ] Emi03RealSolver.RowEquilibrationPreservesMixedPhysicalUnits (2 ms)
+[ RUN      ] Emi03RealSolver.MandatoryOriginalResidualRefinesWeakCommonMode
+[       OK ] Emi03RealSolver.MandatoryOriginalResidualRefinesWeakCommonMode (2 ms)
+[ RUN      ] Emi03RealSolver.ZeroRhsCannotHideSingularAcceptedJacobian
+[       OK ] Emi03RealSolver.ZeroRhsCannotHideSingularAcceptedJacobian (2 ms)
+[ RUN      ] Emi03RealSolver.MalformedChangedPatternAndNonfiniteInputsFail
+[       OK ] Emi03RealSolver.MalformedChangedPatternAndNonfiniteInputsFail (2 ms)
+[ RUN      ] Emi03RealSolver.EmptySystemUsesNoDeviceBuffers
+[       OK ] Emi03RealSolver.EmptySystemUsesNoDeviceBuffers (0 ms)
+[ RUN      ] Emi03RealSolver.BehavioralTransientPreservesDisplacementCurrent
+[       OK ] Emi03RealSolver.BehavioralTransientPreservesDisplacementCurrent (186 ms)
+[----------] 7 tests from Emi03RealSolver (208 ms total)
+
+[----------] 3 tests from Emi03RealFailures
+[ RUN      ] Emi03RealFailures.FaultsFailClosedAndReleaseAllDeviceBuffers
+[       OK ] Emi03RealFailures.FaultsFailClosedAndReleaseAllDeviceBuffers (15 ms)
+[ RUN      ] Emi03RealFailures.DeviceCapIsEnforcedBeforeAllocation
+[       OK ] Emi03RealFailures.DeviceCapIsEnforcedBeforeAllocation (1 ms)
+[ RUN      ] Emi03RealFailures.ExplicitJobAndClosedOwnershipAreRequired
+[       OK ] Emi03RealFailures.ExplicitJobAndClosedOwnershipAreRequired (2 ms)
+[----------] 3 tests from Emi03RealFailures (18 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 4 test suites ran. (468 ms total)
+[  PASSED  ] 19 tests.
+================================================================================
+[197 / 198] 2 / 3 tests; Testing //cuda:emi03_linkage_test; 1s linux-sandbox
+INFO: From Testing //cuda:emi03_linkage_test:
+==================== Test output for //cuda:emi03_linkage_test:
+GPU-02 linkage passed: cuDSS and cuBLAS are embedded statically; CUDA and GCC runtimes are static; DT_NEEDED contains only the declared glibc host ABI
+================================================================================
+INFO: Found 3 test targets...
+INFO: Elapsed time: 10.810s, Critical Path: 10.50s
+INFO: 73 processes: 125 action cache hit, 7 internal, 68 linux-sandbox.
+INFO: Build completed successfully, 73 total actions
+//cuda:emi03_cuda_test                                                   PASSED in 0.6s
+//cuda:emi03_linkage_test                                                PASSED in 1.2s
+//cuda:smoke_test                                                        PASSED in 0.4s
+
+Executed 3 out of 3 tests: 3 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

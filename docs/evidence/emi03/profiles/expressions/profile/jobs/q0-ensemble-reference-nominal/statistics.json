@@ -1,0 +1,45 @@
+{
+  "attempts": 525648,
+  "behavioral_error_estimator": "derivative-history-audited-v1",
+  "behavioral_integration_method": "trapezoidal",
+  "derivative_history_error_estimates": 372526,
+  "derivative_history_fallback_entries": 125,
+  "derivative_history_fallback_recoveries": 122,
+  "derivative_history_step_doubling_checks": 152079,
+  "diagnostic_profile": {
+    "accepted_state_output_s": 0.23502048,
+    "assembly_calls": 3480258,
+    "assembly_evaluation_s": 21.186959277,
+    "integration_setup_other_s": 5.453415472000002,
+    "linear_calls": 2648365,
+    "linear_factor_solve_refinement_validation_s": 11.075893902,
+    "nested_expression_profile": {
+      "full_calls": 111243720,
+      "full_s": 9.103100063,
+      "interpretation": "nested in assembly or setup; not additive; includes diagnostic instrumentation effects",
+      "value_calls": 49913520,
+      "value_s": 2.489043884
+    },
+    "output_calls": 461672,
+    "schema": "emi03-cpu-profile-v2"
+  },
+  "elapsed_seconds": 37.951289131,
+  "nonlinear_rejections": 0,
+  "points": 461672,
+  "raw_bytes": 99721752,
+  "rejected_steps": 63977,
+  "schema": "emi02-cpu-v2",
+  "status": "complete",
+  "step_doubling_error_estimates": 153122,
+  "transient_solver_statistics": {
+    "iterative_refinement_solves": 1816477,
+    "numeric_factorizations": 4,
+    "numeric_refactorization_fallbacks": 3,
+    "numeric_refactorizations": 2371505,
+    "numeric_reuses": 276837,
+    "solves": 2648345,
+    "symbolic_analyses": 1
+  },
+  "unknowns": 185,
+  "variables": 27
+}

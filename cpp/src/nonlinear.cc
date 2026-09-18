@@ -4,6 +4,14 @@
 #include "cpp/src/nonlinear_internal.h"
 #include "ohmnivore/behavioral.h"
 
+#ifdef OHMNIVORE_EMI03_CUDA
+#include "cuda/emi03_expression.h"
+#endif
+
+#ifdef OHMNIVORE_EMI03_PROFILE
+#include "cpp/benchmarks/emi03_profile.h"
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -113,6 +121,15 @@ private:
 // therefore need only an exact full-state key, never an external model pointer.
 class PreparedExpressionCache {
 public:
+#ifdef OHMNIVORE_EMI03_CUDA
+  const std::vector<CompiledExpression> &GpuPrograms(const MnaSystem &system) {
+    if (gpu_programs_.empty()) {
+      for (const auto &descriptor : system.behavioral_descriptors)
+        gpu_programs_.push_back(descriptor.expression);
+    }
+    return gpu_programs_;
+  }
+#endif
   const std::vector<ExpressionEvaluation> *
   Find(const std::vector<double> &state, bool history) {
     for (const auto &entry : entries_) {
@@ -150,6 +167,9 @@ private:
   std::array<std::optional<Entry>, 4> entries_;
   std::size_t next_entry_ = 0;
   PreparedExpressionCacheStatistics statistics_;
+#ifdef OHMNIVORE_EMI03_CUDA
+  std::vector<CompiledExpression> gpu_programs_;
+#endif
 };
 
 } // namespace internal
@@ -160,6 +180,21 @@ enum class ExpressionPurpose { kInitial, kTrial, kFinal };
 enum class AssemblyMode { kFull, kResidualAfterAcceptedPreparedTrial };
 
 using internal::AssembledNewtonSystem;
+
+#ifdef OHMNIVORE_EMI03_CUDA
+Result<std::vector<ExpressionEvaluation>>
+GpuExpressions(const MnaSystem &system, const std::vector<double> &state,
+               internal::PreparedExpressionCache *cache, bool derivatives) {
+  if (cache)
+    return EvaluateEmi03CudaExpressions(cache->GpuPrograms(system), state,
+                                        derivatives);
+  std::vector<CompiledExpression> programs;
+  programs.reserve(system.behavioral_descriptors.size());
+  for (const auto &descriptor : system.behavioral_descriptors)
+    programs.push_back(descriptor.expression);
+  return EvaluateEmi03CudaExpressions(programs, state, derivatives);
+}
+#endif
 
 [[nodiscard]] bool IsBounded(double value) {
   return std::abs(value) <= kNonlinearMaximumMagnitude;
@@ -418,6 +453,9 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
              nullptr,
          AssemblyMode mode = AssemblyMode::kFull,
          internal::PreparedNewtonWorkspace *workspace = nullptr) {
+#ifdef OHMNIVORE_EMI03_PROFILE
+  const emi03_profile::Scope profile(emi03_profile::Phase::kAssembly);
+#endif
   const bool residual_only =
       mode == AssemblyMode::kResidualAfterAcceptedPreparedTrial;
   if (residual_only &&
@@ -706,6 +744,17 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
       expression_cache && expression_purpose == ExpressionPurpose::kInitial
           ? expression_cache->Find(solution, false)
           : nullptr;
+#ifdef OHMNIVORE_EMI03_CUDA
+  std::vector<ExpressionEvaluation> gpu_expressions;
+  if (residual_only || !cached_expressions) {
+    auto evaluated =
+        GpuExpressions(system, solution, expression_cache, !residual_only);
+    if (!evaluated.ok())
+      return Result<AssembledNewtonSystem>::Fail(evaluated.error().code,
+                                                 evaluated.error().message);
+    gpu_expressions = evaluated.TakeValue();
+  }
+#endif
   for (std::size_t descriptor_index = 0;
        descriptor_index < system.behavioral_descriptors.size();
        ++descriptor_index) {
@@ -715,7 +764,11 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
     if (residual_only) {
       ++expression_cache->counts().fresh_final_value_evaluations;
       auto value =
+#ifdef OHMNIVORE_EMI03_CUDA
+          Result<double>::Ok(gpu_expressions[descriptor_index].value);
+#else
           internal::EvaluateExpressionValue(descriptor.expression, solution);
+#endif
       if (!value.ok())
         return Result<AssembledNewtonSystem>::Fail(
             value.error().code, descriptor.name + ": " + value.error().message);
@@ -739,7 +792,13 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
         else
           ++counts.fresh_trial_evaluations;
       }
-      auto result = EvaluateExpression(descriptor.expression, solution);
+      auto result =
+#ifdef OHMNIVORE_EMI03_CUDA
+          Result<ExpressionEvaluation>::Ok(
+              std::move(gpu_expressions[descriptor_index]));
+#else
+          EvaluateExpression(descriptor.expression, solution);
+#endif
       if (!result.ok())
         return Result<AssembledNewtonSystem>::Fail(result.error().code,
                                                    descriptor.name + ": " +
@@ -1709,6 +1768,16 @@ Result<std::vector<double>> BuildValidatedDiodeResidualContribution(
     }
     const auto *cached_expressions =
         expression_cache ? expression_cache->Find(solution, true) : nullptr;
+#ifdef OHMNIVORE_EMI03_CUDA
+    std::vector<ExpressionEvaluation> gpu_expressions;
+    if (!cached_expressions) {
+      auto evaluated = GpuExpressions(system, solution, expression_cache, true);
+      if (!evaluated.ok())
+        return Result<std::vector<double>>::Fail(evaluated.error().code,
+                                                 evaluated.error().message);
+      gpu_expressions = evaluated.TakeValue();
+    }
+#endif
     for (std::size_t descriptor_index = 0;
          descriptor_index < system.behavioral_descriptors.size();
          ++descriptor_index) {
@@ -1720,7 +1789,13 @@ Result<std::vector<double>> BuildValidatedDiodeResidualContribution(
       } else {
         if (expression_cache)
           ++expression_cache->counts().fresh_history_evaluations;
-        auto result = EvaluateExpression(descriptor.expression, solution);
+        auto result =
+#ifdef OHMNIVORE_EMI03_CUDA
+            Result<ExpressionEvaluation>::Ok(
+                std::move(gpu_expressions[descriptor_index]));
+#else
+            EvaluateExpression(descriptor.expression, solution);
+#endif
         if (!result.ok())
           return Result<std::vector<double>>::Fail(result.error().code,
                                                    result.error().message);

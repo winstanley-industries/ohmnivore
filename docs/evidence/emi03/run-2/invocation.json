@@ -1,0 +1,281 @@
+{
+  "accelerator": {
+    "diagnostic_executable": "/usr/lib/wsl/lib/nvidia-smi",
+    "fields": "name,uuid,driver_version,memory.total_MiB,sm_MHz,memory_MHz,power_limit_W",
+    "policy": "observed clocks and configured power limit; no clock or power changes",
+    "value": "NVIDIA GeForce RTX 5080, GPU-12fc46ca-1e10-bfc0-0997-84b0fa735418, 616.64, 16303, 270, 405, 360.00"
+  },
+  "aggregate_host_limit_bytes": 17179869184,
+  "cpu_sha256": "4a3387525d3b26f3698e4f9550482c668408c44038b1ddbc9f4b2bcfe2a8d4d5",
+  "cpu_topology": {
+    "model": "AMD Ryzen 9 9950X3D 16-Core Processor",
+    "physical_core_mapping": [
+      {
+        "core": 2,
+        "logical_cpu": 4,
+        "package": 0
+      },
+      {
+        "core": 3,
+        "logical_cpu": 6,
+        "package": 0
+      },
+      {
+        "core": 10,
+        "logical_cpu": 20,
+        "package": 0
+      },
+      {
+        "core": 11,
+        "logical_cpu": 22,
+        "package": 0
+      },
+      {
+        "core": 0,
+        "logical_cpu": 0,
+        "package": 0
+      },
+      {
+        "core": 1,
+        "logical_cpu": 2,
+        "package": 0
+      },
+      {
+        "core": 4,
+        "logical_cpu": 8,
+        "package": 0
+      },
+      {
+        "core": 5,
+        "logical_cpu": 10,
+        "package": 0
+      },
+      {
+        "core": 6,
+        "logical_cpu": 12,
+        "package": 0
+      },
+      {
+        "core": 7,
+        "logical_cpu": 14,
+        "package": 0
+      },
+      {
+        "core": 8,
+        "logical_cpu": 16,
+        "package": 0
+      },
+      {
+        "core": 9,
+        "logical_cpu": 18,
+        "package": 0
+      },
+      {
+        "core": 12,
+        "logical_cpu": 24,
+        "package": 0
+      },
+      {
+        "core": 13,
+        "logical_cpu": 26,
+        "package": 0
+      },
+      {
+        "core": 14,
+        "logical_cpu": 28,
+        "package": 0
+      },
+      {
+        "core": 15,
+        "logical_cpu": 30,
+        "package": 0
+      }
+    ]
+  },
+  "cpu_workers": [
+    1,
+    4,
+    16
+  ],
+  "device_limit_bytes": 4294967296,
+  "dispatch_authorized": false,
+  "ensemble_sizes": [
+    9,
+    36
+  ],
+  "gpu_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+  "gpu_workers": [
+    4
+  ],
+  "host": {
+    "machine": "x86_64",
+    "node": "ADESK",
+    "processor": "",
+    "release": "6.18.33.2-microsoft-standard-WSL2",
+    "system": "Linux",
+    "version": "#1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026"
+  },
+  "job_limits": {
+    "address_bytes": 1073741824,
+    "cpu_s": 110,
+    "file_bytes": 536870912,
+    "raw_points": 2000000,
+    "wall_s": 120
+  },
+  "logical_cpus": 32,
+  "manifest_sha256": "ec68ddb48866d8127fbdd0ecf411dfc326b6c7bc7929c10429e40edd9cd2c81f",
+  "measured": 5,
+  "model": {
+    "adapted_bytes": 29136,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "archive_bytes": 28318,
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_bytes": 29805,
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5"
+  },
+  "ngspice_sha256": "e10bc6a3fda552c99615e823cfd06e2d57979ad7d871af023a6b6930accd1920",
+  "parent_cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "persistent_worker_cores": [
+    4,
+    6,
+    20,
+    22,
+    0,
+    2,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    24,
+    26,
+    28,
+    30
+  ],
+  "qualification_cpu_affinity": [
+    4,
+    6,
+    20,
+    22
+  ],
+  "qualify_only": false,
+  "retries": 0,
+  "reuse": "persistent process/context; immutable fresh CPU trajectories; no numerical state",
+  "schema": "emi03-ensemble-v1",
+  "sources": {
+    ".bazelrc": "904e9029b88b67bd8e66a6c2323f1ae01ee90e0ea5815c322a155d9b84340656",
+    ".bazelversion": "1b9487d55bea47fea50d226cc9c53bc548877ad2a318bac8fbc8b320f429e5c5",
+    "BUILD.bazel": "9f9fab1ee3df00f87196ca39fbd7472f40183dea7816bf3159f4b12b33863934",
+    "MODULE.bazel": "da820df241f7a2b860e31a6cf5619f8a5f01e6357972d42a8c5645ed2f7cf138",
+    "MODULE.bazel.lock": "ddb740cd9d7241f71eb772d8cf2d751c54e67ccb7d2a30c38d8b1f75ec2cf422",
+    "cpp/BUILD.bazel": "abf174e3ad2b348fa3f836b58baa91ef3e46aa374f10c23c5bfa43c653ce90e8",
+    "cpp/benchmarks/emi03_worker.cc": "d893cc5e0a5cacaaa689ac4c64c4ec5aa856bce63b75adeda15a50267a19df77",
+    "cpp/include/ohmnivore/behavioral.h": "52d6254de151e1eee650b1ab282230b739383e5d2026709c89b06bbad092a32f",
+    "cpp/include/ohmnivore/compiler.h": "73338dea8d67b403057e987c156a1c314743bf5c0c9ff5d5850ad8b153d0fc7f",
+    "cpp/include/ohmnivore/expression.h": "bdde96e4ef60c65af3d2f309edadbce3773ec5390b32f13eb34cd501ba0e5ba6",
+    "cpp/include/ohmnivore/ir.h": "3cabcd2ae9081b9ab6b339ddf1b6f8e825de2160976ee814babc15f1202174f0",
+    "cpp/include/ohmnivore/nonlinear.h": "88a64bb31d3e90a25eee6f486928520a1499c6723674ab8b5cd1b5f818c31d91",
+    "cpp/include/ohmnivore/parser.h": "b020c0894bc2f53bb0e1edd259b0d4a63851d6a77f1c496b1daa2168e189db2a",
+    "cpp/include/ohmnivore/prepared_ac.h": "86ab4b3b3442b9671bd5618048edd7564503b1f6d03c35bd0dd9be35367276c0",
+    "cpp/include/ohmnivore/simulator.h": "dd5a4d146e0d69f68ff2aabd0fec96f6c62ed37a86b3975ab960c8c5785ea400",
+    "cpp/include/ohmnivore/solver.h": "9ba8880a28c126db0d74ae05cf57ce844c7b9f97dd3a3b91d8062e3c4a2cae96",
+    "cpp/include/ohmnivore/sparse.h": "f23ff6bb86c45fbc1487c02d1a209c82f3e8a383daaf26bab5b42c62cdb36c2f",
+    "cpp/include/ohmnivore/status.h": "83758fb185eb892fdfb758b72c1db57b1c97f47fa020c3c93d04ab96a961dcc6",
+    "cpp/include/ohmnivore/transient.h": "fd141a61d29f94a248688066057676ca1f1649a6bc4d871cda113cc3efd2f256",
+    "cpp/include/ohmnivore/waveform.h": "3ff2f73ab93ebc073bae8cf0912d827abdecec42cb864842f4748a790cb97944",
+    "cpp/src/behavioral.cc": "cab598beb267531b42758dcb353c0dbd874c4b7534036e4c870498370beefec6",
+    "cpp/src/compiler.cc": "206c1be5b9aa720768e78647dee431b250d0f40e0bc4489f17339a2bc3be9a87",
+    "cpp/src/emi02_runner.cc": "a87fe3aa29c35e17c150cb9846546517a20ca6b3ea5b984728e2611d52d72670",
+    "cpp/src/expression.cc": "24ea6e52cd1d3c0af680e1f26dec240f382c0e146bba1bbbc1ee43df21a602d1",
+    "cpp/src/expression_internal.h": "f25d5d92a6d2a34a75c3b947d2554f6340f897bae6ab453c4e85e322ef6b6619",
+    "cpp/src/main.cc": "b80d35cdb1261c6e245e35b4c2ab03eb278fe22bb1f5594e8da19a8ea760b653",
+    "cpp/src/nonlinear.cc": "1c1647cc9e7c5c2ccba02bb01fbc639c131babeb94f435571e13cfce2f74385f",
+    "cpp/src/nonlinear_internal.h": "a42296fe4e7e839eaa025a808030dc65fbf9580c6f3c9fd9534414de823784c5",
+    "cpp/src/parser.cc": "771d88a2755514ed37741c4d90ef84f12c2a7a33eeab83264d004724d8c5c76b",
+    "cpp/src/prepared_ac.cc": "5f765bdb5bb0ddb1c98be2bf96ff8e9e646679f5b2aec291c773d754159d9495",
+    "cpp/src/prepared_ac_internal.h": "553c434f89da245dc34b0ed7f96bb26a5bd30b43cb51fa7d22a42014647290ca",
+    "cpp/src/simulator.cc": "92a964f0acba84c3b420cd52f1b697c57a1c40ededca3e30a62676d8448f4ddb",
+    "cpp/src/solver.cc": "7b78283de52926001c8a8b80d6da2db56a0eb58b926ab77ff19475e8645b499a",
+    "cpp/src/transient.cc": "fdf52db52d1d345059acf54622786005527f7d3761c4bf0b82803cc3b9c95525",
+    "cpp/src/waveform.cc": "0652da7ff575166c216b66180e7fba37b038f459fc880084dd4ef933991d0a34",
+    "cuda/BUILD.bazel": "73b4099156a26e8c45f5e2a7c75adfa1617b86ba12f0d7203486c9f3d081bc35",
+    "cuda/emi03_cuda_internal.h": "20c1306e33f66a673d84e81faeb7bb670b5f94a69082b6c604bdf3572472d2ed",
+    "cuda/emi03_expression.cu": "f76b4f2e17c05eaaa3b48795cf45422e8bba0ee57f292c0eda12d01f39e633d5",
+    "cuda/emi03_expression.h": "f6f224e48f668227da84afba08f08c35433a0bbb02b6370d2968e02f109cd4a3",
+    "cuda/emi03_real_solver.cu": "d79da8f3237a57c7141001a01758d79441236a94c2dbae5c2580aa8a47a99ae8",
+    "cuda/emi03_real_solver.h": "2df65a5fbe207b80ba472e4593f604aa8072559a02efd54f9e7ee3a21fff28e2",
+    "docs/adr/ADR-002-inverter-emi-design-study.md": "b0b153eed33cf00db778941ebc5e58bfd3575f7ccb93bc891ed0f4f50e5e3ab4",
+    "docs/adr/ADR-003-emi02-cpu-qualification.md": "7fe952bde918705236a54ac191d9a2e190780e2c03c874503fcefd1bfd647db8",
+    "docs/adr/ADR-004-emi02-behavioral-expressions.md": "c191079f06de287a999ac0421880e086f110e9d88e12bc5af130ac41f87dcf18",
+    "docs/adr/ADR-005-emi02-behavioral-transient.md": "c2f920abd18e7c53a0f8ccfb3c9b51f672c0cdf2eac9f812b3cdbec138b9c1a7",
+    "docs/adr/ADR-006-emi02-model-import-qualification.md": "81569e1056a1e393e7f01122c3dbb9e32ee025d35460393a595bfdc797681a83",
+    "docs/adr/ADR-007-generic-transient-improvements.md": "609723a282777d6d519e3f6f4eacc6bf19bb1ba4eaaf6fcbe5daa472989ffd5d",
+    "docs/adr/ADR-008-emi03-transient-ensembles.md": "4a0a56b63f8fb36b17f414b4e55a7c3404ff58632b0216c2bd2aa0d0ddcd8634",
+    "docs/emi01-gpu-experiment-contract.md": "4f202b46e8fb82d255905c1f1450d9aac9a5f305c8e99805482dc50b4e8629c4",
+    "reference/emi01/BUILD.bazel": "ed7a4294e2818a907caca7273707712c67cfe23e3cd32d38837c982155c86be0",
+    "reference/emi01/CPU_GAPS.md": "caeb280c1e7d1da4d5b2c057509d3b955c32d995d2f7bc4a2433471ef1be17e9",
+    "reference/emi01/MODEL_PROVENANCE.md": "013ac1eeb23c220e0d991940f3f24a9a4b24f3fbae565b2ece90c55e4a098ee7",
+    "reference/emi01/README.md": "6aed23ef5a68acd53d6abb8a11510772b7b5b21e1c7fc1407efaada6433eee8b",
+    "reference/emi01/adapter.py": "5030a6ff6b5f0cb0d24694b3912c7abb0fc910f5b4e92bff98de223b3d78ff02",
+    "reference/emi01/circuits.py": "5d23ab959b45a9194f766b7503eebf260bd0a14bd57f6dd4b4797e838743772c",
+    "reference/emi01/manifest-v2.json": "ec68ddb48866d8127fbdd0ecf411dfc326b6c7bc7929c10429e40edd9cd2c81f",
+    "reference/emi01/manifest.json": "9fcdaa19a7320d4281afe148f36f9b269e1f42e226e917dd3ff43758681f30e2",
+    "reference/emi01/metrics.py": "1e00df41d597d1a9964a4d72ad40e45ba2befd0dad9c9c71222736b8dbaab0c6",
+    "reference/emi01/report.py": "4d117fddc162ee8802973dcdd3de307274d2b91a17c3bec296e1438f1fabb571",
+    "reference/emi01/requirements.txt": "b9760e3e2043212ec2b825161a5c19d744f3066d564d570f63e7b7abb2a6c544",
+    "reference/emi01/signals.py": "b65bbed92bab180cbd9cc3cac48878cf02f03335b55626cda58dcf68b5dde54e",
+    "reference/emi01/study.py": "8d059af34b269e532c74d7240a850d6b1e6065daa085c44ab725bd0150042e35",
+    "reference/emi02/BUILD.bazel": "8b1d512bac9f2a43a23ce2a09fdfc46cdc8ada3ebc23a1e3c09cc7bdc1cad678",
+    "reference/emi02/README.md": "2238206f8df6c82f13d8f03f7a203acb2b8aacdd931d2335290213df5ef78aab",
+    "reference/emi02/importer.py": "9ebdf63fcbc57292a3a668582f0d84262f5d9ff8a08851608491142d2ce73606",
+    "reference/emi02/qualification.py": "55df33e94d21ff0c3c53fb402383f130ac7f1872ecaf89717c0372878c070b5f",
+    "reference/emi03/BUILD.bazel": "ec2c4697a67d3f48d36e69a28c899d84aae7f315197f9a40b97b127e8c776fde",
+    "reference/emi03/README.md": "42a88152fc43ca25c04c0f54685e7ef3fd2a98bd85c5d3c8de78b849c5be1e01",
+    "reference/emi03/ensemble.py": "a4263178c1f3f2639653d5fc83bbfa278c7ec667dd3eaaf503e80acef04934b8",
+    "third_party/emi_python/BUILD.bazel": "07fcdfd5442775eb941711850b31696585a45f8cb613f8d93fe7d95d10b98135",
+    "third_party/emi_python/PROVENANCE.md": "c8345cc895b0cd29b4185789ba9ef767bd53d81bf133aa9a813f9d02a8f57027",
+    "third_party/emi_python/runtime.py": "350c67411857425fe0c7de29a7ea6d44ae08ea4df3220417f655ac94ec72e2fb",
+    "third_party/emi_python/runtime_rules.bzl": "bb88fa987cca7a940be5ee95f3fa9b6db38bb13e697917343a5c21d4e4ab0141",
+    "third_party/ngspice/BUILD.bazel": "386402a9b05e3728631454fef857b8104a62aa3cd52df867b48b346e9a43720e",
+    "third_party/ngspice/PROVENANCE.md": "ae62f8eb139383027fa7402dff2eb992a62dbeb80695c6ea84faf5ef8e65796c"
+  },
+  "warmups": 1
+}

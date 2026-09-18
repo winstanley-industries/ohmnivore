@@ -1,0 +1,1460 @@
+[
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": null,
+    "completion_latency_s": 0.5800108029507101,
+    "corner": null,
+    "deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+    "elapsed_s": 0.5769712770124897,
+    "error": "resource_limit: complete job rejected",
+    "files": {
+      "import.json": "2be38fd38d98aa6f733f54c21d7864755952ba52fd218f808b869602fc9b5863",
+      "process.json": "d61cfe272894cea71ccfe1b3a9ad90b493c7487d7e2adf3a592a1178a7f16653"
+    },
+    "fixture": "dpt",
+    "flattened_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545",
+    "gpu_telemetry_missing": true,
+    "id": "q0-dpt",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 73,
+      "expression_tokens": 1066,
+      "flat_deck_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 4,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 80,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 2,
+      "source_deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 0,
+    "max_step_s": 2e-09,
+    "process": {
+      "cpu_s": 0.22999999999999998,
+      "exit_code": -9,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-q0_iryox/input.cir",
+      "status": "resource_limit",
+      "wall_s": 0.5535898610251024,
+      "worker_pid": 3229188,
+      "worker_request": 1
+    },
+    "queue_s": 0.0020106269512325525,
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-q0_iryox/input.cir",
+    "sample_step_s": 1e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5934990720124915,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "deck_sha256": "e455550b0c4bf7754fff310e4f3fc9a19e6999e96d5d11db778292253155cd65",
+    "elapsed_s": 0.5897955509717576,
+    "error": "resource_limit: complete job rejected",
+    "files": {
+      "import.json": "bab165822d0c847c82ab0647fb52909c31384ac667b581466dec8a78df3d1e64",
+      "process.json": "703e77d62bfcf3d5a6675d2ba3a2f0e4bbf8ca3fc66c1baceb40dfc8cb53f485"
+    },
+    "fixture": "ensemble",
+    "flattened_sha256": "f94a57f71efba1d4cfb1403285f5207f88ef0a0994834bced823b19247ea51ce",
+    "gpu_telemetry_missing": true,
+    "id": "q0-ensemble-light-nominal",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 178,
+      "expression_tokens": 2132,
+      "flat_deck_sha256": "f94a57f71efba1d4cfb1403285f5207f88ef0a0994834bced823b19247ea51ce",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 8,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 185,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 4,
+      "source_deck_sha256": "e455550b0c4bf7754fff310e4f3fc9a19e6999e96d5d11db778292253155cd65",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 0,
+    "max_step_s": 2.5e-09,
+    "process": {
+      "cpu_s": 0.23000000000000004,
+      "exit_code": -9,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-unb_uyi8/input.cir",
+      "status": "resource_limit",
+      "wall_s": 0.5684618230443448,
+      "worker_pid": 3229189,
+      "worker_request": 1
+    },
+    "queue_s": 0.002743859018664807,
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-unb_uyi8/input.cir",
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5631335900397971,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "deck_sha256": "d3a8d5d8ae530178e072e8c90bdb9f1cf6dc4db81485f3d7167c8ebba4730cfe",
+    "elapsed_s": 0.5619351289933547,
+    "error": "resource_limit: complete job rejected",
+    "files": {
+      "import.json": "28cbef3295514ebfeeee7cdd2a2db7368f36fa57745924f539d3801de0665c84",
+      "process.json": "f322c22e8ab9967a27f7dcc3156d4d107fa5ec6335bb136225181ce8209e88d7"
+    },
+    "fixture": "ensemble",
+    "flattened_sha256": "2c0056043bdd2dc6a4524704220443990ef4b4b323927858c445cce3784b32eb",
+    "gpu_telemetry_missing": true,
+    "id": "q0-ensemble-light-fast_low_lc",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 178,
+      "expression_tokens": 2132,
+      "flat_deck_sha256": "2c0056043bdd2dc6a4524704220443990ef4b4b323927858c445cce3784b32eb",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 8,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 185,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 4,
+      "source_deck_sha256": "d3a8d5d8ae530178e072e8c90bdb9f1cf6dc4db81485f3d7167c8ebba4730cfe",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 0,
+    "max_step_s": 2.5e-09,
+    "process": {
+      "cpu_s": 0.23,
+      "exit_code": -9,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-4r_t01xl/input.cir",
+      "status": "resource_limit",
+      "wall_s": 0.5421235749963671,
+      "worker_pid": 3229187,
+      "worker_request": 1
+    },
+    "queue_s": 0.0010816390276886523,
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-4r_t01xl/input.cir",
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.6056853639893234,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "deck_sha256": "ba7ead976bb44ab072db0a6271069a6caebb47a1f3c48a6b96fcf891d6dec6d2",
+    "elapsed_s": 0.6030068100080825,
+    "error": "resource_limit: complete job rejected",
+    "files": {
+      "import.json": "b0f2c573f856bf4122672e0f7016882fe4bdaef00d3c01c014b310cf249adb44",
+      "process.json": "fcf2e722681e464ce5e51d591e1f05808ddbcdedd99504239d0c876798cc26bf"
+    },
+    "fixture": "ensemble",
+    "flattened_sha256": "5e581601d700c417c7d67c384dd7bd548f8a6fae9f1d01c84caa7dd583c777ae",
+    "gpu_telemetry_missing": true,
+    "id": "q0-ensemble-light-hot_high_c",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 178,
+      "expression_tokens": 2132,
+      "flat_deck_sha256": "5e581601d700c417c7d67c384dd7bd548f8a6fae9f1d01c84caa7dd583c777ae",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 8,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 185,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 4,
+      "source_deck_sha256": "ba7ead976bb44ab072db0a6271069a6caebb47a1f3c48a6b96fcf891d6dec6d2",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 0,
+    "max_step_s": 2.5e-09,
+    "process": {
+      "cpu_s": 0.25,
+      "exit_code": -9,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-h915pxn3/input.cir",
+      "status": "resource_limit",
+      "wall_s": 0.5802595469867811,
+      "worker_pid": 3229190,
+      "worker_request": 1
+    },
+    "queue_s": 0.00255476898746565,
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-h915pxn3/input.cir",
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5630985469906591,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.1462019756436348e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q0-ensemble-boundary-nominal",
+    "level": 0,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5630866949795745,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.563744654005859,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 7.805007044225931e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q0-ensemble-boundary-fast_low_lc",
+    "level": 0,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5637366279843263,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5642708729719743,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 7.383991032838821e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q0-ensemble-boundary-hot_high_c",
+    "level": 0,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5642631480004638,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5647795689874329,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 7.483991794288158e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q0-ensemble-reference-nominal",
+    "level": 0,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5647718639811501,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5652893559890799,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 7.373979315161705e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q0-ensemble-reference-fast_low_lc",
+    "level": 0,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5652816510410048,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5657938429503702,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 7.344002369791269e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q0-ensemble-reference-hot_high_c",
+    "level": 0,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5657861689687707,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": null,
+    "completion_latency_s": 0.5662962069618516,
+    "corner": null,
+    "elapsed_s": 7.263966836035252e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "dpt",
+    "id": "q1-dpt",
+    "level": 1,
+    "max_step_s": 1e-09,
+    "queue_s": 0.5662886329810135,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 5e-10,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5668850049842149,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.0619987733662128e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-light-nominal",
+    "level": 1,
+    "max_step_s": 1.25e-09,
+    "queue_s": 0.5668740849941969,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5676608280045912,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.026899553835392e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-light-fast_low_lc",
+    "level": 1,
+    "max_step_s": 1.25e-09,
+    "queue_s": 0.5676502379938029,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5765685670194216,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 9.668001439422369e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-light-hot_high_c",
+    "level": 1,
+    "max_step_s": 1.25e-09,
+    "queue_s": 0.576558618049603,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5784560610190965,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.023896038532257e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-boundary-nominal",
+    "level": 1,
+    "max_step_s": 3.125e-10,
+    "queue_s": 0.5784454510430805,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5804603060241789,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 8.596980478614569e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-boundary-fast_low_lc",
+    "level": 1,
+    "max_step_s": 3.125e-10,
+    "queue_s": 0.5804514189949259,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.583374668029137,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 1.025001984089613e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-boundary-hot_high_c",
+    "level": 1,
+    "max_step_s": 3.125e-10,
+    "queue_s": 0.5833640979835764,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5840084499795921,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.0099029168486595e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-reference-nominal",
+    "level": 1,
+    "max_step_s": 3.125e-10,
+    "queue_s": 0.5839980309829116,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5847348700044677,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.0038958862423897e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-reference-fast_low_lc",
+    "level": 1,
+    "max_step_s": 3.125e-10,
+    "queue_s": 0.58472449000692,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5858858649735339,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 8.69703944772482e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q1-ensemble-reference-hot_high_c",
+    "level": 1,
+    "max_step_s": 3.125e-10,
+    "queue_s": 0.5858768369653262,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": null,
+    "completion_latency_s": 0.5874309369828552,
+    "corner": null,
+    "elapsed_s": 9.939016308635473e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "dpt",
+    "id": "q2-dpt",
+    "level": 2,
+    "max_step_s": 5e-10,
+    "queue_s": 0.5874205979635008,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 2.5e-10,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5875202320166864,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 9.818992111831903e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-light-nominal",
+    "level": 2,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5875101130222902,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5893183709704317,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 9.999028407037258e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-light-fast_low_lc",
+    "level": 2,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.5893080409732647,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        80,
+        60,
+        12,
+        40
+      ],
+      "cx_f": 4.7e-08,
+      "cy_f": 1e-09,
+      "dm_geometry": [
+        100,
+        60,
+        20,
+        45
+      ],
+      "id": "light",
+      "lcm_h": 0.0001,
+      "ldm_h": 1e-05
+    },
+    "completion_latency_s": 0.5894451210042462,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 8.495990186929703e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-light-hot_high_c",
+    "level": 2,
+    "max_step_s": 6.25e-10,
+    "queue_s": 0.589436323964037,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5900728429551236,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 7.64499418437481e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-boundary-nominal",
+    "level": 2,
+    "max_step_s": 1.5625e-10,
+    "queue_s": 0.590064967982471,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5913053179974668,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.0068994015455246e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-boundary-fast_low_lc",
+    "level": 2,
+    "max_step_s": 1.5625e-10,
+    "queue_s": 0.5912949379999191,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 8e-08,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "boundary",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5919849980273284,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 9.777955710887909e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-boundary-hot_high_c",
+    "level": 2,
+    "max_step_s": 1.5625e-10,
+    "queue_s": 0.5919749190215953,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.593099296966102,
+    "corner": {
+      "bus_v": 400,
+      "c_scale": 1,
+      "id": "nominal",
+      "l_scale": 1,
+      "rg_scale": 1,
+      "stray_scale": 1,
+      "tj_c": 27
+    },
+    "elapsed_s": 1.0189018212258816e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-reference-nominal",
+    "level": 2,
+    "max_step_s": 1.5625e-10,
+    "queue_s": 0.5930887669674121,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5942020920338109,
+    "corner": {
+      "bus_v": 440,
+      "c_scale": 0.9,
+      "id": "fast_low_lc",
+      "l_scale": 0.9,
+      "rg_scale": 0.8,
+      "stray_scale": 1.2,
+      "tj_c": 27
+    },
+    "elapsed_s": 9.707990102469921e-06,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-reference-fast_low_lc",
+    "level": 2,
+    "max_step_s": 1.5625e-10,
+    "queue_s": 0.5941921030171216,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+    "candidate": {
+      "cm_geometry": [
+        800,
+        140,
+        40,
+        110
+      ],
+      "cx_f": 1e-06,
+      "cy_f": 4.7e-08,
+      "dm_geometry": [
+        1200,
+        160,
+        48,
+        135
+      ],
+      "id": "reference",
+      "lcm_h": 0.001,
+      "ldm_h": 0.00033
+    },
+    "completion_latency_s": 0.5953128910041414,
+    "corner": {
+      "bus_v": 360,
+      "c_scale": 1.1,
+      "id": "hot_high_c",
+      "l_scale": 1.1,
+      "rg_scale": 1.2,
+      "stray_scale": 1.2,
+      "tj_c": 125
+    },
+    "elapsed_s": 1.0520045179873705e-05,
+    "error": "resource_limit: complete job rejected",
+    "files": {},
+    "fixture": "ensemble",
+    "id": "q2-ensemble-reference-hot_high_c",
+    "level": 2,
+    "max_step_s": 1.5625e-10,
+    "queue_s": 0.5953020299784839,
+    "reference_version": "emi01-v2",
+    "request_attempted": false,
+    "sample_step_s": 1.25e-09,
+    "status": "resource_limit"
+  }
+]

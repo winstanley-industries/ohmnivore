@@ -175,5 +175,7 @@ qualification before the generic companion improvement. Run-3 is a new complete
 invocation with fresh CPU and ngspice execution, its own fingerprints and every
 mandatory gate.
 
-EMI-02D is qualified for this bounded CPU workload. EMI-03 has not started; GPU
-transient execution, speedup claims and automatic dispatch remain unauthorized.
+EMI-02D is qualified for this bounded CPU workload. The separately authorized
+[EMI-03 experiment](adr/ADR-008-emi03-transient-ensembles.md) must establish its own
+GPU qualification and performance evidence. These CPU results do not establish
+GPU speedup or authorize automatic dispatch.
