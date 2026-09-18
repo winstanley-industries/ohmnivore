@@ -2,6 +2,7 @@
 
 These are intermediate diagnostics, not complete qualification or performance evidence.
 The source snapshot is commit `11c221f` plus `diagnostic-source.patch`; its kernel
+patch uses zero context (`git apply --unidiff-zero`); the kernel
 hash is verified against `four-worker-dpt/invocation.json`. The subsequent source
 formatting and added regression test are not relabeled into these identities.
 The scripts retain their execution paths and require the pinned Bazel Python,
