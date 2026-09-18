@@ -80,15 +80,15 @@ provides:
   DC fixtures; and
 - a deterministic CUDA platform smoke test checked against a CPU oracle.
 
-MOSFETs, BJT transient/charge/AC/noise/temperature behavior, and diode AC/charge/noise/temperature
+Native MOSFET primitives, BJT transient/charge/AC/noise/temperature behavior, and diode AC/charge/noise/temperature
 behavior have not yet been ported. Ordinary CUDA solver dispatch, CUDA device-model kernels, mixed
 precision, and distributed solving are also absent. GPU-02 does not alter the ordinary
 single-thread CPU execution path or make a production performance claim. Bare `.DC` is an
 operating-point request; DC source sweeps are not executed.
 Unsupported input is rejected explicitly, malformed input is reported separately, and the Rust
 implementation remains in `src/` and `tests/` as a behavioral reference until C++ parity is
-accepted. The differential claim is limited to the representative linear fixtures, one diode DC
-fixture, one memoryless-diode transient fixture, one BJT DC fixture, and tolerances recorded in
+accepted. The ordinary frontend acceptance fixtures cover representative linear circuits, one diode
+DC fixture, one memoryless-diode transient fixture, one BJT DC fixture, and tolerances recorded in
 `third_party/ngspice/PROVENANCE.md`. Sparse-solver selection,
 storage, numerical, license, and reproducibility details are recorded in
 `third_party/suitesparse/PROVENANCE.md`.
@@ -107,7 +107,8 @@ Jacobians, simultaneous controlled displacement-current transient equations, and
 for the exact reference SiC model. Its [qualification harness](reference/emi02/README.md) compares
 all thirty frozen trajectories with ngspice and fails closed on incomplete or inaccurate jobs.
 See the [EMI-02 implementation and qualification results](docs/emi02-results.md).
-Full inverter qualification remains open: all 27 CPU inverter runs hit the frozen resource limit.
+Full CPU qualification passes: all sixty CPU/reference jobs, eighty refinement checks and thirty
+differential comparisons pass within the original resource limits. The earlier failed run is retained.
 The ordinary parser does not accept general behavioral sources or vendor model libraries.
 GPU transient ensembles require a qualified EMI-02 result; implementation alone does not open
 that gate. Exact aviation requirements and laboratory correlation

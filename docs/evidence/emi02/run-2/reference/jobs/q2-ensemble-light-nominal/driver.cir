@@ -1,0 +1,12 @@
+EMI-01 v2 isolated PSpice compatibility driver
+.control
+set ngbehavior=ps
+set numdgt=17
+set filetype=binary
+source circuit.cir
+run
+write waveform.raw all
+rusage all
+quit
+.endc
+.end

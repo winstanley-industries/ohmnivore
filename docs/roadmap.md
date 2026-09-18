@@ -14,9 +14,9 @@ qualified external CPU reference study. Its [v2 results and acceleration budget]
 include two complete independent invocations with an all-corner passing reference, a near-boundary
 rejection and a failing control under the fixed research mask. [V1 results](emi01-results.md) remain
 historical evidence for their original candidates. EMI-02 implements the bounded A-D CPU slices
-under ADR-003 through ADR-006; its [full qualification result](emi02-results.md) remains failed
-because all 27 CPU inverter runs reach the frozen resource limit. DPT comparisons and canonical
-checks pass, but EMI-02D is not qualified.
+under ADR-003 through ADR-006. Its [full qualification result](emi02-results.md) passes all sixty
+CPU/reference jobs, eighty refinement checks and thirty differential comparisons within the frozen
+resource limits. EMI-02D is qualified for this bounded workload; the original failed run is retained.
 NL-04 and EMI-03 onward have not started. Completion
 of an experiment does not itself authorize downstream work.
 
@@ -53,8 +53,9 @@ and unresolved inputs are in ADR-002.
 
 GPU-01 and GPU-02 remain completed linear-AC experiments. Their infrastructure and lessons can be
 reused, but they do not establish nonlinear transient performance. NL-04 remains an unstarted,
-bounded CPU MOSFET DC foundation; realistic SiC charge/capacitance, coupled CM-choke windings,
-vendor-model constructs, and EMI evaluation require additional contracts. Further synthetic-AC
+bounded CPU MOSFET DC foundation. EMI-02 separately governs the selected behavioral SiC charge
+network, disjoint coupled windings and exact-model bridge under ADR-003 through ADR-006; general
+vendor-model languages and additional device physics remain unsupported. Further synthetic-AC
 tuning is deferred in favor of the representative workload and its measured bottlenecks.
 
 ## NL-04: Deterministic FP64 CPU MOSFET DC authority
