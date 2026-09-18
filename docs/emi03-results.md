@@ -1,9 +1,25 @@
 # EMI-03 transient ensemble experiment
 
+**EMI-03 is incomplete.** Implementation tests and audits of failed experiments
+do not satisfy acceptance. Completion requires passing all frozen accuracy,
+resource, zero-failure, median/P95 speedup and cold-time gates in both independent
+invocations. The draft PR remains work in progress.
+
 Both complete invocations are **negative at the resource gate**. Their fresh
 CPU/ngspice references pass, but the frozen four-worker CUDA configuration
 exceeds the aggregate device-residency budget during startup. No CUDA numerical
 result is accepted, and no performance observation or speedup is published.
+
+Follow-up development replaces oversized expression-kernel thread-local arrays
+with explicitly accounted device scratch sized to the actual programs. A bounded
+four-worker DPT diagnostic observed 1,089 MiB incremental device residency, but
+the workers then exhausted the per-job CPU-time budget. This is an intermediate
+diagnostic, not a passing resource/qualification result. A shortened DPT diagnostic
+attributes most execution time to the repeated GPU factor/solve calls and
+expression transfers/synchronization. The complete-study targets remain unmet;
+neither diagnostic qualifies the changed implementation. The
+[diagnostic records and exact source patch](evidence/emi03/diagnostics/scratch-workspace/README.md)
+retain this development step separately from the two original invocations.
 
 This opt-in experiment implements [ADR-008](adr/ADR-008-emi03-transient-ensembles.md)
 against the qualified EMI-02 CPU baseline at `734a9da`. CPU FP64/KLU remains the

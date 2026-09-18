@@ -1,0 +1,24 @@
+from pathlib import Path
+import os,subprocess,tempfile,time,json,re,hashlib
+from reference.emi02 import importer
+from reference.emi01 import circuits
+out=Path('/home/adam/emi03-work/short-probe'); out.mkdir(exist_ok=False)
+r=Path(os.environ['EMI03_RUNFILES']); archive=r/'+http_file+emi01_microchip_model/file/model.zip'
+source=circuits.dpt(2.5e-9,'emi01-v2')
+source,count=re.subn(r'(?im)^(\.tran\s+\S+\s+)\S+',r'\g<1>1.03u',source)
+assert count==1
+flat,identity=importer.import_archive(archive,source)
+with tempfile.TemporaryDirectory(prefix='emi03-short-') as t:
+ p=Path(t); inp=p/'input.cir'; inp.write_text(flat)
+ result={}
+ for lane,binary in [('cpu',r/'_main/cpp/emi03_cpu_worker'),('gpu',Path('/home/adam/emi03-work/bin/emi03_gpu_worker-scratch'))]:
+  raw=p/(lane+'.raw'); stats=p/(lane+'.json'); start=time.perf_counter()
+  proc=subprocess.run([str(binary),str(inp),str(raw),str(stats)],capture_output=True,timeout=120)
+  row={'wall_s':time.perf_counter()-start,'returncode':proc.returncode,'diagnostic_sha256':hashlib.sha256(proc.stderr).hexdigest()}
+  for path in [stats,Path(str(stats)+'.gpu.json')]:
+   if path.exists():
+    data=json.loads(path.read_text()); row[path.name]=data
+    (out/path.name).write_text(json.dumps(data,indent=2)+'\n')
+  result[lane]=row
+  print(json.dumps(row),flush=True)
+(out/'summary.json').write_text(json.dumps({'interpretation':'shortened double-pulse diagnostic only, no complete-workload qualification or speedup claim','source_sha256':hashlib.sha256(source.encode()).hexdigest(),'results':result},indent=2)+'\n')

@@ -115,7 +115,8 @@ with native-FP64 expression evaluation and real sparse solves, persistent CPU/GP
 workers and fresh CPU validation. Its [bounded contract](docs/adr/ADR-008-emi03-transient-ensembles.md)
 retains the frozen accuracy and complete-study performance gates. The
 [retained experiment results](docs/emi03-results.md) document its resource rejection;
-no GPU speedup is established. Exact aviation requirements and laboratory correlation
+EMI-03 remains incomplete until every qualification, resource and performance target
+passes. No GPU speedup is established. Exact aviation requirements and laboratory correlation
 remain to be established. See [ADR-002](docs/adr/ADR-002-inverter-emi-design-study.md) and
 [the C++/CUDA roadmap](docs/roadmap.md) for scope, dependencies, and acceptance gates.
 

@@ -131,6 +131,34 @@ TEST_F(Emi03Expression, DuplicateDependenciesAccumulateInOriginalAdOrder) {
   EXPECT_EQ(result.value()[0].derivatives[1].second, 3);
 }
 
+TEST_F(Emi03Expression, UnequalProgramWorkspacesStayPrivateAcrossBlocks) {
+  std::vector<CompiledExpression> programs;
+  for (std::size_t i = 0; i < 130; ++i) {
+    std::string expression = "V(A)*" + std::to_string(i + 1);
+    if (i % 2 == 0)
+      expression += "+IF(V(B)>0,V(B)*V(B),-V(B))";
+    programs.push_back(Compile(expression));
+  }
+  for (const auto &state :
+       std::vector<std::vector<double>>{{2, 3}, {-1, -4}, {0, 0}, {2, 3}}) {
+    for (bool derivatives : {false, true}) {
+      auto gpu = EvaluateEmi03CudaExpressions(programs, state, derivatives);
+      ASSERT_TRUE(gpu.ok()) << gpu.error().message;
+      ASSERT_EQ(gpu.value().size(), programs.size());
+      for (std::size_t i = 0; i < programs.size(); ++i) {
+        auto cpu = EvaluateExpression(programs[i], state);
+        ASSERT_TRUE(cpu.ok());
+        EXPECT_EQ(gpu.value()[i].value, cpu.value().value);
+        if (derivatives) {
+          EXPECT_EQ(gpu.value()[i].derivatives, cpu.value().derivatives);
+        }
+      }
+    }
+  }
+  EXPECT_EQ(SnapshotEmi03CudaJob().expression_program_uploads, 1U);
+  EXPECT_LT(SnapshotEmi03CudaJob().peak_device_bytes, 1024U * 1024U);
+}
+
 TEST_F(Emi03Expression, DependencyChecksIncludeInactiveArms) {
   const std::vector<CompiledExpression> programs{Compile("IF(V(A)>0,1,V(B))")};
   const std::vector<double> state{1, std::numeric_limits<double>::quiet_NaN()};

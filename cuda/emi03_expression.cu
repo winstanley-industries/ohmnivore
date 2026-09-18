@@ -57,13 +57,13 @@ __device__ void AddAdjoint(const ExportedExpressionNode *nodes,
 // Each thread evaluates one complete expression. The explicit DFS stack
 // preserves CPU left-to-right evaluation and lazy IF domain checks. Inactive
 // branches retain zero adjoints and never contribute to reverse AD.
-__global__ void EvaluatePrograms(const DeviceProgram *programs,
-                                 std::uint32_t count,
-                                 const ExportedExpressionNode *all_nodes,
-                                 const std::uint32_t *all_ad,
-                                 const std::uint32_t *all_dependencies,
-                                 const double *state, DeviceResult *results,
-                                 double *all_gradients, bool derivatives) {
+__global__ void EvaluatePrograms(
+    const DeviceProgram *programs, std::uint32_t count,
+    const ExportedExpressionNode *all_nodes, const std::uint32_t *all_ad,
+    const std::uint32_t *all_dependencies, const double *state,
+    DeviceResult *results, double *all_gradients, double *all_values,
+    double *all_adjoints, std::uint32_t *all_stacks, unsigned char *all_stages,
+    bool derivatives) {
   const std::uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
   if (index >= count)
     return;
@@ -80,14 +80,17 @@ __global__ void EvaluatePrograms(const DeviceProgram *programs,
     }
     gradient[i] = 0;
   }
-  double values[kMaximumNodes];
-  double adjoints[kMaximumNodes];
+  // Dynamic indexing of large thread-local arrays creates opaque driver-backed
+  // local-memory residency. Size this workspace to the actual program nodes
+  // instead, and charge every byte to the shared device-allocation ledger.
+  auto *values = all_values + program.node_offset;
+  auto *adjoints = all_adjoints + program.node_offset;
   for (std::uint32_t i = 0; i < program.nodes; ++i) {
     values[i] = 0;
     adjoints[i] = 0;
   }
-  std::uint32_t stack[65];
-  unsigned char stage[65];
+  auto *stack = all_stacks + index * 65;
+  auto *stage = all_stages + index * 65;
   int depth = 0;
   stack[0] = program.root;
   stage[0] = 0;
@@ -352,6 +355,10 @@ public:
     device_gradients_.Allocate(std::max<std::size_t>(1, dependencies_.size()) *
                                8);
     device_results_.Allocate(programs_.size() * sizeof(DeviceResult));
+    device_values_.Allocate(nodes.size() * sizeof(double));
+    device_adjoints_.Allocate(nodes.size() * sizeof(double));
+    device_stacks_.Allocate(programs_.size() * 65 * sizeof(std::uint32_t));
+    device_stages_.Allocate(programs_.size() * 65 * sizeof(unsigned char));
     Upload(device_programs_.data(), programs_.data(),
            programs_.size() * sizeof(DeviceProgram));
     Upload(device_nodes_.data(), nodes.data(),
@@ -381,6 +388,8 @@ public:
         device_ad_.as<std::uint32_t>(),
         device_dependencies_.as<std::uint32_t>(), device_state_.as<double>(),
         device_results_.as<DeviceResult>(), device_gradients_.as<double>(),
+        device_values_.as<double>(), device_adjoints_.as<double>(),
+        device_stacks_.as<std::uint32_t>(), device_stages_.as<unsigned char>(),
         derivatives);
     CheckCuda(cudaGetLastError(), "EMI-03 expression kernel launch");
     const auto readback_start = Clock::now();
@@ -461,6 +470,7 @@ private:
   DeviceBuffer device_programs_, device_nodes_, device_ad_,
       device_dependencies_;
   DeviceBuffer device_state_, device_results_, device_gradients_;
+  DeviceBuffer device_values_, device_adjoints_, device_stacks_, device_stages_;
 };
 
 std::vector<std::unique_ptr<ProgramBatch>> program_cache;

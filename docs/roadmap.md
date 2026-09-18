@@ -20,7 +20,8 @@ resource limits. EMI-02D is qualified for this bounded workload; the original fa
 EMI-03 now has an opt-in combined CUDA expression/real-solve experiment and
 persistent ensemble harness under [ADR-008](adr/ADR-008-emi03-transient-ensembles.md).
 Its [retained results](emi03-results.md) reject the frozen candidate at the device
-resource gate; GPU accuracy and useful acceleration remain unestablished.
+resource gate; GPU accuracy and useful acceleration remain unestablished. EMI-03
+is incomplete until all frozen acceptance targets pass in both invocations.
 NL-04 and EMI-04 have not started. Completion
 of an experiment does not itself authorize downstream work.
 
