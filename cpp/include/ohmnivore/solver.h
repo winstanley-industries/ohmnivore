@@ -12,6 +12,10 @@
 
 namespace ohmnivore {
 
+namespace internal {
+class PreparedNewtonWorkspace;
+}
+
 inline constexpr double kSparseBackwardErrorTolerance = 1e-10;
 inline constexpr double kSparseComponentwiseBackwardErrorTolerance = 1e-5;
 
@@ -38,6 +42,7 @@ struct SparseSolverStatistics {
   std::size_t numeric_refactorization_fallbacks = 0;
   std::size_t numeric_reuses = 0;
   std::size_t solves = 0;
+  std::size_t iterative_refinement_solves = 0;
 };
 
 // Returns a typed validation failure unless every result is finite, the
@@ -67,9 +72,21 @@ public:
 
   [[nodiscard]] Result<std::vector<double>>
   FactorAndSolve(const CsrMatrix &matrix, const std::vector<double> &rhs);
+  // Explicit EMI-02 option: correct a nonzero original residual, then retry
+  // failed backward-error guards, with at most four FP64 KLU correction solves.
+  [[nodiscard]] Result<std::vector<double>>
+  FactorAndSolveRefined(const CsrMatrix &matrix, const std::vector<double> &rhs,
+                        std::size_t maximum_refinements = 4);
   [[nodiscard]] const SparseSolverStatistics &statistics() const;
 
 private:
+  friend class internal::PreparedNewtonWorkspace;
+  // Only an immediately completed prepared full assembly may establish this
+  // finite-input precondition. Structure and all result guards still run.
+  [[nodiscard]] Result<std::vector<double>>
+  FactorAndSolveAdmitted(const CsrMatrix &matrix,
+                         const std::vector<double> &rhs,
+                         std::size_t maximum_refinements);
   class Impl;
   explicit SparseRealFactorization(std::unique_ptr<Impl> implementation);
   std::unique_ptr<Impl> implementation_;

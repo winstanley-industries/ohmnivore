@@ -327,7 +327,8 @@ Result<PreparedAcBatch> PrepareLinearAcBatch(const MnaSystem &system,
           ErrorCode::kPreparedBatchMalformed,
           "prepared AC identities contain invalid characters");
     }
-    if (!system.diode_descriptors.empty() || !system.bjt_descriptors.empty()) {
+    if (!system.diode_descriptors.empty() || !system.bjt_descriptors.empty() ||
+        !system.behavioral_descriptors.empty()) {
       return Result<PreparedAcBatch>::Fail(
           ErrorCode::kUnsupported,
           "prepared AC v1 supports only the authoritative linear AC subset");

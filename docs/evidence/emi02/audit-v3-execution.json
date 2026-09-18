@@ -1,0 +1,21 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "4,6,20,22",
+    "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/reference/emi02/qualification",
+    "--cpu=/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cpp/emi02_runner",
+    "--ngspice=/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/third_party/ngspice/ngspice_46_build/bin/ngspice",
+    "--model-archive=/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/reference/emi02/qualification.runfiles/+http_file+emi01_microchip_model/file/model.zip",
+    "--audit=/home/adam/code/ohmnivore/docs/evidence/emi02/run-3"
+  ],
+  "temporary_directory": "/home/adam/.cache/ohmnivore-emi02-development/qualification-tmp",
+  "affinity": [
+    4,
+    6,
+    20,
+    22
+  ],
+  "exit_code": 0,
+  "wall_seconds": 164.9306201559957
+}

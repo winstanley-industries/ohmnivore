@@ -1,0 +1,86 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --@@llvm+//config:ubsan, --@@rules_cuda+//cuda:archs, --@@rules_cuda+//cuda:runtime, and 3 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //reference/emi02:qualification (1 packages loaded, 0 targets configured)
+Analyzing: target //reference/emi02:qualification (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //reference/emi02:qualification (20 packages loaded, 22482 targets configured, 101 aspect applications).
+[973 / 975] Foreign Cc - Configure: Building ngspice_46_build; 1s linux-sandbox
+[973 / 975] Foreign Cc - Configure: Building ngspice_46_build; 11s linux-sandbox
+[973 / 975] Foreign Cc - Configure: Building ngspice_46_build; 41s linux-sandbox
+[974 / 975] [Prepa] runfiles for //reference/emi02:qualification
+INFO: Found 1 target...
+Target //reference/emi02:qualification up-to-date:
+  bazel-bin/reference/emi02/qualification
+INFO: Elapsed time: 50.128s, Critical Path: 49.66s
+INFO: 6 processes: 969 action cache hit, 5 internal, 1 linux-sandbox.
+INFO: Build completed successfully, 6 total actions
+INFO: Running command line: bazel-bin/reference/emi02/qualification '--cpu=cpp/emi02_runner' '--ngspice=third_party/ngspice/ngspice_46_build/bin/ngspice' '--model-archive=../+http_file+emi01_microchip_model/file/model.zip' <args omitted>
+{"job": "q0-dpt", "engine": "cpu", "status": "qualified"}
+{"job": "q0-dpt", "engine": "reference", "status": "qualified"}
+{"job": "q0-ensemble-light-nominal", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-light-fast_low_lc", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-light-fast_low_lc", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-light-nominal", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-light-hot_high_c", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-boundary-nominal", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q0-ensemble-boundary-nominal", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q0-ensemble-boundary-fast_low_lc", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-boundary-fast_low_lc", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-boundary-hot_high_c", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q0-ensemble-light-hot_high_c", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q0-ensemble-boundary-hot_high_c", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q0-ensemble-reference-nominal", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q0-ensemble-reference-nominal", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q0-ensemble-reference-fast_low_lc", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q1-dpt", "engine": "cpu", "status": "qualified"}
+{"job": "q1-dpt", "engine": "reference", "status": "qualified"}
+{"job": "q0-ensemble-reference-fast_low_lc", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q0-ensemble-reference-hot_high_c", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q0-ensemble-reference-hot_high_c", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q1-ensemble-light-nominal", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-light-fast_low_lc", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-light-nominal", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-light-fast_low_lc", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-light-hot_high_c", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-boundary-nominal", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q1-ensemble-boundary-nominal", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q1-ensemble-light-hot_high_c", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-boundary-fast_low_lc", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-boundary-fast_low_lc", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q1-ensemble-boundary-hot_high_c", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q1-ensemble-boundary-hot_high_c", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q1-ensemble-reference-nominal", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q1-ensemble-reference-nominal", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q1-ensemble-reference-fast_low_lc", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q2-dpt", "engine": "cpu", "status": "qualified"}
+{"job": "q2-dpt", "engine": "reference", "status": "qualified"}
+{"job": "q1-ensemble-reference-fast_low_lc", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q1-ensemble-reference-hot_high_c", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q1-ensemble-reference-hot_high_c", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q2-ensemble-light-nominal", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-light-fast_low_lc", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-light-nominal", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-light-fast_low_lc", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-light-hot_high_c", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-boundary-nominal", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q2-ensemble-light-hot_high_c", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-boundary-nominal", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q2-ensemble-boundary-fast_low_lc", "engine": "cpu", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-boundary-fast_low_lc", "engine": "reference", "status": "predicted_infeasible"}
+{"job": "q2-ensemble-boundary-hot_high_c", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q2-ensemble-boundary-hot_high_c", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q2-ensemble-reference-nominal", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q2-ensemble-reference-fast_low_lc", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q2-ensemble-reference-nominal", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q2-ensemble-reference-hot_high_c", "engine": "cpu", "status": "predicted_feasible"}
+{"job": "q2-ensemble-reference-fast_low_lc", "engine": "reference", "status": "predicted_feasible"}
+{"job": "q2-ensemble-reference-hot_high_c", "engine": "reference", "status": "predicted_feasible"}
+{"pass": true, "complete": true, "output": "/home/adam/code/ohmnivore/docs/evidence/emi02/run-2"}

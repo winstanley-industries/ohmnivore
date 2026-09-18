@@ -1,0 +1,99 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+
+package(default_visibility = ["//visibility:private"])
+
+SANITIZER_INCOMPATIBILITY = select({
+    "//:asan_enabled": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+}) + select({
+    "//:ubsan_enabled": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
+py_library(
+    name = "support",
+    srcs = ["importer.py", "qualification.py"],
+    data = ["BUILD.bazel", "README.md", "//:emi02_provenance_inputs"],
+    deps = ["//reference/emi01:support"],
+)
+
+py_test(
+    name = "importer_test",
+    srcs = ["importer_test.py"],
+    args = ["--archive=$(rootpath @emi01_microchip_model//file)"],
+    data = ["@emi01_microchip_model//file"],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    deps = [":support"],
+)
+
+py_test(
+    name = "importer_oracle_test",
+    srcs = ["importer_oracle_test.py"],
+    args = [
+        "--archive=$(rootpath @emi01_microchip_model//file)",
+        "--ngspice=$(rootpath //third_party/ngspice:ngspice_binary)",
+        "--cpu=$(rootpath //cpp:emi02_runner)",
+    ],
+    data = ["@emi01_microchip_model//file", "//third_party/ngspice:ngspice_binary", "//cpp:emi02_runner"],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    deps = [":support"],
+)
+
+py_test(
+    name = "qualification_test",
+    srcs = ["qualification_test.py"],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    deps = [":support"],
+)
+
+py_test(
+    name = "runner_process_test",
+    srcs = ["runner_process_test.py"],
+    args = ["--cpu=$(rootpath //cpp:emi02_runner)"],
+    data = ["//cpp:emi02_runner"],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+)
+
+py_binary(
+    name = "qualification",
+    srcs = ["qualification.py"],
+    args = [
+        "--cpu=$(rootpath //cpp:emi02_runner)",
+        "--ngspice=$(rootpath //third_party/ngspice:ngspice_binary)",
+        "--model-archive=$(rootpath @emi01_microchip_model//file)",
+    ],
+    data = [
+        "//cpp:emi02_runner",
+        "//third_party/ngspice:ngspice_binary",
+        "@emi01_microchip_model//file",
+    ],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    tags = ["manual"],
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    deps = [":support"],
+)
+
+py_test(
+    name = "device_dynamic_test",
+    srcs = ["device_dynamic_test.py"],
+    args = [
+        "--archive=$(rootpath @emi01_microchip_model//file)",
+        "--ngspice=$(rootpath //third_party/ngspice:ngspice_binary)",
+        "--cpu=$(rootpath //cpp:emi02_runner)",
+    ],
+    data = [
+        "@emi01_microchip_model//file",
+        "//third_party/ngspice:ngspice_binary",
+        "//cpp:emi02_runner",
+    ],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    deps = [":support"],
+)

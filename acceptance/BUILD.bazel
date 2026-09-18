@@ -27,6 +27,12 @@ cc_test(
         "$(rootpath :fixtures/tran_rl_step.spice)",
         "$(rootpath :fixtures/tran_current_rlc_non_uic.spice)",
         "$(rootpath :fixtures/tran_diode_rc.spice)",
+        "$(rootpath :fixtures/emi02a_ac_positive.spice)",
+        "$(rootpath :fixtures/emi02a_ac_negative.spice)",
+        "$(rootpath :fixtures/emi02a_tran_positive.spice)",
+        "$(rootpath :fixtures/emi02a_tran_negative.spice)",
+        "$(rootpath :fixtures/emi02a_linear_filter_harness.spice)",
+
     ],
     copts = [
         "-Wall",
@@ -44,9 +50,27 @@ cc_test(
         ":fixtures/tran_rl_step.spice",
         ":fixtures/tran_current_rlc_non_uic.spice",
         ":fixtures/tran_diode_rc.spice",
+        ":fixtures/emi02a_ac_positive.spice",
+        ":fixtures/emi02a_ac_negative.spice",
+        ":fixtures/emi02a_tran_positive.spice",
+        ":fixtures/emi02a_tran_negative.spice",
+        ":fixtures/emi02a_linear_filter_harness.spice",
+
         "//cpp:ohmnivore",
         "//third_party/ngspice:ngspice_binary",
     ],
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "emi02b_expression_test",
+    size = "medium",
+    srcs = ["emi02b_expression_test.cc"],
+    args = ["$(rootpath //third_party/ngspice:ngspice_binary)"],
+    copts = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"],
+    data = ["//third_party/ngspice:ngspice_binary"],
+    deps = ["//cpp:core"],
     target_compatible_with = SANITIZER_INCOMPATIBILITY,
     visibility = ["//visibility:public"],
 )

@@ -1,0 +1,64 @@
+EMI-01 v2 reference fast_low_lc
+.include model.lib
+Vbus bus 0 440
+Rbus bus p1 0.02
+Lbus p1 p 20n
+Cbus p1 0 10u
+Vdah p ahd 0
+Xdah ahd gah a MSC040SMA120B PARAMS: TJ_C=27
+Vdal a ald 0
+Xdal ald ga 0 MSC040SMA120B PARAMS: TJ_C=27
+Vgah driveah a PULSE(-3 20 1u 10n 10n 1.4800000000000001e-05 20u)
+Vgal driveal 0 PULSE(20 -3 0.8u 10n 10n 1.52e-05 20u)
+Rgah driveah gah 3.7600000000000002
+Rgal driveal ga 3.7600000000000002
+Cswa a ch 1.2e-10
+Rda a ar 0.027928800000000004
+Lda ar am 0.00029700000000000001
+Rcma am amr 0.018964000000000002
+Lcma amr fa 0.00090000000000000008
+Cwinda amr fa 1.1999999999999999e-11
+Rya fa yca 22
+Cya yca ch 4.2300000000000002e-08
+Va fa ha 0
+Rha ha har 0.1
+Lha har la 1u
+Cha la ch 2.4e-10
+Cla la ch 1.2e-09
+Vdbh p bhd 0
+Xdbh bhd gbh b MSC040SMA120B PARAMS: TJ_C=27
+Vdbl b bld 0
+Xdbl bld gb 0 MSC040SMA120B PARAMS: TJ_C=27
+Vgbh drivebh b PULSE(-3 20 1u 10n 10n 4.7999999999999998e-06 20u)
+Vgbl drivebl 0 PULSE(20 -3 0.8u 10n 10n 5.1999999999999993e-06 20u)
+Rgbh drivebh gbh 3.7600000000000002
+Rgbl drivebl gb 3.7600000000000002
+Cswb b ch 1.2e-10
+Rdb b br 0.027928800000000004
+Ldb br bm 0.00029700000000000001
+Rcmb bm bmr 0.018964000000000002
+Lcmb bmr fb 0.00090000000000000008
+Cwindb bmr fb 1.1999999999999999e-11
+Ryb fb ycb 22
+Cyb ycb ch 4.2300000000000002e-08
+Vb fb hb 0
+Rhb hb hbr 0.1
+Lhb hbr lb 1u
+Chb lb ch 2.4e-10
+Clb lb ch 1.2e-09
+Kcm Lcma Lcmb 0.995
+Kh Lha Lhb 0.2
+Ccouple fa fb 5.9999999999999995e-12
+Rx fa xcap 0.2
+Cx xcap fb 8.9999999999999996e-07
+Rload la lr 20
+Lload lr lb 100u
+Rloadloss lr lb 100
+Rch ch chr 1
+Lch chr 0 50n
+Cbp p ch 1.2e-10
+Cbn 0 ch 1.2e-10
+.options reltol=1e-5 abstol=1e-9 vntol=1e-7 chgtol=1e-16 method=gear maxord=2 itl1=300 itl4=100
+.tran 3.1250000000000001e-10 200u 0 6.2500000000000001e-10
+.save v(a) v(b) v(ch) v(fa) v(fb) v(ga) v(gb) v(la) v(lb) i(lch) i(lcma) i(lcmb) i(lda) i(ldb) i(lload) v(lr) v(p) i(va) i(vb) i(vdah) i(vdal) i(vdbh) i(vdbl) v(xcap) v(yca) v(ycb)
+.end

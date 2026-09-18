@@ -15,6 +15,8 @@ exports_files(
         "benchmarks/prepared_ac_replay_benchmark.cc",
         "benchmarks/prepared_ac_session.cc",
         "benchmarks/prepared_ac_session.h",
+        "include/ohmnivore/behavioral.h",
+        "include/ohmnivore/expression.h",
         "include/ohmnivore/compiler.h",
         "include/ohmnivore/ir.h",
         "include/ohmnivore/nonlinear.h",
@@ -26,6 +28,9 @@ exports_files(
         "include/ohmnivore/status.h",
         "include/ohmnivore/transient.h",
         "include/ohmnivore/waveform.h",
+        "src/behavioral.cc",
+        "src/expression.cc",
+        "src/expression_internal.h",
         "src/compiler.cc",
         "src/nonlinear.cc",
         "src/nonlinear_internal.h",
@@ -48,8 +53,37 @@ OHMNIVORE_COPTS = [
 ]
 
 cc_library(
+    name = "transient_accuracy_cases",
+    testonly = True,
+    srcs = ["tests/transient_accuracy_cases.cc"],
+    hdrs = ["tests/transient_accuracy_cases.h"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)
+
+cc_binary(
+    name = "transient_accuracy_benchmark",
+    testonly = True,
+    srcs = ["benchmarks/transient_accuracy_benchmark.cc"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", ":transient_accuracy_cases"],
+)
+
+cc_test(
+    name = "transient_accuracy_test",
+    size = "medium",
+    srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/transient_accuracy_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", ":transient_accuracy_cases", "@googletest//:gtest_main"],
+)
+
+cc_library(
     name = "core",
     srcs = [
+        "src/behavioral.cc",
+        "src/expression.cc",
+        "src/expression_internal.h",
         "src/compiler.cc",
         "src/nonlinear.cc",
         "src/nonlinear_internal.h",
@@ -62,6 +96,8 @@ cc_library(
         "src/waveform.cc",
     ],
     hdrs = [
+        "include/ohmnivore/behavioral.h",
+        "include/ohmnivore/expression.h",
         "include/ohmnivore/compiler.h",
         "include/ohmnivore/ir.h",
         "include/ohmnivore/nonlinear.h",
@@ -401,4 +437,107 @@ cc_binary(
         ":core",
         ":prepared_ac_replay",
     ],
+)
+
+cc_test(
+    name = "emi02a_test",
+    size = "medium",
+    srcs = ["tests/google_test.h", "tests/emi02a_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02b_test",
+    size = "medium",
+    srcs = ["tests/google_test.h", "tests/emi02b_test.cc", "src/expression_internal.h"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02c_test",
+    size = "medium",
+    srcs = ["tests/google_test.h", "tests/emi02c_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_binary(
+    name = "emi02_runner",
+    srcs = ["src/emi02_runner.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core"],
+)
+
+cc_test(
+    name = "emi02c_review_test",
+    # The independent RLC oracle covers 450,000 steps under sanitizers.
+    size = "large",
+    srcs = ["tests/google_test.h", "tests/emi02c_review_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+filegroup(
+    name = "emi02_provenance_inputs",
+    srcs = ["BUILD.bazel"] + glob(["include/ohmnivore/*.h", "src/*.cc", "src/*.h"]),
+    visibility = ["//:__pkg__"],
+)
+
+cc_test(
+    name = "emi02_refinement_test",
+    size = "small",
+    srcs = ["tests/google_test.h", "tests/emi02_refinement_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_newton_test",
+    size = "small",
+    srcs = ["tests/google_test.h", "tests/emi02_newton_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_expression_cache_test",
+    size = "small",
+    srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/emi02_expression_cache_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+
+
+cc_test(
+    name = "emi02_history_lte_test",
+    size = "medium",
+    srcs = ["tests/google_test.h", "tests/emi02_history_lte_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_solver_reuse_test",
+    size = "small",
+    srcs = ["tests/google_test.h", "tests/emi02_solver_reuse_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_prepared_transient_test",
+    size = "medium",
+    srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/emi02_prepared_transient_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
 )

@@ -1,0 +1,10 @@
+* EMI-02A coupled-element oracle: finite source edge and positive coupling.
+V1 p 0 DC 0 PULSE(0 1 1u 1u 1u 1m 2m)
+R1 p a 2
+L1 a 0 2m
+V2 q 0 DC 0 PULSE(0 -0.3 2u 1u 1u 1m 2m)
+R2 q b 3
+L2 b 0 8m
+K1 L1 L2 0.995
+.TRAN 5n 200u
+.END

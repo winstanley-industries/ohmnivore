@@ -430,7 +430,31 @@ bazel run //reference/emi01:study -- --audit=/absolute/new/emi01-run-2
 
 See [the reference README](../reference/emi01/README.md) for outputs, resource/timing boundaries,
 model limitations and exact reproduction. Full studies explicitly include numerical refinement,
-serial/parallel warmups and measured repetitions. They do not authorize EMI-02 or GPU execution.
+serial/parallel warmups and measured repetitions. They do not authorize GPU execution.
 The upstream ngspice adapter/study targets follow the existing external-oracle sanitizer exclusion;
 pure parsing, numerical and accounting tests run in the canonical test suites. Prebuilt Python and
 NumPy are not sanitizer-instrumented; the production C++ sanitizer coverage is unchanged.
+
+## EMI-02 CPU behavioral qualification
+
+EMI-02 uses the same pinned external model and ngspice build through a narrow, opt-in C++
+FP64/KLU bridge. The ordinary parser gains only disjoint linear coupled-inductor pairs.
+The experimental runner accepts explicitly compiled E/G/B graphs; it does not provide a
+general vendor-library interpreter or GPU path.
+
+```sh
+bazel test //cpp:emi02a_test //cpp:emi02b_test //cpp:emi02c_test \
+  //cpp:emi02c_review_test //cpp:emi02_refinement_test //cpp:emi02_newton_test \
+  //acceptance:emi02b_expression_test //reference/emi02:importer_test \
+  //reference/emi02:importer_oracle_test //reference/emi02:device_dynamic_test \
+  //reference/emi02:qualification_test //reference/emi02:runner_process_test
+bazel run -c opt //reference/emi02:qualification -- --out=/absolute/new/emi02-run
+bazel run -c opt //reference/emi02:qualification -- --audit=/absolute/new/emi02-run
+```
+
+The full harness executes thirty mandatory trajectories per backend and preserves failed
+jobs in the result. A nonzero qualification exit is a failed gate, not a predicted EMI
+infeasibility. `--probe` is diagnostic only and always rejects a qualification claim.
+See [the bridge README](../reference/emi02/README.md) for resource limits, source/model
+identities, raw evidence, audit, and the reserved `vt` compatibility discovery. Proprietary
+model text and flattened decks are temporary and must not be committed.

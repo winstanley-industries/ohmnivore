@@ -1,0 +1,401 @@
+{
+  "command": [
+    "bazel",
+    "run",
+    "-c",
+    "opt",
+    "//reference/emi02:qualification",
+    "--",
+    "--out=/home/adam/code/ohmnivore/docs/evidence/emi02/run-2"
+  ],
+  "execution_environment": {
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "machine": "x86_64",
+    "allowed_logical_cpus": [
+      4,
+      6,
+      20,
+      22
+    ],
+    "logical_cpu_count": 32,
+    "temporary_directory": "/home/adam/.cache/ohmnivore-emi02-development/qualification-tmp",
+    "cpu_topology": {
+      "cpus": [
+        {
+          "cpu": 0,
+          "core": 0,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 1,
+          "core": 0,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 2,
+          "core": 1,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 3,
+          "core": 1,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 4,
+          "core": 2,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 5,
+          "core": 2,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 6,
+          "core": 3,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 7,
+          "core": 3,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 8,
+          "core": 4,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 9,
+          "core": 4,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 10,
+          "core": 5,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 11,
+          "core": 5,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 12,
+          "core": 6,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 13,
+          "core": 6,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 14,
+          "core": 7,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 15,
+          "core": 7,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 16,
+          "core": 8,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 17,
+          "core": 8,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 18,
+          "core": 9,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 19,
+          "core": 9,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 20,
+          "core": 10,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 21,
+          "core": 10,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 22,
+          "core": 11,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 23,
+          "core": 11,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 24,
+          "core": 12,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 25,
+          "core": 12,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 26,
+          "core": 13,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 27,
+          "core": 13,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 28,
+          "core": 14,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 29,
+          "core": 14,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 30,
+          "core": 15,
+          "socket": 0,
+          "online": true
+        },
+        {
+          "cpu": 31,
+          "core": 15,
+          "socket": 0,
+          "online": true
+        }
+      ]
+    },
+    "cpu_description": {
+      "lscpu": [
+        {
+          "field": "Architecture:",
+          "data": "x86_64"
+        },
+        {
+          "field": "CPU op-mode(s):",
+          "data": "32-bit, 64-bit"
+        },
+        {
+          "field": "Address sizes:",
+          "data": "48 bits physical, 48 bits virtual"
+        },
+        {
+          "field": "Byte Order:",
+          "data": "Little Endian"
+        },
+        {
+          "field": "CPU(s):",
+          "data": "32"
+        },
+        {
+          "field": "On-line CPU(s) list:",
+          "data": "0-31"
+        },
+        {
+          "field": "Vendor ID:",
+          "data": "AuthenticAMD"
+        },
+        {
+          "field": "Model name:",
+          "data": "AMD Ryzen 9 9950X3D 16-Core Processor"
+        },
+        {
+          "field": "CPU family:",
+          "data": "26"
+        },
+        {
+          "field": "Model:",
+          "data": "68"
+        },
+        {
+          "field": "Thread(s) per core:",
+          "data": "2"
+        },
+        {
+          "field": "Core(s) per socket:",
+          "data": "16"
+        },
+        {
+          "field": "Socket(s):",
+          "data": "1"
+        },
+        {
+          "field": "Stepping:",
+          "data": "0"
+        },
+        {
+          "field": "BogoMIPS:",
+          "data": "8583.67"
+        },
+        {
+          "field": "Flags:",
+          "data": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology tsc_reliable nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm avx512_vp2intersect"
+        },
+        {
+          "field": "Virtualization:",
+          "data": "AMD-V"
+        },
+        {
+          "field": "Hypervisor vendor:",
+          "data": "Microsoft"
+        },
+        {
+          "field": "Virtualization type:",
+          "data": "full"
+        },
+        {
+          "field": "L1d cache:",
+          "data": "768 KiB (16 instances)"
+        },
+        {
+          "field": "L1i cache:",
+          "data": "512 KiB (16 instances)"
+        },
+        {
+          "field": "L2 cache:",
+          "data": "16 MiB (16 instances)"
+        },
+        {
+          "field": "L3 cache:",
+          "data": "96 MiB (1 instance)"
+        },
+        {
+          "field": "NUMA node(s):",
+          "data": "1"
+        },
+        {
+          "field": "NUMA node0 CPU(s):",
+          "data": "0-31"
+        },
+        {
+          "field": "Vulnerability Gather data sampling:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Ghostwrite:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Indirect target selection:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Itlb multihit:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability L1tf:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Mds:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Meltdown:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Mmio stale data:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Old microcode:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Reg file data sampling:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Retbleed:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Spec rstack overflow:",
+          "data": "Vulnerable: Safe RET, no microcode"
+        },
+        {
+          "field": "Vulnerability Spec store bypass:",
+          "data": "Mitigation; Speculative Store Bypass disabled via prctl"
+        },
+        {
+          "field": "Vulnerability Spectre v1:",
+          "data": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization"
+        },
+        {
+          "field": "Vulnerability Spectre v2:",
+          "data": "Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected"
+        },
+        {
+          "field": "Vulnerability Srbds:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Tsa:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Tsx async abort:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Vmscape:",
+          "data": "Not affected"
+        }
+      ]
+    }
+  },
+  "exit_code": 0,
+  "wall_seconds": 1019.8392055629811
+}

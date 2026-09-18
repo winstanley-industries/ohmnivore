@@ -1,0 +1,117 @@
+{
+  "attempts": 1,
+  "candidate": null,
+  "corner": null,
+  "deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+  "elapsed_s": 8.463542704004794,
+  "files": {
+    "import.json": "9c1bd4fbb4effd4a457c827d423b11ca3663739bbca86a8f1763bcc4652a3bb8",
+    "raw.header": "294c4096ea4ecb8e65d4a4d9c34f2def7b4ddc5d85283654b32cba845d12fb28",
+    "raw.json": "4e379dca028988c15e33c434fb8f452a4a84a2d846ab629f8430d6a78eeaeced",
+    "statistics.json": "481a5b7f76b7ba01af10d0f423ac4793e83bd3a3c518b233b360378ceb12c7d4"
+  },
+  "fixture": "dpt",
+  "id": "q2-dpt",
+  "import": {
+    "adapted_bytes": 29136,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "ambient_temperature_c": 27.0,
+    "archive_bytes": 28318,
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "expanded_components": 73,
+    "expression_tokens": 1066,
+    "flat_deck_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c",
+    "importer": "emi02-microchip-import-v1",
+    "instances": 4,
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_bytes": 29805,
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "mna_unknowns": 80,
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5",
+    "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+    "packages": 2,
+    "source_deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+    "vt_volts": 0.025864916895449997
+  },
+  "level": 2,
+  "max_step_s": 5e-10,
+  "metrics": {
+    "gate_dynamics": {
+      "drop_limits_v": [
+        0.2,
+        30.0
+      ],
+      "half_crossing_gate_limits_v": [
+        -3.0,
+        23.0
+      ],
+      "on_edge_gate_drop_v": 1.5300492086892667,
+      "pass": true
+    },
+    "load_at_second_on_a": 17.97302953570118,
+    "min_gate_v": -3.3023914438370015,
+    "min_v": -20.007073919156642,
+    "off_edge_s": 1.2657405781519467e-08,
+    "off_energy_j": 4.356666122522348e-05,
+    "off_gate_at_vds_10_50_90_v": [
+      3.247490737640177,
+      0.3881423793672082,
+      0.3928503618203395
+    ],
+    "off_half_s": 1.4034742406467101e-05,
+    "on_edge_s": 1.712502804933031e-08,
+    "on_energy_j": 0.00012438064313352555,
+    "on_gate_at_vds_10_50_90_v": [
+      9.013775473380496,
+      15.76446789092254,
+      10.543824682069763
+    ],
+    "on_half_s": 1.2024822868207391e-05,
+    "pass": true,
+    "peak_gate_v": 24.187816498593687,
+    "peak_v": 439.2765342920976,
+    "ringing": {
+      "frequency_hz": 66115702.47933827,
+      "log_decrement": 0.6128629633930613,
+      "peak_amplitudes_v": [
+        39.27653429209761,
+        18.081119269528017,
+        11.529411842879426
+      ],
+      "peak_times_s": [
+        1.4044750000000001e-05,
+        1.4060000000000001e-05,
+        1.4075000000000002e-05
+      ],
+      "polarity": "positive",
+      "residual_reference_v": 400.0,
+      "status": "measured"
+    },
+    "sample_step_s": 2.5e-10
+  },
+  "process": {
+    "exit_code": 0,
+    "status": "ok",
+    "wall_s": 8.432005016016774
+  },
+  "process_log_bytes": 0,
+  "process_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "raw_points": 41463,
+  "raw_sha256": "7ce61997fc5cf6bf9a4d946b8b6323415f612ad366628c97d0a2120f1748ccd3",
+  "reference_version": "emi01-v2",
+  "sample_step_s": 2.5e-10,
+  "statistics": {
+    "attempts": 45824,
+    "elapsed_seconds": 8.408510112,
+    "points": 41463,
+    "raw_bytes": 1658731,
+    "rejected_steps": 4362,
+    "schema": "emi02-cpu-v1",
+    "status": "complete",
+    "unknowns": 80,
+    "variables": 5
+  },
+  "status": "qualified"
+}

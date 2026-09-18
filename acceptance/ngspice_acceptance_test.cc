@@ -331,7 +331,8 @@ RawTable ParseRaw(const std::filesystem::path &path) {
 
 std::filesystem::path MakeOracleNetlist(const std::filesystem::path &fixture,
                                         const std::filesystem::path &raw,
-                                        bool transient) {
+                                        bool transient,
+                                        std::string_view signals = "v(out)") {
   std::string netlist = ReadFile(fixture);
   std::size_t end = netlist.find_last_not_of(" \t\r\n");
   if (end == std::string::npos) {
@@ -343,12 +344,17 @@ std::filesystem::path MakeOracleNetlist(const std::filesystem::path &fixture,
     Fail("fixture must end with .END");
   }
   netlist.erase(start);
-  netlist += ".options numdgt=17 method=trap\n.control\n"
+  netlist += ".options numdgt=17 method=trap\n";
+  if (signals != "v(out)") {
+    netlist += ".options reltol=1e-8 vntol=1e-10 abstol=1e-12 trtol=1\n";
+  }
+  netlist += ".control\n"
              "set filetype=ascii\nset numdgt=17\nrun\n";
   if (transient) {
-    netlist += "linearize v(out)\n";
+    netlist += "linearize " + std::string(signals) + "\n";
   }
-  netlist += "write " + raw.string() + " v(out)\nquit\n.endc\n.END\n";
+  netlist += "write " + raw.string() + " " + std::string(signals) +
+             "\nquit\n.endc\n.END\n";
   const std::filesystem::path generated = raw.string() + ".spice";
   WriteFile(generated, netlist);
   return generated;
@@ -443,10 +449,11 @@ void VerifyStaticElf(const std::filesystem::path &ngspice,
 RawTable RunNgspice(const std::filesystem::path &ngspice,
                     const std::filesystem::path &fixture,
                     const std::filesystem::path &temporary_directory,
-                    std::string_view stem, bool transient) {
+                    std::string_view stem, bool transient,
+                    std::string_view signals = "v(out)") {
   const std::filesystem::path raw =
       temporary_directory / (std::string(stem) + ".raw");
-  const auto netlist = MakeOracleNetlist(fixture, raw, transient);
+  const auto netlist = MakeOracleNetlist(fixture, raw, transient, signals);
   const ProcessResult result = Run(
       {ngspice.string(), "-n", "-b", netlist.string()}, temporary_directory);
   RequireSuccess(result, "ngspice " + std::string(stem));
@@ -483,11 +490,13 @@ void Near(double actual, double reference, double absolute, double relative,
 }
 
 double Interpolate(const Table &actual, std::size_t time_column,
-                   std::size_t value_column, double time) {
+                   std::size_t value_column, double time,
+                   bool validate_times = true) {
   if (actual.rows.empty()) {
     Fail("empty transient result");
   }
-  for (std::size_t index = 1; index < actual.rows.size(); ++index) {
+  for (std::size_t index = 1; validate_times && index < actual.rows.size();
+       ++index) {
     if (!(actual.rows[index][time_column] >
           actual.rows[index - 1][time_column])) {
       Fail("Ohmnivore transient times are not strictly increasing");
@@ -609,6 +618,94 @@ void CompareTransient(const Table &actual, const RawTable &reference,
   }
 }
 
+// Unlike the historical one-output fixtures, EMI-02A checks every node and
+// every branch current, preserving the complex sign and winding orientation.
+void CompareCoupled(const Table &actual, const RawTable &reference,
+                    const std::vector<std::string> &variables, bool transient,
+                    const std::string &context) {
+  std::vector<std::string> expected = {transient ? "time" : "Frequency"};
+  for (const std::string &variable : variables) {
+    if (transient) {
+      expected.push_back(variable);
+    } else {
+      expected.push_back(variable + "_mag");
+      expected.push_back(variable + "_phase_deg");
+    }
+  }
+  RequireExactHeader(actual, expected, context);
+  if (reference.complex == transient || reference.rows.empty()) {
+    Fail(context + ": unexpected oracle data type");
+  }
+  const auto scale = RawColumn(reference, transient ? "time" : "frequency");
+  if (!transient && reference.rows.size() != actual.rows.size()) {
+    Fail(context + ": AC sample count mismatch");
+  }
+  // Match engineering suffix arithmetic in the fixture's 5n/200u values.
+  constexpr double kStep = 5.0 * 1e-9;
+  constexpr double kStop = 200.0 * 1e-6;
+  const auto grid = transient
+                        ? RequestedTransientGrid(kStep, kStop, 0.0, context)
+                        : std::vector<double>{};
+  if (transient &&
+      (reference.rows.size() != grid.size() || actual.rows.front()[0] != 0.0 ||
+       actual.rows.back()[0] != kStop)) {
+    Fail(context + ": transient output coverage mismatch");
+  }
+  if (transient) {
+    for (std::size_t sample = 1; sample < actual.rows.size(); ++sample) {
+      if (!(actual.rows[sample][0] > actual.rows[sample - 1][0])) {
+        Fail(context + ": actual times must increase strictly");
+      }
+    }
+    for (std::size_t sample = 1; sample < reference.rows.size(); ++sample) {
+      if (!(reference.rows[sample][scale].real() >
+            reference.rows[sample - 1][scale].real())) {
+        Fail(context + ": reference times must increase strictly");
+      }
+    }
+  }
+  for (const std::string &variable : variables) {
+    std::string raw_name = variable;
+    std::transform(raw_name.begin(), raw_name.end(), raw_name.begin(),
+                   [](unsigned char character) {
+                     return static_cast<char>(std::tolower(character));
+                   });
+    const std::size_t raw_index = RawColumn(reference, raw_name);
+    const std::size_t actual_index =
+        Column(actual.header, transient ? variable : variable + "_mag");
+    for (std::size_t sample = 0; sample < reference.rows.size(); ++sample) {
+      const double coordinate = reference.rows[sample][scale].real();
+      const auto expected_value = reference.rows[sample][raw_index];
+      if (transient) {
+        Near(coordinate, grid[sample], 1e-15, 1e-12, context + " time grid");
+        const double observed =
+            Interpolate(actual, 0, actual_index, coordinate, false);
+        const double absolute = variable.front() == 'I' ? 1e-6 : 1e-5;
+        if (!std::isfinite(observed) ||
+            std::abs(observed - expected_value.real()) >
+                absolute + 1e-3 * std::abs(expected_value.real())) {
+          std::ostringstream message;
+          message << context << ": transient mismatch for " << variable
+                  << " at sample " << sample << ": actual=" << observed
+                  << " reference=" << expected_value.real();
+          Fail(message.str());
+        }
+      } else {
+        Near(actual.rows[sample][0], coordinate, 1e-12, 1e-12,
+             context + " frequency");
+        constexpr double kPi = 3.141592653589793238462643383279502884;
+        const auto observed =
+            std::polar(actual.rows[sample][actual_index],
+                       actual.rows[sample][actual_index + 1] * kPi / 180.0);
+        if (std::abs(observed - expected_value) >
+            1e-9 + 1e-7 * std::abs(expected_value)) {
+          Fail(context + ": complex AC mismatch for " + variable);
+        }
+      }
+    }
+  }
+}
+
 // DC is the only legacy CSV schema whose first field is textual.
 std::pair<std::string, double> ParseDcOut(std::string_view contents) {
   std::istringstream input{std::string(contents)};
@@ -646,8 +743,8 @@ std::pair<std::string, double> ParseDcOut(std::string_view contents) {
 
 int main(int argc, char **argv) {
   try {
-    if (argc != 12) {
-      Fail("acceptance runner requires eleven runfile arguments");
+    if (argc != 17) {
+      Fail("acceptance runner requires sixteen runfile arguments");
     }
     const std::filesystem::path temporary_root =
         std::getenv("TEST_TMPDIR") == nullptr
@@ -748,9 +845,35 @@ int main(int argc, char **argv) {
           fixture.step, fixture.stop, fixture.start, fixture.header,
           fixture.stem);
     }
+    const std::vector<std::string> pair_variables = {
+        "V(p)", "V(a)", "V(q)", "V(b)", "I(V1)", "I(L1)", "I(V2)", "I(L2)"};
+    for (int argument = 12; argument <= 16; ++argument) {
+      const auto fixture = std::filesystem::absolute(argv[argument]);
+      const bool transient = argument == 14 || argument == 15;
+      const bool filter = argument == 16;
+      const std::vector<std::string> variables =
+          filter
+              ? std::vector<std::string>{"V(cm)",      "V(dm)",    "V(inp)",
+                                         "V(inn)",     "V(fp)",    "V(fn)",
+                                         "V(chassis)", "V(loadp)", "V(loadn)",
+                                         "I(Vcm)",     "I(Vdm)",   "I(Lcmp)",
+                                         "I(Lcmn)",    "I(Lhp)",   "I(Lhn)"}
+              : pair_variables;
+      std::string signals;
+      for (const auto &variable : variables) {
+        if (!signals.empty())
+          signals += ' ';
+        signals += variable;
+      }
+      const std::string stem = fixture.stem().string();
+      CompareCoupled(
+          RunOhmnivore(ohmnivore, fixture, temporary),
+          RunNgspice(ngspice, fixture, temporary, stem, transient, signals),
+          variables, transient, stem);
+    }
     std::cout
         << "ngspice-46 hermetic linear DC/AC/transient plus bounded diode "
-           "DC/transient and BJT DC acceptance passed\n";
+           "DC/transient, BJT DC and coupled-inductor acceptance passed\n";
     return 0;
   } catch (const std::exception &error) {
     std::cerr << "ngspice acceptance failure: " << error.what() << '\n';

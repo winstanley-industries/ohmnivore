@@ -1,0 +1,67 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 74 targets (0 packages loaded, 0 targets configured)
+Analyzing: 74 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 74 targets (0 packages loaded, 0 targets configured).
+[36 / 47] 26 / 37 tests; Testing //cpp:emi02_prepared_transient_test; 0s linux-sandbox ... (11 actions running)
+[41 / 47] 31 / 37 tests; Testing //cpp:emi02c_review_test; 2s linux-sandbox ... (6 actions running)
+[42 / 47] 32 / 37 tests; Testing //cpp:emi02c_review_test; 3s linux-sandbox ... (5 actions running)
+[43 / 47] 33 / 37 tests; Testing //cpp:emi02c_review_test; 4s linux-sandbox ... (4 actions running)
+[44 / 47] 34 / 37 tests; Testing //cpp:emi02c_review_test; 6s linux-sandbox ... (3 actions running)
+[46 / 47] 36 / 37 tests; Testing //cpp:emi02c_review_test; 7s linux-sandbox
+[46 / 47] 36 / 37 tests; Testing //cpp:emi02c_review_test; 18s linux-sandbox
+[46 / 47] 37 / 37 tests; Testing //cpp:emi02c_review_test; 37s linux-sandbox
+INFO: Found 37 targets and 37 test targets...
+INFO: Elapsed time: 38.172s, Critical Path: 37.94s
+INFO: 32 processes: 8 action cache hit, 1 internal, 39 linux-sandbox.
+INFO: Build completed successfully, 32 total actions
+//reference/emi01:adapter_test                                  (cached) PASSED in 0.3s
+//reference/emi01:metrics_test                                  (cached) PASSED in 0.9s
+//reference/emi01:report_test                                   (cached) PASSED in 0.6s
+//reference/emi01:signals_test                                  (cached) PASSED in 0.7s
+//reference/emi01:study_test                                    (cached) PASSED in 2.8s
+//third_party/emi_python:runtime_test                           (cached) PASSED in 0.5s
+//acceptance:emi02b_expression_test                                      PASSED in 1.0s
+//acceptance:ngspice_acceptance_test                                     PASSED in 6.9s
+//cpp:emi02_expression_cache_test                                        PASSED in 0.1s
+//cpp:emi02_history_lte_test                                             PASSED in 0.8s
+//cpp:emi02_newton_test                                                  PASSED in 0.1s
+//cpp:emi02_prepared_transient_test                                      PASSED in 1.7s
+//cpp:emi02_refinement_test                                              PASSED in 0.1s
+//cpp:emi02_solver_reuse_test                                            PASSED in 0.1s
+//cpp:emi02a_test                                                        PASSED in 5.0s
+//cpp:emi02b_test                                                        PASSED in 0.2s
+//cpp:emi02c_review_test                                                 PASSED in 37.9s
+//cpp:emi02c_test                                                        PASSED in 0.2s
+//cpp:gpu01_prepared_ac_test                                             PASSED in 0.1s
+//cpp:gpu01_replay_test                                                  PASSED in 0.4s
+//cpp:gpu02s_session_test                                                PASSED in 7.4s
+//cpp:phase1_test                                                        PASSED in 0.1s
+//cpp:phase2a_test                                                       PASSED in 0.1s
+//cpp:phase2b_test                                                       PASSED in 0.1s
+//cpp:phase2c_parser_test                                                PASSED in 0.1s
+//cpp:phase2c_simulator_test                                             PASSED in 0.1s
+//cpp:phase2c_transient_test                                             PASSED in 0.2s
+//cpp:phase2d_solver_test                                                PASSED in 0.1s
+//cpp:phase3a_test                                                       PASSED in 0.1s
+//cpp:phase3b_test                                                       PASSED in 0.1s
+//cpp:phase3c_test                                                       PASSED in 0.1s
+//cpp:solver_hermeticity_test                                            PASSED in 0.3s
+//reference/emi02:device_dynamic_test                                    PASSED in 1.8s
+//reference/emi02:importer_oracle_test                                   PASSED in 0.5s
+//reference/emi02:importer_test                                          PASSED in 0.4s
+//reference/emi02:qualification_test                                     PASSED in 0.5s
+//reference/emi02:runner_process_test                                    PASSED in 0.3s
+
+Executed 31 out of 37 tests: 37 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

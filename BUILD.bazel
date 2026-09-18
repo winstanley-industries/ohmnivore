@@ -68,3 +68,16 @@ test_suite(
     ],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "emi02_provenance_inputs",
+    srcs = [
+        "docs/adr/ADR-003-emi02-cpu-qualification.md",
+        "docs/adr/ADR-004-emi02-behavioral-expressions.md",
+        "docs/adr/ADR-005-emi02-behavioral-transient.md",
+        "docs/adr/ADR-006-emi02-model-import-qualification.md",
+        "docs/adr/ADR-007-generic-transient-improvements.md",
+        "//cpp:emi02_provenance_inputs",
+    ],
+    visibility = ["//reference/emi02:__pkg__"],
+)

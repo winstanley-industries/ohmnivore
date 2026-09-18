@@ -125,6 +125,137 @@ BuildCsr(std::size_t size, const std::map<Coordinate, double> &entries,
   });
 }
 
+struct ResolvedInductorCoupling {
+  const Inductor *first;
+  const Inductor *second;
+  double mutual_henries;
+};
+
+[[nodiscard]] Result<std::vector<ResolvedInductorCoupling>>
+ResolveInductorCouplings(const Circuit &circuit) {
+  using CouplingsResult = Result<std::vector<ResolvedInductorCoupling>>;
+  // These are separate passes: a bad later coefficient must take precedence
+  // over an earlier identity or inductance error in direct IR.
+  for (const InductorCoupling &coupling : circuit.inductor_couplings) {
+    if (!std::isfinite(coupling.coefficient)) {
+      return CouplingsResult::Fail(ErrorCode::kNonFinite,
+                                   "coupling coefficient is non-finite");
+    }
+  }
+  for (const InductorCoupling &coupling : circuit.inductor_couplings) {
+    if (std::abs(coupling.coefficient) > 0.999) {
+      return CouplingsResult::Fail(
+          ErrorCode::kUnsupported,
+          "coupling coefficient must be in [-0.999,0.999]");
+    }
+  }
+  std::vector<ResolvedInductorCoupling> resolved;
+  std::set<const Inductor *> used_windings;
+  for (std::size_t index = 0; index < circuit.inductor_couplings.size();
+       ++index) {
+    const InductorCoupling &coupling = circuit.inductor_couplings[index];
+    if (coupling.name.size() < 2 ||
+        (coupling.name.front() != 'K' && coupling.name.front() != 'k') ||
+        !IsAsciiModelIdentifier(coupling.name)) {
+      return CouplingsResult::Fail(ErrorCode::kCompile,
+                                   "invalid coupling identity '" +
+                                       coupling.name + "'");
+    }
+    for (std::size_t prior = 0; prior < index; ++prior) {
+      if (EqualCaseInsensitive(coupling.name,
+                               circuit.inductor_couplings[prior].name)) {
+        return CouplingsResult::Fail(ErrorCode::kCompile,
+                                     "duplicate coupling identity '" +
+                                         coupling.name + "'");
+      }
+    }
+    if (coupling.first_inductor.empty() || coupling.second_inductor.empty()) {
+      return CouplingsResult::Fail(
+          ErrorCode::kCompile, "coupling winding references must be nonempty");
+    }
+    std::array<const Inductor *, 2> windings = {nullptr, nullptr};
+    const std::array<std::string_view, 2> references = {
+        coupling.first_inductor, coupling.second_inductor};
+    for (std::size_t winding = 0; winding < 2; ++winding) {
+      std::size_t matches = 0;
+      for (const Component &component : circuit.components) {
+        const bool matches_name = std::visit(
+            [&](const auto &typed) {
+              return EqualCaseInsensitive(typed.name, references[winding]);
+            },
+            component);
+        if (matches_name) {
+          ++matches;
+          windings[winding] = std::get_if<Inductor>(&component);
+        }
+      }
+      if (matches != 1 || windings[winding] == nullptr) {
+        return CouplingsResult::Fail(
+            ErrorCode::kCompile,
+            "coupling winding '" + std::string(references[winding]) +
+                "' must identify exactly one linear inductor");
+      }
+    }
+    if (windings[0] == windings[1] || used_windings.contains(windings[0]) ||
+        used_windings.contains(windings[1])) {
+      return CouplingsResult::Fail(
+          ErrorCode::kCompile,
+          "coupling windings must form disjoint distinct pairs");
+    }
+    used_windings.insert(windings[0]);
+    used_windings.insert(windings[1]);
+    resolved.push_back(
+        {.first = windings[0], .second = windings[1], .mutual_henries = 0.0});
+  }
+  for (std::size_t index = 0; index < resolved.size(); ++index) {
+    ResolvedInductorCoupling &pair = resolved[index];
+    const double first = pair.first->inductance_henries;
+    const double second = pair.second->inductance_henries;
+    if (!std::isfinite(first) || !std::isfinite(second)) {
+      return CouplingsResult::Fail(ErrorCode::kNonFinite,
+                                   "coupled inductance is non-finite");
+    }
+    if (first <= 0.0 || second <= 0.0) {
+      return CouplingsResult::Fail(ErrorCode::kCompile,
+                                   "coupled inductance must be positive");
+    }
+    const double coefficient = circuit.inductor_couplings[index].coefficient;
+    if (coefficient == 0.0) {
+      continue;
+    }
+    // Multiply mantissas separately from exponents. Neither L1*L2 nor a
+    // partial k*sqrt(L) product is necessarily representable even when M is.
+    int first_exponent = 0;
+    int second_exponent = 0;
+    int coefficient_exponent = 0;
+    const double first_mantissa = std::frexp(std::sqrt(first), &first_exponent);
+    const double second_mantissa =
+        std::frexp(std::sqrt(second), &second_exponent);
+    const double coefficient_mantissa =
+        std::frexp(coefficient, &coefficient_exponent);
+    pair.mutual_henries =
+        std::scalbn(coefficient_mantissa * first_mantissa * second_mantissa,
+                    coefficient_exponent + first_exponent + second_exponent);
+    if (!std::isfinite(pair.mutual_henries) || pair.mutual_henries == 0.0) {
+      return CouplingsResult::Fail(
+          ErrorCode::kNonFinite,
+          "nonzero mutual inductance is not representable");
+    }
+    int mutual_exponent = 0;
+    const double mutual_mantissa =
+        std::frexp(std::abs(pair.mutual_henries), &mutual_exponent);
+    const double represented_coupling =
+        std::scalbn(mutual_mantissa / (first_mantissa * second_mantissa),
+                    mutual_exponent - first_exponent - second_exponent);
+    if (!std::isfinite(represented_coupling) || represented_coupling >= 1.0) {
+      return CouplingsResult::Fail(
+          ErrorCode::kNonFinite,
+          "represented coupled inductance matrix is not positive definite");
+    }
+  }
+  return CouplingsResult::Ok(std::move(resolved));
+}
+
 [[nodiscard]] std::optional<std::size_t>
 FindValueIndex(const CsrMatrix &matrix, std::size_t row, std::size_t column) {
   for (std::size_t index = matrix.row_offsets[row];
@@ -274,6 +405,12 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
     }
   }
 
+  auto couplings = ResolveInductorCouplings(circuit);
+  if (!couplings.ok()) {
+    return Result<MnaSystem>::Fail(couplings.error().code,
+                                   couplings.error().message);
+  }
+
   std::unordered_map<std::string, std::size_t> node_map;
   std::vector<std::string> node_names;
   for (const Component &component : circuit.components) {
@@ -333,6 +470,7 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
 
   std::map<Coordinate, double> g_entries;
   std::map<Coordinate, double> c_entries;
+  std::set<Coordinate> coupling_coordinates;
   std::set<Coordinate> nonlinear_union_coordinates;
   std::vector<double> b_dc(size, 0.0);
   std::vector<std::complex<double>> b_ac(size, {0.0, 0.0});
@@ -362,6 +500,16 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
   std::vector<PendingBjt> pending_bjts;
   for (std::size_t node = 0; node < node_count; ++node) {
     AddStamp(&g_entries, node, node, kGminSiemens);
+  }
+
+  for (const ResolvedInductorCoupling &coupling : couplings.value()) {
+    const std::size_t first = node_count + branch_map.at(coupling.first->name);
+    const std::size_t second =
+        node_count + branch_map.at(coupling.second->name);
+    AddStamp(&c_entries, first, second, -coupling.mutual_henries);
+    AddStamp(&c_entries, second, first, -coupling.mutual_henries);
+    coupling_coordinates.emplace(first, second);
+    coupling_coordinates.emplace(second, first);
   }
 
   for (const Component &component : circuit.components) {
@@ -407,6 +555,7 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
           .name = capacitor->name,
           .positive_node_index = positive,
           .negative_node_index = negative,
+          .capacitance_farads = capacitor->capacitance_farads,
       });
       if (positive.has_value()) {
         AddStamp(&c_entries, *positive, *positive,
@@ -823,7 +972,7 @@ Result<MnaSystem> CompileMna(const Circuit &circuit) {
 
   return Result<MnaSystem>::Ok(MnaSystem{
       .g = std::move(g),
-      .c = BuildCsr(size, c_entries),
+      .c = BuildCsr(size, c_entries, coupling_coordinates),
       .b_dc = std::move(b_dc),
       .b_ac = std::move(b_ac),
       .node_names = std::move(node_names),

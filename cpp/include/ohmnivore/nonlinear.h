@@ -112,7 +112,8 @@ struct NonlinearPointResult {
     const MnaSystem &system, const std::vector<double> &solution,
     double source_scale = 1.0, double extra_gmin_siemens = 0.0);
 
-// Returns only S*i(S^T*x), in stable descriptor order, with the same model,
+// Returns the memoryless diode and experimental behavioral residual, in stable
+// descriptor order, with the same model,
 // descriptor, finite-value, and magnitude validation as Newton assembly.
 [[nodiscard]] Result<std::vector<double>>
 BuildDiodeResidualContribution(const MnaSystem &system,

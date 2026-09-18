@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "ohmnivore/expression.h"
 #include "ohmnivore/ir.h"
 #include "ohmnivore/sparse.h"
 #include "ohmnivore/status.h"
@@ -36,6 +37,7 @@ struct CapacitorInitialConstraint {
   std::string name;
   std::optional<std::size_t> positive_node_index;
   std::optional<std::size_t> negative_node_index;
+  double capacitance_farads = 0.0;
 };
 
 struct InductorInitialConstraint {
@@ -72,6 +74,25 @@ struct BjtDescriptor {
   std::array<std::optional<std::size_t>, 9> jacobian_value_indices;
 };
 
+// EMI-02 experimental sources use ordinary MNA rows and immutable expressions.
+struct BehavioralRow {
+  std::size_t row;
+  double coefficient;
+  // One position per sorted expression dependency, including inactive branches.
+  std::vector<std::size_t> jacobian_value_indices;
+};
+
+struct BehavioralDescriptor {
+  std::string name;
+  CompiledExpression expression;
+  std::vector<BehavioralRow> rows;
+  bool is_voltage = false;
+  std::optional<std::size_t> positive_node_index;
+  std::optional<std::size_t> negative_node_index;
+  // Absolute MNA row, present only for a voltage source.
+  std::optional<std::size_t> branch_index;
+};
+
 struct MnaSystem {
   CsrMatrix g;
   CsrMatrix c;
@@ -84,6 +105,7 @@ struct MnaSystem {
   std::vector<InductorInitialConstraint> inductor_initial_constraints = {};
   std::vector<DiodeDescriptor> diode_descriptors = {};
   std::vector<BjtDescriptor> bjt_descriptors = {};
+  std::vector<BehavioralDescriptor> behavioral_descriptors = {};
 };
 
 [[nodiscard]] Result<MnaSystem> CompileMna(const Circuit &circuit);
