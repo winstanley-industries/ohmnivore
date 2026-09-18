@@ -15,6 +15,10 @@
 
 namespace ohmnivore {
 
+namespace internal {
+struct ExpressionAccess;
+}
+
 enum class ExpressionDialect { kBehavioral, kParameter };
 using ParameterValues = std::map<std::string, double>;
 
@@ -41,6 +45,7 @@ public:
 
 private:
   std::shared_ptr<const ExpressionProgram> program_;
+  friend struct internal::ExpressionAccess;
   friend Result<CompiledExpression>
   CompileExpression(std::string_view, const ExpressionBindings &,
                     ExpressionDialect);

@@ -83,6 +83,16 @@ magnitude. Apply those same gates to adjacent integration levels and both
 observation grids for each backend; retain signed current orientation rather
 than absolute-value integration. No tolerance changes depend on measured output.
 
+## Bounded raw emission
+
+The runner keeps one preallocated record of time followed by the selected saved
+state values. Each observation retains the original point/byte budget, time,
+shape and finite-value checks, then writes that complete record in one binary
+stream operation. FP64 representations, column order, point order and file
+contents remain identical. The record is private scratch; failures still remove
+unpublished output and metadata. This changes stream-call overhead only and does
+not buffer complete trajectories or relax output/resource limits.
+
 ## Qualification and failure accounting
 
 Each full qualification invocation runs DPT at all three frozen integration
@@ -90,6 +100,13 @@ refinements and all nine coupled bridge/filter/load/chassis jobs at each of thei
 three frozen candidate-specific refinements, with three independent observation
 sample spacings. The CPU and ngspice references use the same frozen source,
 manifest, model and job identities. CPU BE/TRAP remains as defined in ADR-005;
+the model runner explicitly selects its audited derivative-history policy and
+records method `trapezoidal` and estimator `derivative-history-audited-v1` in `emi02-cpu-v2` statistics. The audit
+checks estimator, fallback, refinement and step accounting as well as raw output.
+Refinement corrections are counted separately from successful top-level solves.
+Their admitted upper bound is four times the sum of successful numeric
+factorizations, refactorizations and numeric reuses, including work in failed
+solve attempts; a successful-solve count alone is not a valid correction bound.
 ngspice retains its original Gear-2 options. No tolerance or timestep gate is
 relaxed to produce a passing result. Reusing prior oracle evidence requires
 verifying the entire evidence source/manifest/model identities and waveform
@@ -109,6 +126,14 @@ exactly four workers, the spawn method and `concurrent-qualification-v1` executi
 mode. A DPT probe submits only its two engine jobs to that same pool and remains
 incomplete. This concurrency bounds qualification turnaround; it is not a fair
 CPU baseline benchmark and provides no performance or speedup claim.
+
+The retained execution record includes the launcher's allowed logical CPU mask,
+logical-to-physical core topology, processor/virtualization identity and exact
+command. A launcher affinity mask is inherited equally by all CPU and reference
+jobs; it does not change the four-worker execution contract or any per-job limit.
+An allowed set of four physical cores does not guarantee exclusive core ownership.
+Resource qualification applies to the recorded environment and is not a portable
+runtime guarantee.
 
 The additional DPT differential waveform gate uses 10 V drain RMS, 0.5 V gate
 RMS and 0.02 A plus 2% reference RMS for each saved current.

@@ -12,6 +12,10 @@
 
 namespace ohmnivore {
 
+namespace internal {
+class PreparedNewtonWorkspace;
+}
+
 inline constexpr double kSparseBackwardErrorTolerance = 1e-10;
 inline constexpr double kSparseComponentwiseBackwardErrorTolerance = 1e-5;
 
@@ -76,6 +80,13 @@ public:
   [[nodiscard]] const SparseSolverStatistics &statistics() const;
 
 private:
+  friend class internal::PreparedNewtonWorkspace;
+  // Only an immediately completed prepared full assembly may establish this
+  // finite-input precondition. Structure and all result guards still run.
+  [[nodiscard]] Result<std::vector<double>>
+  FactorAndSolveAdmitted(const CsrMatrix &matrix,
+                         const std::vector<double> &rhs,
+                         std::size_t maximum_refinements);
   class Impl;
   explicit SparseRealFactorization(std::unique_ptr<Impl> implementation);
   std::unique_ptr<Impl> implementation_;

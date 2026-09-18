@@ -1,5 +1,6 @@
 #include "ohmnivore/nonlinear.h"
 
+#include "cpp/src/expression_internal.h"
 #include "cpp/src/nonlinear_internal.h"
 #include "ohmnivore/behavioral.h"
 
@@ -7,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <new>
@@ -16,17 +18,151 @@
 #include <vector>
 
 namespace ohmnivore {
-namespace {
+namespace internal {
 
-struct AssembledNewtonSystem {
+struct AssemblyStorage {
   CsrMatrix jacobian;
   std::vector<double> residual;
   std::vector<double> row_scales;
-  std::vector<double> behavioral_rhs = {};
+  std::vector<double> behavioral_rhs;
+  std::vector<long double> affine_rhs;
+  std::vector<ExpressionEvaluation> trial_expressions;
+  bool pattern_initialized = false;
 };
 
+class PreparedNewtonWorkspace {
+public:
+  AssemblyStorage Acquire() noexcept {
+    ++statistics_.acquisitions;
+    ++statistics_.active_buffers;
+    statistics_.maximum_active_buffers = std::max(
+        statistics_.maximum_active_buffers, statistics_.active_buffers);
+    for (auto &buffer : idle_) {
+      if (buffer) {
+        AssemblyStorage result = std::move(*buffer);
+        buffer.reset();
+        --statistics_.retained_buffers;
+        ++statistics_.reused_buffers;
+        return result;
+      }
+    }
+    return {};
+  }
+
+  void Recycle(AssemblyStorage storage) noexcept {
+    --statistics_.active_buffers;
+    for (auto &buffer : idle_) {
+      if (!buffer) {
+        buffer.emplace(std::move(storage));
+        ++statistics_.retained_buffers;
+        return;
+      }
+    }
+  }
+
+  // Called only immediately after full prepared assembly admission, for its
+  // checked affine RHS or the accepted-Jacobian check's freshly zeroed RHS.
+  Result<std::vector<double>>
+  SolveAdmitted(SparseRealFactorization *factorization, const CsrMatrix &matrix,
+                const std::vector<double> &rhs,
+                std::size_t maximum_refinements) {
+    ++statistics_.admitted_linear_solves;
+    return factorization->FactorAndSolveAdmitted(matrix, rhs,
+                                                 maximum_refinements);
+  }
+
+  void InitializedPattern() noexcept { ++statistics_.pattern_initializations; }
+  PreparedAssemblyWorkspaceStatistics statistics() const { return statistics_; }
+
+private:
+  std::array<std::optional<AssemblyStorage>, 2> idle_;
+  PreparedAssemblyWorkspaceStatistics statistics_;
+};
+
+// A result owns its storage until its final move/destruction. The private
+// workspace outlives every lease in its synchronous point-solve invocation.
+class AssembledNewtonSystem : public AssemblyStorage {
+public:
+  explicit AssembledNewtonSystem(PreparedNewtonWorkspace *workspace = nullptr)
+      : AssemblyStorage(workspace ? workspace->Acquire() : AssemblyStorage{}),
+        workspace_(workspace) {}
+  AssembledNewtonSystem(const AssembledNewtonSystem &) = delete;
+  AssembledNewtonSystem &operator=(const AssembledNewtonSystem &) = delete;
+  AssembledNewtonSystem(AssembledNewtonSystem &&other) noexcept
+      : AssemblyStorage(std::move(other)),
+        workspace_(std::exchange(other.workspace_, nullptr)) {}
+  AssembledNewtonSystem &operator=(AssembledNewtonSystem &&other) noexcept {
+    if (this != &other) {
+      Release();
+      AssemblyStorage::operator=(std::move(other));
+      workspace_ = std::exchange(other.workspace_, nullptr);
+    }
+    return *this;
+  }
+  ~AssembledNewtonSystem() { Release(); }
+
+private:
+  void Release() noexcept {
+    if (auto *workspace = std::exchange(workspace_, nullptr))
+      workspace->Recycle(std::move(static_cast<AssemblyStorage &>(*this)));
+  }
+  PreparedNewtonWorkspace *workspace_ = nullptr;
+};
+
+// The owning prepared point freezes the descriptors/programs. Cache entries
+// therefore need only an exact full-state key, never an external model pointer.
+class PreparedExpressionCache {
+public:
+  const std::vector<ExpressionEvaluation> *
+  Find(const std::vector<double> &state, bool history) {
+    for (const auto &entry : entries_) {
+      if (entry && entry->state.size() == state.size() &&
+          (state.empty() || std::memcmp(entry->state.data(), state.data(),
+                                        state.size() * sizeof(double)) == 0)) {
+        ++(history ? statistics_.history_hits : statistics_.initial_hits);
+        return &entry->evaluations;
+      }
+    }
+    ++(history ? statistics_.history_misses : statistics_.initial_misses);
+    return nullptr;
+  }
+
+  void Publish(const std::vector<double> &state,
+               std::vector<ExpressionEvaluation> evaluations) {
+    // Construct the complete replacement before touching any retained entry.
+    // In particular an allocation failure cannot publish a partial state key.
+    Entry replacement{state, std::move(evaluations)};
+    entries_[next_entry_] = std::move(replacement);
+    next_entry_ = (next_entry_ + 1) % entries_.size();
+    ++statistics_.publications;
+    statistics_.retained_entries =
+        std::min(statistics_.retained_entries + 1, entries_.size());
+  }
+
+  PreparedExpressionCacheStatistics &counts() { return statistics_; }
+  PreparedExpressionCacheStatistics statistics() const { return statistics_; }
+
+private:
+  struct Entry {
+    std::vector<double> state;
+    std::vector<ExpressionEvaluation> evaluations;
+  };
+  std::array<std::optional<Entry>, 4> entries_;
+  std::size_t next_entry_ = 0;
+  PreparedExpressionCacheStatistics statistics_;
+};
+
+} // namespace internal
+
+namespace {
+
+enum class ExpressionPurpose { kInitial, kTrial, kFinal };
+enum class AssemblyMode { kFull, kResidualAfterAcceptedPreparedTrial };
+
+using internal::AssembledNewtonSystem;
+
 [[nodiscard]] bool IsBounded(double value) {
-  return std::isfinite(value) && std::abs(value) <= kNonlinearMaximumMagnitude;
+  return std::abs(value) <= kNonlinearMaximumMagnitude;
 }
 
 [[nodiscard]] std::optional<std::size_t>
@@ -275,7 +411,33 @@ ValidateBjtDescriptor(const MnaSystem &system,
 [[nodiscard]] Result<AssembledNewtonSystem>
 Assemble(const MnaSystem &system, const std::vector<double> &solution,
          double source_scale, double extra_gmin_siemens,
-         const std::vector<bool> *active_node_equations = nullptr) {
+         const std::vector<bool> *active_node_equations = nullptr,
+         internal::PreparedExpressionCache *expression_cache = nullptr,
+         ExpressionPurpose expression_purpose = ExpressionPurpose::kTrial,
+         const std::vector<ExpressionEvaluation> *accepted_trial_expressions =
+             nullptr,
+         AssemblyMode mode = AssemblyMode::kFull,
+         internal::PreparedNewtonWorkspace *workspace = nullptr) {
+  const bool residual_only =
+      mode == AssemblyMode::kResidualAfterAcceptedPreparedTrial;
+  if (residual_only &&
+      (expression_cache == nullptr ||
+       expression_purpose != ExpressionPurpose::kFinal ||
+       active_node_equations != nullptr || source_scale != 1.0 ||
+       extra_gmin_siemens != 0.0 || system.behavioral_descriptors.empty() ||
+       !system.diode_descriptors.empty() || !system.bjt_descriptors.empty())) {
+    return Result<AssembledNewtonSystem>::Fail(
+        ErrorCode::kInvalidStructure,
+        "prepared final residual requires an accepted original direct point");
+  }
+  if ((residual_only && (accepted_trial_expressions == nullptr ||
+                         accepted_trial_expressions->size() !=
+                             system.behavioral_descriptors.size())) ||
+      (!residual_only && accepted_trial_expressions != nullptr)) {
+    return Result<AssembledNewtonSystem>::Fail(
+        ErrorCode::kInvalidStructure,
+        "prepared final residual requires complete accepted trial expressions");
+  }
   if (solution.size() != system.g.columns) {
     return Result<AssembledNewtonSystem>::Fail(
         ErrorCode::kInvalidStructure,
@@ -304,13 +466,33 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
     }
   }
 
-  AssembledNewtonSystem assembled{
-      .jacobian = system.g,
-      .residual = std::vector<double>(system.g.rows, 0.0),
-      .row_scales = std::vector<double>(system.g.rows, 0.0),
-  };
-  std::vector<long double> behavioral_rhs(
-      system.behavioral_descriptors.empty() ? 0 : system.g.rows, 0.0L);
+  AssembledNewtonSystem assembled(workspace);
+  assembled.trial_expressions.clear();
+  const bool capture_trial = workspace && expression_cache &&
+                             expression_purpose == ExpressionPurpose::kTrial &&
+                             !residual_only &&
+                             active_node_equations == nullptr &&
+                             source_scale == 1.0 && extra_gmin_siemens == 0.0;
+  if (capture_trial)
+    assembled.trial_expressions.reserve(system.behavioral_descriptors.size());
+  if (!residual_only) {
+    if (workspace && assembled.pattern_initialized) {
+      assembled.jacobian.values = system.g.values;
+    } else {
+      assembled.jacobian = system.g;
+      if (workspace) {
+        assembled.pattern_initialized = true;
+        workspace->InitializedPattern();
+      }
+    }
+  }
+  assembled.residual.assign(system.g.rows, 0.0);
+  assembled.row_scales.assign(system.g.rows, 0.0);
+  auto &behavioral_rhs = assembled.affine_rhs;
+  behavioral_rhs.assign(residual_only || system.behavioral_descriptors.empty()
+                            ? 0
+                            : system.g.rows,
+                        0.0L);
   for (std::size_t row = 0; row < system.g.rows; ++row) {
     double product = 0.0;
     const double scaled_source = source_scale * system.b_dc[row];
@@ -329,7 +511,11 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
           system.g.values[index] * solution[system.g.column_indices[index]];
       product += term;
       scale += std::abs(term);
-      if (!IsBounded(term) || !IsBounded(product) || !IsBounded(scale)) {
+      // This nonnegative sum bounds both |term| and |product| after every
+      // FP64 addition; a non-finite term/product also makes it non-finite.
+      if (system.behavioral_descriptors.empty()
+              ? (!IsBounded(term) || !IsBounded(product) || !IsBounded(scale))
+              : !IsBounded(scale)) {
         return Result<AssembledNewtonSystem>::Fail(
             ErrorCode::kNonFinite,
             "nonlinear linear-row evaluation produced a non-finite or "
@@ -347,7 +533,9 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
       const double term = extra_gmin_siemens * solution[row];
       product += term;
       scale += std::abs(term);
-      if (!IsBounded(term) || !IsBounded(product) || !IsBounded(scale)) {
+      if (system.behavioral_descriptors.empty()
+              ? (!IsBounded(term) || !IsBounded(product) || !IsBounded(scale))
+              : !IsBounded(scale)) {
         return Result<AssembledNewtonSystem>::Fail(
             ErrorCode::kNonFinite,
             "extra GMIN evaluation produced a non-finite or over-bound "
@@ -514,23 +702,64 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
     }
   }
 
-  for (const BehavioralDescriptor &descriptor : system.behavioral_descriptors) {
-    auto evaluated = EvaluateExpression(descriptor.expression, solution);
-    if (!evaluated.ok())
-      return Result<AssembledNewtonSystem>::Fail(evaluated.error().code,
-                                                 descriptor.name + ": " +
-                                                     evaluated.error().message);
-    const auto dependencies = descriptor.expression.dependencies();
-    long double affine_rhs = -static_cast<long double>(evaluated.value().value);
-    for (const auto &[column, derivative] : evaluated.value().derivatives) {
-      const long double term =
-          static_cast<long double>(derivative) * solution[column];
-      affine_rhs += term;
-      if (!std::isfinite(term) || std::abs(term) > kNonlinearMaximumMagnitude ||
-          !std::isfinite(affine_rhs) ||
-          std::abs(affine_rhs) > kNonlinearMaximumMagnitude) {
+  const auto *cached_expressions =
+      expression_cache && expression_purpose == ExpressionPurpose::kInitial
+          ? expression_cache->Find(solution, false)
+          : nullptr;
+  for (std::size_t descriptor_index = 0;
+       descriptor_index < system.behavioral_descriptors.size();
+       ++descriptor_index) {
+    const auto &descriptor = system.behavioral_descriptors[descriptor_index];
+    ExpressionEvaluation fresh;
+    const ExpressionEvaluation *evaluated;
+    if (residual_only) {
+      ++expression_cache->counts().fresh_final_value_evaluations;
+      auto value =
+          internal::EvaluateExpressionValue(descriptor.expression, solution);
+      if (!value.ok())
         return Result<AssembledNewtonSystem>::Fail(
-            ErrorCode::kNonFinite, "behavioral affine RHS overflow");
+            value.error().code, descriptor.name + ": " + value.error().message);
+      const auto &accepted = (*accepted_trial_expressions)[descriptor_index];
+      if (std::memcmp(&value.value(), &accepted.value, sizeof(double)) != 0)
+        return Result<AssembledNewtonSystem>::Fail(
+            ErrorCode::kSolutionValidation,
+            "fresh final expression value differs from accepted trial");
+      ++expression_cache->counts().reused_final_derivatives;
+      fresh.value = value.value();
+      evaluated = &fresh;
+    } else if (cached_expressions) {
+      evaluated = &(*cached_expressions)[descriptor_index];
+    } else {
+      if (expression_cache) {
+        auto &counts = expression_cache->counts();
+        if (expression_purpose == ExpressionPurpose::kInitial)
+          ++counts.fresh_initial_evaluations;
+        else if (expression_purpose == ExpressionPurpose::kFinal)
+          ++counts.fresh_final_evaluations;
+        else
+          ++counts.fresh_trial_evaluations;
+      }
+      auto result = EvaluateExpression(descriptor.expression, solution);
+      if (!result.ok())
+        return Result<AssembledNewtonSystem>::Fail(result.error().code,
+                                                   descriptor.name + ": " +
+                                                       result.error().message);
+      fresh = result.TakeValue();
+      evaluated = &fresh;
+    }
+    const auto dependencies = descriptor.expression.dependencies();
+    long double affine_rhs = 0.0L;
+    if (!residual_only) {
+      affine_rhs = -static_cast<long double>(evaluated->value);
+      for (const auto &[column, derivative] : evaluated->derivatives) {
+        const long double term =
+            static_cast<long double>(derivative) * solution[column];
+        affine_rhs += term;
+        if (!(std::abs(term) <= kNonlinearMaximumMagnitude) ||
+            !(std::abs(affine_rhs) <= kNonlinearMaximumMagnitude)) {
+          return Result<AssembledNewtonSystem>::Fail(
+              ErrorCode::kNonFinite, "behavioral affine RHS overflow");
+        }
       }
     }
     for (const auto &row : descriptor.rows) {
@@ -538,16 +767,20 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
           row.row < system.node_names.size() &&
           !(*active_node_equations)[row.row])
         continue;
-      behavioral_rhs[row.row] += row.coefficient * affine_rhs;
-      if (!std::isfinite(behavioral_rhs[row.row]) ||
-          std::abs(behavioral_rhs[row.row]) > kNonlinearMaximumMagnitude) {
-        return Result<AssembledNewtonSystem>::Fail(
-            ErrorCode::kNonFinite, "behavioral RHS accumulation overflow");
+      if (!residual_only) {
+        behavioral_rhs[row.row] += row.coefficient * affine_rhs;
+        if (!(std::abs(behavioral_rhs[row.row]) <=
+              kNonlinearMaximumMagnitude)) {
+          return Result<AssembledNewtonSystem>::Fail(
+              ErrorCode::kNonFinite, "behavioral RHS accumulation overflow");
+        }
       }
-      const double value = row.coefficient * evaluated.value().value;
+      const double value = row.coefficient * evaluated->value;
       assembled.residual[row.row] += value;
       assembled.row_scales[row.row] += std::abs(value);
-      for (const auto &[column, derivative] : evaluated.value().derivatives) {
+      if (residual_only)
+        continue;
+      for (const auto &[column, derivative] : evaluated->derivatives) {
         const auto found =
             std::lower_bound(dependencies.begin(), dependencies.end(), column);
         if (found == dependencies.end() || *found != column) {
@@ -561,15 +794,19 @@ Assemble(const MnaSystem &system, const std::vector<double> &solution,
             row.coefficient * derivative;
       }
     }
+    if (capture_trial)
+      assembled.trial_expressions.push_back(std::move(fresh));
   }
 
   assembled.behavioral_rhs.assign(behavioral_rhs.begin(), behavioral_rhs.end());
 
-  for (double value : assembled.jacobian.values) {
-    if (!IsBounded(value)) {
-      return Result<AssembledNewtonSystem>::Fail(
-          ErrorCode::kNonFinite,
-          "nonlinear Jacobian contains a non-finite or over-bound value");
+  if (!residual_only) {
+    for (double value : assembled.jacobian.values) {
+      if (!IsBounded(value)) {
+        return Result<AssembledNewtonSystem>::Fail(
+            ErrorCode::kNonFinite,
+            "nonlinear Jacobian contains a non-finite or over-bound value");
+      }
     }
   }
   for (double value : assembled.residual) {
@@ -823,12 +1060,16 @@ MaximumNormalizedUpdate(const MnaSystem &system,
   return Result<double>::Ok(maximum);
 }
 
-[[nodiscard]] Result<bool>
-ValidateAcceptedJacobian(const AssembledNewtonSystem &assembled,
-                         SparseRealFactorization *factorization) {
+[[nodiscard]] Result<bool> ValidateAcceptedJacobian(
+    const AssembledNewtonSystem &assembled,
+    SparseRealFactorization *factorization,
+    internal::PreparedNewtonWorkspace *workspace = nullptr) {
   std::vector<double> zero_right_hand_side(assembled.jacobian.rows, 0.0);
   Result<std::vector<double>> validated =
-      factorization->FactorAndSolve(assembled.jacobian, zero_right_hand_side);
+      workspace ? workspace->SolveAdmitted(factorization, assembled.jacobian,
+                                           zero_right_hand_side, 0)
+                : factorization->FactorAndSolve(assembled.jacobian,
+                                                zero_right_hand_side);
   if (!validated.ok()) {
     return Result<bool>::Fail(validated.error().code,
                               validated.error().message);
@@ -837,8 +1078,19 @@ ValidateAcceptedJacobian(const AssembledNewtonSystem &assembled,
 }
 
 struct AttemptResult {
+  AttemptResult(std::vector<double> accepted_solution, std::size_t count,
+                std::vector<ExpressionEvaluation> evaluations = {})
+      : solution(std::move(accepted_solution)), iterations(count),
+        accepted_trial_expressions(std::move(evaluations)) {}
+  AttemptResult(const AttemptResult &) = delete;
+  AttemptResult &operator=(const AttemptResult &) = delete;
+  AttemptResult(AttemptResult &&) = default;
+  AttemptResult &operator=(AttemptResult &&) = default;
   std::vector<double> solution;
   std::size_t iterations;
+  // This payload belongs to the moved solution above and is transferred only
+  // after its complete fresh trial and accepted-Jacobian check succeed.
+  std::vector<ExpressionEvaluation> accepted_trial_expressions;
 };
 
 [[nodiscard]] Result<AttemptResult> RunNewtonAttempt(
@@ -847,11 +1099,14 @@ struct AttemptResult {
     const std::vector<double> &initial_guess, std::size_t maximum_iterations,
     const std::vector<bool> *active_node_equations,
     SparseRealFactorization *factorization,
-    std::vector<NonlinearIterationRecord> *iteration_trace) {
+    std::vector<NonlinearIterationRecord> *iteration_trace,
+    internal::PreparedExpressionCache *expression_cache = nullptr,
+    internal::PreparedNewtonWorkspace *workspace = nullptr) {
   std::vector<double> solution = initial_guess;
-  Result<AssembledNewtonSystem> initial =
-      Assemble(system, solution, source_scale, extra_gmin_siemens,
-               active_node_equations);
+  Result<AssembledNewtonSystem> initial = Assemble(
+      system, solution, source_scale, extra_gmin_siemens, active_node_equations,
+      expression_cache, ExpressionPurpose::kInitial, nullptr,
+      AssemblyMode::kFull, workspace);
   if (!initial.ok()) {
     return Result<AttemptResult>::Fail(initial.error().code,
                                        initial.error().message);
@@ -867,7 +1122,7 @@ struct AttemptResult {
   // state. Behavioral points must solve the stable affine RHS at least once.
   if (residual <= 1.0 && system.behavioral_descriptors.empty()) {
     Result<bool> valid_jacobian =
-        ValidateAcceptedJacobian(initial.value(), factorization);
+        ValidateAcceptedJacobian(initial.value(), factorization, workspace);
     if (!valid_jacobian.ok()) {
       return Result<AttemptResult>::Fail(valid_jacobian.error().code,
                                          valid_jacobian.error().message);
@@ -880,8 +1135,7 @@ struct AttemptResult {
         .maximum_normalized_residual = residual,
         .accepted = true,
     });
-    return Result<AttemptResult>::Ok(
-        AttemptResult{.solution = std::move(solution), .iterations = 0});
+    return Result<AttemptResult>::Ok(AttemptResult(std::move(solution), 0));
   }
 
   // Assemblies are pure functions of this attempt's immutable system and
@@ -896,25 +1150,37 @@ struct AttemptResult {
         current_assembly.has_value()
             ? Result<AssembledNewtonSystem>::Ok(std::move(*current_assembly))
             : Assemble(system, solution, source_scale, extra_gmin_siemens,
-                       active_node_equations);
+                       active_node_equations, expression_cache,
+                       ExpressionPurpose::kTrial, nullptr, AssemblyMode::kFull,
+                       workspace);
     current_assembly.reset();
     if (!assembled.ok()) {
       return Result<AttemptResult>::Fail(assembled.error().code,
                                          assembled.error().message);
     }
-    std::vector<double> right_hand_side = assembled.value().residual;
-    for (double &value : right_hand_side) {
-      value = -value;
-    }
+    auto working = assembled.TakeValue();
+    // A converged trial would already have returned with its paired proof.
+    // Only the next freshly checked trial can now become the accepted point.
+    working.trial_expressions.clear();
+    std::vector<double> right_hand_side;
     if (!system.behavioral_descriptors.empty()) {
-      right_hand_side = assembled.value().behavioral_rhs;
+      // The affine RHS is consumed only by this solve. The assembly's residual
+      // and scales remain intact for line search and convergence checks.
+      right_hand_side = std::move(working.behavioral_rhs);
+    } else {
+      right_hand_side = working.residual;
+      for (double &value : right_hand_side)
+        value = -value;
     }
     Result<std::vector<double>> delta =
-        system.behavioral_descriptors.empty()
-            ? factorization->FactorAndSolve(assembled.value().jacobian,
-                                            right_hand_side)
-            : factorization->FactorAndSolveRefined(assembled.value().jacobian,
+        workspace ? workspace->SolveAdmitted(factorization, working.jacobian,
+                                             right_hand_side, 4)
+        : system.behavioral_descriptors.empty()
+            ? factorization->FactorAndSolve(working.jacobian, right_hand_side)
+            : factorization->FactorAndSolveRefined(working.jacobian,
                                                    right_hand_side);
+    if (workspace && !system.behavioral_descriptors.empty())
+      working.behavioral_rhs = std::move(right_hand_side);
     if (!delta.ok()) {
       return Result<AttemptResult>::Fail(delta.error().code,
                                          delta.error().message);
@@ -924,7 +1190,9 @@ struct AttemptResult {
       for (std::size_t i = 0; i < delta_values.size(); ++i)
         delta_values[i] -= solution[i];
     }
-    std::vector<double> proposed = solution;
+    std::vector<double> proposed = system.behavioral_descriptors.empty()
+                                       ? solution
+                                       : std::vector<double>(solution.size());
     for (std::size_t index = 0; index < proposed.size(); ++index) {
       const double update_value = delta_values[index];
       if (!IsBounded(update_value)) {
@@ -932,20 +1200,28 @@ struct AttemptResult {
             ErrorCode::kNonFinite,
             "Newton delta contains a non-finite or over-bound value");
       }
+      if (!system.behavioral_descriptors.empty())
+        continue;
       const double updated = proposed[index] + update_value;
-      if (!IsBounded(updated) && system.behavioral_descriptors.empty()) {
+      if (!IsBounded(updated)) {
         return Result<AttemptResult>::Fail(
             ErrorCode::kNonFinite,
             "Newton update produced a non-finite or over-bound value");
       }
       proposed[index] = updated;
     }
-    Result<double> limited = LimitAllJunctions(system, solution, &proposed);
-    if (!limited.ok()) {
-      return Result<AttemptResult>::Fail(limited.error().code,
-                                         limited.error().message);
+    if (system.behavioral_descriptors.empty()) {
+      Result<double> limited = LimitAllJunctions(system, solution, &proposed);
+      if (!limited.ok()) {
+        return Result<AttemptResult>::Fail(limited.error().code,
+                                           limited.error().message);
+      }
     }
+    // Behavioral graphs exclude native junctions. Their full proposal may be
+    // over-bound; the checked trial assembly below must get the opportunity to
+    // reject it and try the contracted bounded half steps.
     std::optional<AssembledNewtonSystem> accepted_trial;
+    std::optional<double> accepted_trial_norm;
     if (!system.behavioral_descriptors.empty()) {
       bool decreased = false;
       const auto merit = [&](const AssembledNewtonSystem &value) {
@@ -957,19 +1233,22 @@ struct AttemptResult {
                   : BehavioralNumericalPolicy::voltage_absolute_tolerance;
           const double tolerance =
               absolute + BehavioralNumericalPolicy::relative_tolerance *
-                             assembled.value().row_scales[row];
+                             working.row_scales[row];
           maximum =
               std::max(maximum, std::abs(value.residual[row]) / tolerance);
         }
         return maximum;
       };
-      const double previous_merit = merit(assembled.value());
+      const double previous_merit =
+          strategy == NonlinearStrategy::kDirect ? 0.0 : merit(working);
       double scale = 1.0;
       for (std::size_t backtrack = 0; backtrack <= 16; ++backtrack) {
         for (std::size_t j = 0; j < proposed.size(); ++j)
           proposed[j] = solution[j] + scale * delta_values[j];
         auto trial = Assemble(system, proposed, source_scale,
-                              extra_gmin_siemens, active_node_equations);
+                              extra_gmin_siemens, active_node_equations,
+                              expression_cache, ExpressionPurpose::kTrial,
+                              nullptr, AssemblyMode::kFull, workspace);
         if (trial.ok()) {
           auto trial_norm = MaximumNormalizedResidual(system, trial.value());
           if (!trial_norm.ok()) {
@@ -981,6 +1260,7 @@ struct AttemptResult {
                      trial_norm.value() <= 1.0 ||
                      merit(trial.value()) < previous_merit) {
             accepted_trial = trial.TakeValue();
+            accepted_trial_norm = trial_norm.value();
             decreased = true;
             break;
           }
@@ -1006,13 +1286,19 @@ struct AttemptResult {
         accepted_trial.has_value()
             ? Result<AssembledNewtonSystem>::Ok(std::move(*accepted_trial))
             : Assemble(system, proposed, source_scale, extra_gmin_siemens,
-                       active_node_equations);
+                       active_node_equations, expression_cache,
+                       ExpressionPurpose::kTrial, nullptr, AssemblyMode::kFull,
+                       workspace);
     if (!checked.ok()) {
       return Result<AttemptResult>::Fail(checked.error().code,
                                          checked.error().message);
     }
+    // The update-norm calculation above is pure: this is the exact trial,
+    // residual and scale whose normalized residual already passed its guards.
     Result<double> normalized_residual =
-        MaximumNormalizedResidual(system, checked.value());
+        accepted_trial_norm
+            ? Result<double>::Ok(*accepted_trial_norm)
+            : MaximumNormalizedResidual(system, checked.value());
     if (!normalized_residual.ok()) {
       return Result<AttemptResult>::Fail(normalized_residual.error().code,
                                          normalized_residual.error().message);
@@ -1021,7 +1307,7 @@ struct AttemptResult {
     const bool accepted = update <= 1.0 && residual <= 1.0;
     if (accepted) {
       Result<bool> valid_jacobian =
-          ValidateAcceptedJacobian(checked.value(), factorization);
+          ValidateAcceptedJacobian(checked.value(), factorization, workspace);
       if (!valid_jacobian.ok()) {
         return Result<AttemptResult>::Fail(valid_jacobian.error().code,
                                            valid_jacobian.error().message);
@@ -1037,8 +1323,10 @@ struct AttemptResult {
     });
     solution = std::move(proposed);
     if (accepted) {
-      return Result<AttemptResult>::Ok(AttemptResult{
-          .solution = std::move(solution), .iterations = iteration});
+      auto accepted_assembly = checked.TakeValue();
+      return Result<AttemptResult>::Ok(
+          AttemptResult(std::move(solution), iteration,
+                        std::move(accepted_assembly.trial_expressions)));
     }
     if (!system.behavioral_descriptors.empty())
       current_assembly = checked.TakeValue();
@@ -1049,12 +1337,17 @@ struct AttemptResult {
       "residual convergence");
 }
 
-[[nodiscard]] Result<bool>
-AcceptOriginalSystem(const MnaSystem &system,
-                     const std::vector<double> &solution,
-                     const std::vector<bool> *active_node_equations) {
-  Result<AssembledNewtonSystem> assembled =
-      Assemble(system, solution, 1.0, 0.0, active_node_equations);
+[[nodiscard]] Result<bool> AcceptOriginalSystem(
+    const MnaSystem &system, const std::vector<double> &solution,
+    const std::vector<bool> *active_node_equations,
+    internal::PreparedExpressionCache *expression_cache = nullptr,
+    const std::vector<ExpressionEvaluation> *accepted_trial_expressions =
+        nullptr,
+    AssemblyMode mode = AssemblyMode::kFull,
+    internal::PreparedNewtonWorkspace *workspace = nullptr) {
+  Result<AssembledNewtonSystem> assembled = Assemble(
+      system, solution, 1.0, 0.0, active_node_equations, expression_cache,
+      ExpressionPurpose::kFinal, accepted_trial_expressions, mode, workspace);
   if (!assembled.ok()) {
     return Result<bool>::Fail(assembled.error().code,
                               assembled.error().message);
@@ -1360,15 +1653,12 @@ BuildNonlinearDcLinearization(const MnaSystem &system,
   }
 }
 
-Result<std::vector<double>>
-BuildDiodeResidualContribution(const MnaSystem &system,
-                               const std::vector<double> &solution) {
+namespace {
+
+Result<std::vector<double>> BuildValidatedDiodeResidualContribution(
+    const MnaSystem &system, const std::vector<double> &solution,
+    internal::PreparedExpressionCache *expression_cache = nullptr) {
   try {
-    Result<bool> valid = ValidateNonlinearSystem(system);
-    if (!valid.ok()) {
-      return Result<std::vector<double>>::Fail(valid.error().code,
-                                               valid.error().message);
-    }
     if (solution.size() != system.g.columns) {
       return Result<std::vector<double>>::Fail(
           ErrorCode::kInvalidStructure,
@@ -1417,13 +1707,28 @@ BuildDiodeResidualContribution(const MnaSystem &system,
         }
       }
     }
-    for (const auto &descriptor : system.behavioral_descriptors) {
-      auto evaluated = EvaluateExpression(descriptor.expression, solution);
-      if (!evaluated.ok())
-        return Result<std::vector<double>>::Fail(evaluated.error().code,
-                                                 evaluated.error().message);
+    const auto *cached_expressions =
+        expression_cache ? expression_cache->Find(solution, true) : nullptr;
+    for (std::size_t descriptor_index = 0;
+         descriptor_index < system.behavioral_descriptors.size();
+         ++descriptor_index) {
+      const auto &descriptor = system.behavioral_descriptors[descriptor_index];
+      ExpressionEvaluation fresh;
+      const ExpressionEvaluation *evaluated;
+      if (cached_expressions) {
+        evaluated = &(*cached_expressions)[descriptor_index];
+      } else {
+        if (expression_cache)
+          ++expression_cache->counts().fresh_history_evaluations;
+        auto result = EvaluateExpression(descriptor.expression, solution);
+        if (!result.ok())
+          return Result<std::vector<double>>::Fail(result.error().code,
+                                                   result.error().message);
+        fresh = result.TakeValue();
+        evaluated = &fresh;
+      }
       for (const auto &row : descriptor.rows) {
-        residual[row.row] += row.coefficient * evaluated.value().value;
+        residual[row.row] += row.coefficient * evaluated->value;
         if (!IsBounded(residual[row.row]))
           return Result<std::vector<double>>::Fail(
               ErrorCode::kNonFinite, "behavioral history residual overflow");
@@ -1436,7 +1741,69 @@ BuildDiodeResidualContribution(const MnaSystem &system,
   }
 }
 
+} // namespace
+
+Result<std::vector<double>>
+BuildDiodeResidualContribution(const MnaSystem &system,
+                               const std::vector<double> &solution) {
+  try {
+    Result<bool> valid = ValidateNonlinearSystem(system);
+    if (!valid.ok()) {
+      return Result<std::vector<double>>::Fail(valid.error().code,
+                                               valid.error().message);
+    }
+    return BuildValidatedDiodeResidualContribution(system, solution);
+  } catch (const std::bad_alloc &) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kFactorization, "diode residual allocation failed");
+  }
+}
+
 namespace {
+
+[[nodiscard]] Result<NonlinearPointResult> RunValidatedNonlinearPoint(
+    const MnaSystem &system, const std::vector<double> &initial_guess,
+    const std::vector<bool> *active_node_equations,
+    SparseRealFactorization *factorization, std::size_t maximum_iterations,
+    internal::PreparedExpressionCache *expression_cache = nullptr,
+    internal::PreparedNewtonWorkspace *workspace = nullptr) {
+  std::vector<NonlinearIterationRecord> trace;
+  Result<AttemptResult> solved =
+      RunNewtonAttempt(system, NonlinearStrategy::kDirect, 1.0, 1.0, 0.0,
+                       initial_guess, maximum_iterations, active_node_equations,
+                       factorization, &trace, expression_cache, workspace);
+  if (!solved.ok()) {
+    return Result<NonlinearPointResult>::Fail(solved.error().code,
+                                              solved.error().message);
+  }
+  auto accepted_point = solved.TakeValue();
+  // Only the prepared direct point owns this immutable system and has no row
+  // projection. Its just-accepted full trial already checked every Jacobian
+  // and affine bound plus Jacobian rank at this exact state. No callback or
+  // mutation intervenes here. Recompute original residual and fresh
+  // value/domain checks; the paired full-trial derivatives prove AD bounds at
+  // this exact moved state. That proof never survives into another Solve.
+  const auto final_mode =
+      expression_cache && active_node_equations == nullptr
+          ? AssemblyMode::kResidualAfterAcceptedPreparedTrial
+          : AssemblyMode::kFull;
+  Result<bool> accepted = AcceptOriginalSystem(
+      system, accepted_point.solution, active_node_equations, expression_cache,
+      expression_cache ? &accepted_point.accepted_trial_expressions : nullptr,
+      final_mode, workspace);
+  if (!accepted.ok()) {
+    return Result<NonlinearPointResult>::Fail(accepted.error().code,
+                                              accepted.error().message);
+  }
+  if (expression_cache)
+    expression_cache->Publish(
+        accepted_point.solution,
+        std::move(accepted_point.accepted_trial_expressions));
+  return Result<NonlinearPointResult>::Ok(NonlinearPointResult{
+      .solution = std::move(accepted_point.solution),
+      .iteration_trace = std::move(trace),
+  });
+}
 
 [[nodiscard]] Result<NonlinearPointResult> RunNonlinearPointImpl(
     const MnaSystem &system, const std::vector<double> &initial_guess,
@@ -1467,27 +1834,112 @@ namespace {
     return Result<NonlinearPointResult>::Fail(valid.error().code,
                                               valid.error().message);
   }
-  std::vector<NonlinearIterationRecord> trace;
-  Result<AttemptResult> solved = RunNewtonAttempt(
-      system, NonlinearStrategy::kDirect, 1.0, 1.0, 0.0, initial_guess,
-      maximum_iterations, active_node_equations, factorization, &trace);
-  if (!solved.ok()) {
-    return Result<NonlinearPointResult>::Fail(solved.error().code,
-                                              solved.error().message);
-  }
-  Result<bool> accepted = AcceptOriginalSystem(system, solved.value().solution,
-                                               active_node_equations);
-  if (!accepted.ok()) {
-    return Result<NonlinearPointResult>::Fail(accepted.error().code,
-                                              accepted.error().message);
-  }
-  return Result<NonlinearPointResult>::Ok(NonlinearPointResult{
-      .solution = solved.TakeValue().solution,
-      .iteration_trace = std::move(trace),
-  });
+  return RunValidatedNonlinearPoint(system, initial_guess,
+                                    active_node_equations, factorization,
+                                    maximum_iterations);
 }
 
 } // namespace
+
+internal::PreparedNonlinearPointSolver::PreparedNonlinearPointSolver(
+    MnaSystem system, std::unique_ptr<SparseRealFactorization> factorization)
+    : system_(std::move(system)), factorization_(std::move(factorization)),
+      expression_cache_(std::make_unique<PreparedExpressionCache>()),
+      assembly_workspace_(std::make_unique<PreparedNewtonWorkspace>()) {}
+
+internal::PreparedNonlinearPointSolver::~PreparedNonlinearPointSolver() =
+    default;
+
+Result<std::unique_ptr<internal::PreparedNonlinearPointSolver>>
+internal::PreparedNonlinearPointSolver::Create(const MnaSystem &system) {
+  using PreparedResult = Result<std::unique_ptr<PreparedNonlinearPointSolver>>;
+  try {
+    MnaSystem snapshot = system;
+    if (snapshot.behavioral_descriptors.empty()) {
+      return PreparedResult::Fail(ErrorCode::kUnsupported,
+                                  "prepared points require behavioral sources");
+    }
+    auto valid = ValidateNonlinearSystem(snapshot);
+    if (!valid.ok())
+      return PreparedResult::Fail(valid.error().code, valid.error().message);
+    valid = ValidateBehavioralTransient(snapshot);
+    if (!valid.ok())
+      return PreparedResult::Fail(valid.error().code, valid.error().message);
+    auto factorization = SparseRealFactorization::Analyze(snapshot.g);
+    if (!factorization.ok())
+      return PreparedResult::Fail(factorization.error().code,
+                                  factorization.error().message);
+    return PreparedResult::Ok(std::unique_ptr<PreparedNonlinearPointSolver>(
+        new PreparedNonlinearPointSolver(std::move(snapshot),
+                                         factorization.TakeValue())));
+  } catch (const std::bad_alloc &) {
+    return PreparedResult::Fail(ErrorCode::kFactorization,
+                                "prepared nonlinear allocation failed");
+  }
+}
+
+Result<NonlinearPointResult> internal::PreparedNonlinearPointSolver::Solve(
+    const CsrMatrix &matrix, const std::vector<double> &rhs,
+    const std::vector<double> &initial_guess, std::size_t maximum_iterations) {
+  try {
+    if (maximum_iterations > BehavioralNumericalPolicy::dc_maximum_iterations) {
+      return Result<NonlinearPointResult>::Fail(
+          ErrorCode::kInvalidStructure,
+          "nonlinear point iteration limit exceeds the fixed nonlinear bound");
+    }
+    if (matrix.rows != system_.g.rows || matrix.columns != system_.g.columns ||
+        matrix.row_offsets != system_.g.row_offsets ||
+        matrix.column_indices != system_.g.column_indices ||
+        matrix.values.size() != system_.g.values.size() ||
+        rhs.size() != system_.b_dc.size()) {
+      return Result<NonlinearPointResult>::Fail(
+          ErrorCode::kInvalidStructure,
+          "prepared nonlinear companion structure or RHS changed");
+    }
+    for (double value : matrix.values) {
+      if (!IsBounded(value))
+        return Result<NonlinearPointResult>::Fail(
+            ErrorCode::kNonFinite,
+            "nonlinear base matrix contains a non-finite or over-bound value");
+    }
+    for (double value : rhs) {
+      if (!IsBounded(value))
+        return Result<NonlinearPointResult>::Fail(
+            ErrorCode::kNonFinite, "nonlinear right-hand side contains a "
+                                   "non-finite or over-bound value");
+    }
+    system_.g.values = matrix.values;
+    system_.b_dc = rhs;
+    return RunValidatedNonlinearPoint(
+        system_, initial_guess, nullptr, factorization_.get(),
+        maximum_iterations, expression_cache_.get(), assembly_workspace_.get());
+  } catch (const std::bad_alloc &) {
+    return Result<NonlinearPointResult>::Fail(
+        ErrorCode::kFactorization,
+        "prepared nonlinear point allocation failed");
+  }
+}
+
+Result<std::vector<double>> internal::PreparedNonlinearPointSolver::History(
+    const std::vector<double> &state) const {
+  return BuildValidatedDiodeResidualContribution(system_, state,
+                                                 expression_cache_.get());
+}
+
+internal::PreparedExpressionCacheStatistics
+internal::PreparedNonlinearPointSolver::expression_cache_statistics() const {
+  return expression_cache_->statistics();
+}
+
+internal::PreparedAssemblyWorkspaceStatistics
+internal::PreparedNonlinearPointSolver::assembly_workspace_statistics() const {
+  return assembly_workspace_->statistics();
+}
+
+SparseSolverStatistics
+internal::PreparedNonlinearPointSolver::statistics() const {
+  return factorization_->statistics();
+}
 
 Result<NonlinearPointResult> RunNonlinearPoint(
     const MnaSystem &system, const std::vector<double> &initial_guess,

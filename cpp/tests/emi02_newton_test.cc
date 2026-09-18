@@ -1,7 +1,9 @@
 #include "cpp/tests/google_test.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -175,6 +177,180 @@ TEST(Emi02Newton, LinearCompanionSolutionDoesNotDependOnNewtonStartingGuess) {
       baseline = solved.value().solution;
     else
       EXPECT_EQ(solved.value().solution, baseline);
+  }
+}
+
+TEST(Emi02Newton, BoundedHalfStepRecoversAnOverBoundFullProposal) {
+  auto parsed = ParseBehavioralNetlist(
+      "* independently scaled scalar polynomial\n"
+      "Bquadratic out 0 I={(v(out)*1e-99-4)**2-4}\n.OP\n.END\n");
+  ASSERT_TRUE(parsed.ok());
+  auto compiled = CompileBehavioralMna(parsed.value());
+  ASSERT_TRUE(compiled.ok());
+  auto system = compiled.TakeValue();
+  ASSERT_EQ(system.g.rows, 1U);
+  ASSERT_EQ(system.g.values.size(), 1U);
+  // Explicitly remove the compiler's numerical shunt to state the independent
+  // scalar point equation F(x)=(x*1e-99-4)^2-4, with roots 2e99 and 6e99.
+  system.g.values[0] = 0.0;
+  const std::vector<double> initial{4.3e99};
+  const double scaled_initial = initial[0] * 1e-99;
+  const double delta = -((scaled_initial - 4) * (scaled_initial - 4) - 4) /
+                       (2 * (scaled_initial - 4) * 1e-99);
+  ASSERT_LT(std::abs(delta), kNonlinearMaximumMagnitude);
+  ASSERT_GT(initial[0] + delta, kNonlinearMaximumMagnitude);
+  ASSERT_LT(initial[0] + delta * .5, kNonlinearMaximumMagnitude);
+
+  auto factorization = SparseRealFactorization::Analyze(system.g);
+  ASSERT_TRUE(factorization.ok());
+  auto stopped =
+      RunNonlinearPoint(system, initial, factorization.value().get(), 1);
+  ASSERT_FALSE(stopped.ok());
+  // The rejected full proposal must reach a bounded half-step trial. The
+  // native junction limiter previously returned kNonFinite before backtracking.
+  EXPECT_EQ(stopped.error().code, ErrorCode::kNonConvergence);
+  auto solved =
+      RunNonlinearPoint(system, initial, factorization.value().get(), 100);
+  ASSERT_TRUE(solved.ok()) << solved.error().message;
+  ASSERT_EQ(solved.value().solution.size(), 1U);
+  EXPECT_NEAR(solved.value().solution[0] / 1e99, 6.0, 1e-10);
+  EXPECT_LE(std::abs(solved.value().solution[0]), kNonlinearMaximumMagnitude);
+  EXPECT_TRUE(ValidateNonlinearResidual(system, solved.value().solution).ok());
+  EXPECT_EQ(initial, (std::vector<double>{4.3e99}));
+}
+
+TEST(Emi02Newton, LinearRowMagnitudeBudgetSurvivesCancellationAndUnderflow) {
+  // Exercise the public assembly path with independently specified row
+  // equations. A small final residual must never conceal an excessive sum of
+  // absolute terms; source magnitude and extra GMIN consume the same budget.
+  constexpr double bound = kNonlinearMaximumMagnitude;
+  const double tiny = std::numeric_limits<double>::denorm_min();
+  struct RowCase {
+    const char *name;
+    std::array<double, 3> coefficients;
+    std::array<double, 3> state;
+    double source;
+    double gmin;
+    bool accepted;
+    double residual;
+  };
+  const std::vector<RowCase> cases{
+      {"signed zeros",
+       {0.0, -0.0, 0.0},
+       {-0.0, 0.0, -1.0},
+       -0.0,
+       0.0,
+       true,
+       0.0},
+      {"inclusive bound",
+       {bound, 0.0, 0.0},
+       {1.0, 0.0, 0.0},
+       0.0,
+       0.0,
+       true,
+       bound},
+      {"exact bounded cancellation",
+       {bound / 2, -bound / 2, 0.0},
+       {1.0, 1.0, 0.0},
+       0.0,
+       0.0,
+       true,
+       0.0},
+      {"rounded underflow",
+       {tiny, -tiny, 0.0},
+       {0.5, 0.5, 0.0},
+       0.0,
+       0.0,
+       true,
+       0.0},
+      {"cancelled excessive magnitudes",
+       {0.6 * bound, -0.6 * bound, 0.0},
+       {1.0, 1.0, 0.0},
+       0.0,
+       0.0,
+       false,
+       0.0},
+      {"excessive intermediate product",
+       {0.6 * bound, 0.6 * bound, -0.6 * bound},
+       {1.0, 1.0, 1.0},
+       0.0,
+       0.0,
+       false,
+       0.0},
+      {"excessive single term",
+       {bound, 0.0, 0.0},
+       {2.0, 0.0, 0.0},
+       0.0,
+       0.0,
+       false,
+       0.0},
+      {"large finite multiplication",
+       {bound, 0.0, 0.0},
+       {bound, 0.0, 0.0},
+       0.0,
+       0.0,
+       false,
+       0.0},
+      {"source participates in budget",
+       {bound / 2, -bound / 2, 0.0},
+       {1.0, 1.0, 0.0},
+       0.1 * bound,
+       0.0,
+       false,
+       0.0},
+      {"bounded GMIN cancellation",
+       {-0.4 * bound, 0.0, 0.0},
+       {1.0, 0.0, 0.0},
+       0.0,
+       0.4 * bound,
+       true,
+       0.0},
+      {"excessive GMIN cancellation",
+       {-0.6 * bound, 0.0, 0.0},
+       {1.0, 0.0, 0.0},
+       0.0,
+       0.6 * bound,
+       false,
+       0.0},
+      {"excessive GMIN term",
+       {0.0, 0.0, 0.0},
+       {2.0, 0.0, 0.0},
+       0.0,
+       bound,
+       false,
+       0.0},
+  };
+  auto parsed = ParseBehavioralNetlist(
+      "* independent row-budget fixture\nRa a 0 1\nRb b 0 1\nRc c 0 1\n"
+      "Bzero a 0 I={0}\n.OP\n.END\n");
+  ASSERT_TRUE(parsed.ok());
+  auto compiled = CompileBehavioralMna(parsed.value());
+  ASSERT_TRUE(compiled.ok());
+  auto system = compiled.TakeValue();
+  system.g = {.rows = 3,
+              .columns = 3,
+              .values = {0.0, 0.0, 0.0, 0.0, 0.0},
+              .column_indices = {0, 1, 2, 1, 2},
+              .row_offsets = {0, 3, 4, 5}};
+  ASSERT_TRUE(RemapBehavioralDescriptors(&system).ok());
+  for (const auto &row : cases) {
+    SCOPED_TRACE(row.name);
+    std::copy(row.coefficients.begin(), row.coefficients.end(),
+              system.g.values.begin());
+    system.b_dc = {row.source, 0.0, 0.0};
+    const std::vector<double> state(row.state.begin(), row.state.end());
+    auto result = BuildNonlinearDcLinearization(system, state, 1.0, row.gmin);
+    ASSERT_EQ(result.ok(), row.accepted)
+        << (result.ok() ? "unexpected success" : result.error().message);
+    if (row.accepted) {
+      EXPECT_DOUBLE_EQ(result.value().residual[0], row.residual);
+    } else {
+      EXPECT_EQ(result.error().code, ErrorCode::kNonFinite);
+      EXPECT_NE(result.error().message.find(row.gmin == 0.0
+                                                ? "linear-row evaluation"
+                                                : "extra GMIN evaluation"),
+                std::string::npos);
+    }
   }
 }
 

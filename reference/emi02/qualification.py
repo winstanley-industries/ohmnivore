@@ -116,7 +116,7 @@ def validate_statistics(statistics, points, variables, unknowns, raw_bytes):
     }
     if (
         not isinstance(statistics, dict)
-        or statistics.get("schema") != "emi02-cpu-v1"
+        or statistics.get("schema") != "emi02-cpu-v2"
         or statistics.get("status") != "complete"
         or any(
             type(statistics.get(key)) is not int or statistics[key] != value
@@ -133,6 +133,53 @@ def validate_statistics(statistics, points, variables, unknowns, raw_bytes):
         or statistics["elapsed_seconds"] < 0
     ):
         raise ValueError("malformed_output: CPU statistics disagree with waveform")
+    counter_names = (
+        "nonlinear_rejections",
+        "derivative_history_error_estimates",
+        "derivative_history_step_doubling_checks",
+        "step_doubling_error_estimates",
+        "derivative_history_fallback_entries",
+        "derivative_history_fallback_recoveries",
+    )
+    solver_names = (
+        "symbolic_analyses",
+        "numeric_factorizations",
+        "numeric_refactorizations",
+        "numeric_refactorization_fallbacks",
+        "numeric_reuses",
+        "solves",
+        "iterative_refinement_solves",
+    )
+    solver = statistics.get("transient_solver_statistics")
+    if (
+        statistics.get("behavioral_error_estimator") != "derivative-history-audited-v1"
+        or statistics.get("behavioral_integration_method") != "trapezoidal"
+        or any(
+            type(statistics.get(k)) is not int or statistics[k] < 0
+            for k in counter_names
+        )
+        or statistics["nonlinear_rejections"] > statistics["rejected_steps"]
+        or statistics["derivative_history_fallback_recoveries"]
+        > statistics["derivative_history_fallback_entries"]
+        or statistics["derivative_history_fallback_entries"] > statistics["attempts"]
+        or statistics["derivative_history_step_doubling_checks"]
+        > statistics["step_doubling_error_estimates"]
+        or statistics["derivative_history_error_estimates"]
+        + statistics["step_doubling_error_estimates"]
+        + statistics["nonlinear_rejections"]
+        > statistics["attempts"]
+        or not isinstance(solver, dict)
+        or set(solver) != set(solver_names)
+        or any(type(solver[k]) is not int or solver[k] < 0 for k in solver_names)
+        or solver["iterative_refinement_solves"]
+        > 4
+        * (
+            solver["numeric_factorizations"]
+            + solver["numeric_refactorizations"]
+            + solver["numeric_reuses"]
+        )
+    ):
+        raise ValueError("malformed_output: CPU estimator or solver accounting")
 
 
 def run_reference(spec):

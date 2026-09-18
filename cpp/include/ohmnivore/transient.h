@@ -19,6 +19,11 @@ inline constexpr double kTransientRelativeTolerance = 1e-3;
 inline constexpr std::size_t kMaximumTransientAcceptedSteps = 1'000'000;
 inline constexpr std::size_t kMaximumTransientStepAttempts = 2'000'000;
 
+enum class BehavioralErrorEstimator {
+  kStepDoubling,
+  kDerivativeHistory,
+};
+
 // Defaults are production contracts. Explicit limits keep every typed bound
 // directly testable without million-step unit tests.
 struct TransientExecutionLimits {
@@ -33,6 +38,9 @@ struct TransientExecutionLimits {
   std::function<Result<bool>(double, const std::vector<double> &)>
       accepted_state_observer = {};
   bool retain_output_states = true;
+  // Opt-in EMI-02 model runner policy; native circuits retain their estimator.
+  BehavioralErrorEstimator behavioral_error_estimator =
+      BehavioralErrorEstimator::kStepDoubling;
 };
 
 enum class TransientIntegrationMethod {
@@ -54,6 +62,14 @@ struct TransientStepRecord {
   bool accepted;
   double normalized_local_error;
   bool landed_on_hard_point;
+  // These occupy existing alignment space before the rejection enum.
+  // Audited means a valid history estimate was checked against two half steps.
+  bool derivative_history_audited = false;
+  bool derivative_history_audit_agreed = false;
+  // Policy state after this trial, including rejected-audit entry, accepted
+  // 16-agreement recovery, or accepted BE reset. No physical history is
+  // exposed.
+  bool derivative_history_fallback_active = false;
   TransientStepRejectionReason rejection_reason =
       TransientStepRejectionReason::kNone;
 };
@@ -67,6 +83,15 @@ struct TransientResult {
   std::vector<TransientStepRecord> step_trace;
   SparseSolverStatistics solver_statistics;
   std::size_t emitted_points = 0;
+  // Completed LTE evaluations include rejected trials, but not failed solves.
+  std::size_t derivative_history_error_estimates = 0;
+  // Opt-in TRAP audits and fallbacks that actually computed two half steps.
+  std::size_t derivative_history_step_doubling_checks = 0;
+  // All BE/behavioral-TRAP full/two-half comparisons, including default policy.
+  std::size_t step_doubling_error_estimates = 0;
+  std::size_t derivative_history_fallback_entries = 0;
+  // Recovery requires accepted audit agreement; BE resets are not counted.
+  std::size_t derivative_history_fallback_recoveries = 0;
 };
 
 // Builds b(t) by replacing each transient source's own DC contribution with

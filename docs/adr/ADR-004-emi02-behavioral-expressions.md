@@ -79,3 +79,95 @@ value/condition boundaries. The complete selected-model DC sweep and original-re
 validation gates belong to the integrated EMI-02C/D acceptance, not this stateless library.
 No vendor expression text is embedded or redistributed. Rust, ordinary existing simulator
 paths, AC evidence, CUDA and GPU dispatch remain unchanged by this slice.
+
+## Exact simple-expression specialization
+
+An immutable compiled program may record a direct evaluation shape only when its
+root is a state/constant leaf or a subtraction whose two children are state or
+constant leaves. Keep the original AST, node/depth budgets, dependency list,
+parameter bindings and dialect unchanged. Do not reassociate an affine formula,
+fold another operator, or apply this specialization recursively inside a general
+expression. All other roots retain the existing recursive evaluator.
+
+Each evaluation still checks state dimensions and every structural dependency in
+original order, reads current leaf values, checks their bounds, performs the exact
+original subtraction where present, and checks its result. Preserve signed zeros,
+ground, aliases and same-state differences. Form the fresh derivative contributions
+in original reverse-node order (second child then first child for subtraction),
+with the same accumulation into sorted dependency slots, bounded derivative checks,
+and omission of exact-zero entries. The only derivative factors are immutable
++1/-1, so their products and leaf adjoints are exactly those original bounded
+values; no cached state-dependent derivative or final-check result is substituted.
+The public owning result and its allocation behavior remain unchanged.
+
+Differential tests force the original generic evaluator with `if(1,expression,0)`:
+that root cannot select the simple specialization, while its selected arm performs
+exactly the original value and reverse-AD operations. Parameter constants instead
+use two exact unary sign reflections because their dialect excludes `if`.
+Compare value and derivative
+bits, ordering, complete errors, wrong dimensions, unused nonfinite state,
+nonfinite/over-bound dependencies, subtraction overflow, subnormals, both signed
+zeros, aliased/current/ground senses and parameter constants. Preserve AST metadata
+and resource failures. Retain the optimization only after complete workload raw
+hash/counter parity and a favorable isolated timing comparison.
+
+## Exact reverse-AD traversal preparation
+
+Compilation may retain a descending list of original AST indices for the reverse
+AD pass, omitting only constant nodes and comparison nodes. The original reverse
+loop always skipped constants; comparisons have no outgoing derivative operation.
+Every other node stays in its exact original decreasing-index order, including
+inactive conditional arms and state leaves. Runtime still tests zero adjoints and
+executes each original factor, product, adjoint accumulation and gradient guard.
+In particular, incoming adjoint guards targeting comparisons remain mandatory,
+even though visiting the comparison itself cannot update its children. A failed
+incoming bound cannot be hidden by a mathematically zero comparison derivative.
+
+Keep the complete original AST, resource counts/depths, structural dependencies,
+recursive value evaluation, lazy branches, and scratch initialization unchanged.
+No constant evaluation or value-domain check is omitted. This is removal of pure
+reverse-pass no-ops, not a new derivative formula or an active-state cache. An
+internal test-only reference entry point must retain the original full descending
+node scan, bypassing simple-expression specialization, for bit-exact value,
+ordered sparse-derivative and typed-error comparisons on nonlinear, constant,
+conditional, cancellation, domain, nonfinite and over-bound cases. Public API and
+parameter semantics remain unchanged. Retain this preparation only after focused
+oracle tests and isolated workload trajectory/counter parity with favorable timing.
+
+## Private value-only evaluation
+
+A private `internal::EvaluateExpressionValue` entry point may return the scalar
+value without running reverse AD. It shares the full evaluator's state-size and
+complete structural-dependency admission, original recursive value traversal,
+lazy branch choices, arithmetic order, intermediate magnitude/domain guards and
+typed failures. It does not initialize adjoint/gradient scratch, allocate a
+derivative result, or claim that derivatives are admissible. In particular an
+expression whose value is valid but whose derivative exceeds the frozen bound
+can succeed here while public `EvaluateExpression` fails. Public evaluation still
+initializes adjoints before reverse AD and performs every original derivative
+guard; its values, derivatives and errors remain unchanged.
+
+The only production consumer is ADR-005's immediate prepared final-residual check,
+which separately requires the complete guarded AD result from the exact accepted
+immutable full trial. This private scalar API does not authorize reuse across
+states, calls, programs, source changes or failed trials. Independently compare
+its value bits against the zeroed/full-scan reference for successful expressions,
+and exact errors for dimension, dependency and value/domain failures. Include
+signed zeros, ground/alias subtraction, lazy invalid arms and explicit AD-only
+failures that demonstrate why the caller's separate proof is required.
+
+For the already admitted root leaf/subtraction shapes, full and private scalar
+evaluation share one checked simple-value helper. It performs the existing
+dimension check, all dependency checks in their original order, leaf reads and
+bounds, original first-minus-second subtraction where present, and final value
+bound. Full evaluation then performs its unchanged fresh derivative construction;
+scalar evaluation returns the checked value without any gradient allocation.
+All other scalar roots continue through the shared recursive value traversal.
+This adds no new eligible shape, folding, reassociation, guard omission or cached
+state. Compare the helper's scalar results with the original full recursive
+reference over the full simple-shape hostile corpus, including signed zeros,
+subnormals, nonfinite and over-bound states, alias/ground differences, sparse
+bindings and parameter constants. Require isolated workload raw/counter parity
+and favorable timing before retaining this path.
+The shared helper may carry an always-inline hint to preserve the original full
+evaluation's inlined checks; this changes no floating-point compiler option.

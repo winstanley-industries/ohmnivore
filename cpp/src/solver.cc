@@ -147,16 +147,26 @@ template <typename T>
   return false;
 }
 
-template <typename T>
-[[nodiscard]] Result<double>
-ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
-                           const std::vector<T> &rhs,
-                           const std::vector<T> &solution) {
-  Result<SolverCscPattern> structure = ConvertCsrToSolverCscImpl(matrix);
-  if (!structure.ok()) {
-    return Result<double>::Fail(structure.error().code,
-                                structure.error().message);
-  }
+struct RealValidationRow {
+  long double rhs_magnitude;
+  long double inverse_scale;
+};
+
+struct RealValidationMetadata {
+  std::vector<RealValidationRow> rows;
+  long double scaled_matrix_norm = 0.0L;
+  long double scaled_rhs_norm = 0.0L;
+  bool ready = false;
+};
+
+template <typename T, bool PrivateReal = false, bool CertifyBoth = false>
+[[nodiscard]] Result<double> ValidateSparseSolutionValues(
+    const CsrMatrixBase<T> &matrix, const std::vector<T> &rhs,
+    const std::vector<T> &solution, std::vector<double> *correction = nullptr,
+    bool known_zero_shortcut = false,
+    RealValidationMetadata *metadata = nullptr) {
+  static_assert(!PrivateReal || std::is_same_v<T, double>);
+  static_assert(!CertifyBoth || PrivateReal);
   if (rhs.size() != matrix.rows || solution.size() != matrix.columns) {
     return Result<double>::Fail(ErrorCode::kSolutionValidation,
                                 "solution validation dimensions disagree");
@@ -168,36 +178,146 @@ ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
           "solution validation right-hand side is non-finite");
     }
   }
+  long double solution_norm = 0.0L;
   for (const T value : solution) {
     if (!IsFinite(value)) {
       return Result<double>::Fail(ErrorCode::kNonFinite,
                                   "sparse solve produced a non-finite value");
     }
+    if constexpr (PrivateReal) {
+      solution_norm =
+          std::max(solution_norm, static_cast<long double>(std::abs(value)));
+    }
+  }
+  if constexpr (std::is_same_v<T, double>) {
+    if (known_zero_shortcut &&
+        std::all_of(rhs.begin(), rhs.end(),
+                    [](double value) { return value == 0.0; }) &&
+        std::all_of(solution.begin(), solution.end(),
+                    [](double value) { return value == 0.0; })) {
+      // The private caller already checked every matrix value. With finite A
+      // and exact zero b/x, both original backward errors are exactly zero.
+      // Numeric factorization and the KLU zero solve have still run, and the
+      // returned solution (including its signed zeros) is untouched.
+      if (correction != nullptr) {
+        for (std::size_t row = 0; row < matrix.rows; ++row) {
+          (*correction)[row] =
+              static_cast<double>(static_cast<long double>(rhs[row]) - 0.0L);
+        }
+      }
+      return Result<double>::Ok(0.0);
+    }
   }
 
-  long double solution_norm = 0.0L;
-  for (const T value : solution) {
-    solution_norm =
-        std::max(solution_norm, static_cast<long double>(std::abs(value)));
+  if constexpr (!PrivateReal) {
+    for (const T value : solution) {
+      solution_norm =
+          std::max(solution_norm, static_cast<long double>(std::abs(value)));
+    }
   }
-  long double scaled_residual_norm = 0.0L;
-  long double scaled_matrix_norm = 0.0L;
-  long double scaled_rhs_norm = 0.0L;
-  long double maximum_componentwise_error = 0.0L;
-  for (std::size_t row = 0; row < matrix.rows; ++row) {
-    if constexpr (std::is_same_v<T, double>) {
+  const bool reuse_rows = PrivateReal && metadata != nullptr && metadata->ready;
+  if constexpr (PrivateReal) {
+    if (metadata != nullptr && !reuse_rows)
+      metadata->rows.resize(matrix.rows);
+  }
+  // Under this extended format the original finite FP64 row products,
+  // scales and nonzero quotients stay normal and finite (ADR-005). Formats
+  // without this range retain complete original validation below.
+  constexpr bool kCanCertifyBoth =
+      CertifyBoth && std::numeric_limits<long double>::radix == 2 &&
+      std::numeric_limits<long double>::digits >= 53 &&
+      std::numeric_limits<long double>::max_exponent >= 2200 &&
+      std::numeric_limits<long double>::min_exponent <= -4300;
+  if constexpr (kCanCertifyBoth) {
+    constexpr long double kHalfTolerance =
+        static_cast<long double>(kSparseBackwardErrorTolerance) / 2.0L;
+    static_assert(kSparseBackwardErrorTolerance <
+                  kSparseComponentwiseBackwardErrorTolerance);
+    for (std::size_t row = 0; row < matrix.rows; ++row) {
       long double product = 0.0L;
-      long double denominator = std::abs(static_cast<long double>(rhs[row]));
-      long double row_sum = 0.0L;
-      long double row_scale = denominator;
+      long double denominator =
+          reuse_rows ? metadata->rows[row].rhs_magnitude
+                     : std::abs(static_cast<long double>(rhs[row]));
       for (std::size_t index = matrix.row_offsets[row];
            index < matrix.row_offsets[row + 1]; ++index) {
         const long double coefficient = matrix.values[index];
         const long double variable = solution[matrix.column_indices[index]];
-        product += coefficient * variable;
-        denominator += std::abs(coefficient) * std::abs(variable);
-        row_sum += std::abs(coefficient);
-        row_scale = std::max(row_scale, std::abs(coefficient));
+        const long double term = coefficient * variable;
+        product += term;
+        denominator += std::abs(term);
+      }
+      if (correction != nullptr) {
+        (*correction)[row] =
+            static_cast<double>(static_cast<long double>(rhs[row]) - product);
+      }
+      const long double residual =
+          std::abs(product - static_cast<long double>(rhs[row]));
+      const bool certified = denominator == 0.0L
+                                 ? residual == 0.0L
+                                 : residual <= denominator * kHalfTolerance;
+      if (!certified) {
+        // Recompute the complete original validation. It overwrites every
+        // partial correction and preserves the exact failure diagnostic and
+        // row-metadata validity; no guessed error estimate escapes here.
+        return ValidateSparseSolutionValues<double, true, false>(
+            matrix, rhs, solution, correction, known_zero_shortcut, metadata);
+      }
+    }
+    // Every componentwise residual is below half the tighter normwise bound.
+    // Positive-sum rounding cannot bridge that margin in either original
+    // guard. Only private callers use this status; they never consume its
+    // successful numeric payload. Unpopulated row metadata remains invalid.
+    return Result<double>::Ok(0.0);
+  }
+  long double scaled_residual_norm = 0.0L;
+  long double scaled_matrix_norm =
+      reuse_rows ? metadata->scaled_matrix_norm : 0.0L;
+  long double scaled_rhs_norm = reuse_rows ? metadata->scaled_rhs_norm : 0.0L;
+  long double maximum_componentwise_error = 0.0L;
+  for (std::size_t row = 0; row < matrix.rows; ++row) {
+    if constexpr (std::is_same_v<T, double>) {
+      long double product = 0.0L;
+      long double denominator =
+          reuse_rows ? metadata->rows[row].rhs_magnitude
+                     : std::abs(static_cast<long double>(rhs[row]));
+      long double row_sum = 0.0L;
+      long double row_scale = denominator;
+      if (reuse_rows) {
+        for (std::size_t index = matrix.row_offsets[row];
+             index < matrix.row_offsets[row + 1]; ++index) {
+          const long double coefficient = matrix.values[index];
+          const long double variable = solution[matrix.column_indices[index]];
+          const long double term = coefficient * variable;
+          product += term;
+          denominator += std::abs(term);
+        }
+      } else {
+        for (std::size_t index = matrix.row_offsets[row];
+             index < matrix.row_offsets[row + 1]; ++index) {
+          const long double coefficient = matrix.values[index];
+          const long double variable = solution[matrix.column_indices[index]];
+          if constexpr (PrivateReal) {
+            // Under the pinned round-to-nearest arithmetic, the magnitude of
+            // this rounded product is exactly abs(coefficient)*abs(variable).
+            // Preserve each accumulation order and leave the independent
+            // public validator's original arithmetic below unchanged.
+            const long double term = coefficient * variable;
+            product += term;
+            denominator += std::abs(term);
+          } else {
+            product += coefficient * variable;
+            denominator += std::abs(coefficient) * std::abs(variable);
+          }
+          row_sum += std::abs(coefficient);
+          row_scale = std::max(row_scale, std::abs(coefficient));
+        }
+      }
+      if (correction != nullptr) {
+        // Keep exactly the original refinement subtraction and FP64 rounding.
+        // Its finite check belongs to the refinement stage, after validation
+        // has selected whether another correction is required.
+        (*correction)[row] =
+            static_cast<double>(static_cast<long double>(rhs[row]) - product);
       }
       const long double residual =
           std::abs(product - static_cast<long double>(rhs[row]));
@@ -210,14 +330,24 @@ ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
       maximum_componentwise_error =
           std::max(maximum_componentwise_error, row_error);
       const long double inverse_scale =
-          row_scale == 0.0L ? 1.0L : 1.0L / row_scale;
+          reuse_rows ? metadata->rows[row].inverse_scale
+                     : (row_scale == 0.0L ? 1.0L : 1.0L / row_scale);
       scaled_residual_norm =
           std::max(scaled_residual_norm, residual * inverse_scale);
-      scaled_matrix_norm =
-          std::max(scaled_matrix_norm, row_sum * inverse_scale);
-      scaled_rhs_norm = std::max(scaled_rhs_norm,
-                                 std::abs(static_cast<long double>(rhs[row])) *
-                                     inverse_scale);
+      if (!reuse_rows) {
+        scaled_matrix_norm =
+            std::max(scaled_matrix_norm, row_sum * inverse_scale);
+        scaled_rhs_norm = std::max(
+            scaled_rhs_norm,
+            std::abs(static_cast<long double>(rhs[row])) * inverse_scale);
+        if constexpr (PrivateReal) {
+          if (metadata != nullptr) {
+            metadata->rows[row] = {
+                .rhs_magnitude = std::abs(static_cast<long double>(rhs[row])),
+                .inverse_scale = inverse_scale};
+          }
+        }
+      }
     } else {
       std::complex<long double> product{0.0L, 0.0L};
       const std::complex<long double> right_hand_side{rhs[row].real(),
@@ -256,6 +386,13 @@ ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
           std::max(scaled_rhs_norm, std::abs(right_hand_side) * inverse_scale);
     }
   }
+  if constexpr (PrivateReal) {
+    if (metadata != nullptr && !reuse_rows) {
+      metadata->scaled_matrix_norm = scaled_matrix_norm;
+      metadata->scaled_rhs_norm = scaled_rhs_norm;
+      metadata->ready = true;
+    }
+  }
   const long double normwise_denominator =
       scaled_matrix_norm * solution_norm + scaled_rhs_norm;
   const long double normwise_backward_error =
@@ -281,6 +418,36 @@ ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
             FormatDouble(kSparseComponentwiseBackwardErrorTolerance));
   }
   return Result<double>::Ok(reported_componentwise);
+}
+
+template <typename T>
+[[nodiscard]] Result<double>
+ValidateSparseSolutionImpl(const CsrMatrixBase<T> &matrix,
+                           const std::vector<T> &rhs,
+                           const std::vector<T> &solution) {
+  Result<SolverCscPattern> structure = ConvertCsrToSolverCscImpl(matrix);
+  if (!structure.ok()) {
+    return Result<double>::Fail(structure.error().code,
+                                structure.error().message);
+  }
+  return ValidateSparseSolutionValues(matrix, rhs, solution);
+}
+
+// Only a factorization's private solve path may use this entry point. Its
+// current immutable matrix has already passed the complete canonical-pattern
+// and finite-value checks before any KLU operation. Public validation always
+// performs its independent structural validation above.
+[[nodiscard]] Result<double> ValidateKnownSparseRealSolution(
+    const CsrMatrix &matrix, const std::vector<double> &rhs,
+    const std::vector<double> &solution, std::vector<double> *correction,
+    RealValidationMetadata *metadata) {
+  try {
+    return ValidateSparseSolutionValues<double, true, true>(
+        matrix, rhs, solution, correction, true, metadata);
+  } catch (const std::bad_alloc &) {
+    return Result<double>::Fail(ErrorCode::kFactorization,
+                                "sparse solution validation allocation failed");
+  }
 }
 
 void ConfigureKlu(klu_common *common) {
@@ -384,7 +551,9 @@ ValidateSparseSolution(const ComplexCsrMatrix &matrix,
 
 class SparseRealFactorization::Impl {
 public:
-  explicit Impl(SolverCscPattern pattern) : pattern_(std::move(pattern)) {
+  Impl(SolverCscPattern pattern, const CsrMatrix &matrix)
+      : pattern_(std::move(pattern)), analyzed_row_offsets_(matrix.row_offsets),
+        analyzed_column_indices_(matrix.column_indices) {
     ConfigureKlu(&common_);
   }
 
@@ -418,6 +587,9 @@ public:
   [[nodiscard]] Result<std::vector<double>>
   SolveAndValidate(const CsrMatrix &matrix, const std::vector<double> &rhs,
                    std::size_t *remaining_refinements) {
+    // Capacity belongs to the factorization; metadata validity belongs only to
+    // this immutable matrix/RHS attempt, including a fresh-factor retry.
+    validation_metadata_.ready = false;
     std::vector<double> solution = rhs;
     if (klu_solve(symbolic_, numeric_, static_cast<std::int32_t>(pattern_.size),
                   1, solution.data(), &common_) == 0) {
@@ -425,23 +597,71 @@ public:
           ErrorCode::kFactorization,
           KluFailureMessage("KLU triangular solve", common_));
     }
-    Result<double> validation = ValidateSparseSolution(matrix, rhs, solution);
+    bool correction_is_current = false;
+    const auto validate = [&]() {
+      // Allocate scratch only at the original refinement stage below. Once
+      // allocated, its current row products can serve both residual consumers.
+      correction_is_current =
+          *remaining_refinements > 0 && correction_.size() == matrix.rows;
+      return ValidateKnownSparseRealSolution(
+          matrix, rhs, solution, correction_is_current ? &correction_ : nullptr,
+          *remaining_refinements > 0 || validation_metadata_.ready
+              ? &validation_metadata_
+              : nullptr);
+    };
+    // With a nonzero refinement budget, both possible backward-error outcomes
+    // for finite inputs take the same mandatory first correction. Compute its
+    // original residual first and defer the denominator/norm work until the
+    // corrected solution. An exact-zero correction still needs the full
+    // original validation before returning. Keep the common zero-RHS/solution
+    // path on its existing checked shortcut rather than multiplying zero rows.
+    bool deferred_validation =
+        *remaining_refinements > 0 &&
+        !(std::all_of(rhs.begin(), rhs.end(),
+                      [](double value) { return value == 0.0; }) &&
+          std::all_of(solution.begin(), solution.end(),
+                      [](double value) { return value == 0.0; }));
+    if (deferred_validation) {
+      for (double value : solution) {
+        if (!std::isfinite(value)) {
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite,
+              "sparse solve produced a non-finite value");
+        }
+      }
+      // The original initial validation prepared this storage after checking
+      // the solution. Preserve allocation failure precedence and statistics
+      // before any correction is charged; its values remain invalid until
+      // the eventual full validation populates them.
+      try {
+        validation_metadata_.rows.resize(matrix.rows);
+      } catch (const std::bad_alloc &) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kFactorization,
+            "sparse solution validation allocation failed");
+      }
+    }
+    Result<double> validation =
+        deferred_validation ? Result<double>::Ok(0.0) : validate();
     bool corrected = false;
     while (*remaining_refinements > 0 &&
            ((validation.ok() && !corrected) ||
             (!validation.ok() &&
              validation.error().code == ErrorCode::kSolutionValidation))) {
-      std::vector<double> correction(matrix.rows);
+      correction_.resize(matrix.rows);
+      auto &correction = correction_;
       for (std::size_t row = 0; row < matrix.rows; ++row) {
-        long double product = 0.0L;
-        for (std::size_t index = matrix.row_offsets[row];
-             index < matrix.row_offsets[row + 1]; ++index) {
-          product +=
-              static_cast<long double>(matrix.values[index]) *
-              static_cast<long double>(solution[matrix.column_indices[index]]);
+        if (!correction_is_current) {
+          long double product = 0.0L;
+          for (std::size_t index = matrix.row_offsets[row];
+               index < matrix.row_offsets[row + 1]; ++index) {
+            product += static_cast<long double>(matrix.values[index]) *
+                       static_cast<long double>(
+                           solution[matrix.column_indices[index]]);
+          }
+          correction[row] =
+              static_cast<double>(static_cast<long double>(rhs[row]) - product);
         }
-        correction[row] =
-            static_cast<double>(static_cast<long double>(rhs[row]) - product);
         if (!std::isfinite(correction[row])) {
           return Result<std::vector<double>>::Fail(
               ErrorCode::kNonFinite,
@@ -449,8 +669,11 @@ public:
         }
       }
       if (std::all_of(correction.begin(), correction.end(),
-                      [](double value) { return value == 0.0; }))
+                      [](double value) { return value == 0.0; })) {
+        if (deferred_validation)
+          validation = validate();
         break;
+      }
       corrected = true;
       --*remaining_refinements;
       ++statistics_.iterative_refinement_solves;
@@ -470,7 +693,8 @@ public:
               "iterative refinement update is not finite FP64");
         }
       }
-      validation = ValidateSparseSolution(matrix, rhs, solution);
+      validation = validate();
+      deferred_validation = false;
     }
     if (!validation.ok()) {
       return Result<std::vector<double>>::Fail(validation.error().code,
@@ -481,27 +705,52 @@ public:
 
   [[nodiscard]] Result<std::vector<double>>
   FactorAndSolve(const CsrMatrix &matrix, const std::vector<double> &rhs,
-                 std::size_t remaining_refinements = 0) {
-    Result<SolverCscPattern> converted = ConvertCsrToSolverCsc(matrix);
-    if (!converted.ok()) {
-      return Result<std::vector<double>>::Fail(converted.error().code,
-                                               converted.error().message);
-    }
-    if (!SamePattern(pattern_, converted.value())) {
-      return Result<std::vector<double>>::Fail(
-          ErrorCode::kInvalidStructure,
-          "numeric refactorization requires the analyzed CSR pattern");
+                 std::size_t remaining_refinements = 0,
+                 bool finite_inputs_admitted = false) {
+    if (matrix.rows == pattern_.size && matrix.columns == pattern_.size &&
+        matrix.values.size() == analyzed_column_indices_.size() &&
+        matrix.row_offsets == analyzed_row_offsets_ &&
+        matrix.column_indices == analyzed_column_indices_) {
+      // Exact equality to the analyzed canonical CSR proves every structural
+      // invariant, including signed-index representability and explicit zeros.
+      // Public calls admit new numeric values here. The private prepared
+      // caller has just checked this full assembly's stronger magnitude bound.
+      if (!finite_inputs_admitted) {
+        for (const double value : matrix.values) {
+          if (!std::isfinite(value)) {
+            return Result<std::vector<double>>::Fail(
+                ErrorCode::kNonFinite, "matrix contains a non-finite value");
+          }
+        }
+      }
+    } else {
+      // Preserve the original converter's validation and error precedence for
+      // every mismatch; a caller may mutate either CSR index array after
+      // Analyze.
+      finite_inputs_admitted = false;
+      Result<SolverCscPattern> converted = ConvertCsrToSolverCsc(matrix);
+      if (!converted.ok()) {
+        return Result<std::vector<double>>::Fail(converted.error().code,
+                                                 converted.error().message);
+      }
+      if (!SamePattern(pattern_, converted.value())) {
+        return Result<std::vector<double>>::Fail(
+            ErrorCode::kInvalidStructure,
+            "numeric refactorization requires the analyzed CSR pattern");
+      }
     }
     if (rhs.size() != pattern_.size) {
       return Result<std::vector<double>>::Fail(
           ErrorCode::kInvalidStructure,
           "matrix and right-hand-side dimensions disagree");
     }
-    for (const double value : rhs) {
-      if (!std::isfinite(value)) {
-        return Result<std::vector<double>>::Fail(
-            ErrorCode::kNonFinite,
-            "right-hand side contains a non-finite value");
+    if (!finite_inputs_admitted) {
+      for (const double value : rhs) {
+        if (!std::isfinite(value)) {
+          return Result<std::vector<double>>::Fail(
+              ErrorCode::kNonFinite,
+              "right-hand side contains a non-finite value");
+        }
       }
     }
     if (pattern_.size == 0) {
@@ -509,7 +758,11 @@ public:
       return Result<std::vector<double>>::Ok({});
     }
 
-    std::vector<double> values = GatherCscValues(matrix, pattern_);
+    csc_values_.resize(pattern_.csr_value_indices.size());
+    for (std::size_t index = 0; index < csc_values_.size(); ++index) {
+      csc_values_[index] = matrix.values[pattern_.csr_value_indices[index]];
+    }
+    auto &values = csc_values_;
     bool refactored_without_pivoting = false;
     if (numeric_ == nullptr) {
       Result<bool> factored = FactorFresh(values, "KLU numeric factorization");
@@ -563,10 +816,15 @@ public:
   }
 
   SolverCscPattern pattern_;
+  std::vector<std::size_t> analyzed_row_offsets_;
+  std::vector<std::size_t> analyzed_column_indices_;
   klu_common common_{};
   klu_symbolic *symbolic_ = nullptr;
   klu_numeric *numeric_ = nullptr;
   std::vector<double> last_values_;
+  std::vector<double> csc_values_;
+  std::vector<double> correction_;
+  RealValidationMetadata validation_metadata_;
   SparseSolverStatistics statistics_;
 };
 
@@ -587,7 +845,7 @@ SparseRealFactorization::Analyze(const CsrMatrix &matrix) {
       return Result<std::unique_ptr<SparseRealFactorization>>::Fail(
           converted.error().code, converted.error().message);
     }
-    auto implementation = std::make_unique<Impl>(converted.TakeValue());
+    auto implementation = std::make_unique<Impl>(converted.TakeValue(), matrix);
     if (implementation->pattern_.size != 0) {
       if (HasEmptyStructuralLine(matrix, implementation->pattern_)) {
         return Result<std::unique_ptr<SparseRealFactorization>>::Fail(
@@ -658,6 +916,26 @@ Result<std::vector<double>> SparseRealFactorization::FactorAndSolveRefined(
   } catch (const std::bad_alloc &) {
     return Result<std::vector<double>>::Fail(
         ErrorCode::kFactorization, "iterative refinement allocation failed");
+  }
+}
+
+Result<std::vector<double>> SparseRealFactorization::FactorAndSolveAdmitted(
+    const CsrMatrix &matrix, const std::vector<double> &rhs,
+    std::size_t maximum_refinements) {
+  if (maximum_refinements > 4) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kUnsupportedSize,
+        "iterative refinement allows at most four corrections");
+  }
+  try {
+    return implementation_->FactorAndSolve(matrix, rhs, maximum_refinements,
+                                           true);
+  } catch (const std::bad_alloc &) {
+    return Result<std::vector<double>>::Fail(
+        ErrorCode::kFactorization,
+        maximum_refinements == 0
+            ? "sparse numeric factorization allocation failed"
+            : "iterative refinement allocation failed");
   }
 }
 

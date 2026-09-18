@@ -58,7 +58,7 @@ class RunnerProcessTest(unittest.TestCase):
         table = list(struct.iter_unpack("<" + "d" * variables, payload))
         self.assertTrue(all(math.isfinite(value) for row in table for value in row))
         statistics = json.loads((self.directory / "statistics.json").read_text())
-        self.assertEqual(statistics["schema"], "emi02-cpu-v1")
+        self.assertEqual(statistics["schema"], "emi02-cpu-v2")
         self.assertEqual(statistics["status"], "complete")
         self.assertEqual(statistics["points"], points)
         self.assertEqual(statistics["variables"], variables)
@@ -80,6 +80,10 @@ class RunnerProcessTest(unittest.TestCase):
         self.assertIn(b"1\ti(eout)\tcurrent\n2\tv(out)\tvoltage\n", header)
         self.assertEqual(statistics["unknowns"], 4)
         self.assertEqual(statistics["attempts"], 0)
+        self.assertEqual(statistics["behavioral_error_estimator"], "not-applicable")
+        self.assertEqual(statistics["behavioral_integration_method"], "not-applicable")
+        self.assertEqual(statistics["derivative_history_error_estimates"], 0)
+        self.assertEqual(statistics["step_doubling_error_estimates"], 0)
         self.assertEqual(table[0][0], 0)
         self.assertAlmostEqual(table[0][1], -0.003, delta=1e-10)
         self.assertEqual(table[0][2:], (6, 3))
@@ -98,6 +102,13 @@ class RunnerProcessTest(unittest.TestCase):
         self.assertEqual(table[0][0], 0)
         self.assertEqual(table[-1][0], 3e-6)
         self.assertGreater(statistics["attempts"], 0)
+        self.assertEqual(
+            statistics["behavioral_error_estimator"],
+            "derivative-history-audited-v1",
+        )
+        self.assertEqual(statistics["behavioral_integration_method"], "trapezoidal")
+        self.assertGreater(statistics["derivative_history_error_estimates"], 0)
+        self.assertGreater(statistics["step_doubling_error_estimates"], 0)
         for previous, row in zip(table, table[1:]):
             self.assertGreater(row[0], previous[0])
             self.assertLessEqual(row[0] - previous[0], 10e-9 * (1 + 1e-12))

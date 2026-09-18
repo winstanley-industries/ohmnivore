@@ -1,5 +1,7 @@
 #include "ohmnivore/expression.h"
 
+#include "cpp/src/expression_internal.h"
+
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -20,7 +22,8 @@ constexpr double kPsExpSlope = 1202604.284;
 constexpr double kMagnitudeLimit = 1e100;
 
 bool IsBounded(double value) {
-  return std::isfinite(value) && std::abs(value) <= kMagnitudeLimit;
+  // Ordered comparison also rejects NaN and infinities for this finite bound.
+  return std::abs(value) <= kMagnitudeLimit;
 }
 
 enum class Op {
@@ -38,8 +41,12 @@ enum class Op {
   kIf
 };
 
+enum class SimpleShape { kGeneral, kLeaf, kSubtractLeaves };
+
 struct Node {
   Op op = Op::kConstant;
+  // State leaves use first for the MNA index and second for the prebound
+  // gradient slot. Other nodes use these fields for child AST indices.
   std::size_t first = 0;
   std::size_t second = 0;
   std::size_t third = 0;
@@ -74,10 +81,12 @@ bool ValidParameterName(std::string_view name) {
 
 struct ExpressionProgram {
   std::vector<Node> nodes;
+  std::vector<std::size_t> reverse_ad_indices;
   std::vector<std::size_t> dependencies;
   std::size_t root = 0;
   std::size_t state_size = 0;
   ExpressionDialect dialect = ExpressionDialect::kBehavioral;
+  SimpleShape simple_shape = SimpleShape::kGeneral;
 };
 
 namespace {
@@ -113,6 +122,31 @@ public:
     auto &deps = program_.dependencies;
     std::sort(deps.begin(), deps.end());
     deps.erase(std::unique(deps.begin(), deps.end()), deps.end());
+    for (auto &node : program_.nodes) {
+      if (node.op == Op::kState) {
+        node.second = static_cast<std::size_t>(
+            std::lower_bound(deps.begin(), deps.end(), node.first) -
+            deps.begin());
+      }
+    }
+    for (std::size_t i = program_.nodes.size(); i-- > 0;) {
+      const auto &node = program_.nodes[i];
+      if (!node.constant && node.op != Op::kLess && node.op != Op::kGreater)
+        program_.reverse_ad_indices.push_back(i);
+    }
+    const auto is_leaf = [](const Node &node) {
+      return node.op == Op::kState || node.op == Op::kConstant;
+    };
+    const auto &root = program_.nodes[program_.root];
+    if (deps.size() <= 2) {
+      if (is_leaf(root)) {
+        program_.simple_shape = SimpleShape::kLeaf;
+      } else if (root.op == Op::kSubtract &&
+                 is_leaf(program_.nodes[root.first]) &&
+                 is_leaf(program_.nodes[root.second])) {
+        program_.simple_shape = SimpleShape::kSubtractLeaves;
+      }
+    }
     return Result<ExpressionProgram>::Ok(std::move(program_));
   }
 
@@ -446,43 +480,141 @@ double Denominator(double value) {
   return value + (value >= 0.0 ? kDivisionOffset : -kDivisionOffset);
 }
 
-class Evaluator {
+[[gnu::always_inline]] inline Result<double>
+EvaluateSimpleValue(const ExpressionProgram &program,
+                    std::span<const double> state) {
+  if (state.size() != program.state_size) {
+    return Result<double>::Fail(ErrorCode::kInvalidStructure,
+                                "expression state size mismatch");
+  }
+  const auto failure = []() {
+    return Result<double>::Fail(ErrorCode::kNonFinite,
+                                "nonfinite expression value or domain");
+  };
+  for (const auto index : program.dependencies) {
+    if (!IsBounded(state[index]))
+      return failure();
+  }
+  const auto leaf_value = [&](const Node &node) {
+    return node.op == Op::kState ? state[node.first] : node.value;
+  };
+  const auto &root = program.nodes[program.root];
+  double value;
+  if (program.simple_shape == SimpleShape::kLeaf) {
+    value = leaf_value(root);
+  } else {
+    const double first = leaf_value(program.nodes[root.first]);
+    if (!IsBounded(first))
+      return failure();
+    const double second = leaf_value(program.nodes[root.second]);
+    if (!IsBounded(second))
+      return failure();
+    value = first - second;
+  }
+  if (!IsBounded(value))
+    return failure();
+  return Result<double>::Ok(value);
+}
+
+Result<ExpressionEvaluation> EvaluateSimple(const ExpressionProgram &program,
+                                            std::span<const double> state) {
+  auto value = EvaluateSimpleValue(program, state);
+  if (!value.ok())
+    return Result<ExpressionEvaluation>::Fail(value.error().code,
+                                              value.error().message);
+  ExpressionEvaluation result;
+  result.value = value.value();
+  const auto failure = []() {
+    return Result<ExpressionEvaluation>::Fail(
+        ErrorCode::kNonFinite, "nonfinite expression value or domain");
+  };
+  const auto &root = program.nodes[program.root];
+  std::array<double, 2> gradient{0.0, 0.0};
+  const auto accumulate = [&](const Node &node, double adjoint) {
+    if (node.op == Op::kState) {
+      gradient[node.second] += adjoint;
+      return IsBounded(gradient[node.second]);
+    }
+    return true;
+  };
+  if (program.simple_shape == SimpleShape::kLeaf) {
+    if (!accumulate(root, 1.0))
+      return failure();
+  } else {
+    // Reverse AST order visits the second leaf first. Preserve that order
+    // when aliases share a gradient slot, including exact signed-zero sums.
+    // Original root factors/leaf adjoints are exactly -1/+1 and bounded.
+    if (!accumulate(program.nodes[root.second], -1.0) ||
+        !accumulate(program.nodes[root.first], 1.0))
+      return failure();
+  }
+  for (std::size_t i = 0; i < program.dependencies.size(); ++i) {
+    if (!IsBounded(gradient[i])) {
+      return Result<ExpressionEvaluation>::Fail(
+          ErrorCode::kNonFinite, "nonfinite expression derivative");
+    }
+    if (gradient[i] != 0.0) {
+      if (result.derivatives.empty())
+        result.derivatives.reserve(program.dependencies.size());
+      result.derivatives.emplace_back(program.dependencies[i], gradient[i]);
+    }
+  }
+  return Result<ExpressionEvaluation>::Ok(std::move(result));
+}
+
+template <bool UseCompiledAdOrder> class Evaluator {
 public:
   Evaluator(const ExpressionProgram &program, std::span<const double> state)
       : program_(program), state_(state) {
     std::fill_n(values_.begin(), program.nodes.size(), 0.0);
-    std::fill_n(adjoints_.begin(), program.nodes.size(), 0.0);
   }
 
-  Result<ExpressionEvaluation> Run() {
+  Result<double> RunValue() {
     if (state_.size() != program_.state_size) {
-      return Result<ExpressionEvaluation>::Fail(
-          ErrorCode::kInvalidStructure, "expression state size mismatch");
+      return Result<double>::Fail(ErrorCode::kInvalidStructure,
+                                  "expression state size mismatch");
     }
     for (const auto index : program_.dependencies) {
       if (!IsBounded(state_[index]))
-        return Failure();
+        return Result<double>::Fail(ErrorCode::kNonFinite,
+                                    "nonfinite expression value or domain");
     }
-    ExpressionEvaluation result;
-    result.value = Value(program_.root);
+    const double value = Value(program_.root);
     if (error_)
-      return Failure();
+      return Result<double>::Fail(ErrorCode::kNonFinite,
+                                  "nonfinite expression value or domain");
+    return Result<double>::Ok(value);
+  }
+
+  Result<ExpressionEvaluation> Run() {
+    auto value = RunValue();
+    if (!value.ok())
+      return Result<ExpressionEvaluation>::Fail(value.error().code,
+                                                value.error().message);
+    ExpressionEvaluation result;
+    result.value = value.value();
+    std::fill_n(adjoints_.begin(), program_.nodes.size(), 0.0);
     adjoints_[program_.root] = 1.0;
     std::array<double, kMaxNodes> gradient;
     std::fill_n(gradient.begin(), program_.dependencies.size(), 0.0);
-    for (std::size_t i = program_.nodes.size(); i-- > 0;) {
+    const std::size_t reverse_count = UseCompiledAdOrder
+                                          ? program_.reverse_ad_indices.size()
+                                          : program_.nodes.size();
+    for (std::size_t position = 0; position < reverse_count; ++position) {
+      const std::size_t i = UseCompiledAdOrder
+                                ? program_.reverse_ad_indices[position]
+                                : program_.nodes.size() - 1 - position;
       const auto &node = program_.nodes[i];
       const double adjoint = adjoints_[i];
-      if (adjoint == 0.0 || node.constant)
+      if (adjoint == 0.0)
         continue;
+      if constexpr (!UseCompiledAdOrder) {
+        if (node.constant)
+          continue;
+      }
       if (node.op == Op::kState) {
-        const auto found =
-            std::lower_bound(program_.dependencies.begin(),
-                             program_.dependencies.end(), node.first);
-        const auto offset =
-            static_cast<std::size_t>(found - program_.dependencies.begin());
-        gradient[offset] += adjoint;
-        if (!IsBounded(gradient[offset]))
+        gradient[node.second] += adjoint;
+        if (!IsBounded(gradient[node.second]))
           return Failure();
         continue;
       }
@@ -559,14 +691,16 @@ public:
     }
     if (error_)
       return Failure();
-    result.derivatives.reserve(program_.dependencies.size());
     for (std::size_t i = 0; i < program_.dependencies.size(); ++i) {
       if (!IsBounded(gradient[i])) {
         return Result<ExpressionEvaluation>::Fail(
             ErrorCode::kNonFinite, "nonfinite expression derivative");
       }
-      if (gradient[i] != 0.0)
+      if (gradient[i] != 0.0) {
+        if (result.derivatives.empty())
+          result.derivatives.reserve(program_.dependencies.size());
         result.derivatives.emplace_back(program_.dependencies[i], gradient[i]);
+      }
     }
     return Result<ExpressionEvaluation>::Ok(std::move(result));
   }
@@ -644,6 +778,40 @@ private:
 
 } // namespace
 
+namespace internal {
+
+struct ExpressionAccess {
+  static const ExpressionProgram *
+  Program(const CompiledExpression &expression) {
+    return expression.program_.get();
+  }
+};
+
+Result<double> EvaluateExpressionValue(const CompiledExpression &expression,
+                                       std::span<const double> state) {
+  const auto *program = ExpressionAccess::Program(expression);
+  if (program == nullptr) {
+    return Result<double>::Fail(ErrorCode::kInvalidStructure,
+                                "uncompiled expression");
+  }
+  if (program->simple_shape != SimpleShape::kGeneral)
+    return EvaluateSimpleValue(*program, state);
+  return Evaluator<true>(*program, state).RunValue();
+}
+
+Result<ExpressionEvaluation>
+EvaluateExpressionOriginalAdForTesting(const CompiledExpression &expression,
+                                       std::span<const double> state) {
+  const auto *program = ExpressionAccess::Program(expression);
+  if (program == nullptr) {
+    return Result<ExpressionEvaluation>::Fail(ErrorCode::kInvalidStructure,
+                                              "uncompiled expression");
+  }
+  return Evaluator<false>(*program, state).Run();
+}
+
+} // namespace internal
+
 std::size_t CompiledExpression::node_count() const {
   return program_ ? program_->nodes.size() : 0;
 }
@@ -686,7 +854,9 @@ EvaluateExpression(const CompiledExpression &expression,
     return Result<ExpressionEvaluation>::Fail(ErrorCode::kInvalidStructure,
                                               "uncompiled expression");
   }
-  return Evaluator(*expression.program_, state).Run();
+  if (expression.program_->simple_shape != SimpleShape::kGeneral)
+    return EvaluateSimple(*expression.program_, state);
+  return Evaluator<true>(*expression.program_, state).Run();
 }
 
 Result<ParameterValues>
@@ -768,7 +938,7 @@ ResolveParameters(const std::vector<ParameterDefinition> &definitions,
     if (total_nodes > kMaxTotalNodes)
       return Result<double>::Fail(ErrorCode::kUnsupportedSize,
                                   "parameter expression total node limit");
-    auto value = Evaluator(program.value(), {}).Run();
+    auto value = Evaluator<true>(program.value(), {}).Run();
     if (!value.ok())
       return Result<double>::Fail(value.error().code, value.error().message);
     resolved.emplace(name, value.value().value);

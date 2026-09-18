@@ -116,7 +116,7 @@ class QualificationTest(unittest.TestCase):
 
     def test_mandatory_metadata_matches_actual_output(self):
         valid = {
-            "schema": "emi02-cpu-v1",
+            "schema": "emi02-cpu-v2",
             "status": "complete",
             "points": 10,
             "variables": 5,
@@ -125,8 +125,40 @@ class QualificationTest(unittest.TestCase):
             "attempts": 12,
             "rejected_steps": 3,
             "elapsed_seconds": 0.25,
+            "behavioral_error_estimator": "derivative-history-audited-v1",
+            "behavioral_integration_method": "trapezoidal",
+            "nonlinear_rejections": 1,
+            "derivative_history_error_estimates": 7,
+            "derivative_history_step_doubling_checks": 3,
+            "step_doubling_error_estimates": 4,
+            "derivative_history_fallback_entries": 1,
+            "derivative_history_fallback_recoveries": 0,
+            "transient_solver_statistics": {
+                "symbolic_analyses": 1,
+                "numeric_factorizations": 2,
+                "numeric_refactorizations": 40,
+                "numeric_refactorization_fallbacks": 1,
+                "numeric_reuses": 10,
+                "solves": 70,
+                "iterative_refinement_solves": 18,
+            },
         }
         qualification.validate_statistics(valid, 10, 5, 80, 700)
+        # Corrections are separate from successful top-level solves, including
+        # corrections attempted before an auxiliary solve fails validation.
+        qualification.validate_statistics(
+            {
+                **valid,
+                "transient_solver_statistics": {
+                    **valid["transient_solver_statistics"],
+                    "iterative_refinement_solves": 208,
+                },
+            },
+            10,
+            5,
+            80,
+            700,
+        )
         faults = [
             ("status", "failed"),
             ("schema", "other"),
@@ -140,6 +172,27 @@ class QualificationTest(unittest.TestCase):
             ("elapsed_seconds", float("nan")),
             ("elapsed_seconds", -1),
             ("points", True),
+            ("behavioral_error_estimator", "step-doubling"),
+            ("behavioral_integration_method", "bdf3"),
+            ("behavioral_integration_method", "bdf2"),
+            ("behavioral_error_estimator", "bdf2-derivative-history-audited-v1"),
+            ("behavioral_integration_method", "not-applicable"),
+            ("behavioral_integration_method", None),
+            ("nonlinear_rejections", 4),
+            ("derivative_history_error_estimates", 8),
+            ("derivative_history_error_estimates", True),
+            ("derivative_history_step_doubling_checks", 5),
+            ("step_doubling_error_estimates", -1),
+            ("derivative_history_fallback_recoveries", 2),
+            ("derivative_history_fallback_entries", 13),
+            ("transient_solver_statistics", {}),
+            (
+                "transient_solver_statistics",
+                {
+                    **valid["transient_solver_statistics"],
+                    "iterative_refinement_solves": 209,
+                },
+            ),
         ]
         for key, value in faults:
             with (

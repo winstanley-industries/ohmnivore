@@ -1,0 +1,172 @@
+[
+  {
+    "name": "lint",
+    "command": [
+      "bazel",
+      "lint"
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 2.053428675979376
+  },
+  {
+    "name": "build",
+    "command": [
+      "bazel",
+      "build",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 6.0198634309927
+  },
+  {
+    "name": "test",
+    "command": [
+      "bazel",
+      "test",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 38.19432482900447
+  },
+  {
+    "name": "asan",
+    "command": [
+      "bazel",
+      "test",
+      "--config=asan",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 101.11499451598502
+  },
+  {
+    "name": "ubsan",
+    "command": [
+      "bazel",
+      "test",
+      "--config=ubsan",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 84.23449277298641
+  },
+  {
+    "name": "lockfile",
+    "command": [
+      "bazel",
+      "test",
+      "--lockfile_mode=error",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 70.30854724801611
+  },
+  {
+    "name": "cuda-smoke",
+    "command": [
+      "bazel",
+      "test",
+      "--config=cuda",
+      "//:cuda_smoke_test"
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 0.6790058460028376
+  },
+  {
+    "name": "acceptance",
+    "command": [
+      "bazel",
+      "test",
+      "//acceptance:ngspice_acceptance_test",
+      "//acceptance:emi02b_expression_test"
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 0.6000882480002474
+  },
+  {
+    "name": "prepared-ac",
+    "command": [
+      "bazel",
+      "test",
+      "//cpp:gpu01_prepared_ac_test",
+      "//cpp:gpu01_replay_test"
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 0.28554190302384086
+  },
+  {
+    "name": "prepared-ac-replay",
+    "command": [
+      "bazel",
+      "run",
+      "-c",
+      "opt",
+      "//cpp:prepared_ac_replay_benchmark",
+      "--",
+      "--warmups=2",
+      "--repetitions=9"
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 29.820464082004037
+  },
+  {
+    "name": "cuda-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=asan",
+      "//cuda:smoke_test"
+    ],
+    "exit_code": 1,
+    "expected": "incompatible analysis failure",
+    "passed": true,
+    "wall_seconds": 0.22260970101342537
+  },
+  {
+    "name": "cuda-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=ubsan",
+      "//cuda:smoke_test"
+    ],
+    "exit_code": 1,
+    "expected": "incompatible analysis failure",
+    "passed": true,
+    "wall_seconds": 0.17969347300822847
+  },
+  {
+    "name": "diff",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "expected": "pass",
+    "passed": true,
+    "wall_seconds": 0.010015746986027807
+  }
+]

@@ -129,6 +129,7 @@ int main(int argc, char **argv) {
     raw << "Binary:\n";
     std::size_t points = 0;
     std::size_t bytes = static_cast<std::size_t>(raw.tellp());
+    std::vector<double> output_record(selected.size() + 1);
     const auto emit = [&](double time,
                           const std::vector<double> &state) -> Result<bool> {
       const std::size_t added = (selected.size() + 1) * sizeof(double);
@@ -138,14 +139,16 @@ int main(int argc, char **argv) {
       if (!std::isfinite(time) || state.size() != system.g.rows)
         return Result<bool>::Fail(ErrorCode::kInvalidStructure,
                                   "invalid observed state");
-      raw.write(reinterpret_cast<const char *>(&time), sizeof(time));
-      for (const auto index : selected) {
-        const double value = state[index];
+      output_record[0] = time;
+      for (std::size_t column = 0; column < selected.size(); ++column) {
+        const double value = state[selected[column]];
         if (!std::isfinite(value))
           return Result<bool>::Fail(ErrorCode::kNonFinite,
                                     "non-finite observed state");
-        raw.write(reinterpret_cast<const char *>(&value), sizeof(value));
+        output_record[column + 1] = value;
       }
+      raw.write(reinterpret_cast<const char *>(output_record.data()),
+                static_cast<std::streamsize>(added));
       if (!raw)
         return Result<bool>::Fail(ErrorCode::kIo, "raw write failed");
       ++points;
@@ -153,9 +156,18 @@ int main(int argc, char **argv) {
       return Result<bool>::Ok(true);
     };
     std::size_t attempts = 0, rejected = 0;
+    std::size_t nonlinear_rejections = 0;
+    std::size_t history_estimates = 0, history_checks = 0,
+                doubling_estimates = 0;
+    std::size_t history_fallback_entries = 0, history_fallback_recoveries = 0;
+    SparseSolverStatistics solver_statistics;
     if (tran != nullptr) {
       TransientExecutionLimits limits;
       limits.minimum_step_divisor = 1'000'000.0;
+      if (!system.behavioral_descriptors.empty()) {
+        limits.behavioral_error_estimator =
+            BehavioralErrorEstimator::kDerivativeHistory;
+      }
       limits.maximum_accepted_steps = 1'999'999;
       limits.maximum_step_attempts = 4'000'000;
       limits.nonlinear_maximum_iterations =
@@ -170,9 +182,21 @@ int main(int argc, char **argv) {
         return fail(solved.error().code, solved.error().message);
       }
       attempts = solved.value().step_trace.size();
+      solver_statistics = solved.value().solver_statistics;
+      history_estimates = solved.value().derivative_history_error_estimates;
+      history_checks = solved.value().derivative_history_step_doubling_checks;
+      doubling_estimates = solved.value().step_doubling_error_estimates;
+      history_fallback_entries =
+          solved.value().derivative_history_fallback_entries;
+      history_fallback_recoveries =
+          solved.value().derivative_history_fallback_recoveries;
       for (const auto &step : solved.value().step_trace)
-        if (!step.accepted)
+        if (!step.accepted) {
           ++rejected;
+          if (step.rejection_reason ==
+              TransientStepRejectionReason::kNonlinearConvergence)
+            ++nonlinear_rejections;
+        }
       if (points != solved.value().emitted_points) {
         raw.close();
         return fail(ErrorCode::kInvalidStructure, "observer count mismatch");
@@ -215,10 +239,40 @@ int main(int argc, char **argv) {
       return fail(ErrorCode::kIo, "cannot create metadata output");
     metadata_created = true;
     info << std::setprecision(17)
-         << "{\"schema\":\"emi02-cpu-v1\",\"status\":\"complete\",\"points\":"
+         << "{\"schema\":\"emi02-cpu-v2\",\"status\":\"complete\",\"points\":"
          << points << ",\"variables\":" << names.size() + 1
          << ",\"unknowns\":" << system.g.rows << ",\"raw_bytes\":" << bytes
          << ",\"attempts\":" << attempts << ",\"rejected_steps\":" << rejected
+         << ",\"nonlinear_rejections\":" << nonlinear_rejections
+         << ",\"behavioral_integration_method\":\""
+         << (tran != nullptr && !system.behavioral_descriptors.empty()
+                 ? "trapezoidal"
+                 : "not-applicable")
+         << "\""
+         << ",\"behavioral_error_estimator\":\""
+         << (tran != nullptr && !system.behavioral_descriptors.empty()
+                 ? "derivative-history-audited-v1"
+                 : "not-applicable")
+         << "\""
+         << ",\"derivative_history_error_estimates\":" << history_estimates
+         << ",\"derivative_history_step_doubling_checks\":" << history_checks
+         << ",\"step_doubling_error_estimates\":" << doubling_estimates
+         << ",\"derivative_history_fallback_entries\":"
+         << history_fallback_entries
+         << ",\"derivative_history_fallback_recoveries\":"
+         << history_fallback_recoveries
+         << ",\"transient_solver_statistics\":{\"symbolic_analyses\":"
+         << solver_statistics.symbolic_analyses
+         << ",\"numeric_factorizations\":"
+         << solver_statistics.numeric_factorizations
+         << ",\"numeric_refactorizations\":"
+         << solver_statistics.numeric_refactorizations
+         << ",\"numeric_refactorization_fallbacks\":"
+         << solver_statistics.numeric_refactorization_fallbacks
+         << ",\"numeric_reuses\":" << solver_statistics.numeric_reuses
+         << ",\"solves\":" << solver_statistics.solves
+         << ",\"iterative_refinement_solves\":"
+         << solver_statistics.iterative_refinement_solves << "}"
          << ",\"elapsed_seconds\":" << elapsed << "}\n";
     info.close();
     if (!info)

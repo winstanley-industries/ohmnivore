@@ -30,6 +30,7 @@ exports_files(
         "include/ohmnivore/waveform.h",
         "src/behavioral.cc",
         "src/expression.cc",
+        "src/expression_internal.h",
         "src/compiler.cc",
         "src/nonlinear.cc",
         "src/nonlinear_internal.h",
@@ -56,6 +57,7 @@ cc_library(
     srcs = [
         "src/behavioral.cc",
         "src/expression.cc",
+        "src/expression_internal.h",
         "src/compiler.cc",
         "src/nonlinear.cc",
         "src/nonlinear_internal.h",
@@ -423,7 +425,7 @@ cc_test(
 cc_test(
     name = "emi02b_test",
     size = "medium",
-    srcs = ["tests/google_test.h", "tests/emi02b_test.cc"],
+    srcs = ["tests/google_test.h", "tests/emi02b_test.cc", "src/expression_internal.h"],
     copts = OHMNIVORE_COPTS,
     visibility = ["//visibility:public"],
     deps = [":core", "@googletest//:gtest_main"],
@@ -477,5 +479,39 @@ cc_test(
     srcs = ["tests/google_test.h", "tests/emi02_newton_test.cc"],
     copts = OHMNIVORE_COPTS,
     visibility = ["//visibility:public"],
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_expression_cache_test",
+    size = "small",
+    srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/emi02_expression_cache_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+
+
+cc_test(
+    name = "emi02_history_lte_test",
+    size = "medium",
+    srcs = ["tests/google_test.h", "tests/emi02_history_lte_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_solver_reuse_test",
+    size = "small",
+    srcs = ["tests/google_test.h", "tests/emi02_solver_reuse_test.cc"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "emi02_prepared_transient_test",
+    size = "medium",
+    srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/emi02_prepared_transient_test.cc"],
+    copts = OHMNIVORE_COPTS,
     deps = [":core", "@googletest//:gtest_main"],
 )

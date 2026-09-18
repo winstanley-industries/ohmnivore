@@ -1,13 +1,17 @@
 #include "cpp/tests/google_test.h"
 
 #include <array>
+#include <bit>
 #include <cmath>
 #include <complex>
+#include <cstdint>
 #include <limits>
 #include <string>
 #include <vector>
 
 #include "ohmnivore/expression.h"
+
+#include "cpp/src/expression_internal.h"
 
 namespace ohmnivore {
 namespace {
@@ -186,6 +190,48 @@ TEST(Emi02B, CurrentMultiplierHasSimultaneousCrossDerivatives) {
   const auto standalone = Eval("i(vsense)");
   Near(standalone.value, .4);
   Near(Derivative(standalone, 3), 1.0);
+}
+
+TEST(Emi02B, SparseStateSlotsPreserveExactOrderCancellationAndLazyValidation) {
+  const ExpressionBindings bindings{
+      .state_size = 512,
+      .node_indices = {{"a", 511}, {"b", 4}, {"c", 127}},
+      .current_indices = {{"vsense", 256}},
+      .parameters = {}};
+  auto expression =
+      CompileExpression("if(v(a)>0,v(a)-v(a)+v(b)*i(vsense)+v(c)*2,"
+                        "v(b)-v(b)+i(vsense)*0)",
+                        bindings);
+  ASSERT_TRUE(expression.ok());
+  EXPECT_EQ(std::vector<std::size_t>(expression.value().dependencies().begin(),
+                                     expression.value().dependencies().end()),
+            (std::vector<std::size_t>{4, 127, 256, 511}));
+  std::array<double, 512> state{};
+  state[511] = 1;
+  state[4] = 0.5;
+  state[127] = -2;
+  state[256] = 4;
+  const std::vector<std::pair<std::size_t, double>> expected{
+      {4, 4}, {127, 2}, {256, 0.5}};
+  auto positive = EvaluateExpression(expression.value(), state);
+  ASSERT_TRUE(positive.ok());
+  EXPECT_EQ(positive.value().value, -2);
+  EXPECT_EQ(positive.value().derivatives, expected);
+  state[511] = -1;
+  auto cancelled = EvaluateExpression(expression.value(), state);
+  ASSERT_TRUE(cancelled.ok());
+  EXPECT_EQ(cancelled.value().value, 0);
+  EXPECT_TRUE(cancelled.value().derivatives.empty());
+  state[127] = std::numeric_limits<double>::quiet_NaN();
+  auto inactive_nonfinite = EvaluateExpression(expression.value(), state);
+  ASSERT_FALSE(inactive_nonfinite.ok());
+  EXPECT_EQ(inactive_nonfinite.error().code, ErrorCode::kNonFinite);
+  state[127] = -2;
+  state[511] = 1;
+  auto repeated = EvaluateExpression(expression.value(), state);
+  ASSERT_TRUE(repeated.ok());
+  EXPECT_EQ(repeated.value().value, positive.value().value);
+  EXPECT_EQ(repeated.value().derivatives, expected);
 }
 
 TEST(Emi02B, IndependentFiniteDifferencesAndComplexStepOnSmoothBranch) {
@@ -378,6 +424,407 @@ TEST(Emi02B, SimultaneousInvalidInputsHaveDeterministicPrecedence) {
   auto syntax_first = CompileExpression("*unknown", Bindings());
   ASSERT_FALSE(syntax_first.ok());
   EXPECT_EQ(syntax_first.error().code, ErrorCode::kParse);
+}
+
+void SameEvaluationBits(const Result<ExpressionEvaluation> &actual,
+                        const Result<ExpressionEvaluation> &expected) {
+  ASSERT_EQ(actual.ok(), expected.ok());
+  if (!actual.ok()) {
+    EXPECT_EQ(actual.error().code, expected.error().code);
+    EXPECT_EQ(actual.error().message, expected.error().message);
+    return;
+  }
+  EXPECT_EQ(std::bit_cast<std::uint64_t>(actual.value().value),
+            std::bit_cast<std::uint64_t>(expected.value().value));
+  const auto &a = actual.value().derivatives;
+  const auto &b = expected.value().derivatives;
+  ASSERT_EQ(a.size(), b.size());
+  for (std::size_t i = 0; i < a.size(); ++i) {
+    EXPECT_EQ(a[i].first, b[i].first);
+    EXPECT_EQ(std::bit_cast<std::uint64_t>(a[i].second),
+              std::bit_cast<std::uint64_t>(b[i].second));
+  }
+}
+
+void SameScalarEvaluation(const Result<double> &actual,
+                          const Result<ExpressionEvaluation> &expected) {
+  ASSERT_EQ(actual.ok(), expected.ok());
+  if (!actual.ok()) {
+    EXPECT_EQ(actual.error().code, expected.error().code);
+    EXPECT_EQ(actual.error().message, expected.error().message);
+    return;
+  }
+  EXPECT_EQ(std::bit_cast<std::uint64_t>(actual.value()),
+            std::bit_cast<std::uint64_t>(expected.value().value));
+}
+
+TEST(Emi02B, SimpleExpressionsMatchOriginalGenericValueAndDerivativeBits) {
+  auto bindings = Bindings();
+  bindings.node_indices.emplace("same", 0);
+  bindings.parameters.emplace("negative_zero", -0.0);
+  const double minimum = std::numeric_limits<double>::denorm_min();
+  const double infinity = std::numeric_limits<double>::infinity();
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  std::vector<double> values{0.0,
+                             -0.0,
+                             minimum,
+                             -minimum,
+                             std::numeric_limits<double>::min(),
+                             -std::numeric_limits<double>::min(),
+                             1.0,
+                             -1.0,
+                             2.5,
+                             1e100,
+                             -1e100,
+                             std::nextafter(1e100, 0.0),
+                             std::nextafter(1e100, infinity),
+                             -std::nextafter(1e100, infinity),
+                             std::numeric_limits<double>::max(),
+                             infinity,
+                             -infinity,
+                             nan};
+  std::uint64_t bits = 0x7b63f194de50a28cULL;
+  for (std::size_t i = 0; i < 16; ++i) {
+    bits = bits * 6364136223846793005ULL + 1442695040888963407ULL;
+    values.push_back(std::bit_cast<double>(bits));
+  }
+  const std::vector<std::string> expressions{
+      "v(a)",           "i(vsense)", "v(0)",      "0",          "gain",
+      "negative_zero",  "v(a)-gain", "gain-v(a)", "1e100-v(a)", "v(a)-1e100",
+      "v(a,b)",         "v(b,a)",    "v(a,a)",    "v(a,same)",  "v(a,0)",
+      "v(0,a)",         "v(0,0)",    "0-v(a)",    "v(a)-0",     "v(a)-v(b)",
+      "i(vsense)-v(a)", "0-0",       "+v(a)",     "-v(a)",      "v(a)-(-gain)"};
+  for (const auto &text : expressions) {
+    SCOPED_TRACE(text);
+    auto simple = CompileExpression(text, bindings);
+    // The root IF forces the original recursive evaluator. Its chosen arm
+    // keeps exactly the simple expression's operations, including signed zero
+    // and reverse traversal; the extra adjoint factor is exactly one.
+    auto generic = CompileExpression("if(1," + text + ",0)", bindings);
+    ASSERT_TRUE(simple.ok());
+    ASSERT_TRUE(generic.ok());
+    EXPECT_EQ(generic.value().node_count(), simple.value().node_count() + 3);
+    EXPECT_EQ(std::vector<std::size_t>(simple.value().dependencies().begin(),
+                                       simple.value().dependencies().end()),
+              std::vector<std::size_t>(generic.value().dependencies().begin(),
+                                       generic.value().dependencies().end()));
+    for (const double a : values) {
+      for (const double b : values) {
+        // Unused state remains intentionally nonfinite. Public expression
+        // evaluation admits only its structural dependencies, as before.
+        const std::array<double, 4> state{a, b, nan, b};
+        SameEvaluationBits(EvaluateExpression(simple.value(), state),
+                           EvaluateExpression(generic.value(), state));
+        SameScalarEvaluation(
+            internal::EvaluateExpressionValue(simple.value(), state),
+            internal::EvaluateExpressionOriginalAdForTesting(simple.value(),
+                                                             state));
+      }
+    }
+    const std::array<double, 3> wrong_size{nan, infinity, 0};
+    SameEvaluationBits(EvaluateExpression(simple.value(), wrong_size),
+                       EvaluateExpression(generic.value(), wrong_size));
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(simple.value(), wrong_size),
+        internal::EvaluateExpressionOriginalAdForTesting(simple.value(),
+                                                         wrong_size));
+  }
+}
+
+TEST(Emi02B, SimpleShapesPreserveSparseBindingsAndParameterDialect) {
+  const ExpressionBindings bindings{
+      .state_size = 512,
+      .node_indices = {{"high", 511}, {"low", 4}, {"alias", 511}},
+      .current_indices = {{"sense", 256}},
+      .parameters = {{"negative_zero", -0.0}}};
+  std::array<double, 512> state{};
+  state[511] = -0.0;
+  state[4] = 0.0;
+  state[256] = std::numeric_limits<double>::denorm_min();
+  for (const std::string text :
+       {"v(high)", "v(high,low)", "v(low,high)", "v(high,alias)", "v(0,high)",
+        "i(sense)", "negative_zero-v(high)"}) {
+    auto simple = CompileExpression(text, bindings);
+    auto generic = CompileExpression("if(1," + text + ",0)", bindings);
+    ASSERT_TRUE(simple.ok());
+    ASSERT_TRUE(generic.ok());
+    SameEvaluationBits(EvaluateExpression(simple.value(), state),
+                       EvaluateExpression(generic.value(), state));
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(simple.value(), state),
+        internal::EvaluateExpressionOriginalAdForTesting(simple.value(),
+                                                         state));
+    state[511] = std::numeric_limits<double>::quiet_NaN();
+    SameEvaluationBits(EvaluateExpression(simple.value(), state),
+                       EvaluateExpression(generic.value(), state));
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(simple.value(), state),
+        internal::EvaluateExpressionOriginalAdForTesting(simple.value(),
+                                                         state));
+    state[511] = -0.0;
+  }
+  ExpressionBindings parameters;
+  parameters.parameters.emplace("negative_zero", -0.0);
+  for (const std::string text :
+       {"negative_zero", "negative_zero-0", "0-negative_zero", "1e100-1e100",
+        "1e100-(-1e100)"}) {
+    auto simple =
+        CompileExpression(text, parameters, ExpressionDialect::kParameter);
+    // Parameter syntax excludes IF. Two exact sign reflections force the
+    // generic path and preserve every finite constant bit, including -0.
+    auto generic = CompileExpression("-(-(" + text + "))", parameters,
+                                     ExpressionDialect::kParameter);
+    ASSERT_TRUE(simple.ok());
+    ASSERT_TRUE(generic.ok());
+    SameEvaluationBits(EvaluateExpression(simple.value(), {}),
+                       EvaluateExpression(generic.value(), {}));
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(simple.value(), {}),
+        internal::EvaluateExpressionOriginalAdForTesting(simple.value(), {}));
+  }
+}
+
+TEST(Emi02B, CompiledReverseOrderMatchesOriginalFullTraversal) {
+  const std::vector<std::string> expressions{
+      "v(a)",
+      "v(a,b)",
+      "v(a,a)",
+      "i(vsense)",
+      "v(0,a)",
+      "1+2*3",
+      "-gain",
+      "v(a)-gain",
+      "gain-v(a)",
+      "v(a)<v(b)",
+      "v(a)>v(b)",
+      "v(a)<v(b)<i(vsense)",
+      "v(a)*v(b)+i(vsense)*v(a)",
+      "v(a)/(2+v(b))",
+      "exp(v(a)/5)*(v(a)-v(b))**2+i(vsense)*v(b)",
+      "v(a)**v(b)",
+      "v(a)**(v(b)>0)",
+      "2**v(a)",
+      "v(a)**2.62",
+      "exp(v(a))",
+      "exp(1e100)",
+      "(v(a)*1e100)*0",
+      "1e100*(v(a)*2)",
+      "1e100*(v(a)>0)*2",
+      "(1e100*v(a))-(1e100*v(a))",
+      "(v(a)-v(a)+v(b)-v(b))**v(a)",
+      "if(v(a)>0,v(a)+3,v(b)*i(vsense))",
+      "if(v(a)>0,3,if(v(b)<0,exp(v(b)),v(a)**.5))",
+      "if(v(a)>0,v(a),v(b)**.5)",
+      "if(v(a)>0,1e100*(v(b)>0)*2,v(b))",
+      "if(v(a)>0,exp(v(b)),exp(i(vsense)))",
+      "if(1,2,0**-1)",
+      "if(0,2,0**-1)",
+      "if(1,v(a),v(b)**-1)"};
+  const double minimum = std::numeric_limits<double>::denorm_min();
+  const double infinity = std::numeric_limits<double>::infinity();
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  const std::vector<double> values{
+      0.0,      -0.0,   minimum, -minimum,
+      1e-32,    -1e-32, 1.0,     -1.0,
+      2.0,      -2.0,   14.0,    14.5,
+      1000.0,   1e100,  -1e100,  std::nextafter(1e100, infinity),
+      infinity, nan};
+  for (const auto &text : expressions) {
+    SCOPED_TRACE(text);
+    auto compiled = CompileExpression(text, Bindings());
+    ASSERT_TRUE(compiled.ok()) << compiled.error().message;
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      for (std::size_t j = 0; j < values.size(); ++j) {
+        const std::array<double, 4> state{values[i], values[j], nan,
+                                          values[(i + j) % values.size()]};
+        SameEvaluationBits(EvaluateExpression(compiled.value(), state),
+                           internal::EvaluateExpressionOriginalAdForTesting(
+                               compiled.value(), state));
+      }
+    }
+    SameEvaluationBits(
+        EvaluateExpression(compiled.value(), {}),
+        internal::EvaluateExpressionOriginalAdForTesting(compiled.value(), {}));
+  }
+  SameEvaluationBits(EvaluateExpression(CompiledExpression{}, {}),
+                     internal::EvaluateExpressionOriginalAdForTesting(
+                         CompiledExpression{}, {}));
+}
+
+TEST(Emi02B, OmittedComparisonVisitsKeepIncomingAdjointAndDomainGuards) {
+  auto comparison = CompileExpression("1e100*(v(a)>0)*2", Bindings());
+  ASSERT_TRUE(comparison.ok());
+  // The value is exactly zero and the mathematical derivative of comparison
+  // is zero. Its incoming adjoint nevertheless exceeds the original budget;
+  // omitting only the comparison's no-op visit cannot hide that failure.
+  const std::array<double, 4> state{-1, 0, 0, 0};
+  auto checked = EvaluateExpression(comparison.value(), state);
+  ASSERT_FALSE(checked.ok());
+  EXPECT_EQ(checked.error().code, ErrorCode::kNonFinite);
+  SameEvaluationBits(checked, internal::EvaluateExpressionOriginalAdForTesting(
+                                  comparison.value(), state));
+
+  auto lazy = CompileExpression("if(v(a)>0,2,0**-1)", Bindings());
+  ASSERT_TRUE(lazy.ok());
+  for (const double condition : {1.0, 0.0, -1.0}) {
+    const std::array<double, 4> input{condition, 0, 0, 0};
+    auto result = EvaluateExpression(lazy.value(), input);
+    EXPECT_EQ(result.ok(), condition > 0);
+    SameEvaluationBits(result, internal::EvaluateExpressionOriginalAdForTesting(
+                                   lazy.value(), input));
+  }
+  auto inactive = CompileExpression("if(v(a)>0,2,v(b))", Bindings());
+  ASSERT_TRUE(inactive.ok());
+  const std::array<double, 4> nonfinite{
+      1, std::numeric_limits<double>::quiet_NaN(), 0, 0};
+  auto rejected = EvaluateExpression(inactive.value(), nonfinite);
+  ASSERT_FALSE(rejected.ok());
+  EXPECT_EQ(rejected.error().code, ErrorCode::kNonFinite);
+  SameEvaluationBits(rejected, internal::EvaluateExpressionOriginalAdForTesting(
+                                   inactive.value(), nonfinite));
+}
+
+TEST(Emi02B, AlternatingLazyPathsMatchOriginalEvaluation) {
+  const std::vector<std::string> texts{
+      "if(v(a)>0,0**-1,-exp(v(b)))",
+      "if(v(a)>0,0**-1,if(v(b)>0,-i(vsense),exp(i(vsense))))",
+      "if(v(a)>0,v(b)*i(vsense),v(b)/i(vsense))",
+      "if(v(a)>0,v(b)**i(vsense),-v(b)+i(vsense))",
+      "if(v(a)>0,if(v(b)>0,v(b)**.5,exp(i(vsense))),v(b)-i(vsense))",
+      "if(v(a)>0,1e100*(v(b)>0)*2,if(v(b)>0,v(b),-i(vsense)))"};
+  std::vector<CompiledExpression> expressions;
+  for (const auto &text : texts) {
+    auto compiled = CompileExpression(text, Bindings());
+    ASSERT_TRUE(compiled.ok()) << compiled.error().message;
+    expressions.push_back(compiled.TakeValue());
+  }
+  const double minimum = std::numeric_limits<double>::denorm_min();
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  const std::array<std::array<double, 4>, 10> states{{
+      {-1, 2, nan, 3},
+      {1, -2, nan, 3},
+      {-1, -2, nan, -3},
+      {1, 0, nan, .5},
+      {-0.0, -0.0, nan, minimum},
+      {1, 1e100, nan, 2},
+      {-1, minimum, nan, -minimum},
+      {1, nan, 0, 0},
+      {-1, 14.5, nan, 1},
+      {1, 2, nan, 0},
+  }};
+  // Reuse stack storage through successes, value failures and AD failures with
+  // different selected paths and AST sizes. Inactive arms remain unevaluated;
+  // their domains must not affect a later successful traversal.
+  for (std::size_t round = 0; round < 12; ++round) {
+    for (std::size_t j = 0; j < states.size(); ++j) {
+      for (std::size_t i = 0; i < expressions.size(); ++i) {
+        const auto &expression = expressions[(i + round) % expressions.size()];
+        const auto &state = states[(j + round) % states.size()];
+        SameEvaluationBits(EvaluateExpression(expression, state),
+                           internal::EvaluateExpressionOriginalAdForTesting(
+                               expression, state));
+      }
+    }
+  }
+
+  const auto inactive_domain = EvaluateExpression(expressions[0], states[0]);
+  ASSERT_TRUE(inactive_domain.ok());
+  EXPECT_EQ(inactive_domain.value().value, -std::exp(2.0));
+  EXPECT_EQ(Derivative(inactive_domain.value(), 1), -std::exp(2.0));
+  EXPECT_EQ(Derivative(inactive_domain.value(), 0), 0.0);
+  const auto active_domain = EvaluateExpression(expressions[0], states[1]);
+  ASSERT_FALSE(active_domain.ok());
+  EXPECT_EQ(active_domain.error().code, ErrorCode::kNonFinite);
+}
+
+TEST(Emi02B, PrivateScalarEvaluationMatchesFullReferenceValueBitsAndErrors) {
+  const std::vector<std::string> texts{
+      "v(a)",
+      "-v(a)",
+      "v(a,b)",
+      "v(a,a)",
+      "v(0,a)",
+      "i(vsense)",
+      "gain-v(a)",
+      "v(a)+v(b)-i(vsense)",
+      "v(a)*v(b)",
+      "v(a)/(2+v(b))",
+      "v(a)**2.5",
+      "exp(v(a))",
+      "v(a)<v(b)",
+      "v(a)>v(b)",
+      "if(v(a)>0,exp(v(b)),v(b)**2)",
+      "if(v(a)>0,if(v(b)>0,v(a),-v(b)),i(vsense))",
+      "if(0,0**-1,v(a))",
+      "if(1,v(a),0**-1)"};
+  const double minimum = std::numeric_limits<double>::denorm_min();
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  const std::array<double, 10> values{-14.0,   -1.0, -minimum, -0.0, 0.0,
+                                      minimum, 1.0,  2.0,      14.0, 14.5};
+  for (const auto &text : texts) {
+    SCOPED_TRACE(text);
+    auto expression = CompileExpression(text, Bindings());
+    ASSERT_TRUE(expression.ok());
+    for (double a : values) {
+      for (double b : values) {
+        const std::array<double, 4> state{a, b, nan, b};
+        auto original = internal::EvaluateExpressionOriginalAdForTesting(
+            expression.value(), state);
+        ASSERT_TRUE(original.ok()) << original.error().message;
+        SameScalarEvaluation(
+            internal::EvaluateExpressionValue(expression.value(), state),
+            original);
+      }
+    }
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(expression.value(), {}),
+        internal::EvaluateExpressionOriginalAdForTesting(expression.value(),
+                                                         {}));
+  }
+
+  for (const std::string text :
+       {"0**-1", "exp(1e100)", "1e100*(v(a)+2)", "if(1,2,v(b))"}) {
+    auto expression = CompileExpression(text, Bindings());
+    ASSERT_TRUE(expression.ok());
+    const std::array<double, 4> state{1, nan, 0, 0};
+    auto original = internal::EvaluateExpressionOriginalAdForTesting(
+        expression.value(), state);
+    ASSERT_FALSE(original.ok());
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(expression.value(), state), original);
+  }
+  for (const std::string text :
+       {"-0", "0-(-0)", "exp(2)", "exp(1000)", "1/0", "0**-1"}) {
+    auto expression =
+        CompileExpression(text, {}, ExpressionDialect::kParameter);
+    ASSERT_TRUE(expression.ok());
+    SameScalarEvaluation(
+        internal::EvaluateExpressionValue(expression.value(), {}),
+        internal::EvaluateExpressionOriginalAdForTesting(expression.value(),
+                                                         {}));
+  }
+  SameScalarEvaluation(
+      internal::EvaluateExpressionValue({}, {}),
+      internal::EvaluateExpressionOriginalAdForTesting({}, {}));
+}
+
+TEST(Emi02B, PrivateScalarSuccessDoesNotProveDerivativeAdmissibility) {
+  for (const auto &[text, input] :
+       std::array<std::pair<const char *, double>, 2>{
+           {{"v(a)**.5", 0}, {"1e100*(v(a)>0)*2", -1}}}) {
+    auto expression = CompileExpression(text, Bindings());
+    ASSERT_TRUE(expression.ok());
+    const std::array<double, 4> state{input, 0, 0, 0};
+    auto value = internal::EvaluateExpressionValue(expression.value(), state);
+    ASSERT_TRUE(value.ok());
+    EXPECT_EQ(std::bit_cast<std::uint64_t>(value.value()),
+              std::bit_cast<std::uint64_t>(0.0));
+    auto full = EvaluateExpression(expression.value(), state);
+    ASSERT_FALSE(full.ok());
+    EXPECT_EQ(full.error().code, ErrorCode::kNonFinite);
+    SameEvaluationBits(full, internal::EvaluateExpressionOriginalAdForTesting(
+                                 expression.value(), state));
+  }
 }
 
 } // namespace

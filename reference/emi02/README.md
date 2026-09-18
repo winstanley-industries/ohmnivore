@@ -14,6 +14,18 @@ jobs are run before complete qualification can pass. An incomplete or failed job
 suppresses whole-study qualification and feasible ranking. Each invocation needs
 a fresh output directory; individual retries cannot repair an existing record.
 
+The model runner selects ADR-005's opt-in physical derivative-history error
+estimator for TRAP. BE startup and recovery retain step doubling. Actual
+full/two-half audits run before history is available, periodically, at guarded
+transitions and during fallback; sixteen consecutive accepted audit agreements
+are required to recover. This numerical policy is limited to the pinned workload,
+with unchanged physical tolerances and external qualification gates. The public
+default retains the existing estimator. Prepared invocation-owned expression,
+matrix and validation caches preserve the checked path's results; final original
+system and KLU backward-error checks remain mandatory. CPU statistics schema
+`emi02-cpu-v2` records method `trapezoidal`, estimator
+`derivative-history-audited-v1`, audit/fallback counts and KLU work counts.
+
 ```sh
 bazel test //reference/emi02:importer_test \
   //reference/emi02:importer_oracle_test //reference/emi02:device_dynamic_test \
