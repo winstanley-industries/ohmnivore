@@ -51,6 +51,27 @@ of a linear-only candidate. The nested expression clocks add approximately 4.62 
 of wall time, so their reported phase shares are not an uninstrumented speedup
 bound. Neither profile establishes GPU acceleration.
 
+## Resident follow-up candidate
+
+A separate `//cuda:emi03_resident_worker` keeps integration, Newton iterations,
+expression evaluation, sparse numeric factorization, refinement and accepted-state
+accounting on the device. Private job state and bounded output chunks retain the
+complete circuit. A barrier protects each output row before its shared index
+advances; a wide-circuit regression covers this boundary. Exact Jacobian reuse is
+confined to a private chunk and never bypasses validation of a changed matrix.
+
+Pinned transfer staging and completion queries with a 250 us sleep avoid the
+observed CPU busy wait. A fresh full reference/nominal q0 probe uses only 3.751 s
+of child CPU time but still reaches the 120 s wall limit. Its fresh CPU reference
+finishes in 33.279 s. A separate full frozen q0 DPT completes and passes CPU
+waveform/switching checks, taking 12.783 s on GPU versus 0.597 s on CPU.
+
+The [resident snapshot](evidence/emi03/diagnostics/resident/README.md) retains exact
+source/binary identities, raw outputs, tests, scripts and terminal failure. Seven
+resident tests and the existing 20 CUDA cases pass. This is development evidence,
+not the complete thirty-job qualification or a passing throughput result. Device
+execution time remains an acceptance blocker.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and

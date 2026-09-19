@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <sstream>
 #include <utility>
@@ -38,7 +39,7 @@ struct JobState {
   std::atomic<std::size_t> cudss_peak{0};
 };
 
-JobState job;
+thread_local JobState job;
 
 void Maximum(std::atomic<std::size_t> &peak, std::size_t value) {
   std::size_t previous = peak.load();
@@ -46,13 +47,22 @@ void Maximum(std::atomic<std::size_t> &peak, std::size_t value) {
   }
 }
 
-cudaError_t Allocate(void **pointer, std::size_t bytes, bool library) {
+bool ConsumeFault(JobState &owner, Emi03CudaFault fault) {
+  if (owner.active && !owner.fault_consumed && owner.options.fault == fault) {
+    owner.fault_consumed = true;
+    return true;
+  }
+  return false;
+}
+
+cudaError_t Allocate(JobState &job, void **pointer, std::size_t bytes,
+                     bool library) {
   *pointer = nullptr;
   if (!job.active)
     return cudaErrorInvalidValue;
   if (bytes == 0)
     return cudaSuccess;
-  if (emi03_cuda_internal::ConsumeFault(Emi03CudaFault::kAllocationFailure)) {
+  if (ConsumeFault(job, Emi03CudaFault::kAllocationFailure)) {
     ++job.statistics.allocation_failures;
     job.library_allocation_failed = library;
     return cudaErrorMemoryAllocation;
@@ -83,7 +93,8 @@ cudaError_t Allocate(void **pointer, std::size_t bytes, bool library) {
   return cudaSuccess;
 }
 
-cudaError_t Free(void *pointer, std::size_t bytes, bool library) {
+cudaError_t Free(JobState &job, void *pointer, std::size_t bytes,
+                 bool library) {
   if (pointer == nullptr)
     return cudaSuccess;
   const auto status = cudaFree(pointer);
@@ -101,19 +112,21 @@ cudaError_t Free(void *pointer, std::size_t bytes, bool library) {
   return cudaSuccess;
 }
 
-int LibraryAllocate(void *, void **pointer, std::size_t bytes, cudaStream_t) {
-  if (emi03_cuda_internal::ConsumeFault(
-          Emi03CudaFault::kCudssAllocationFailure)) {
+int LibraryAllocate(void *context, void **pointer, std::size_t bytes,
+                    cudaStream_t) {
+  auto &job = *static_cast<JobState *>(context);
+  if (ConsumeFault(job, Emi03CudaFault::kCudssAllocationFailure)) {
     *pointer = nullptr;
     ++job.statistics.allocation_failures;
     job.library_allocation_failed = true;
     return static_cast<int>(cudaErrorMemoryAllocation);
   }
-  return static_cast<int>(Allocate(pointer, bytes, true));
+  return static_cast<int>(Allocate(job, pointer, bytes, true));
 }
 
-int LibraryFree(void *, void *pointer, std::size_t bytes, cudaStream_t) {
-  return static_cast<int>(Free(pointer, bytes, true));
+int LibraryFree(void *context, void *pointer, std::size_t bytes, cudaStream_t) {
+  return static_cast<int>(
+      Free(*static_cast<JobState *>(context), pointer, bytes, true));
 }
 
 void CheckCudss(cudssStatus_t status, const char *operation) {
@@ -174,7 +187,7 @@ Emi03CudaStatistics &Statistics() { return job.statistics; }
 void *AllocateDevice(std::size_t bytes) {
   RequireJob();
   void *pointer = nullptr;
-  const auto status = Allocate(&pointer, bytes, false);
+  const auto status = Allocate(job, &pointer, bytes, false);
   if (status == cudaErrorMemoryAllocation)
     throw BackendError(
         ErrorCode::kUnsupportedSize,
@@ -184,7 +197,7 @@ void *AllocateDevice(std::size_t bytes) {
 }
 
 void FreeDevice(void *pointer, std::size_t bytes) noexcept {
-  static_cast<void>(Free(pointer, bytes, false));
+  static_cast<void>(Free(job, pointer, bytes, false));
 }
 
 void Synchronize(cudaStream_t stream) {
@@ -221,6 +234,11 @@ Result<bool> BeginEmi03CudaJob(std::string job_id,
   const auto start = Clock::now();
   try {
     CheckCuda(cudaSetDevice(0), "EMI-03 cudaSetDevice(0)");
+    static std::once_flag scheduling;
+    std::call_once(scheduling, [] {
+      CheckCuda(cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync),
+                "EMI-03 blocking host synchronization");
+    });
     CheckCuda(cudaFree(nullptr), "EMI-03 initialize CUDA context");
     job.statistics.context_setup_ns = Elapsed(start);
     job.active = true;
@@ -258,7 +276,8 @@ std::string Emi03CudaStatisticsJson(const Emi03CudaStatistics &statistics) {
   std::ostringstream out;
   out << "{\"schema\":\"emi03-cuda-v1\",\"backend\":\"cuda-fp64\","
          "\"gpu_fallbacks\":0,\"job_id\":"
-      << JsonString(statistics.job_id);
+      << JsonString(statistics.job_id) << ",\"transient_algorithm\":"
+      << JsonString(statistics.transient_algorithm);
 #define EMI03_JSON_FIELD(name) out << ",\"" #name "\":" << statistics.name
   EMI03_JSON_FIELD(current_device_bytes);
   EMI03_JSON_FIELD(outstanding_device_bytes);

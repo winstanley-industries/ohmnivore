@@ -44,6 +44,8 @@ exports_files(
         "src/transient.cc",
         "src/waveform.cc",
         "benchmarks/emi03_worker.cc",
+        "tests/transient_accuracy_cases.cc",
+        "tests/transient_accuracy_cases.h",
     ],
     visibility = ["//cuda:__pkg__", "//:__pkg__"],
 )

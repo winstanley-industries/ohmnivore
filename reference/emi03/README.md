@@ -26,6 +26,15 @@ bazel run -c opt //reference/emi03:ensemble -- \
   --gpu=/absolute/path/to/emi03_gpu_worker --out=/absolute/new/invocation-b
 ```
 
+The resident follow-up is available for continued development with
+`bazel build -c opt --config=cuda --jobs=1 //cuda:emi03_resident_worker` and
+`bazel test -c opt --config=cuda --jobs=1 --local_test_jobs=1
+//cuda:emi03_resident_test //cuda:emi03_cuda_test`. Pass its absolute binary path
+to `--gpu` explicitly. Its telemetry identifies
+`transient_algorithm=resident-be-trap-fp64-v1`. It is **not qualified**: diagnostic
+and unit-test passes cannot replace full EMI correctness, resource, cold-time,
+median, and P95 gates. See ADR-008 for its ownership and numerical policy.
+
 `--qualify-only` stops after complete qualification and cannot publish a speedup.
 Use two independent invocations, and run no other build or benchmark during
 evidence collection. Source identities are checked again before the summary is

@@ -32,6 +32,7 @@ struct Emi03CudaOptions {
 
 struct Emi03CudaStatistics {
   std::string job_id;
+  std::string transient_algorithm = "host-controller-cudss-v1";
   std::size_t current_device_bytes = 0;
   std::size_t outstanding_device_bytes = 0;
   std::size_t peak_device_bytes = 0;
@@ -69,8 +70,9 @@ struct Emi03CudaStatistics {
   std::uint64_t expression_evaluate_ns = 0;
 };
 
-// One synchronous job per process. A new job cannot inherit numeric state or
-// program buffers. The CUDA primary context may persist in the worker.
+// One synchronous job per host thread. Begin, execution, owned factorizations,
+// and End stay on that thread; new jobs cannot inherit numeric state or program
+// buffers. Independent threads may share the persistent CUDA primary context.
 [[nodiscard]] Result<bool>
 BeginEmi03CudaJob(std::string job_id, const Emi03CudaOptions &options = {});
 [[nodiscard]] Result<Emi03CudaStatistics> EndEmi03CudaJob();

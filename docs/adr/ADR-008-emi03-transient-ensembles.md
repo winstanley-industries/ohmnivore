@@ -150,6 +150,61 @@ failure all prevent publication as a validated result or inclusion in a feasible
 ranking. A valid predicted-infeasible circuit remains a successful simulation.
 This experiment uses fail-closed execution and has no automatic CPU fallback.
 
+## Resident follow-up candidate (not qualified)
+
+`//cuda:emi03_resident_worker` is a separate experimental executor. The initial
+host-controller/cuDSS candidate and its two failed evidence invocations remain
+available. Neither candidate has passed the frozen acceptance gates.
+
+The resident candidate keeps the adaptive BE/TRAP controller, derivative-history
+estimator, Newton iterations, expression evaluation, factorization, refinement,
+and accepted-state accounting on the device in bounded chunks. Each block owns
+one complete circuit and uses native FP64. Output is streamed through the same
+bounded observer and atomically published only after successful completion.
+Ordinary CPU execution remains unchanged. GPU cuDSS still performs initialization;
+KLU supplies symbolic ordering only, never a CPU numeric solve for this executor.
+
+Immutable expression trees are scheduled by dependency level. Guards preserve
+lazy conditional evaluation and inactive-branch domains. Reverse derivatives
+retain the original ordered accumulation for aliased state dependencies.
+The original node magnitude and finite-result checks remain. Affine RHS and
+original-equation residuals use compensated FP64 products and sums.
+
+The sparse numeric plan combines structural ordering and device-discovered row
+pivots. Native FP64 row equilibration uses finite reciprocals, with direct division
+when a reciprocal is not representable. Zero, under-normal, or invalid fixed
+pivots trigger genuine GPU partial pivoting without pivot perturbation. A failed
+original-equation residual guard permits one fresh GPU factorization and bounded
+refinement; it never permits a CPU solve. Accepted Jacobians are checked even when
+the response is zero. A private chunk may reuse a factor only after exact bitwise
+comparison of every Jacobian value; a new chunk or changed matrix invalidates
+reuse. The first dynamic factorization in a chunk ends that chunk
+after its current trial, so the host can rebuild the symbolic plan from the
+encountered device Jacobian. At most 32 plans are prepared per job; further numeric
+pivoting remains on the GPU. Old plans are released as they are replaced.
+These are numerical retries inside one IVP, not failed-job retries or CPU fallbacks.
+
+State vectors, expression scratch, and sparse factors use explicitly bounded
+shared storage. Controlled global buffers remain in the existing allocation
+ledger. Job state and expression caches belong to their host thread; library
+allocation callbacks use their explicit owner context. Private nonblocking streams
+allow independent jobs to share the primary context. Each allocation owner has
+bounded pinned staging of at most 526,336 bytes. Completion queries sleep for
+250 us between attempts because blocking waits consumed a CPU core on the measured
+WSL driver. Transfer, polling and waiting costs remain inside measured wall time.
+All writers finish an output row before its shared index advances. The current
+study
+harness still uses its declared four persistent worker processes; the sixteen-job
+shared-context test does not establish a new qualified scheduling mode.
+
+The resident tests cover the 21 independent analytic accuracy fixtures, lazy
+branches and active invalid domains, changing exact pivots, singular accepted
+Jacobians with zero response, observer and attempt-budget failure, and sixteen
+concurrent private jobs with one isolated allocation fault, plus 192 distinct
+voltage outputs across multiple chunks. Passing those tests is not the thirty-job EMI qualification or a performance pass. Full frozen
+qualification, resource accounting, and both independent performance invocations
+remain required before EMI-03 can be called complete.
+
 ## Exclusions
 
 No mixed precision, new physical model, repaired vendor `vt` interpretation,

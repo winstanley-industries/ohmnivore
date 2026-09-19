@@ -42,7 +42,7 @@ cc_library(
 
 cc_library(
     name = "emi03_interfaces",
-    hdrs = ["emi03_expression.h", "emi03_real_solver.h"],
+    hdrs = ["emi03_expression.h", "emi03_real_solver.h", "emi03_resident.h"],
     tags = ["manual"],
     target_compatible_with = CUDA_SANITIZER_COMPATIBILITY,
     deps = [":emi03_cpp_headers"],
@@ -74,8 +74,8 @@ cc_library(
 
 cuda_library(
     name = "emi03_cuda",
-    srcs = ["emi03_expression.cu", "emi03_real_solver.cu", "//cpp:src/expression_internal.h"],
-    hdrs = ["emi03_cuda_internal.h"],
+    srcs = ["emi03_expression.cu", "emi03_real_solver.cu", "emi03_resident.cu", "//cpp:src/expression_internal.h"],
+    hdrs = ["emi03_cuda_internal.h", "emi03_expression_device.cuh", "emi03_resident_device.cuh"],
     copts = [
         "-std=c++20",
         "--fmad=false",
@@ -105,10 +105,32 @@ cc_binary(
     deps = [":emi03_cuda"],
 )
 
+cc_binary(
+    name = "emi03_resident_worker",
+    srcs = ["//cpp:benchmarks/emi03_worker.cc", "//cpp:src/emi02_runner.cc"],
+    copts = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"],
+    local_defines = ["OHMNIVORE_EMI03_CUDA=1", "OHMNIVORE_EMI03_WORKER=1", "OHMNIVORE_EMI03_RESIDENT=1"],
+    tags = ["manual", "requires-gpu"],
+    target_compatible_with = CUDA_SANITIZER_COMPATIBILITY,
+    visibility = ["//visibility:public"],
+    deps = [":emi03_cuda"],
+)
+
 cc_test(
     name = "emi03_cuda_test",
     size = "medium",
     srcs = ["emi03_expression_test.cc", "emi03_real_solver_test.cc", "gtest_main.cc"],
+    copts = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"],
+    tags = ["manual", "requires-gpu"],
+    target_compatible_with = CUDA_SANITIZER_COMPATIBILITY,
+    visibility = ["//visibility:public"],
+    deps = [":emi03_cuda", "@googletest//:gtest"],
+)
+
+cc_test(
+    name = "emi03_resident_test",
+    size = "large",
+    srcs = ["emi03_resident_test.cc", "gtest_main.cc", "//cpp:tests/transient_accuracy_cases.cc", "//cpp:tests/transient_accuracy_cases.h"],
     copts = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"],
     tags = ["manual", "requires-gpu"],
     target_compatible_with = CUDA_SANITIZER_COMPATIBILITY,
@@ -128,9 +150,21 @@ cc_test(
     visibility = ["//visibility:public"],
 )
 
+cc_test(
+    name = "emi03_resident_linkage_test",
+    size = "small",
+    srcs = ["prepared_ac_cuda_linkage_test.cc"],
+    args = ["$(rootpath :emi03_resident_worker)"],
+    copts = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"],
+    data = [":emi03_resident_worker"],
+    tags = ["manual", "requires-gpu"],
+    target_compatible_with = CUDA_SANITIZER_COMPATIBILITY,
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "emi03_provenance_inputs",
-    srcs = glob(["emi03*.cu", "emi03*.h"]) + ["BUILD.bazel"],
+    srcs = glob(["emi03*.cu", "emi03*.h", "emi03*.cuh", "emi03*.cc"]) + ["BUILD.bazel"],
     visibility = ["//:__pkg__"],
 )
 

@@ -55,6 +55,13 @@ SOURCE_FILES = (
     "cuda/emi03_expression.cu",
     "cuda/emi03_expression.h",
     "cuda/emi03_cuda_internal.h",
+    "cuda/emi03_expression_device.cuh",
+    "cuda/emi03_resident.cu",
+    "cuda/emi03_resident_device.cuh",
+    "cuda/emi03_resident.h",
+    "cuda/emi03_expression_test.cc",
+    "cuda/emi03_real_solver_test.cc",
+    "cuda/emi03_resident_test.cc",
 )
 
 

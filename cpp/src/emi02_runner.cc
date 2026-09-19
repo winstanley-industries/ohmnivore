@@ -19,6 +19,10 @@
 #include "ohmnivore/solver.h"
 #include "ohmnivore/transient.h"
 
+#ifdef OHMNIVORE_EMI03_RESIDENT
+#include "cuda/emi03_resident.h"
+#endif
+
 #ifdef OHMNIVORE_EMI03_PROFILE
 #include "cpp/benchmarks/emi03_profile.h"
 #endif
@@ -186,6 +190,28 @@ int RunEmi02Job(int argc, char **argv) {
               : BehavioralNumericalPolicy::transient_maximum_iterations;
       limits.retain_output_states = false;
       limits.accepted_state_observer = emit;
+#ifdef OHMNIVORE_EMI03_RESIDENT
+      auto solved = RunEmi03ResidentTransient(system, *tran, limits);
+      if (!solved.ok()) {
+        raw.close();
+        return fail(solved.error().code, solved.error().message);
+      }
+      const auto &r = solved.value();
+      attempts = r.attempts;
+      rejected = r.rejected;
+      nonlinear_rejections = r.nonlinear_rejections;
+      history_estimates = r.history_estimates;
+      history_checks = r.history_checks;
+      doubling_estimates = r.doubling_estimates;
+      history_fallback_entries = r.history_fallback_entries;
+      history_fallback_recoveries = r.history_fallback_recoveries;
+      solver_statistics = r.solver_statistics;
+      if (points != r.emitted_points) {
+        raw.close();
+        return fail(ErrorCode::kInvalidStructure,
+                    "resident observer count mismatch");
+      }
+#else
       auto solved = RunTransientAnalysis(system, *tran, limits);
       if (!solved.ok()) {
         raw.close();
@@ -211,6 +237,7 @@ int RunEmi02Job(int argc, char **argv) {
         raw.close();
         return fail(ErrorCode::kInvalidStructure, "observer count mismatch");
       }
+#endif
     } else {
       Result<std::vector<double>> state = [&]() {
         if (system.behavioral_descriptors.empty())
