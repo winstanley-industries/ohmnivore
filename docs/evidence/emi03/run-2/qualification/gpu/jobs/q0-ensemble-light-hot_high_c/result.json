@@ -1,0 +1,85 @@
+{
+  "attempts": 1,
+  "backend": "cuda-fp64",
+  "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+  "candidate": {
+    "cm_geometry": [
+      80,
+      60,
+      12,
+      40
+    ],
+    "cx_f": 4.7e-08,
+    "cy_f": 1e-09,
+    "dm_geometry": [
+      100,
+      60,
+      20,
+      45
+    ],
+    "id": "light",
+    "lcm_h": 0.0001,
+    "ldm_h": 1e-05
+  },
+  "completion_latency_s": 0.6056853639893234,
+  "corner": {
+    "bus_v": 360,
+    "c_scale": 1.1,
+    "id": "hot_high_c",
+    "l_scale": 1.1,
+    "rg_scale": 1.2,
+    "stray_scale": 1.2,
+    "tj_c": 125
+  },
+  "deck_sha256": "ba7ead976bb44ab072db0a6271069a6caebb47a1f3c48a6b96fcf891d6dec6d2",
+  "elapsed_s": 0.6030068100080825,
+  "error": "resource_limit: complete job rejected",
+  "files": {
+    "import.json": "b0f2c573f856bf4122672e0f7016882fe4bdaef00d3c01c014b310cf249adb44",
+    "process.json": "fcf2e722681e464ce5e51d591e1f05808ddbcdedd99504239d0c876798cc26bf"
+  },
+  "fixture": "ensemble",
+  "flattened_sha256": "5e581601d700c417c7d67c384dd7bd548f8a6fae9f1d01c84caa7dd583c777ae",
+  "gpu_telemetry_missing": true,
+  "id": "q0-ensemble-light-hot_high_c",
+  "import": {
+    "adapted_bytes": 29136,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "ambient_temperature_c": 27.0,
+    "archive_bytes": 28318,
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "expanded_components": 178,
+    "expression_tokens": 2132,
+    "flat_deck_sha256": "5e581601d700c417c7d67c384dd7bd548f8a6fae9f1d01c84caa7dd583c777ae",
+    "importer": "emi02-microchip-import-v1",
+    "instances": 8,
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_bytes": 29805,
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "mna_unknowns": 185,
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5",
+    "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+    "packages": 4,
+    "source_deck_sha256": "ba7ead976bb44ab072db0a6271069a6caebb47a1f3c48a6b96fcf891d6dec6d2",
+    "vt_volts": 0.025864916895449997
+  },
+  "level": 0,
+  "max_step_s": 2.5e-09,
+  "process": {
+    "cpu_s": 0.25,
+    "exit_code": -9,
+    "input": "/home/adam/emi03-work/tmp/emi03-job-h915pxn3/input.cir",
+    "status": "resource_limit",
+    "wall_s": 0.5802595469867811,
+    "worker_pid": 3229190,
+    "worker_request": 1
+  },
+  "queue_s": 0.00255476898746565,
+  "reference_version": "emi01-v2",
+  "request_attempted": true,
+  "request_input": "/home/adam/emi03-work/tmp/emi03-job-h915pxn3/input.cir",
+  "sample_step_s": 5e-09,
+  "status": "resource_limit"
+}

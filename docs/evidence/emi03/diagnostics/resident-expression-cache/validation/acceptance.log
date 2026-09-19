@@ -1,0 +1,25 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (1 packages loaded, 0 targets configured).
+INFO: Found 3 test targets...
+INFO: Elapsed time: 0.378s, Critical Path: 0.00s
+INFO: 1 process: 4 action cache hit, 1 internal.
+INFO: Build completed successfully, 1 total action
+//acceptance:ngspice_acceptance_test                            (cached) PASSED in 6.6s
+//cpp:gpu01_prepared_ac_test                                    (cached) PASSED in 0.1s
+//cpp:gpu01_replay_test                                         (cached) PASSED in 0.5s
+
+Executed 0 out of 3 tests: 3 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

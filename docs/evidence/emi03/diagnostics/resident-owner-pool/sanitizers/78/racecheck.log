@@ -1,0 +1,27 @@
+========= COMPUTE-SANITIZER
+Note: Google Test filter = Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from Emi03Resident
+[ RUN      ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption
+========= Error: Race reported between Read access at Emi03Advance+0x13b20
+=========     and Write access at Emi03Advance+0x14c30 [1 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x6880
+=========     and Write access at Emi03Advance+0x79f0 [2 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x6880
+=========     and Write access at Emi03Advance+0x79f0 [1 hazards]
+========= 
+[       OK ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption (181963 ms)
+[ RUN      ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+========= Error: Race reported between Read access at Emi03Advance+0x13b20
+=========     and Write access at Emi03Advance+0x14c30 [2 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x6880
+=========     and Write access at Emi03Advance+0x79f0 [2 hazards]
+========= 
+[       OK ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse (3039 ms)
+[ RUN      ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate
+========= Internal Sanitizer Error: Detected a failure to track a kernel launch. Future records might be incomplete
+========= 

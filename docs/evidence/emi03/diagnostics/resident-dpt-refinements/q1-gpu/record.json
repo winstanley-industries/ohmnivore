@@ -1,0 +1,90 @@
+{
+  "fixture": "dpt",
+  "id": "q1-gpu",
+  "sample_step_s": 5e-10,
+  "max_step_s": 1e-09,
+  "source_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+  "model": {
+    "importer": "emi02-microchip-import-v1",
+    "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+    "ambient_temperature_c": 27.0,
+    "vt_volts": 0.025864916895449997,
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "archive_bytes": 28318,
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "member_bytes": 29805,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapted_bytes": 29136,
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5",
+    "packages": 2,
+    "instances": 4,
+    "expression_tokens": 1066,
+    "mna_unknowns": 80,
+    "expanded_components": 73,
+    "source_deck_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+    "flat_deck_sha256": "521a75938f1386667e1b744c0cd7d0ae366daa2154a0e88625074e305585f532"
+  },
+  "wall_s": 12.190397198952269,
+  "child_cpu_s": 0.5187970000000002,
+  "returncode": 0,
+  "binary_sha256": "158aaf54201f90448db83f7221a479725fc46b7784a42300f5dac5ee4d3c79e8",
+  "status": "qualified",
+  "metrics": {
+    "sample_step_s": 5e-10,
+    "peak_v": 439.2656428041799,
+    "min_v": -19.960670510878156,
+    "peak_gate_v": 24.178574614264402,
+    "min_gate_v": -3.3018003768564297,
+    "load_at_second_on_a": 17.97302986731782,
+    "on_edge_s": 1.713296211892866e-08,
+    "on_half_s": 1.202483191893427e-05,
+    "on_gate_at_vds_10_50_90_v": [
+      9.010302384896592,
+      15.768356869535472,
+      10.545609686436697
+    ],
+    "on_energy_j": 0.000124379017573955,
+    "off_edge_s": 1.2661578017863993e-08,
+    "off_half_s": 1.4034738809304913e-05,
+    "off_gate_at_vds_10_50_90_v": [
+      3.247944282996733,
+      0.3879698965256331,
+      0.38902429908338176
+    ],
+    "off_energy_j": 4.356668311470972e-05,
+    "gate_dynamics": {
+      "on_edge_gate_drop_v": 1.5353073015401044,
+      "drop_limits_v": [
+        0.2,
+        30.0
+      ],
+      "half_crossing_gate_limits_v": [
+        -3.0,
+        23.0
+      ],
+      "pass": true
+    },
+    "ringing": {
+      "status": "measured",
+      "polarity": "positive",
+      "residual_reference_v": 400.0,
+      "peak_times_s": [
+        1.4045e-05,
+        1.4060000000000001e-05,
+        1.4075000000000002e-05
+      ],
+      "peak_amplitudes_v": [
+        39.26564280417989,
+        18.091946194415925,
+        11.540699715290941
+      ],
+      "frequency_hz": 66666666.66666354,
+      "log_decrement": 0.612235007231919
+    },
+    "pass": true
+  },
+  "points": 24820
+}

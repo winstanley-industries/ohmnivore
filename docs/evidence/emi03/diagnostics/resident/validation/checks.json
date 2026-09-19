@@ -1,0 +1,235 @@
+[
+  {
+    "name": "lint",
+    "command": [
+      "bazel",
+      "lint"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 2.1205384731292725
+  },
+  {
+    "name": "build",
+    "command": [
+      "bazel",
+      "build",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.5102701187133789
+  },
+  {
+    "name": "tests",
+    "command": [
+      "bazel",
+      "test",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 1.2272729873657227
+  },
+  {
+    "name": "asan",
+    "command": [
+      "bazel",
+      "test",
+      "--config=asan",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 102.06704115867615
+  },
+  {
+    "name": "ubsan",
+    "command": [
+      "bazel",
+      "test",
+      "--config=ubsan",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 84.49849891662598
+  },
+  {
+    "name": "lockfile",
+    "command": [
+      "bazel",
+      "test",
+      "--lockfile_mode=error",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 69.74972653388977
+  },
+  {
+    "name": "acceptance",
+    "command": [
+      "bazel",
+      "test",
+      "//acceptance:ngspice_acceptance_test",
+      "//cpp:gpu01_prepared_ac_test",
+      "//cpp:gpu01_replay_test"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.4325895309448242
+  },
+  {
+    "name": "ac-replay",
+    "command": [
+      "bazel",
+      "run",
+      "-c",
+      "opt",
+      "//cpp:prepared_ac_replay_benchmark",
+      "--",
+      "--warmups=2",
+      "--repetitions=9"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 27.882242918014526
+  },
+  {
+    "name": "cuda",
+    "command": [
+      "bazel",
+      "test",
+      "-c",
+      "opt",
+      "--config=cuda",
+      "--jobs=1",
+      "//:cuda_smoke_test",
+      "--local_test_jobs=1",
+      "//cuda:emi03_cuda_test",
+      "//cuda:emi03_resident_test",
+      "//cuda:emi03_linkage_test",
+      "//cuda:emi03_resident_linkage_test"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 29.253557920455933
+  },
+  {
+    "name": "cuda-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--jobs=1",
+      "--config=asan",
+      "//cuda:smoke_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.17769312858581543
+  },
+  {
+    "name": "cuda-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--jobs=1",
+      "--config=ubsan",
+      "//cuda:smoke_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.16301298141479492
+  },
+  {
+    "name": "emi03-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--jobs=1",
+      "--config=asan",
+      "//cuda:emi03_gpu_worker"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.17019343376159668
+  },
+  {
+    "name": "emi03-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--jobs=1",
+      "--config=ubsan",
+      "//cuda:emi03_gpu_worker"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.16207051277160645
+  },
+  {
+    "name": "resident-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--jobs=1",
+      "--config=asan",
+      "//cuda:emi03_resident_worker"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.16222810745239258
+  },
+  {
+    "name": "resident-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--jobs=1",
+      "--config=ubsan",
+      "//cuda:emi03_resident_worker"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.17027807235717773
+  },
+  {
+    "name": "opt-gpu",
+    "command": [
+      "bazel",
+      "build",
+      "-c",
+      "opt",
+      "--config=cuda",
+      "--jobs=1",
+      "//cuda:emi03_gpu_worker",
+      "//cuda:emi03_resident_worker"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.3210017681121826
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "source_reconstruction_pass": true,
+  "source_files": 95,
+  "binary_identity_pass": true,
+  "raw_reconstruction_pass": true,
+  "raw_counts": {
+    "dpt-q0/gpu.raw.gz": {
+      "points": 17767,
+      "variables": 5
+    },
+    "dpt-q0/cpu.raw.gz": {
+      "points": 17971,
+      "variables": 5
+    },
+    "reference-q0-budget/cpu.raw.gz": {
+      "points": 461672,
+      "variables": 27
+    }
+  },
+  "dpt_comparison_reproduced": true,
+  "budget_failure_reproduced_from_terminal_record": true,
+  "audit_pass": true,
+  "acceptance_pass": false,
+  "scope": "Single-case development evidence; no complete qualification or performance pass."
+}

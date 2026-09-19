@@ -110,8 +110,13 @@ See the [EMI-02 implementation and qualification results](docs/emi02-results.md)
 Full CPU qualification passes: all sixty CPU/reference jobs, eighty refinement checks and thirty
 differential comparisons pass within the original resource limits. The earlier failed run is retained.
 The ordinary parser does not accept general behavioral sources or vendor model libraries.
-GPU transient ensembles require a qualified EMI-02 result; implementation alone does not open
-that gate. Exact aviation requirements and laboratory correlation
+EMI-03 adds an [opt-in GPU transient ensemble experiment](reference/emi03/README.md)
+with native-FP64 expression evaluation and real sparse solves, persistent CPU/GPU
+workers and fresh CPU validation. Its [bounded contract](docs/adr/ADR-008-emi03-transient-ensembles.md)
+retains the frozen accuracy and complete-study performance gates. The
+[retained experiment results](docs/emi03-results.md) document its resource rejection;
+EMI-03 remains incomplete until every qualification, resource and performance target
+passes. No GPU speedup is established. Exact aviation requirements and laboratory correlation
 remain to be established. See [ADR-002](docs/adr/ADR-002-inverter-emi-design-study.md) and
 [the C++/CUDA roadmap](docs/roadmap.md) for scope, dependencies, and acceptance gates.
 

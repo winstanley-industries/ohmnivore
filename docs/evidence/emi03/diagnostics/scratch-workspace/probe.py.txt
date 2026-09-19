@@ -1,0 +1,28 @@
+import json, os, sys, time
+from pathlib import Path
+from reference.emi01 import study
+from reference.emi02 import qualification
+from reference.emi03 import ensemble
+
+out=Path(sys.argv[1]); out.mkdir(parents=True,exist_ok=False)
+runfiles=Path(os.environ['EMI03_RUNFILES'])
+archive=runfiles/'+http_file+emi01_microchip_model/file/model.zip'
+cpu=runfiles/'_main/cpp/emi03_cpu_worker'
+gpu=Path('/home/adam/emi03-work/bin/emi03_gpu_worker-scratch')
+manifest=study.selected_manifest('emi01-v2')
+spec=study.make_specs(manifest,{},'q0','dpt',0)[0]
+identity={'interpretation':'bounded diagnosis only; not complete qualification or performance evidence','sources':ensemble.identities(),'cpu_sha256':study.sha(cpu.read_bytes()),'gpu_sha256':study.sha(gpu.read_bytes()),'model_sha256':study.sha(archive.read_bytes()),'spec':spec}
+study.write_json(out/'invocation.json',identity)
+record=qualification.run_cpu({**spec,'limits':manifest['limits'],'out':str(out/'cpu')},cpu,archive)
+print('fresh CPU',record['status'],flush=True)
+assert record['status']=='qualified'
+pool=ensemble.PersistentPool(gpu,out/'workers',manifest['limits'],True,4)
+try:
+ specs=[{**spec,'id':f'probe-r{r}-dpt','reference_id':spec['id'],'replica':r} for r in range(4)]
+ result=ensemble.complete_study(specs,identity['gpu_sha256'],archive,out/'gpu',pool,True,{spec['id']:record},out/'cpu')
+ resources=ensemble.pool_resources(pool)
+ study.write_json(out/'resources.json',resources)
+ print(json.dumps({k:v for k,v in resources.items() if k!='device_observations_bytes'}),flush=True)
+ print('pass',result['pass'],flush=True)
+finally:
+ study.write_json(out/'workers.json',pool.close())

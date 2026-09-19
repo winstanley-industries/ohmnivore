@@ -1,0 +1,13 @@
+{
+  "scope": "Software-instrumented 1.03 us coupled diagnostic; not qualification, resource admission or performance acceptance.",
+  "profiler": "Nsight Systems 2026.3.2.476 with CUPTI 13.4",
+  "hardware_counters_requested": false,
+  "resident_launches": 19,
+  "resident_kernel_ns": 1859812914,
+  "resident_kernel_share_of_all_kernel_time": 0.9960002993249844,
+  "first_to_last_resident_span_ns": 1904627536,
+  "resident_gap_ns": 44814622,
+  "resident_duty_fraction": 0.9764706636059052,
+  "device_memcpy_ns": 609840,
+  "interpretation": "Single-job time is dominated by the resident kernel. This trace alone cannot identify its instruction, cache or stall bottleneck."
+}

@@ -1,0 +1,83 @@
+{
+  "scope": "Extended development diagnostic only. Any execution beyond 120 seconds FAILS the frozen wall gate even if the program later completes. No qualification or throughput admission.",
+  "diagnostic_gpu_wall_limit_s": 600,
+  "source_sha256": "85b2236e1875dc6cb9bcaa5059f7ea9d3a48acb5c97120cce5b3300db794d299",
+  "import_identity": {
+    "importer": "emi02-microchip-import-v1",
+    "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+    "ambient_temperature_c": 27.0,
+    "vt_volts": 0.025864916895449997,
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "archive_bytes": 28318,
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "member_bytes": 29805,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapted_bytes": 29136,
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5",
+    "packages": 4,
+    "instances": 8,
+    "expression_tokens": 2132,
+    "mna_unknowns": 185,
+    "expanded_components": 178,
+    "source_deck_sha256": "85b2236e1875dc6cb9bcaa5059f7ea9d3a48acb5c97120cce5b3300db794d299",
+    "flat_deck_sha256": "a5d3ee5feeda479926f8d1563a1c839ef191fd441536c9e1313923cdb836ed75"
+  },
+  "candidate": {
+    "id": "reference",
+    "ldm_h": 0.00033,
+    "lcm_h": 0.001,
+    "cx_f": 1e-06,
+    "cy_f": 4.7e-08,
+    "dm_geometry": [
+      1200,
+      160,
+      48,
+      135
+    ],
+    "cm_geometry": [
+      800,
+      140,
+      40,
+      110
+    ]
+  },
+  "corner": {
+    "id": "nominal",
+    "bus_v": 400,
+    "tj_c": 27,
+    "l_scale": 1,
+    "c_scale": 1,
+    "stray_scale": 1,
+    "rg_scale": 1
+  },
+  "results": {
+    "cpu": {
+      "wall_s": 33.01040222303709,
+      "child_cpu_s": 32.947576999999995,
+      "returncode": 0,
+      "diagnostic_timeout": false,
+      "program_completed": true,
+      "frozen_job_wall_limit_s": 120,
+      "frozen_wall_gate_pass": true,
+      "frozen_cpu_gate_pass": true,
+      "status": "complete",
+      "binary_sha256": "4a3387525d3b26f3698e4f9550482c668408c44038b1ddbc9f4b2bcfe2a8d4d5"
+    },
+    "gpu": {
+      "wall_s": 348.19458438502625,
+      "child_cpu_s": 10.505705000000003,
+      "returncode": 0,
+      "diagnostic_timeout": false,
+      "program_completed": true,
+      "frozen_job_wall_limit_s": 120,
+      "frozen_wall_gate_pass": false,
+      "frozen_cpu_gate_pass": true,
+      "status": "resource_limit",
+      "binary_sha256": "4495d0554a7ec05700c1e7cb244d234acae6959bc056a7409bc993d246c5c580"
+    }
+  },
+  "acceptance_pass": false
+}

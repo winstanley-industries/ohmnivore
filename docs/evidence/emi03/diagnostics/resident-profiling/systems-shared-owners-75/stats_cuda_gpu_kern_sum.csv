@@ -1,0 +1,16 @@
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+99.6,7452991657,76,98065679.7,118308656.0,3782421,187052026,62956083.4,Emi03Advance
+0.1,7986551,156,51195.8,50898.0,47201,64354,2155.9,"void cudss::solve_btf_lu_ker<double, long, int, (int)512, (int)1, (int)0>(T3, T3, T2 *, T3 *, T1 *, T2 *, T1 *, long, T3 *, T2 *, T3 *, T3 *, T1 *, T3 *, T3 *, T3 *, T3 *, int *, T3, T3, T3)"
+0.1,6723183,20,336159.2,337210.5,331658,339562,2574.1,"ohmnivore::<unnamed>::DiscoverPivots(ohmnivore::<unnamed>::Model, ohmnivore::<unnamed>::Workspace *, int *, bool)"
+0.1,6341833,104,60979.2,56225.5,39265,81506,9452.3,"ohmnivore::<unnamed>::EvaluatePrograms(const ohmnivore::emi03_device::DeviceProgram *, unsigned int, const ohmnivore::internal::ExportedExpressionNode *, const unsigned int *, const unsigned int *, const double *, ohmnivore::emi03_device::DeviceResult *, double *, double *, double *, unsigned int *, unsigned char *, bool)"
+0.1,4616656,76,60745.5,60530.0,59202,64546,1017.2,"void cudss::re_main_loop_ker<double, long, int, int, int, double, (int)256, (int)32>(T3, const T4 *, const T5 *, const T5 *, const T5 *, const T1 *, T1 *, T3 *, T2 *, T2 *, T3 *, T1 *, T3 *, T2 *, T3 *, T3 *, T3, T3 *, int, T6, int *, T3 *, int)"
+0.0,3091137,4,772784.3,771480.0,757624,790553,13708.4,"void offsets_par_ker<int, int, int, (int)128, (int)1>(T1, T1 *, T2 *, T3 *, int *, int)"
+0.0,2514479,4,628619.8,551937.5,513232,897372,180226.4,"void cudss::main_loop_ker<double, long, int, int, int, double, (int)256, (int)32, (int)24, (int)6, (int)64, (int)0>(T3, const T4 *, const T5 *, const T5 *, const T5 *, const T1 *, T3 *, T3 *, T1 *, T3 *, T3 *, T3 *, T3 *, T3 *, T2 *, T2 *, T3 *, T1 *, T3 *, T2 *, T3 *, T3 *, T3, T3 *, T3 *, int, T6, T6, int *, T3 *, int)"
+0.0,187204,76,2463.2,2400.0,2336,3072,154.7,"void cudss::offdiag_ker<double, int, int, int, (int)256, (int)1>(T2, const T3 *, const T4 *, const T1 *, T2 *, T2 *, T1 *, T2 *, T2 *, T2 *, T2 *, T2, T2 *, int, int *)"
+0.0,160356,156,1027.9,1024.0,960,1536,70.0,"void cudss::perm_ker<double, int, (int)128, (int)0>(T2, T2 *, T1 *, T1 *, int *)"
+0.0,140038,156,897.7,896.0,832,1120,41.0,"void cudss::perm_ker<double, int, (int)128, (int)1>(T2, T2 *, T1 *, T1 *, int *)"
+0.0,12417,4,3104.3,3104.5,3040,3168,58.6,"void cudss::a_indexes_ker<int, int, (int)256>(T2, const T1 *, const T2 *, T1 *, T2 *, T2 *, int, int)"
+0.0,11104,4,2776.0,2800.0,2496,3008,270.7,"void cudss::offdiag_ker<double, int, int, int, (int)256, (int)0>(T2, const T3 *, const T4 *, const T1 *, T2 *, T2 *, T1 *, T2 *, T2 *, T2 *, T2 *, T2, T2 *, int, int *)"
+0.0,8352,4,2088.0,2096.0,2016,2144,54.7,"void cudss::nnz_per_col_ker<int, int, (int)256>(T2, const T1 *, const T2 *, T1 *, int, int)"
+0.0,5696,4,1424.0,1424.0,1408,1440,18.5,"void cudss::finalize_lu_columns_ker<long, int, (int)256>(T2, T2, T1 *, T1 *, T2 *, T2 *, T2 *, T1 *, T2 *, T2 *, T2 *, int *)"
+0.0,5568,4,1392.0,1392.0,1248,1536,166.3,"void cudss::finalize_pivot_ker<int, (int)256>(T1, T1 *, T1 *, T1 *, T1 *, int *)"

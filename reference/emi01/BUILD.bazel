@@ -14,7 +14,7 @@ SANITIZER_INCOMPATIBILITY = select({
 
 py_library(
     name = "support",
-    visibility = ["//reference/emi02:__pkg__"],
+    visibility = ["//reference/emi02:__pkg__", "//reference/emi03:__pkg__", "//cpp:__pkg__"],
     srcs = [
         "adapter.py",
         "circuits.py",

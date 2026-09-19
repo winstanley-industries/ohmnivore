@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "backend": "cuda-fp64",
+  "binary_sha256": "36fa860641663e8669af09e7a5ac21bf77b99bd4c07985a4d7e028be92e8eac2",
+  "candidate": {
+    "cm_geometry": [
+      800,
+      140,
+      40,
+      110
+    ],
+    "cx_f": 1e-06,
+    "cy_f": 4.7e-08,
+    "dm_geometry": [
+      1200,
+      160,
+      48,
+      135
+    ],
+    "id": "reference",
+    "lcm_h": 0.001,
+    "ldm_h": 0.00033
+  },
+  "completion_latency_s": 0.5652893559890799,
+  "corner": {
+    "bus_v": 440,
+    "c_scale": 0.9,
+    "id": "fast_low_lc",
+    "l_scale": 0.9,
+    "rg_scale": 0.8,
+    "stray_scale": 1.2,
+    "tj_c": 27
+  },
+  "elapsed_s": 7.373979315161705e-06,
+  "error": "resource_limit: complete job rejected",
+  "files": {},
+  "fixture": "ensemble",
+  "id": "q0-ensemble-reference-fast_low_lc",
+  "level": 0,
+  "max_step_s": 6.25e-10,
+  "queue_s": 0.5652816510410048,
+  "reference_version": "emi01-v2",
+  "request_attempted": false,
+  "sample_step_s": 5e-09,
+  "status": "resource_limit"
+}
