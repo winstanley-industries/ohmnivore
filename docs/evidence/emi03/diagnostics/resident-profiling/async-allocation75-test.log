@@ -1,0 +1,125 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+INFO: Found applicable config definition test:cuda in file /home/adam/code/ohmnivore/.bazelrc: --test_output=all
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (0 packages loaded, 1122 targets configured).
+[101 / 107] Compiling cuda/emi03_real_solver.cu; 1s linux-sandbox
+[102 / 107] [Prepa] Linking cuda/libemi03_cuda.a
+[103 / 107] Linking cuda/emi03_cuda_test; 1s linux-sandbox
+[104 / 107] [Prepa] runfiles for //cuda:emi03_cuda_test
+[105 / 108] Linking cuda/emi03_resident_test; 1s linux-sandbox
+[106 / 108] [Prepa] runfiles for //cuda:emi03_resident_test
+INFO: From Testing //cuda:emi03_cuda_test:
+==================== Test output for //cuda:emi03_cuda_test:
+[==========] Running 20 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from Emi03Expression
+[ RUN      ] Emi03Expression.AllOperationsAndDerivativesMatchCpuAuthority
+[       OK ] Emi03Expression.AllOperationsAndDerivativesMatchCpuAuthority (220 ms)
+[ RUN      ] Emi03Expression.LazyIfAndValueOnlyDerivativeBoundaryPreserveErrors
+[       OK ] Emi03Expression.LazyIfAndValueOnlyDerivativeBoundaryPreserveErrors (1 ms)
+[ RUN      ] Emi03Expression.ConstantOnlyZeroStateAndStrictDivisionAreSupported
+[       OK ] Emi03Expression.ConstantOnlyZeroStateAndStrictDivisionAreSupported (1 ms)
+[ RUN      ] Emi03Expression.DuplicateDependenciesAccumulateInOriginalAdOrder
+[       OK ] Emi03Expression.DuplicateDependenciesAccumulateInOriginalAdOrder (1 ms)
+[ RUN      ] Emi03Expression.UnequalProgramWorkspacesStayPrivateAcrossBlocks
+[       OK ] Emi03Expression.UnequalProgramWorkspacesStayPrivateAcrossBlocks (1 ms)
+[ RUN      ] Emi03Expression.DependencyChecksIncludeInactiveArms
+[       OK ] Emi03Expression.DependencyChecksIncludeInactiveArms (1 ms)
+[ RUN      ] Emi03Expression.ProgramOwnershipOrderAndChangingStateStayPrivate
+[       OK ] Emi03Expression.ProgramOwnershipOrderAndChangingStateStayPrivate (1 ms)
+[ RUN      ] Emi03Expression.UncompiledAndWrongStateAreTypedFailures
+[       OK ] Emi03Expression.UncompiledAndWrongStateAreTypedFailures (1 ms)
+[----------] 8 tests from Emi03Expression (229 ms total)
+
+[----------] 2 tests from Emi03ExpressionFailures
+[ RUN      ] Emi03ExpressionFailures.NonfiniteReadbackAndAllocationFailClosed
+[       OK ] Emi03ExpressionFailures.NonfiniteReadbackAndAllocationFailClosed (1 ms)
+[ RUN      ] Emi03ExpressionFailures.FiniteCorruptionRequiresDifferentialValidation
+[       OK ] Emi03ExpressionFailures.FiniteCorruptionRequiresDifferentialValidation (1 ms)
+[----------] 2 tests from Emi03ExpressionFailures (2 ms total)
+
+[----------] 7 tests from Emi03RealSolver
+[ RUN      ] Emi03RealSolver.PivotingRefactorReuseAndOriginalEquationValidation
+[       OK ] Emi03RealSolver.PivotingRefactorReuseAndOriginalEquationValidation (11 ms)
+[ RUN      ] Emi03RealSolver.RowEquilibrationPreservesMixedPhysicalUnits
+[       OK ] Emi03RealSolver.RowEquilibrationPreservesMixedPhysicalUnits (3 ms)
+[ RUN      ] Emi03RealSolver.MandatoryOriginalResidualRefinesWeakCommonMode
+[       OK ] Emi03RealSolver.MandatoryOriginalResidualRefinesWeakCommonMode (3 ms)
+[ RUN      ] Emi03RealSolver.ZeroRhsCannotHideSingularAcceptedJacobian
+[       OK ] Emi03RealSolver.ZeroRhsCannotHideSingularAcceptedJacobian (3 ms)
+[ RUN      ] Emi03RealSolver.MalformedChangedPatternAndNonfiniteInputsFail
+[       OK ] Emi03RealSolver.MalformedChangedPatternAndNonfiniteInputsFail (2 ms)
+[ RUN      ] Emi03RealSolver.EmptySystemUsesNoDeviceBuffers
+[       OK ] Emi03RealSolver.EmptySystemUsesNoDeviceBuffers (0 ms)
+[ RUN      ] Emi03RealSolver.BehavioralTransientPreservesDisplacementCurrent
+[       OK ] Emi03RealSolver.BehavioralTransientPreservesDisplacementCurrent (190 ms)
+[----------] 7 tests from Emi03RealSolver (215 ms total)
+
+[----------] 3 tests from Emi03RealFailures
+[ RUN      ] Emi03RealFailures.FaultsFailClosedAndReleaseAllDeviceBuffers
+[       OK ] Emi03RealFailures.FaultsFailClosedAndReleaseAllDeviceBuffers (20 ms)
+[ RUN      ] Emi03RealFailures.DeviceCapIsEnforcedBeforeAllocation
+[       OK ] Emi03RealFailures.DeviceCapIsEnforcedBeforeAllocation (1 ms)
+[ RUN      ] Emi03RealFailures.ExplicitJobAndClosedOwnershipAreRequired
+[       OK ] Emi03RealFailures.ExplicitJobAndClosedOwnershipAreRequired (2 ms)
+[----------] 3 tests from Emi03RealFailures (25 ms total)
+
+[----------] Global test environment tear-down
+[==========] 20 tests from 4 test suites ran. (472 ms total)
+[  PASSED  ] 20 tests.
+================================================================================
+[108 / 109] 1 / 2 tests; Testing //cuda:emi03_resident_test; 1s linux-sandbox
+[108 / 109] 1 / 2 tests; Testing //cuda:emi03_resident_test; 11s linux-sandbox
+INFO: From Testing //cuda:emi03_resident_test:
+==================== Test output for //cuda:emi03_resident_test:
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from Emi03Resident
+[ RUN      ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles
+[       OK ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles (8982 ms)
+[ RUN      ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption
+[       OK ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption (309 ms)
+[ RUN      ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess
+[       OK ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess (40 ms)
+[ RUN      ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+[       OK ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse (34 ms)
+[ RUN      ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian
+[       OK ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian (12 ms)
+[ RUN      ] Emi03Resident.NestedLazyBranchesPreserveDomains
+[       OK ] Emi03Resident.NestedLazyBranchesPreserveDomains (76 ms)
+[ RUN      ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches
+[       OK ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches (33 ms)
+[ RUN      ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives
+[       OK ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives (256 ms)
+[ RUN      ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation
+[       OK ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation (35 ms)
+[ RUN      ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate
+[       OK ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate (1266 ms)
+[----------] 10 tests from Emi03Resident (11047 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (11047 ms total)
+[  PASSED  ] 10 tests.
+================================================================================
+INFO: Found 2 test targets...
+INFO: Elapsed time: 25.317s, Critical Path: 19.79s
+INFO: 9 processes: 100 action cache hit, 3 internal, 6 linux-sandbox.
+INFO: Build completed successfully, 9 total actions
+//cuda:emi03_cuda_test                                                   PASSED in 0.6s
+//cuda:emi03_resident_test                                               PASSED in 11.2s
+
+Executed 2 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

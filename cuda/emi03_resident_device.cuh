@@ -98,6 +98,7 @@ struct Progress {
   std::uint64_t factors, dense_factors, linear_retries, reuses, solves,
       refinements, expression_batches;
   std::uint64_t full_expressions, value_expressions, expression_cache_hits;
+  std::uint64_t chord_iterations, chord_refreshes;
   std::uint64_t history_estimates, history_checks, doubling;
   std::uint64_t fallback_entries, fallback_recoveries;
   double time, proposed_step, older_time;
@@ -125,6 +126,7 @@ struct Shared {
   double validation_reductions[6][Threads / 32], validation_maxima[6];
   int error;
   bool sparse_factor, factor_valid;
+  double active_scale, factored_scale;
   bool expression_cache_valid, expression_cache_derivatives;
   double *expression_state;
   int factor_changed;
@@ -837,8 +839,10 @@ __device__ void Factor(const Model &m, Workspace &w, Shared &s) {
     for (int k = threadIdx.x; k < m.nnz; k += Threads)
       w.factored_jacobian[k] = w.jacobian[k];
     __syncthreads();
-    if (threadIdx.x == 0)
+    if (threadIdx.x == 0) {
       s.factor_valid = !s.error;
+      s.factored_scale = s.active_scale;
+    }
     __syncthreads();
   }
   if (threadIdx.x == 0)
@@ -1026,15 +1030,61 @@ __device__ double UpdateNorm(const Model &m, Workspace &w, Shared &s) {
   }
   return Maximum(norm, s);
 }
+// A chord iteration solves with a previously validated Jacobian at the exact
+// same companion scale. Form J_old*x - F(x) with compensated products; retain
+// the full fresh nonlinear residual and the linear certification of J_old.
+__device__ void ChordRhs(const Model &m, Workspace &w, Shared &s,
+                         const double *state) {
+  for (int row = threadIdx.x; row < m.n; row += Threads) {
+    Sum affine;
+    affine.Add(w.companion_rhs[row]);
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+      const double old = w.factored_jacobian[k];
+      const int col = s.matrix_columns[k];
+      affine.Product(old, state[col]);
+      affine.Product(-w.base[k], state[col]);
+      w.jacobian[k] = old;
+    }
+    for (int k = m.expression_offsets[row]; k < m.expression_offsets[row + 1];
+         ++k) {
+      const auto stamp = m.expression_stamps[k];
+      affine.Product(-stamp.coefficient, w.expressions[stamp.program].value);
+    }
+    w.affine_rhs[row] = affine.Value();
+    if (!Bounded(w.affine_rhs[row]))
+      Reject(s, Nonfinite);
+  }
+  if (threadIdx.x == 0)
+    ++w.progress.chord_iterations;
+  __syncthreads();
+}
 __device__ void Newton(const Model &m, Workspace &w, Shared &s,
                        const double *initial, double *result) {
   for (int i = threadIdx.x; i < m.n; i += Threads)
     w.current[i] = initial[i];
   __syncthreads();
-  Assemble(m, w, s, w.current, true);
+  bool chord = s.factor_valid && s.active_scale == s.factored_scale;
+  Assemble(m, w, s, w.current, !chord);
+  if (chord && !s.error)
+    ChordRhs(m, w, s, w.current);
+  double previous_residual = ResidualNorm(m, w, s);
   for (int iteration = 0; iteration < m.maximum_newton && !s.error;
        ++iteration) {
     Linear(m, w, s);
+    if (s.error && chord) {
+      // Refresh at the same current state if the lagged linear system fails.
+      // This remains inside the bounded Newton solve, with no job retry.
+      if (threadIdx.x == 0) {
+        s.error = 0;
+        s.factor_valid = false;
+        ++w.progress.chord_refreshes;
+      }
+      __syncthreads();
+      Assemble(m, w, s, w.current, true);
+      if (!s.error)
+        Linear(m, w, s);
+      chord = false;
+    }
     if (s.error)
       return;
     for (int i = threadIdx.x; i < m.n; i += Threads)
@@ -1052,7 +1102,7 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
       }
       __syncthreads();
       if (!s.error)
-        Assemble(m, w, s, w.proposed, true);
+        Assemble(m, w, s, w.proposed, false);
       if (!s.error)
         break;
       if (s.error != Nonfinite)
@@ -1069,6 +1119,11 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
     if (s.error)
       return;
     if (update <= 1 && residual <= 1) {
+      // Acceptance always checks the actual current analytic Jacobian, even
+      // if every preceding chord residual and update is exactly zero.
+      Assemble(m, w, s, w.proposed, true);
+      if (s.error)
+        return;
       double value =
           threadIdx.x < m.programs ? w.expressions[threadIdx.x].value : 0;
       Assemble(m, w, s, w.proposed, false, true);
@@ -1094,6 +1149,16 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
     for (int i = threadIdx.x; i < m.n; i += Threads)
       w.current[i] = w.proposed[i];
     __syncthreads();
+    chord = s.factor_valid && iteration % 3 != 2 &&
+            residual < .5 * previous_residual;
+    previous_residual = residual;
+    if (chord)
+      ChordRhs(m, w, s, w.current);
+    else {
+      if (threadIdx.x == 0)
+        ++w.progress.chord_refreshes;
+      Assemble(m, w, s, w.current, true);
+    }
   }
   if (threadIdx.x == 0 && !s.error)
     s.error = Nonconvergence;
@@ -1107,6 +1172,8 @@ __device__ void Step(const Model &m, Workspace &w, Shared &s,
   if (s.error)
     return;
   const double factor = (backward ? 1.0 : 2.0) / h;
+  if (threadIdx.x == 0)
+    s.active_scale = factor;
   const double source_time = left_limit ? nextafter(t1, t0) : t1;
   for (int row = threadIdx.x; row < m.n; row += Threads) {
     double gp = 0, cp = 0;
@@ -1258,6 +1325,8 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     w = *workspace;
     s.error = 0;
     s.factor_valid = false;
+    s.active_scale = 0;
+    s.factored_scale = -1;
     s.expression_cache_valid = false;
     s.expression_cache_derivatives = false;
     w.progress.output_count = 0;

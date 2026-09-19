@@ -1,0 +1,174 @@
+{
+  "scope": "Numerical diagnostic only; job resource status is retained separately and no over-budget result is admitted.",
+  "physical_comparison": {
+    "pass": true,
+    "waveforms": {
+      "i(va)": {
+        "rms_error": 2.0825807817448196e-06,
+        "limit": 0.21178212822740314,
+        "pass": true
+      },
+      "i(vb)": {
+        "rms_error": 2.082511391767015e-06,
+        "limit": 0.21187771330225744,
+        "pass": true
+      },
+      "vds_ah": {
+        "rms_error": 2.7475092156377297e-05,
+        "limit": 10.0,
+        "pass": true
+      },
+      "vds_al": {
+        "rms_error": 0.0001649229159774825,
+        "limit": 10.0,
+        "pass": true
+      },
+      "vds_bh": {
+        "rms_error": 0.0001458750104485419,
+        "limit": 10.0,
+        "pass": true
+      },
+      "vds_bl": {
+        "rms_error": 6.816401239042275e-05,
+        "limit": 10.0,
+        "pass": true
+      }
+    },
+    "spectra": {
+      "a": {
+        "max_db_above_floor": 0.011768019721511536,
+        "max_a_below_floor": 1.2900258076392418e-08,
+        "failed_bins": 0,
+        "pass": true
+      },
+      "b": {
+        "max_db_above_floor": 0.011756373561023992,
+        "max_a_below_floor": 1.2898075707415893e-08,
+        "failed_bins": 0,
+        "pass": true
+      },
+      "cm": {
+        "max_db_above_floor": 0.011762195038546253,
+        "max_a_below_floor": 1.2899166043540943e-08,
+        "failed_bins": 0,
+        "pass": true
+      },
+      "dm": {
+        "max_db_above_floor": 9.703581124398397e-06,
+        "max_a_below_floor": 1.5735715551420753e-11,
+        "failed_bins": 0,
+        "pass": true
+      }
+    },
+    "physical_classification_agrees": true
+  },
+  "metrics": {
+    "cpu": {
+      "research_margin_db": {
+        "a": 15.666287959985738,
+        "b": 15.665383449912056,
+        "cm": 15.66583584392562,
+        "dm": 29.234384061593666
+      },
+      "stress": {
+        "device_peak_v": 605.3035439427762,
+        "device_peak_a": 34.41572853831176,
+        "capacitor_peak_v": 443.1002031444504,
+        "winding_rms_a": 9.654792358080934,
+        "damping_a_w": 2.722142150396694,
+        "damping_b_w": 2.7316922693200683,
+        "loss_w": 14.245336023418272,
+        "dm_peak_t": 0.07000139274580469,
+        "cm_peak_t": 0.06419510033539641
+      },
+      "stress_limits": {
+        "device_peak_v": 960,
+        "device_peak_a": 50,
+        "capacitor_peak_v": 504,
+        "winding_rms_a": 12,
+        "loss_w": 25,
+        "dm_peak_t": 0.2,
+        "cm_peak_t": 0.2,
+        "damping_a_w": 12,
+        "damping_b_w": 12
+      },
+      "settling": {
+        "a": {
+          "rms_difference_a": 0.030300309624132507,
+          "limit_a": 0.10445809594653918,
+          "pass": true
+        },
+        "b": {
+          "rms_difference_a": 0.02653136353644651,
+          "limit_a": 0.10454598977568111,
+          "pass": true
+        }
+      },
+      "mass_kg": 3.8084193315999992,
+      "rms_cm_a": 0.011714440960186178,
+      "rms_dm_a": 9.591489182279894,
+      "rms_vcm_v": 206.5234883443983,
+      "rms_vdm_v": 193.40892517120716,
+      "rms_chassis_return_a": 1.0581687280215795,
+      "load_series_resistor_w": 1839.9526522274027,
+      "load_winding_loss_surrogate_w": 0.047789645958108515,
+      "rms_load_inductor_a": 9.595032378182555,
+      "violations": [],
+      "status": "predicted_feasible"
+    },
+    "gpu": {
+      "research_margin_db": {
+        "a": 15.666310276776244,
+        "b": 15.665405750597301,
+        "cm": 15.665858152664512,
+        "dm": 29.234384279642633
+      },
+      "stress": {
+        "device_peak_v": 605.3168570540832,
+        "device_peak_a": 34.41574094586335,
+        "capacitor_peak_v": 443.10020628115643,
+        "winding_rms_a": 9.65479237258748,
+        "damping_a_w": 2.722142518343879,
+        "damping_b_w": 2.7316926378166,
+        "loss_w": 14.245336777039313,
+        "dm_peak_t": 0.0700014576725642,
+        "cm_peak_t": 0.06419502914746297
+      },
+      "stress_limits": {
+        "device_peak_v": 960,
+        "device_peak_a": 50,
+        "capacitor_peak_v": 504,
+        "winding_rms_a": 12,
+        "loss_w": 25,
+        "dm_peak_t": 0.2,
+        "cm_peak_t": 0.2,
+        "damping_a_w": 12,
+        "damping_b_w": 12
+      },
+      "settling": {
+        "a": {
+          "rms_difference_a": 0.03030033392420178,
+          "limit_a": 0.10445809594182642,
+          "pass": true
+        },
+        "b": {
+          "rms_difference_a": 0.02653139682246585,
+          "limit_a": 0.10454598969576323,
+          "pass": true
+        }
+      },
+      "mass_kg": 3.8084193315999992,
+      "rms_cm_a": 0.011714396692641172,
+      "rms_dm_a": 9.591489182788159,
+      "rms_vcm_v": 206.5234888964008,
+      "rms_vdm_v": 193.4089252133612,
+      "rms_chassis_return_a": 1.0581687701566562,
+      "load_series_resistor_w": 1839.9526524217576,
+      "load_winding_loss_surrogate_w": 0.047789645871565874,
+      "rms_load_inductor_a": 9.595032378374746,
+      "violations": [],
+      "status": "predicted_feasible"
+    }
+  },
+  "acceptance_pass": false
+}

@@ -100,6 +100,25 @@ all six raw trajectories and reproduces every DPT metric and comparison.
 This checkpoint has no fresh coupled/ngspice qualification, aggregate resource
 pass or passing throughput result.
 
+The [Jacobian-reuse candidate](evidence/emi03/diagnostics/resident-jacobian-reuse/README.md)
+reuses validated factors only within bounded Newton iterations and verifies the
+actual analytic Jacobian at acceptance. Its complete q0 reference/nominal physical
+comparison passes, but GPU wall time is 286.349 s versus 32.947 s CPU. The GPU
+result remains `resource_limit` against the unchanged 120 s gate. Formatting and
+rebuilding reproduce the exact tested binary; both source snapshots are retained.
+Fresh DPT q0/q1/q2 comparisons and all eight refinement checks pass at
+8.583 / 11.639 / 14.544 s GPU versus 0.617 / 0.817 / 1.418 s CPU.
+All eighteen canonical checks pass. This does not establish full qualification
+or throughput.
+
+The [software profiling diagnostics](evidence/emi03/diagnostics/resident-profiling/README.md)
+use a newer checksum-pinned Nsight Systems without hardware counters. They locate
+single-job cost inside the resident kernel and expose interference between GPU
+contexts and allocation owners. A separate one-process ownership prototype reduces
+four shortened-job time from 8.449 s to 2.318 s after replacing legacy device
+allocation and reusing private job staging. These diagnostic observations do not
+qualify the scheduling change or satisfy any complete-study performance gate.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and

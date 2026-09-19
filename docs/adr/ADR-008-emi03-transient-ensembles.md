@@ -231,3 +231,20 @@ optimizer, novel-candidate performance claim, automatic dispatch, distributed
 execution, or laboratory/compliance claim is introduced. Historical EMI and AC
 evidence and Rust source remain unchanged. Results are research predictions for
 the frozen finite input set.
+
+### Bounded Jacobian reuse follow-up
+
+The resident candidate may use a previously validated Jacobian for a chord
+iteration when its companion coefficient matches exactly. It refreshes analytic
+derivatives periodically or when residual reduction is insufficient; failure of
+a lagged linear solve invalidates the cached factor before a same-state refresh.
+Compensated FP64 products form the RHS without subtracting rounded matrices.
+
+Every accepted nonlinear state still requires the actual analytic Jacobian,
+fresh nonlinear values/residuals, the original update/residual tolerances, and
+a nonsingular factorization even for a zero RHS. Original linear certification,
+mandatory first nonzero correction, bounded refinement, timesteps and rollback
+remain. This changes the experimental Newton iteration and must independently
+pass the full frozen qualification. The complete q0 reference/nominal diagnostic
+passes its physical comparison but fails the 120 s wall limit at 286.349 s.
+EMI-03 remains incomplete.

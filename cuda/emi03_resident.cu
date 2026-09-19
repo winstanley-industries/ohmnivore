@@ -829,6 +829,9 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
                    progress.expression_ad_cycles,
                    progress.factor_prepare_cycles, progress.forward_cycles,
                    progress.linear_residual_cycles);
+      std::fprintf(stderr, "resident chord iterations=%llu refreshes=%llu\n",
+                   static_cast<unsigned long long>(progress.chord_iterations),
+                   static_cast<unsigned long long>(progress.chord_refreshes));
       std::fprintf(
           stderr, "resident expression cache hits=%llu\n",
           static_cast<unsigned long long>(progress.expression_cache_hits));
