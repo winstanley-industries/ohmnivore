@@ -129,6 +129,14 @@ incremental device residency and passes its resource audit. These results do not
 qualify the full coupled workload or satisfy its performance targets. Historical
 profiling prototype results remain identified separately from this corrected code.
 
+Two [kernel screening experiments](evidence/emi03/diagnostics/resident-kernel-screening/README.md)
+are rejected. Serial sparse triangular solving takes 4.149 s versus 2.285 s for
+the corrected baseline on a shortened coupled case. Outlining the timestep
+routine takes 2.369 s versus 2.285 s. All twenty GPU diagnostic outputs pass
+short-window CPU waveform checks, but neither trial improves performance or
+qualifies a new implementation. Both patches and their negative results remain
+reconstructable; the working kernel retains neither change.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and
