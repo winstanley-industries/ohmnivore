@@ -20,6 +20,10 @@ struct Stamp {
   int row;
   double coefficient;
 };
+struct RowSource {
+  int source;
+  double coefficient;
+};
 struct Reactive {
   int positive, negative;
   double absolute;
@@ -53,6 +57,7 @@ struct Model {
   bool refresh_enabled = true;
   bool shared_factor_metadata = false;
   bool shared_expression_metadata = false;
+  bool shared_structure = false;
   int n, nodes, nnz, programs, sources, reactive, hard_count,
       expression_node_count;
   int expression_levels = 0, dependency_count = 0;
@@ -73,7 +78,8 @@ struct Model {
   const unsigned char *hard_wave;
   const ExpressionStamp *expression_stamps;
   const Source *source;
-  const Stamp *source_stamps;
+  const int *row_source_offsets;
+  const RowSource *row_sources;
   const Pair *pwl;
   const Reactive *coordinates;
   const DeviceProgram *program;
@@ -133,6 +139,7 @@ struct Shared {
   const FactorEntry *factor_entries;
   const FactorTerm *factor_term;
   int *factor_columns;
+  const int *matrix_rows, *matrix_columns;
   int factor_rows[N + 1];
   std::uint16_t factor_diagonal[N];
   std::uint16_t row_permutation[N], column_permutation[N];
@@ -274,14 +281,11 @@ __device__ double Waveform(const Model &model, const Source &source,
 }
 __device__ double Rhs(const Model &model, int row, double time) {
   double result = model.b[row];
-  for (int j = 0; j < model.sources; ++j) {
-    const auto source = model.source[j];
-    for (int k = 0; k < source.stamps; ++k) {
-      const auto stamp = model.source_stamps[source.stamp_offset + k];
-      if (stamp.row == row)
-        result +=
-            stamp.coefficient * (Waveform(model, source, time) - source.dc);
-    }
+  for (int at = model.row_source_offsets[row];
+       at < model.row_source_offsets[row + 1]; ++at) {
+    const auto stamp = model.row_sources[at];
+    const auto source = model.source[stamp.source];
+    result += stamp.coefficient * (Waveform(model, source, time) - source.dc);
   }
   return result;
 }
@@ -335,6 +339,8 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
       for (int at = m.expression_level_offsets[level] + threadIdx.x;
            at < m.expression_level_offsets[level + 1]; at += Threads) {
         const int index = m.expression_order[at];
+        if (index < 0)
+          continue;
         const auto node = s.expression_nodes[index];
         const int condition = static_cast<int>(node.guard) - 1;
         const bool active =
@@ -413,6 +419,8 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
       for (int at = m.expression_level_offsets[level] + threadIdx.x;
            at < m.expression_level_offsets[level + 1]; at += Threads) {
         const int index = m.expression_order[at];
+        if (index < 0)
+          continue;
         const auto node = s.expression_nodes[index];
         const double adjoint = s.expression_adjoints[index];
         if (adjoint == 0 || node.constant ||
@@ -540,8 +548,8 @@ __device__ void Assemble(const Model &m, Workspace &w, Shared &s,
     double residual = 0, scale = fabs(w.companion_rhs[row]);
     Sum affine;
     affine.Add(w.companion_rhs[row]);
-    for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k) {
-      const int col = m.columns[k];
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+      const int col = s.matrix_columns[k];
       const double a = w.base[k], term = a * state[col];
       residual += term;
       scale += fabs(term);
@@ -593,7 +601,7 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
   }
   for (int row = threadIdx.x; row < m.n; row += Threads) {
     double scale = 0;
-    for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k)
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k)
       scale = PositiveMaximum(scale, fabs(w.jacobian[k]));
     if (!(scale > 0) || !Bounded(scale)) {
       Reject(s, Singular);
@@ -607,9 +615,9 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
     w.lu[i] = 0;
   __syncthreads();
   for (int row = threadIdx.x; row < m.n; row += Threads) {
-    for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k) {
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
       const double value = w.jacobian[k] / w.equil[row];
-      w.lu[row * N + m.columns[k]] = value;
+      w.lu[row * N + s.matrix_columns[k]] = value;
       if (!Bounded(value) || (w.jacobian[k] != 0 && value == 0))
         Reject(s, Nonfinite);
     }
@@ -690,8 +698,11 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
 __global__ void DiscoverPivots(Model m, Workspace *workspace, int *error,
                                bool prefer_diagonal) {
   __shared__ Shared shared;
-  if (threadIdx.x == 0)
+  if (threadIdx.x == 0) {
     shared.error = 0;
+    shared.matrix_rows = m.row_offsets;
+    shared.matrix_columns = m.columns;
+  }
   __syncthreads();
   DenseFactor(m, *workspace, shared, prefer_diagonal);
   if (threadIdx.x == 0)
@@ -744,7 +755,7 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
   __syncthreads();
   for (int row = threadIdx.x; row < m.n; row += Threads) {
     double scale = 0;
-    for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k)
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k)
       scale = PositiveMaximum(scale, fabs(w.jacobian[k]));
     if (!(scale > 0) || !Bounded(scale)) {
       Reject(s, Singular);
@@ -753,7 +764,7 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
     w.equil[row] = scale;
     w.inverse_equil[row] = __drcp_rn(scale);
     double row_norm = 0;
-    for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k) {
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
       const double original = w.jacobian[k];
       const double scaled = isfinite(w.inverse_equil[row])
                                 ? original * w.inverse_equil[row]
@@ -903,8 +914,8 @@ __device__ void Linear(const Model &m, Workspace &w, Shared &s) {
         residual.Add(w.affine_rhs[row]);
         double scale = fabs(w.affine_rhs[row]),
                row_norm = s.sparse_factor ? w.linear_row_norm[row] : 0;
-        for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k) {
-          const int col = m.columns[k];
+        for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+          const int col = s.matrix_columns[k];
           const double a = w.jacobian[k];
           residual.Product(-a, w.solution[col]);
           scale += fabs(a * w.solution[col]);
@@ -1099,8 +1110,8 @@ __device__ void Step(const Model &m, Workspace &w, Shared &s,
   const double source_time = left_limit ? nextafter(t1, t0) : t1;
   for (int row = threadIdx.x; row < m.n; row += Threads) {
     double gp = 0, cp = 0;
-    for (int k = m.row_offsets[row]; k < m.row_offsets[row + 1]; ++k) {
-      const int col = m.columns[k];
+    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+      const int col = s.matrix_columns[k];
       gp += m.g[k] * before[col];
       cp += m.c[k] * before[col];
       w.base[k] = m.g[k] + factor * m.c[k];
@@ -1257,25 +1268,28 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     w.state = vectors + 0 * m.n;
     w.full = vectors + 1 * m.n;
     w.half = vectors + 2 * m.n;
-    w.second = vectors + 3 * m.n;
-    w.current = vectors + 4 * m.n;
-    w.proposed = vectors + 5 * m.n;
-    w.delta = vectors + 6 * m.n;
-    w.companion_rhs = vectors + 7 * m.n;
-    w.affine_rhs = vectors + 8 * m.n;
-    w.residual = vectors + 9 * m.n;
-    w.row_scale = vectors + 10 * m.n;
-    w.solution = vectors + 11 * m.n;
-    w.correction = vectors + 12 * m.n;
-    w.work = vectors + 13 * m.n;
-    w.equil = vectors + 14 * m.n;
+    w.current = vectors + 3 * m.n;
+    w.proposed = vectors + 4 * m.n;
+    w.delta = vectors + 5 * m.n;
+    w.companion_rhs = vectors + 6 * m.n;
+    w.affine_rhs = vectors + 7 * m.n;
+    w.residual = vectors + 8 * m.n;
+    w.row_scale = vectors + 9 * m.n;
+    w.solution = vectors + 10 * m.n;
+    w.equil = vectors + 11 * m.n;
+    w.inverse_equil = vectors + 12 * m.n;
+    w.linear_row_norm = vectors + 13 * m.n;
+    s.expression_state = vectors + 14 * m.n;
+    // Linear correction/forward work finish before the next nonlinear assembly
+    // replaces residual/scale. The second half-step result is the final Newton
+    // proposal and survives until its error/history checks have consumed it.
+    w.correction = w.residual;
+    w.work = w.row_scale;
+    w.second = w.proposed;
     w.history_current = vectors + 15 * m.n;
-    w.history_older = vectors + 16 * m.n;
-    w.history_trial = vectors + 17 * m.n;
-    w.inverse_equil = vectors + 18 * m.n;
-    w.linear_row_norm = vectors + 19 * m.n;
-    s.expression_state = vectors + 20 * m.n;
-    w.base = vectors + 21 * m.n;
+    w.history_older = w.history_current + m.reactive;
+    w.history_trial = w.history_older + m.reactive;
+    w.base = w.history_trial + m.reactive;
     w.jacobian = w.base + m.nnz;
     w.gradients = w.jacobian + m.nnz;
     w.expressions =
@@ -1310,13 +1324,26 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
         m.shared_expression_metadata
             ? reinterpret_cast<const PackedExpressionNode *>(end)
             : m.parallel_nodes;
+    if (m.shared_expression_metadata)
+      end += m.expression_node_count * sizeof(PackedExpressionNode);
+    s.matrix_rows =
+        m.shared_structure ? reinterpret_cast<const int *>(end) : m.row_offsets;
+    s.matrix_columns = m.shared_structure ? s.matrix_rows + m.n + 1 : m.columns;
   }
   __syncthreads();
+  if (m.shared_structure) {
+    for (int i = threadIdx.x; i <= m.n; i += Threads)
+      const_cast<int *>(s.matrix_rows)[i] = m.row_offsets[i];
+    for (int i = threadIdx.x; i < m.nnz; i += Threads)
+      const_cast<int *>(s.matrix_columns)[i] = m.columns[i];
+  }
   for (int i = threadIdx.x; i < m.n; i += Threads) {
     w.state[i] = workspace->state[i];
-    w.history_current[i] = workspace->history_current[i];
-    w.history_older[i] = workspace->history_older[i];
-    w.history_trial[i] = workspace->history_trial[i];
+    if (i < m.reactive) {
+      w.history_current[i] = workspace->history_current[i];
+      w.history_older[i] = workspace->history_older[i];
+      w.history_trial[i] = workspace->history_trial[i];
+    }
     s.factor_diagonal[i] = m.factor_diagonal[i];
     s.row_permutation[i] = m.row_permutation[i];
     s.column_permutation[i] = m.column_permutation[i];
@@ -1485,9 +1512,11 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
   }
   for (int i = threadIdx.x; i < m.n; i += Threads) {
     workspace->state[i] = w.state[i];
-    workspace->history_current[i] = w.history_current[i];
-    workspace->history_older[i] = w.history_older[i];
-    workspace->history_trial[i] = w.history_trial[i];
+    if (i < m.reactive) {
+      workspace->history_current[i] = w.history_current[i];
+      workspace->history_older[i] = w.history_older[i];
+      workspace->history_trial[i] = w.history_trial[i];
+    }
   }
   __syncthreads();
   if (threadIdx.x == 0) {

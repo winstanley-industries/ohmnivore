@@ -1,0 +1,77 @@
+==> Linting C/C++
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --@@rules_cuda+//cuda:archs, --@@rules_cuda+//cuda:runtime, --compilation_mode, and 2 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target @@llvm+//tools:clang-format (0 packages loaded, 0 targets configured)
+Analyzing: target @@llvm+//tools:clang-format (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target @@llvm+//tools:clang-format (0 packages loaded, 12 targets configured).
+INFO: Found 1 target...
+Target @@llvm++llvm_toolchain_minimal+llvm-toolchain-minimal-22.1.8-linux-amd64//:bin/clang-format up-to-date (nothing to build)
+INFO: Elapsed time: 0.247s, Critical Path: 0.00s
+INFO: 1 process: 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/external/llvm++llvm_toolchain_minimal+llvm-toolchain-minimal-22.1.8-linux-amd64/bin/clang-format <args omitted>
+==> Linting Python
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target @@ruff_prebuilt+//:ruff (0 packages loaded, 0 targets configured)
+Analyzing: target @@ruff_prebuilt+//:ruff (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target @@ruff_prebuilt+//:ruff (1 packages loaded, 1086 targets configured).
+INFO: Found 1 target...
+Target @@ruff_prebuilt+//:ruff up-to-date:
+  bazel-bin/external/ruff_prebuilt+/ruff
+INFO: Elapsed time: 0.159s, Critical Path: 0.00s
+INFO: 1 process: 5 action cache hit, 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: bazel-bin/external/ruff_prebuilt+/ruff <args omitted>
+E401 [*] Multiple imports on one line
+ --> /home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-expression-cache/compare.py:2:1
+  |
+1 | from pathlib import Path
+2 | import sys,json
+  | ^^^^^^^^^^^^^^^
+3 | from reference.emi01 import circuits,metrics,signals
+4 | from reference.emi03 import ensemble
+  |
+help: Split imports
+
+E702 Multiple statements on one line (semicolon)
+ --> /home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-expression-cache/compare.py:5:20
+  |
+3 | from reference.emi01 import circuits,metrics,signals
+4 | from reference.emi03 import ensemble
+5 | p=Path(sys.argv[1]);tables={};records={}
+  |                    ^
+6 | for lane in ('cpu','gpu'):
+7 |  table=signals.parse_raw((p/(lane+'.raw')).read_bytes(),circuits.DPT_NAMES,16e-6,2e-9)
+  |
+
+E702 Multiple statements on one line (semicolon)
+ --> /home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-expression-cache/compare.py:5:30
+  |
+3 | from reference.emi01 import circuits,metrics,signals
+4 | from reference.emi03 import ensemble
+5 | p=Path(sys.argv[1]);tables={};records={}
+  |                              ^
+6 | for lane in ('cpu','gpu'):
+7 |  table=signals.parse_raw((p/(lane+'.raw')).read_bytes(),circuits.DPT_NAMES,16e-6,2e-9)
+  |
+
+Found 3 errors.
+[*] 1 fixable with the `--fix` option.

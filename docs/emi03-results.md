@@ -89,6 +89,17 @@ verified by the retained audit. The complete reference trajectory above predates
 this cache and does not qualify the changed implementation. Full acceptance
 remains outstanding.
 
+The [three-level DPT checkpoint](evidence/emi03/diagnostics/resident-dpt-refinements/README.md)
+adds ordered row/source lists, compact shared scratch, optional shared CSR indices
+and warp-aligned expression operators. All three frozen DPT CPU/GPU comparisons
+and all eight DPT integration/output-refinement checks pass with fresh CPU runs.
+GPU q0/q1/q2 wall times are 9.686 / 12.190 / 19.602 s, versus 0.667 / 0.817 /
+1.418 s CPU. Ten resident tests and all eighteen canonical validation stages pass.
+The audit reconstructs the exact sources and
+all six raw trajectories and reproduces every DPT metric and comparison.
+This checkpoint has no fresh coupled/ngspice qualification, aggregate resource
+pass or passing throughput result.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and

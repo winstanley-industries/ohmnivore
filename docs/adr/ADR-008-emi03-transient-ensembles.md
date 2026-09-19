@@ -164,7 +164,9 @@ bounded observer and atomically published only after successful completion.
 Ordinary CPU execution remains unchanged. GPU cuDSS still performs initialization;
 KLU supplies symbolic ordering only, never a CPU numeric solve for this executor.
 
-Immutable expression trees are scheduled by dependency level. Guards preserve
+Immutable expression trees are scheduled by dependency level, with each operator
+group aligned to a warp. Padding executes no expression and preserves dependency
+and ordered derivative accumulation. Guards preserve
 lazy conditional evaluation and inactive-branch domains. Reverse derivatives
 retain the original ordered accumulation for aliased state dependencies.
 The original node magnitude and finite-result checks remain. Compact node and
@@ -195,7 +197,11 @@ pivoting remains on the GPU. Old plans are released as they are replaced.
 These are numerical retries inside one IVP, not failed-job retries or CPU fallbacks.
 
 State vectors, expression scratch, and sparse factors use explicitly bounded
-shared storage. Controlled global buffers remain in the existing allocation
+shared storage. Three temporary buffers share storage only across disjoint
+linear/Newton/error-check lifetimes, and derivative histories use the actual
+reactive-coordinate count. Immutable CSR indices use remaining shared storage
+when they fit. Ordered row/source lists avoid scanning unrelated waveform sources
+while preserving accumulation order and source signs. Controlled global buffers remain in the existing allocation
 ledger. Job state and expression caches belong to their host thread; library
 allocation callbacks use their explicit owner context. Private nonblocking streams
 allow independent jobs to share the primary context. Each allocation owner has
@@ -211,7 +217,9 @@ branches and active invalid domains, changing exact pivots, singular accepted
 Jacobians with zero response, observer and attempt-budget failure, and sixteen
 concurrent private jobs with one isolated allocation fault, plus 192 distinct
 voltage outputs across multiple chunks, and expression indices beyond 4,096
-nodes with inactive invalid branches. A separate reduction test checks 1,024
+nodes with inactive invalid branches. Additional regressions cover 64 independent
+nonlinear expressions with constant/ramped inputs and several waveform sources
+contributing to the same row with opposite signs. A separate reduction test checks 1,024
 FP64 magnitude groups against a host oracle. Passing those tests is not the
 thirty-job EMI qualification or a performance pass. Full frozen qualification, resource accounting, and both independent performance invocations
 remain required before EMI-03 can be called complete.

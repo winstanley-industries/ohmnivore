@@ -475,8 +475,14 @@ Model Prepare(const MnaSystem &system, const TranAnalysis &analysis,
     std::stable_sort(members.begin(), members.end(), [&](int a, int b) {
       return parallel[a].op < parallel[b].op;
     });
-    expression_order.insert(expression_order.end(), members.begin(),
-                            members.end());
+    for (std::size_t at = 0; at < members.size(); ++at) {
+      if (at && parallel[members[at]].op != parallel[members[at - 1]].op)
+        while (expression_order.size() % 32)
+          expression_order.push_back(-1);
+      expression_order.push_back(members[at]);
+    }
+    while (expression_order.size() % 32)
+      expression_order.push_back(-1);
     expression_starts.push_back(static_cast<int>(expression_order.size()));
   }
   std::vector<PackedExpressionNode> compact;
@@ -631,7 +637,23 @@ Model Prepare(const MnaSystem &system, const TranAnalysis &analysis,
   m.hard_wave = allocation.Upload(hard_wave);
   m.sources = static_cast<int>(sources.size());
   m.source = allocation.Upload(sources);
-  m.source_stamps = allocation.Upload(stamps);
+  std::vector<int> row_source_offsets{0};
+  std::vector<RowSource> row_sources;
+  for (int row = 0; row < m.n; ++row) {
+    // Preserve source/stamp order, including repeated contributions to one row.
+    for (std::size_t index = 0; index < sources.size(); ++index) {
+      const auto &source = sources[index];
+      for (int k = 0; k < source.stamps; ++k) {
+        const auto &stamp = stamps[source.stamp_offset + k];
+        if (stamp.row == row)
+          row_sources.push_back(
+              RowSource{static_cast<int>(index), stamp.coefficient});
+      }
+    }
+    row_source_offsets.push_back(static_cast<int>(row_sources.size()));
+  }
+  m.row_source_offsets = allocation.Upload(row_source_offsets);
+  m.row_sources = allocation.Upload(row_sources);
   m.pwl = allocation.Upload(pairs);
   workspace.progress.first_audit = true;
   workspace.progress.proposed_step = m.maximum_step;
@@ -658,8 +680,9 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
                       *factor_allocation);
     std::size_t plan_count = 1;
     const auto SharedBytes = [&]() -> std::size_t {
-      return ((model.factor_nonzeros + 23 * model.n + 2 * model.nnz +
-               model.dependency_count + 2 * model.expression_node_count) *
+      return ((model.factor_nonzeros + 17 * model.n + 3 * model.reactive +
+               2 * model.nnz + model.dependency_count +
+               2 * model.expression_node_count) *
                   sizeof(double) +
               model.programs * sizeof(DeviceResult) +
               model.expression_node_count + 7) /
@@ -697,6 +720,11 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
           static_cast<std::size_t>(dynamic_limit);
       if (model.shared_expression_metadata)
         shared_bytes += expression_bytes;
+      const auto structure_bytes = (model.n + 1 + model.nnz) * sizeof(int);
+      model.shared_structure = shared_bytes + structure_bytes <=
+                               static_cast<std::size_t>(dynamic_limit);
+      if (model.shared_structure)
+        shared_bytes += structure_bytes;
     };
     CacheFactorMetadata();
     CheckCuda(cudaFuncSetAttribute(Emi03Advance,

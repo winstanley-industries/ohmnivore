@@ -335,6 +335,94 @@ TEST_F(Emi03Resident,
   EXPECT_EQ(last, 1e-7);
 }
 
+TEST_F(Emi03Resident, IndependentExpressionInputsPreserveValuesAndDerivatives) {
+  std::string deck = "Vfixed fixed 0 1\nVramp ramp 0 DC 1 PWL(0 1 100n 2)\n";
+  for (int i = 0; i < 64; ++i) {
+    const auto suffix = std::to_string(i);
+    const std::string drive = i % 2 == 0 ? "fixed" : "ramp";
+    deck += "R" + suffix + " out" + suffix + " 0 1\nB" + suffix + " out" +
+            suffix + " 0 I={v(out" + suffix + ")*v(out" + suffix + ")-v(" +
+            drive + ")*v(" + drive + ")-" + std::to_string(i + 1) + "}\n";
+  }
+  const auto parsed = ParseBehavioralNetlist(deck);
+  ASSERT_TRUE(parsed.ok()) << parsed.error().message;
+  const auto compiled = CompileBehavioralMna(parsed.value());
+  ASSERT_TRUE(compiled.ok()) << compiled.error().message;
+  const auto &system = compiled.value();
+  std::vector<std::size_t> outputs;
+  for (int i = 0; i < 64; ++i) {
+    const auto found =
+        std::find(system.node_names.begin(), system.node_names.end(),
+                  "out" + std::to_string(i));
+    ASSERT_NE(found, system.node_names.end());
+    outputs.push_back(found - system.node_names.begin());
+  }
+  TransientExecutionLimits limits;
+  limits.retain_output_states = false;
+  limits.behavioral_error_estimator =
+      BehavioralErrorEstimator::kDerivativeHistory;
+  double last = -1;
+  std::size_t count = 0;
+  limits.accepted_state_observer = [&](double time,
+                                       const std::vector<double> &state) {
+    EXPECT_GT(time, last);
+    last = time;
+    ++count;
+    for (int i = 0; i < 64; ++i) {
+      const double drive = i % 2 == 0 ? 1 : 1 + time / 1e-7;
+      const double linear = 1 + 1e-12;
+      const double expected =
+          (-linear + std::sqrt(linear * linear + 4 * (drive * drive + i + 1))) /
+          2;
+      EXPECT_NEAR(state[outputs[i]], expected, 1e-7);
+    }
+    return Result<bool>::Ok(true);
+  };
+  const auto result =
+      RunEmi03ResidentTransient(system, {1e-10, 1e-7, 0, false}, limits);
+  ASSERT_TRUE(result.ok()) << result.error().message;
+  EXPECT_GT(count, 1000U);
+  EXPECT_EQ(last, 1e-7);
+}
+
+TEST_F(Emi03Resident, MultipleWaveformSourcesKeepRowAndSignAssociation) {
+  const auto parsed = ParseBehavioralNetlist(
+      "Irise 0 out DC 1 PWL(0 1 100n 3)\n"
+      "Ifall out 0 DC 2 PWL(0 2 100n 1)\n"
+      "Iother 0 other DC 4 PWL(0 4 100n 5)\n"
+      "Rout out 0 1\nRother other 0 1\nBzero out 0 I={0}\n");
+  ASSERT_TRUE(parsed.ok()) << parsed.error().message;
+  const auto compiled = CompileBehavioralMna(parsed.value());
+  ASSERT_TRUE(compiled.ok()) << compiled.error().message;
+  const auto &system = compiled.value();
+  const auto output =
+      std::find(system.node_names.begin(), system.node_names.end(), "out");
+  const auto other =
+      std::find(system.node_names.begin(), system.node_names.end(), "other");
+  ASSERT_NE(output, system.node_names.end());
+  ASSERT_NE(other, system.node_names.end());
+  TransientExecutionLimits limits;
+  limits.retain_output_states = false;
+  limits.behavioral_error_estimator =
+      BehavioralErrorEstimator::kDerivativeHistory;
+  double last = -1;
+  limits.accepted_state_observer = [&](double time,
+                                       const std::vector<double> &state) {
+    EXPECT_GT(time, last);
+    last = time;
+    const double fraction = time / 1e-7;
+    EXPECT_NEAR(state[output - system.node_names.begin()],
+                (-1 + 3 * fraction) / (1 + 1e-12), 1e-10);
+    EXPECT_NEAR(state[other - system.node_names.begin()],
+                (4 + fraction) / (1 + 1e-12), 1e-10);
+    return Result<bool>::Ok(true);
+  };
+  const auto result =
+      RunEmi03ResidentTransient(system, {1e-9, 1e-7, 0, false}, limits);
+  ASSERT_TRUE(result.ok()) << result.error().message;
+  EXPECT_EQ(last, 1e-7);
+}
+
 TEST_F(Emi03Resident, ConcurrentJobsKeepStateAndFailureOwnershipPrivate) {
   const auto cases = test::TransientAccuracyCases();
   constexpr int count = 16;
