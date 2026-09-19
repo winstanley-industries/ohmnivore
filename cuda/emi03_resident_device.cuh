@@ -33,24 +33,33 @@ struct Guard {
   int condition;
   unsigned int flags;
 };
+// The complete exported tree is validated before compacting its indices.
+// Fourteen bits cover all 16,384 admitted nodes; guard stores condition + 1.
+struct PackedExpressionNode {
+  std::uint64_t first : 14, second : 14, third : 14, guard : 15;
+  ExportedExpressionOp op : 4;
+  std::uint64_t constant : 1, behavioral : 1, positive : 1;
+};
+static_assert(sizeof(PackedExpressionNode) == 8);
 struct FactorTerm {
   std::uint16_t lower, upper;
 };
 struct FactorEntry {
-  std::uint32_t begin;
-  std::uint16_t count;
-  std::int16_t diagonal, pivot;
+  std::uint64_t begin : 24, count : 8;
+  std::int64_t diagonal : 9, pivot : 9;
 };
+static_assert(sizeof(FactorEntry) == 8);
 struct Model {
   bool refresh_enabled = true;
   bool shared_factor_metadata = false;
+  bool shared_expression_metadata = false;
   int n, nodes, nnz, programs, sources, reactive, hard_count,
       expression_node_count;
   int expression_levels = 0, dependency_count = 0;
   const int *expression_jacobian_slots;
   const int *expression_order, *expression_level_offsets;
-  const internal::ExportedExpressionNode *parallel_nodes;
-  const Guard *guards;
+  const PackedExpressionNode *parallel_nodes;
+  const double *literal_values;
   int factor_levels = 0, factor_terms = 0;
   const int *factor_level_offsets, *factor_order;
   const FactorEntry *factor_entries;
@@ -82,7 +91,7 @@ struct Progress {
   std::uint64_t attempts, accepted, rejected, nonlinear;
   std::uint64_t factors, dense_factors, linear_retries, reuses, solves,
       refinements, expression_batches;
-  std::uint64_t full_expressions, value_expressions;
+  std::uint64_t full_expressions, value_expressions, expression_cache_hits;
   std::uint64_t history_estimates, history_checks, doubling;
   std::uint64_t fallback_entries, fallback_recoveries;
   double time, proposed_step, older_time;
@@ -107,11 +116,15 @@ struct Workspace {
 struct Shared {
   Workspace runtime;
   double reductions[Threads / 32], maximum, next_time, step, normalized_error;
+  double validation_reductions[6][Threads / 32], validation_maxima[6];
   int error;
   bool sparse_factor, factor_valid;
+  bool expression_cache_valid, expression_cache_derivatives;
+  double *expression_state;
   int factor_changed;
   double *factor, *triangular, *inverse;
   double *expression_values, *expression_adjoints;
+  const PackedExpressionNode *expression_nodes;
   unsigned char *expression_active;
   int pivot_failure;
   int dense_selected, dense_row_count, dense_column_count;
@@ -120,10 +133,11 @@ struct Shared {
   const FactorEntry *factor_entries;
   const FactorTerm *factor_term;
   int *factor_columns;
-  int factor_rows[N + 1], factor_diagonal[N];
-  int row_permutation[N], column_permutation[N];
-  int forward_offsets[N + 1], forward_rows[N], backward_offsets[N + 1],
-      backward_rows[N];
+  int factor_rows[N + 1];
+  std::uint16_t factor_diagonal[N];
+  std::uint16_t row_permutation[N], column_permutation[N];
+  std::uint16_t forward_offsets[N + 1], forward_rows[N],
+      backward_offsets[N + 1], backward_rows[N];
 
   bool backward, landing, waveform, audit, agreed, disable, checked,
       used_history;
@@ -165,18 +179,40 @@ __device__ double PositiveMaximum(double a, double b) {
 }
 __device__ double Maximum(double value, Shared &shared) {
   const int lane = threadIdx.x & 31, warp = threadIdx.x >> 5;
-  for (int offset = 16; offset; offset /= 2)
-    value = PositiveMaximum(value, __shfl_down_sync(0xffffffff, value, offset));
+  value = WarpMagnitudeMaximum(value);
   if (lane == 0)
     shared.reductions[warp] = value;
   __syncthreads();
-  if (threadIdx.x == 0) {
-    shared.maximum = 0;
-    for (int i = 0; i < Threads / 32; ++i)
-      shared.maximum = PositiveMaximum(shared.maximum, shared.reductions[i]);
+  if (warp == 0) {
+    value =
+        WarpMagnitudeMaximum(lane < Threads / 32 ? shared.reductions[lane] : 0);
+    if (lane == 0)
+      shared.maximum = value;
   }
   __syncthreads();
   return shared.maximum;
+}
+// All six validation maxima share one pair of block barriers. Their
+// nonnegative inputs and reduction operations are unchanged.
+__device__ void ValidationMaxima(double (&values)[6], Shared &s) {
+  const int lane = threadIdx.x & 31, warp = threadIdx.x >> 5;
+#pragma unroll
+  for (int index = 0; index < 6; ++index) {
+    const double value = WarpMagnitudeMaximum(values[index]);
+    if (lane == 0)
+      s.validation_reductions[index][warp] = value;
+  }
+  __syncthreads();
+  if (warp < 6) {
+    const double value = WarpMagnitudeMaximum(
+        lane < Threads / 32 ? s.validation_reductions[warp][lane] : 0);
+    if (lane == 0)
+      s.validation_maxima[warp] = value;
+  }
+  __syncthreads();
+#pragma unroll
+  for (int index = 0; index < 6; ++index)
+    values[index] = s.validation_maxima[index];
 }
 __device__ void Reject(Shared &shared, int error) {
   atomicMax(&shared.error, error);
@@ -250,12 +286,37 @@ __device__ double Rhs(const Model &model, int row, double time) {
   return result;
 }
 __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
-                            const double *state, bool derivatives) {
+                            const double *state, bool derivatives,
+                            bool force_fresh = false) {
   const auto cycles = clock64();
+  bool same = false;
+  if (s.expression_cache_valid && !s.error) {
+    double changed = 0;
+    for (int index = threadIdx.x; index < m.n; index += Threads)
+      if (__double_as_longlong(state[index]) !=
+          __double_as_longlong(s.expression_state[index]))
+        changed = 1;
+    same = Maximum(changed, s) == 0;
+  }
+  const bool keep_derivatives = same && s.expression_cache_derivatives;
+  if (same && !force_fresh && (!derivatives || keep_derivatives)) {
+    if (threadIdx.x == 0) {
+      ++w.progress.expression_cache_hits;
+      w.progress.expression_cycles += clock64() - cycles;
+    }
+    __syncthreads();
+    return;
+  }
+  const bool reuse_values = same && !force_fresh;
+  if (threadIdx.x == 0)
+    s.expression_cache_valid = false;
+  __syncthreads();
   for (int i = threadIdx.x; i < m.expression_node_count; i += Threads) {
-    s.expression_values[i] = 0;
+    if (!reuse_values) {
+      s.expression_values[i] = 0;
+      s.expression_active[i] = 0;
+    }
     s.expression_adjoints[i] = 0;
-    s.expression_active[i] = 0;
   }
   for (int i = threadIdx.x; i < m.programs; i += Threads) {
     const auto program = m.program[i];
@@ -263,76 +324,79 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
       const auto at = program.dependency_offset + j;
       if (!Bounded(state[m.dependencies[at]]))
         Reject(s, Nonfinite);
-      w.gradients[at] = 0;
+      if (derivatives)
+        w.gradients[at] = 0;
     }
   }
   __syncthreads();
   const auto value_start = clock64();
-  for (int level = 0; level < m.expression_levels; ++level) {
-    for (int at = m.expression_level_offsets[level] + threadIdx.x;
-         at < m.expression_level_offsets[level + 1]; at += Threads) {
-      const int index = m.expression_order[at];
-      const auto node = m.parallel_nodes[index];
-      const auto guard = m.guards[index];
-      const bool active = guard.condition < 0 ||
-                          (s.expression_active[guard.condition] &&
-                           ((s.expression_values[guard.condition] != 0) ==
-                            bool(guard.flags & 2)));
-      s.expression_active[index] = active;
-      if (!active)
-        continue;
-      const bool behavioral = guard.flags & 1;
-      double a = 0, b = 0, value = 0;
-      if (node.op != ExportedExpressionOp::kConstant &&
-          node.op != ExportedExpressionOp::kState) {
-        a = s.expression_values[node.first];
-        if (node.op != ExportedExpressionOp::kNegate &&
-            node.op != ExportedExpressionOp::kExp)
-          b = s.expression_values[node.second];
+  if (!reuse_values) {
+    for (int level = 0; level < m.expression_levels; ++level) {
+      for (int at = m.expression_level_offsets[level] + threadIdx.x;
+           at < m.expression_level_offsets[level + 1]; at += Threads) {
+        const int index = m.expression_order[at];
+        const auto node = s.expression_nodes[index];
+        const int condition = static_cast<int>(node.guard) - 1;
+        const bool active =
+            condition < 0 ||
+            (s.expression_active[condition] &&
+             ((s.expression_values[condition] != 0) == bool(node.positive)));
+        s.expression_active[index] = active;
+        if (!active)
+          continue;
+        const bool behavioral = node.behavioral;
+        double a = 0, b = 0, value = 0;
+        if (node.op != ExportedExpressionOp::kConstant &&
+            node.op != ExportedExpressionOp::kState) {
+          a = s.expression_values[node.first];
+          if (node.op != ExportedExpressionOp::kNegate &&
+              node.op != ExportedExpressionOp::kExp)
+            b = s.expression_values[node.second];
+        }
+        switch (node.op) {
+        case ExportedExpressionOp::kConstant:
+          value = m.literal_values[index];
+          break;
+        case ExportedExpressionOp::kState:
+          value = state[node.first];
+          break;
+        case ExportedExpressionOp::kNegate:
+          value = -a;
+          break;
+        case ExportedExpressionOp::kAdd:
+          value = a + b;
+          break;
+        case ExportedExpressionOp::kSubtract:
+          value = a - b;
+          break;
+        case ExportedExpressionOp::kMultiply:
+          value = a * b;
+          break;
+        case ExportedExpressionOp::kDivide:
+          value = a / (behavioral ? Denominator(b) : b);
+          break;
+        case ExportedExpressionOp::kPower:
+          value = pow(fabs(a), b);
+          break;
+        case ExportedExpressionOp::kExp:
+          value = behavioral && a > 14 ? 1202604.284 * (a - 13) : exp(a);
+          break;
+        case ExportedExpressionOp::kLess:
+          value = a < b ? 1.0 : 0.0;
+          break;
+        case ExportedExpressionOp::kGreater:
+          value = a > b ? 1.0 : 0.0;
+          break;
+        case ExportedExpressionOp::kIf:
+          value = s.expression_values[a != 0 ? node.second : node.third];
+          break;
+        }
+        s.expression_values[index] = value;
+        if (!Bounded(value))
+          Reject(s, Nonfinite);
       }
-      switch (node.op) {
-      case ExportedExpressionOp::kConstant:
-        value = node.value;
-        break;
-      case ExportedExpressionOp::kState:
-        value = state[node.first];
-        break;
-      case ExportedExpressionOp::kNegate:
-        value = -a;
-        break;
-      case ExportedExpressionOp::kAdd:
-        value = a + b;
-        break;
-      case ExportedExpressionOp::kSubtract:
-        value = a - b;
-        break;
-      case ExportedExpressionOp::kMultiply:
-        value = a * b;
-        break;
-      case ExportedExpressionOp::kDivide:
-        value = a / (behavioral ? Denominator(b) : b);
-        break;
-      case ExportedExpressionOp::kPower:
-        value = pow(fabs(a), b);
-        break;
-      case ExportedExpressionOp::kExp:
-        value = behavioral && a > 14 ? 1202604.284 * (a - 13) : exp(a);
-        break;
-      case ExportedExpressionOp::kLess:
-        value = a < b ? 1.0 : 0.0;
-        break;
-      case ExportedExpressionOp::kGreater:
-        value = a > b ? 1.0 : 0.0;
-        break;
-      case ExportedExpressionOp::kIf:
-        value = s.expression_values[a != 0 ? node.second : node.third];
-        break;
-      }
-      s.expression_values[index] = value;
-      if (!Bounded(value))
-        Reject(s, Nonfinite);
+      __syncthreads();
     }
-    __syncthreads();
   }
   for (int i = threadIdx.x; i < m.programs; i += Threads) {
     const auto program = m.program[i];
@@ -349,48 +413,48 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
       for (int at = m.expression_level_offsets[level] + threadIdx.x;
            at < m.expression_level_offsets[level + 1]; at += Threads) {
         const int index = m.expression_order[at];
-        const auto node = m.parallel_nodes[index];
+        const auto node = s.expression_nodes[index];
         const double adjoint = s.expression_adjoints[index];
         if (adjoint == 0 || node.constant ||
             node.op == ExportedExpressionOp::kState)
           continue;
         const double a = s.expression_values[node.first],
                      b = s.expression_values[node.second];
-        const bool behavioral = m.guards[index].flags & 1;
+        const bool behavioral = node.behavioral;
         bool error = false;
         switch (node.op) {
         case ExportedExpressionOp::kConstant:
         case ExportedExpressionOp::kState:
           break;
         case ExportedExpressionOp::kNegate:
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.first,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.first,
                      adjoint, -1, &error);
           break;
         case ExportedExpressionOp::kAdd:
         case ExportedExpressionOp::kSubtract:
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.first,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.first,
                      adjoint, 1, &error);
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.second,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.second,
                      adjoint, node.op == ExportedExpressionOp::kAdd ? 1 : -1,
                      &error);
           break;
         case ExportedExpressionOp::kMultiply:
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.first,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.first,
                      adjoint, b, &error);
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.second,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.second,
                      adjoint, a, &error);
           break;
         case ExportedExpressionOp::kDivide: {
           const double denominator = behavioral ? Denominator(b) : b;
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.first,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.first,
                      adjoint, 1 / denominator, &error);
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.second,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints, node.second,
                      adjoint, -(s.expression_values[index] / denominator),
                      &error);
           break;
         }
         case ExportedExpressionOp::kPower:
-          if (!m.parallel_nodes[node.first].constant) {
+          if (!s.expression_nodes[node.first].constant) {
             double slope;
             if (b == 0 || (a == 0 && b > 1))
               slope = 0;
@@ -398,18 +462,18 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
               slope = 1;
             else
               slope = b * pow(fabs(a), b - 1) * (a < 0 ? -1.0 : 1.0);
-            AddAdjoint(m.parallel_nodes, s.expression_adjoints, node.first,
+            AddAdjoint(s.expression_nodes, s.expression_adjoints, node.first,
                        adjoint, slope, &error);
           }
-          if (!m.parallel_nodes[node.second].constant)
+          if (!s.expression_nodes[node.second].constant)
             AddAdjoint(
-                m.parallel_nodes, s.expression_adjoints, node.second, adjoint,
+                s.expression_nodes, s.expression_adjoints, node.second, adjoint,
                 a == 0 && b > 0 ? 0 : s.expression_values[index] * log(fabs(a)),
                 &error);
           break;
         case ExportedExpressionOp::kExp:
           AddAdjoint(
-              m.parallel_nodes, s.expression_adjoints, node.first, adjoint,
+              s.expression_nodes, s.expression_adjoints, node.first, adjoint,
               behavioral && a > 14 ? 1202604.284 : s.expression_values[index],
               &error);
           break;
@@ -417,7 +481,7 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
         case ExportedExpressionOp::kGreater:
           break;
         case ExportedExpressionOp::kIf:
-          AddAdjoint(m.parallel_nodes, s.expression_adjoints,
+          AddAdjoint(s.expression_nodes, s.expression_adjoints,
                      a != 0 ? node.second : node.third, adjoint, 1, &error);
           break;
         }
@@ -447,9 +511,16 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
     (derivatives ? w.progress.full_expressions
                  : w.progress.value_expressions) += m.programs;
   }
+  for (int index = threadIdx.x; index < m.n; index += Threads)
+    s.expression_state[index] = state[index];
   __syncthreads();
-  if (threadIdx.x == 0)
+  if (threadIdx.x == 0) {
+    s.expression_cache_valid = !s.error;
+    s.expression_cache_derivatives =
+        !s.error && (derivatives || keep_derivatives);
     w.progress.expression_cycles += clock64() - cycles;
+  }
+  __syncthreads();
 }
 __device__ double NonlinearHistory(const Model &m, const Workspace &w,
                                    int row) {
@@ -462,8 +533,9 @@ __device__ double NonlinearHistory(const Model &m, const Workspace &w,
   return sum;
 }
 __device__ void Assemble(const Model &m, Workspace &w, Shared &s,
-                         const double *state, bool derivatives) {
-  Expressions(m, w, s, state, derivatives);
+                         const double *state, bool derivatives,
+                         bool force_fresh = false) {
+  Expressions(m, w, s, state, derivatives, force_fresh);
   for (int row = threadIdx.x; row < m.n; row += Threads) {
     double residual = 0, scale = fabs(w.companion_rhs[row]);
     Sum affine;
@@ -602,7 +674,8 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
          at += Threads) {
       const int row = s.dense_rows[at / s.dense_column_count],
                 col = s.dense_columns[at % s.dense_column_count];
-      w.lu[row * N + col] -= w.lu[row * N + k] * w.lu[k * N + col];
+      w.lu[row * N + col] =
+          fma(-w.lu[row * N + k], w.lu[k * N + col], w.lu[row * N + col]);
     }
     __syncthreads();
   }
@@ -634,7 +707,7 @@ __device__ void DenseTriangular(const Model &m, Workspace &w, Shared &s,
     for (int row = 0; row < m.n; ++row) {
       double sum = 0;
       for (int col = lane; col < row; col += 32)
-        sum += w.lu[row * N + col] * w.work[col];
+        sum = fma(w.lu[row * N + col], w.work[col], sum);
       for (int off = 16; off; off /= 2)
         sum += __shfl_down_sync(0xffffffff, sum, off);
       if (lane == 0)
@@ -644,7 +717,7 @@ __device__ void DenseTriangular(const Model &m, Workspace &w, Shared &s,
     for (int row = m.n - 1; row >= 0; --row) {
       double sum = 0;
       for (int col = row + 1 + lane; col < m.n; col += 32)
-        sum += w.lu[row * N + col] * result[col];
+        sum = fma(w.lu[row * N + col], result[col], sum);
       for (int off = 16; off; off /= 2)
         sum += __shfl_down_sync(0xffffffff, sum, off);
       if (lane == 0) {
@@ -708,7 +781,7 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
       double value = s.factor[slot];
       for (int j = entry.begin; j < entry.begin + entry.count; ++j) {
         const auto term = s.factor_term[j];
-        value -= s.factor[term.lower] * s.factor[term.upper];
+        value = fma(-s.factor[term.lower], s.factor[term.upper], value);
       }
       if (entry.diagonal >= 0)
         value *= s.inverse[entry.diagonal];
@@ -781,7 +854,7 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
         const int row = s.forward_rows[at], original = s.row_permutation[row];
         double value = Equilibrated(rhs[original], original, w, s);
         for (int j = s.factor_rows[row]; j < s.factor_diagonal[row]; ++j)
-          value -= s.factor[j] * s.triangular[s.factor_columns[j]];
+          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
         s.triangular[row] = value;
       }
       __syncwarp();
@@ -795,7 +868,7 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
         double value = s.triangular[row];
         for (int j = s.factor_diagonal[row] + 1; j < s.factor_rows[row + 1];
              ++j)
-          value -= s.factor[j] * s.triangular[s.factor_columns[j]];
+          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
         s.triangular[row] = value * s.inverse[row];
         if (!Bounded(s.triangular[row]))
           Reject(s, Nonfinite);
@@ -855,12 +928,15 @@ __device__ void Linear(const Model &m, Workspace &w, Shared &s) {
             rhs_norm, Equilibrated(fabs(w.affine_rhs[row]), row, w, s));
         solution_norm = PositiveMaximum(solution_norm, fabs(w.solution[row]));
       }
-      component = Maximum(component, s);
-      normalized = Maximum(normalized, s);
-      matrix_norm = Maximum(matrix_norm, s);
-      rhs_norm = Maximum(rhs_norm, s);
-      solution_norm = Maximum(solution_norm, s);
-      nonzero = Maximum(nonzero, s);
+      double maxima[]{component, normalized,    matrix_norm,
+                      rhs_norm,  solution_norm, nonzero};
+      ValidationMaxima(maxima, s);
+      component = maxima[0];
+      normalized = maxima[1];
+      matrix_norm = maxima[2];
+      rhs_norm = maxima[3];
+      solution_norm = maxima[4];
+      nonzero = maxima[5];
       if (threadIdx.x == 0)
         w.progress.linear_residual_cycles += clock64() - residual_start;
       const double denom = matrix_norm * solution_norm + rhs_norm;
@@ -984,7 +1060,7 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
     if (update <= 1 && residual <= 1) {
       double value =
           threadIdx.x < m.programs ? w.expressions[threadIdx.x].value : 0;
-      Assemble(m, w, s, w.proposed, false);
+      Assemble(m, w, s, w.proposed, false, true);
       if (threadIdx.x < m.programs &&
           __double_as_longlong(value) !=
               __double_as_longlong(w.expressions[threadIdx.x].value))
@@ -1171,6 +1247,8 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     w = *workspace;
     s.error = 0;
     s.factor_valid = false;
+    s.expression_cache_valid = false;
+    s.expression_cache_derivatives = false;
     w.progress.output_count = 0;
     s.factor = storage;
     s.triangular = storage + m.factor_nonzeros;
@@ -1196,7 +1274,8 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     w.history_trial = vectors + 17 * m.n;
     w.inverse_equil = vectors + 18 * m.n;
     w.linear_row_norm = vectors + 19 * m.n;
-    w.base = vectors + 20 * m.n;
+    s.expression_state = vectors + 20 * m.n;
+    w.base = vectors + 21 * m.n;
     w.jacobian = w.base + m.nnz;
     w.gradients = w.jacobian + m.nnz;
     w.expressions =
@@ -1215,12 +1294,22 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     s.factor_level_offsets = s.factor_order + m.factor_nonzeros;
     s.factor_entries = m.factor_entries;
     s.factor_term = m.factor_term;
+    auto end = (reinterpret_cast<std::uintptr_t>(s.factor_level_offsets +
+                                                 m.factor_levels + 1) +
+                7) &
+               ~std::uintptr_t{7};
     if (m.shared_factor_metadata) {
-      s.factor_entries = reinterpret_cast<const FactorEntry *>(
-          s.factor_level_offsets + m.factor_levels + 1);
+      s.factor_entries = reinterpret_cast<const FactorEntry *>(end);
       s.factor_term = reinterpret_cast<const FactorTerm *>(s.factor_entries +
                                                            m.factor_nonzeros);
+      end = (reinterpret_cast<std::uintptr_t>(s.factor_term + m.factor_terms) +
+             7) &
+            ~std::uintptr_t{7};
     }
+    s.expression_nodes =
+        m.shared_expression_metadata
+            ? reinterpret_cast<const PackedExpressionNode *>(end)
+            : m.parallel_nodes;
   }
   __syncthreads();
   for (int i = threadIdx.x; i < m.n; i += Threads) {
@@ -1254,6 +1343,11 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     for (int i = threadIdx.x; i < m.factor_terms; i += Threads)
       const_cast<FactorTerm *>(s.factor_term)[i] = m.factor_term[i];
   }
+  if (m.shared_expression_metadata)
+    for (int index = threadIdx.x; index < m.expression_node_count;
+         index += Threads)
+      const_cast<PackedExpressionNode *>(s.expression_nodes)[index] =
+          m.parallel_nodes[index];
   __syncthreads();
   const auto dense_before = w.progress.dense_factors;
   for (int chunk = 0;

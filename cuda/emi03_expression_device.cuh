@@ -41,9 +41,10 @@ __device__ inline double Denominator(double value) {
   return value + (value >= 0 ? 1e-32 : -1e-32);
 }
 
-__device__ inline void AddAdjoint(const ExportedExpressionNode *nodes,
-                                  double *adjoints, std::uint32_t child,
-                                  double adjoint, double factor, bool *error) {
+template <typename Node>
+__device__ inline void AddAdjoint(const Node *nodes, double *adjoints,
+                                  std::uint32_t child, double adjoint,
+                                  double factor, bool *error) {
   if (nodes[child].constant)
     return;
   const double term = adjoint * factor;

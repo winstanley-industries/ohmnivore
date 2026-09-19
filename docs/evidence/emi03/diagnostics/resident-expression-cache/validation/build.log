@@ -1,0 +1,21 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 81 targets (2 packages loaded, 0 targets configured)
+Analyzing: 81 targets (2 packages loaded, 14 targets configured)
+
+INFO: Analyzed 81 targets (3 packages loaded, 18675 targets configured, 101 aspect applications).
+[1,537 / 1,544] Foreign Cc - Configure: Building ngspice_46_build; 1s linux-sandbox
+[1,537 / 1,544] Foreign Cc - Configure: Building ngspice_46_build; 11s linux-sandbox
+[1,537 / 1,544] Foreign Cc - Configure: Building ngspice_46_build; 41s linux-sandbox
+[1,538 / 1,544] [Prepa] runfiles for //acceptance:emi02b_expression_test
+INFO: Found 81 targets...
+INFO: Elapsed time: 51.389s, Critical Path: 50.97s
+INFO: 12 processes: 1532 action cache hit, 11 internal, 1 linux-sandbox.
+INFO: Build completed successfully, 12 total actions

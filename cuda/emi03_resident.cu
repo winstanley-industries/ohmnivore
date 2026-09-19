@@ -1,5 +1,6 @@
 #include "cuda/emi03_cuda_internal.h"
 #include "cuda/emi03_expression_device.cuh"
+#include "cuda/emi03_reduction.cuh"
 #include "cuda/emi03_resident.h"
 #include "ohmnivore/behavioral.h"
 #include "ohmnivore/nonlinear.h"
@@ -244,7 +245,10 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
     for (int slot = offsets[row]; slot < offsets[row + 1]; ++slot) {
       const int col = columns[slot];
       auto &entry = entries[slot];
-      entry.begin = static_cast<int>(terms.size());
+      if (terms.size() >= (1U << 24))
+        throw BackendError(ErrorCode::kUnsupportedSize,
+                           "resident factor term encoding bound");
+      entry.begin = terms.size();
       entry.diagonal = row > col ? col : -1;
       entry.pivot = row == col ? row : -1;
       for (int k = 0; k < std::min(row, col); ++k) {
@@ -261,7 +265,10 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
       if (row > col)
         entry_levels[slot] =
             std::max(entry_levels[slot], entry_levels[diagonal[col]] + 1);
-      entry.count = static_cast<std::uint16_t>(terms.size() - entry.begin);
+      if (terms.size() - entry.begin > 255)
+        throw BackendError(ErrorCode::kUnsupportedSize,
+                           "resident factor count encoding bound");
+      entry.count = terms.size() - entry.begin;
     }
   model.factor_levels =
       *std::max_element(entry_levels.begin(), entry_levels.end()) + 1;
@@ -472,8 +479,30 @@ Model Prepare(const MnaSystem &system, const TranAnalysis &analysis,
                             members.end());
     expression_starts.push_back(static_cast<int>(expression_order.size()));
   }
-  m.parallel_nodes = allocation.Upload(parallel);
-  m.guards = allocation.Upload(guards);
+  std::vector<PackedExpressionNode> compact;
+  std::vector<double> literals;
+  for (std::size_t index = 0; index < parallel.size(); ++index) {
+    const auto &node = parallel[index];
+    const auto &guard = guards[index];
+    if (node.first >= 16384 || node.second >= 16384 || node.third >= 16384 ||
+        guard.condition < -1 || guard.condition >= 16384 ||
+        static_cast<unsigned>(node.op) > 11 || node.constant > 1)
+      throw BackendError(ErrorCode::kInvalidStructure,
+                         "resident expression encoding bounds");
+    PackedExpressionNode packed{};
+    packed.first = node.first;
+    packed.second = node.second;
+    packed.third = node.third;
+    packed.guard = guard.condition + 1;
+    packed.op = node.op;
+    packed.constant = node.constant;
+    packed.behavioral = bool(guard.flags & 1);
+    packed.positive = bool(guard.flags & 2);
+    compact.push_back(packed);
+    literals.push_back(node.value);
+  }
+  m.parallel_nodes = allocation.Upload(compact);
+  m.literal_values = allocation.Upload(literals);
   m.expression_order = allocation.Upload(expression_order);
   m.expression_level_offsets = allocation.Upload(expression_starts);
   m.dependency_count = static_cast<int>(dependencies.size());
@@ -629,7 +658,7 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
                       *factor_allocation);
     std::size_t plan_count = 1;
     const auto SharedBytes = [&]() -> std::size_t {
-      return ((model.factor_nonzeros + 22 * model.n + 2 * model.nnz +
+      return ((model.factor_nonzeros + 23 * model.n + 2 * model.nnz +
                model.dependency_count + 2 * model.expression_node_count) *
                   sizeof(double) +
               model.programs * sizeof(DeviceResult) +
@@ -638,7 +667,7 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
              (2 * model.factor_nonzeros + model.factor_levels + 1) *
                  sizeof(int);
     };
-    std::size_t shared_bytes = SharedBytes();
+    std::size_t shared_bytes = (SharedBytes() + 7) / 8 * 8;
     int device_index = 0, shared_limit = 0;
     CheckCuda(cudaGetDevice(&device_index), "resident device query");
     CheckCuda(cudaDeviceGetAttribute(&shared_limit,
@@ -660,7 +689,14 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
       model.shared_factor_metadata =
           shared_bytes + additional <= static_cast<std::size_t>(dynamic_limit);
       if (model.shared_factor_metadata)
-        shared_bytes += additional;
+        shared_bytes = (shared_bytes + additional + 7) / 8 * 8;
+      const auto expression_bytes =
+          model.expression_node_count * sizeof(PackedExpressionNode);
+      model.shared_expression_metadata =
+          shared_bytes + expression_bytes <=
+          static_cast<std::size_t>(dynamic_limit);
+      if (model.shared_expression_metadata)
+        shared_bytes += expression_bytes;
     };
     CacheFactorMetadata();
     CheckCuda(cudaFuncSetAttribute(Emi03Advance,
@@ -729,7 +765,7 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
         auto next = std::make_unique<Allocations>();
         PrepareFactorPlan(system, analysis, initial.value(), model, *next,
                           &values);
-        shared_bytes = SharedBytes();
+        shared_bytes = (SharedBytes() + 7) / 8 * 8;
         CacheFactorMetadata();
         if (shared_bytes > static_cast<std::size_t>(dynamic_limit))
           throw BackendError(ErrorCode::kUnsupportedSize,
@@ -765,6 +801,9 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
                    progress.expression_ad_cycles,
                    progress.factor_prepare_cycles, progress.forward_cycles,
                    progress.linear_residual_cycles);
+      std::fprintf(
+          stderr, "resident expression cache hits=%llu\n",
+          static_cast<unsigned long long>(progress.expression_cache_hits));
       std::fprintf(stderr,
                    "resident n=%d fill=%d expression=%llu factor=%llu "
                    "triangular=%llu total=%llu\n",

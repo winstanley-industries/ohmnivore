@@ -279,6 +279,62 @@ TEST_F(Emi03Resident, NestedLazyBranchesPreserveDomains) {
   }
 }
 
+TEST_F(Emi03Resident,
+       CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches) {
+  // Ten large balanced trees cross the 4096-node boundary without exceeding
+  // the per-program node/depth limits. Repeated state leaves also exercise
+  // ordered derivative accumulation after decoding compact metadata.
+  std::vector<std::string> terms(250, "v(drive)");
+  while (terms.size() > 1) {
+    std::vector<std::string> next;
+    for (std::size_t i = 0; i < terms.size(); i += 2)
+      next.push_back(i + 1 < terms.size()
+                         ? "(" + terms[i] + "+" + terms[i + 1] + ")"
+                         : terms[i]);
+    terms = std::move(next);
+  }
+  std::string deck = "Vdrive drive 0 DC 1 PWL(0 1 100n 2)\n";
+  for (int i = 0; i < 10; ++i) {
+    const auto name = std::to_string(i);
+    deck += "Rload" + name + " out" + name + " 0 1\nBload" + name + " out" +
+            name + " 0 I={-if(v(drive)>-1," + terms[0] + ",0**-1)}\n";
+  }
+  const auto parsed = ParseBehavioralNetlist(deck);
+  ASSERT_TRUE(parsed.ok()) << parsed.error().message;
+  const auto compiled = CompileBehavioralMna(parsed.value());
+  ASSERT_TRUE(compiled.ok()) << compiled.error().message;
+  const auto &system = compiled.value();
+  std::vector<std::size_t> outputs;
+  for (int i = 0; i < 10; ++i) {
+    const auto node =
+        std::find(system.node_names.begin(), system.node_names.end(),
+                  "out" + std::to_string(i));
+    ASSERT_NE(node, system.node_names.end());
+    outputs.push_back(node - system.node_names.begin());
+  }
+  TransientExecutionLimits limits;
+  limits.retain_output_states = false;
+  limits.behavioral_error_estimator =
+      BehavioralErrorEstimator::kDerivativeHistory;
+  double last = -1;
+  std::size_t points = 0;
+  limits.accepted_state_observer = [&](double time,
+                                       const std::vector<double> &state) {
+    EXPECT_GT(time, last);
+    last = time;
+    ++points;
+    const double expected = 250 * (1 + time / 1e-7) / (1 + 1e-12);
+    for (auto index : outputs)
+      EXPECT_NEAR(state[index], expected, 1e-7);
+    return Result<bool>::Ok(true);
+  };
+  const auto result =
+      RunEmi03ResidentTransient(system, {1e-8, 1e-7, 0, false}, limits);
+  ASSERT_TRUE(result.ok()) << result.error().message;
+  EXPECT_GT(points, 10U);
+  EXPECT_EQ(last, 1e-7);
+}
+
 TEST_F(Emi03Resident, ConcurrentJobsKeepStateAndFailureOwnershipPrivate) {
   const auto cases = test::TransientAccuracyCases();
   constexpr int count = 16;

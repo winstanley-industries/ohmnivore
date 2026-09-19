@@ -167,8 +167,18 @@ KLU supplies symbolic ordering only, never a CPU numeric solve for this executor
 Immutable expression trees are scheduled by dependency level. Guards preserve
 lazy conditional evaluation and inactive-branch domains. Reverse derivatives
 retain the original ordered accumulation for aliased state dependencies.
-The original node magnitude and finite-result checks remain. Affine RHS and
-original-equation residuals use compensated FP64 products and sums.
+The original node magnitude and finite-result checks remain. Compact node and
+factor metadata use checked integer bounds and aligned shared storage when it
+fits. Magnitude reductions compare both words of each FP64 representation without
+converting to FP32. Affine RHS and original-equation residuals use compensated
+FP64 products and sums; factor/triangular updates use explicit native FP64 FMA.
+
+Within a private chunk, expression values and derivatives may be reused only for
+bitwise-identical complete states. A value-only result may supply values for a
+subsequent derivative evaluation at the identical state. Failed evaluations never
+populate the cache. The final accepted-state value check always recomputes values;
+its existing residual and bitwise consistency checks remain mandatory. A new chunk
+starts with an invalid expression cache.
 
 The sparse numeric plan combines structural ordering and device-discovered row
 pivots. Native FP64 row equilibration uses finite reciprocals, with direct division
@@ -193,16 +203,17 @@ bounded pinned staging of at most 526,336 bytes. Completion queries sleep for
 250 us between attempts because blocking waits consumed a CPU core on the measured
 WSL driver. Transfer, polling and waiting costs remain inside measured wall time.
 All writers finish an output row before its shared index advances. The current
-study
-harness still uses its declared four persistent worker processes; the sixteen-job
+study harness still uses its declared four persistent worker processes; the sixteen-job
 shared-context test does not establish a new qualified scheduling mode.
 
 The resident tests cover the 21 independent analytic accuracy fixtures, lazy
 branches and active invalid domains, changing exact pivots, singular accepted
 Jacobians with zero response, observer and attempt-budget failure, and sixteen
 concurrent private jobs with one isolated allocation fault, plus 192 distinct
-voltage outputs across multiple chunks. Passing those tests is not the thirty-job EMI qualification or a performance pass. Full frozen
-qualification, resource accounting, and both independent performance invocations
+voltage outputs across multiple chunks, and expression indices beyond 4,096
+nodes with inactive invalid branches. A separate reduction test checks 1,024
+FP64 magnitude groups against a host oracle. Passing those tests is not the
+thirty-job EMI qualification or a performance pass. Full frozen qualification, resource accounting, and both independent performance invocations
 remain required before EMI-03 can be called complete.
 
 ## Exclusions

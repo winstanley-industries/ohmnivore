@@ -72,6 +72,23 @@ resident tests and the existing 20 CUDA cases pass. This is development evidence
 not the complete thirty-job qualification or a passing throughput result. Device
 execution time remains an acceptance blocker.
 
+A later [complete resident trajectory](evidence/emi03/diagnostics/resident-full-reference/README.md)
+passes the full q0 reference/nominal CPU waveform, spectral and physical-classification
+comparison. It takes 348.195 s on GPU versus 33.010 s on CPU and remains a
+`resource_limit` result. An extended diagnostic ceiling allowed completion without
+changing the frozen 120 s gate. Source reconstruction, exact raw outputs, all
+spectral arrays and metrics reproduce in its audit. The GPU emits 483,937 points
+versus 461,672 for CPU; most additional points arise early in the trajectory.
+
+The [exact-state expression-cache checkpoint](evidence/emi03/diagnostics/resident-expression-cache/README.md)
+passes eight resident tests, the existing 20 CUDA cases, the exact-reduction test
+and all eighteen canonical validation stages. It preserves the fresh accepted-state
+value check. Its full frozen q0 DPT passes the complete waveform and switching
+comparison at 9.624 s GPU versus 0.618 s CPU, with source and raw reconstruction
+verified by the retained audit. The complete reference trajectory above predates
+this cache and does not qualify the changed implementation. Full acceptance
+remains outstanding.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and
