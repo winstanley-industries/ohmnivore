@@ -8,6 +8,10 @@
 #include "cuda/emi03_real_solver.h"
 #endif
 
+#ifdef OHMNIVORE_EMI03_RESIDENT
+#include "cuda/emi03_worker_pool.h"
+#endif
+
 // The ordinary EMI-02 runner supplies the same bounded parser, numerical
 // policy, streaming output and atomic publication in both worker builds.
 int RunEmi02Job(int argc, char **argv);
@@ -137,6 +141,10 @@ int Execute(std::vector<std::string> arguments) {
 } // namespace
 
 int main(int argc, char **argv) {
+#ifdef OHMNIVORE_EMI03_RESIDENT
+  if (argc >= 2 && std::string(argv[1]) == "--worker-fds")
+    return RunEmi03WorkerPool(argc, argv, Execute);
+#endif
   if (argc == 4)
     return Execute({argv[0], argv[1], argv[2], argv[3]});
   if (argc != 2 || std::string(argv[1]) != "--worker") {

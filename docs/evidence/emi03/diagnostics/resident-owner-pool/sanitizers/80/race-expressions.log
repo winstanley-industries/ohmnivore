@@ -1,0 +1,27 @@
+========= COMPUTE-SANITIZER
+Note: Google Test filter = Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives:Emi03Resident.NestedLazyBranchesPreserveDomains
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from Emi03Resident
+[ RUN      ] Emi03Resident.NestedLazyBranchesPreserveDomains
+========= Error: Race reported between Write access at ohmnivore::<unnamed>::Maximum(double, ohmnivore::<unnamed>::Shared &)+0xc7810 in emi03_resident_device.cuh:199
+=========     and Read access at ohmnivore::<unnamed>::Maximum(double, ohmnivore::<unnamed>::Shared &)+0x16a4c0 in emi03_resident_device.cuh:202 [16 hazards]
+========= 
+========= Error: Race reported between Write access at Emi03Advance+0x7c330
+=========     and Read access at Emi03Advance+0x85540 [8 hazards]
+========= 
+========= Error: Race reported between Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xc7aa0 in emi03_resident_device.cuh:325
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x16e450 in emi03_resident_device.cuh:405 [8 hazards]
+========= 
+========= Error: Race reported between Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xc7af0 in emi03_resident_device.cuh:326
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x16caa0 in emi03_resident_device.cuh:355 [1 hazards]
+========= 
+[       OK ] Emi03Resident.NestedLazyBranchesPreserveDomains (32337 ms)
+[ RUN      ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives
+[       OK ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives (307277 ms)
+[----------] 2 tests from Emi03Resident (339614 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (339615 ms total)
+[  PASSED  ] 2 tests.
+========= RACECHECK SUMMARY: 4 hazards displayed (4 errors, 0 warnings)

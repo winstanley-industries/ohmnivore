@@ -75,7 +75,9 @@ factorization retry, not a failed-job retry or CPU fallback.
 The minimum-normal epsilon avoids imposing an arbitrary `1e-13` conditioning
 cutoff on mixed-unit MNA equations; zero or under-normal pivots still fail closed.
 
-The frozen GPU mode uses four persistent workers. Each shares a 256 MiB ledger
+The initial GPU mode used four persistent processes. The current resident
+candidate uses sixteen private owner threads in one persistent process/context;
+this scheduling change is not yet qualified. Each job shares a 256 MiB ledger
 between explicit buffers and cuDSS allocations, with explicit cleanup checking.
 The parent also samples aggregate resident memory, including CUDA context and
 kernel local-memory residency, against a pre-worker device baseline. The ledger
@@ -108,9 +110,12 @@ pass complete CPU differential checks and refinement before timing is eligible.
 A failed qualification is retained as negative evidence, and no performance gate
 is evaluated from its surviving subset.
 
-Persistent worker processes execute a tab-separated request protocol with exactly
+Persistent CPU processes and private GPU owner channels execute a tab-separated
+request protocol with exactly
 three absolute paths: input deck, raw output and statistics. Each response binds
-the request input path and reports completion or failure. Workers retain process
+the request input path and reports completion or failure. GPU readiness and
+completion responses also bind owner index and Linux thread ID, and the harness
+checks each owner's actual physical-core affinity. Workers retain process
 and library residency; numerical state is recreated for every job on both backends.
 Workers neither respawn per successful job nor reuse solved trajectories.
 
@@ -141,8 +146,12 @@ device allocation to 4 GiB. Per-job limits remain 120 seconds wall, 110 seconds 
 512 MiB raw output and two million points. CPU oracle workers retain the 1 GiB
 address-space limit. CUDA virtual address reservations are not resident memory;
 GPU workers require explicit resident host/device accounting rather than a 1 GiB
-virtual-address cap. The parent enforces job deadlines and terminates an exhausted
-worker. No selective retry repairs an existing failed result.
+virtual-address cap. GPU request CPU use is conservatively bounded by the whole
+shared process CPU delta over that request, including concurrent owners and
+driver/helper threads. Host memory counts a shared PID once; native device
+accounting sums all owner peaks. The parent enforces job deadlines and terminates
+an exhausted process. All affected jobs retain failures; no selective retry
+repairs an existing failed result.
 
 Unsupported/malformed input, wrong association, missing/truncated output, nonfinite
 values, invalid timing grids, numerical failure, allocation exhaustion and cleanup
@@ -204,13 +213,20 @@ when they fit. Ordered row/source lists avoid scanning unrelated waveform source
 while preserving accumulation order and source signs. Controlled global buffers remain in the existing allocation
 ledger. Job state and expression caches belong to their host thread; library
 allocation callbacks use their explicit owner context. Private nonblocking streams
-allow independent jobs to share the primary context. Each allocation owner has
-bounded pinned staging of at most 526,336 bytes. Completion queries sleep for
+allow independent jobs to share the primary context. Each job has
+bounded pinned staging of at most 526,336 bytes, used sequentially by its private
+streams. Device allocation and release complete on a job-private nonblocking
+allocation stream; consumers wait for allocation and complete before release.
+Failed synchronization/cleanup retains ownership in the allocation ledger.
+Cached driver memory is still subject to the observed residency gate. Completion queries sleep for
 250 us between attempts because blocking waits consumed a CPU core on the measured
 WSL driver. Transfer, polling and waiting costs remain inside measured wall time.
 All writers finish an output row before its shared index advances. The current
-study harness still uses its declared four persistent worker processes; the sixteen-job
-shared-context test does not establish a new qualified scheduling mode.
+study harness records `one-process-private-owner-threads-v1` with sixteen owners.
+Its real-process integration test covers distinct output oracles, repeated
+requests, isolated parser failure and recovery, preexisting-file preservation,
+owner/thread association and shared-process failure. Those checks do not
+establish a qualified scheduling mode or complete-study speedup.
 
 The resident tests cover the 21 independent analytic accuracy fixtures, lazy
 branches and active invalid domains, changing exact pivots, singular accepted

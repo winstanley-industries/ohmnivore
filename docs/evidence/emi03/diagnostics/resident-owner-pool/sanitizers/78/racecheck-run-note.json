@@ -1,0 +1,6 @@
+{
+  "result": "failed",
+  "reason": "Racecheck reported shared-memory read/write hazards in the wide-output and pivot tests, then an internal failure to track a kernel launch in the concurrent test. The incomplete run was interrupted; its remaining instrumented child was terminated. No sanitizer pass is claimed.",
+  "tool_pid": 794252,
+  "target_pid": 794259
+}

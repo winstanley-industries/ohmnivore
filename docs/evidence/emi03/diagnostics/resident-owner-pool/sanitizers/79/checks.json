@@ -1,0 +1,20 @@
+[
+  {
+    "name": "race-cache",
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-79/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 99,
+    "pass": false,
+    "elapsed_s": 4.273277044296265,
+    "binary_sha256": "fcc669ea1b1f2d5f1ffc8548a9ff66120b05307b65766bd560aaff4dd1ed54d5",
+    "scope": "Instrumented correctness only; wide test race checking covers only its first resident kernel chunk; other selected checks cover all launches."
+  }
+]

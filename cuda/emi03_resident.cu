@@ -28,41 +28,62 @@ using emi03_cuda_internal::BackendError;
 using emi03_cuda_internal::CheckCuda;
 #include "cuda/emi03_resident_device.cuh"
 
+class HostStaging {
+public:
+  static constexpr std::size_t kBytes = Chunk * (N + 1) * sizeof(double);
+  HostStaging() {
+    CheckCuda(cudaHostAlloc(&data_, kBytes, cudaHostAllocDefault),
+              "resident private pinned transfer staging");
+  }
+  HostStaging(const HostStaging &) = delete;
+  HostStaging &operator=(const HostStaging &) = delete;
+  ~HostStaging() {
+    if (data_ && cudaFreeHost(data_) != cudaSuccess)
+      ++emi03_cuda_internal::Statistics().cleanup_failures;
+  }
+  void *data() const { return data_; }
+
+private:
+  void *data_ = nullptr;
+};
 class Allocations {
 public:
-  Allocations() {
+  explicit Allocations(HostStaging &staging, cudaStream_t consumer = nullptr)
+      : staging_(staging), consumer_(consumer) {
     CheckCuda(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking),
               "resident stream creation");
   }
+  Allocations(const Allocations &) = delete;
+  Allocations &operator=(const Allocations &) = delete;
   cudaStream_t stream() const { return stream_; }
+  HostStaging &staging() const { return staging_; }
   void Copy(void *destination, const void *source, std::size_t bytes,
             cudaMemcpyKind kind) {
     if (kind != cudaMemcpyHostToDevice && kind != cudaMemcpyDeviceToHost)
       throw BackendError(ErrorCode::kUnsupported, "resident copy direction");
     // Pageable asynchronous copies can spin in the driver before returning.
-    // Keep bounded pinned staging private to each allocation owner. Completion
+    // Keep bounded pinned staging private to each job. Every copy completes
+    // before another stream within this job uses that storage. Completion
     // queries sleep between attempts: blocking event waits still consumed a CPU
     // core on the measured WSL driver. All waiting remains in charged wall
     // time.
-    if (!staging_)
-      CheckCuda(cudaHostAlloc(&staging_, kStagingBytes, cudaHostAllocDefault),
-                "resident pinned transfer staging");
     if (!completed_)
       CheckCuda(
           cudaEventCreateWithFlags(&completed_, cudaEventBlockingSync |
                                                     cudaEventDisableTiming),
           "resident blocking completion event");
-    for (std::size_t offset = 0; offset < bytes; offset += kStagingBytes) {
-      const auto count = std::min(kStagingBytes, bytes - offset);
+    for (std::size_t offset = 0; offset < bytes;
+         offset += HostStaging::kBytes) {
+      const auto count = std::min(HostStaging::kBytes, bytes - offset);
       auto *target = static_cast<unsigned char *>(destination) + offset;
       const auto *input = static_cast<const unsigned char *>(source) + offset;
       if (kind == cudaMemcpyHostToDevice)
-        std::memcpy(staging_, input, count);
-      CheckCuda(
-          cudaMemcpyAsync(kind == cudaMemcpyHostToDevice ? target : staging_,
-                          kind == cudaMemcpyHostToDevice ? staging_ : input,
-                          count, kind, stream_),
-          "resident stream copy");
+        std::memcpy(staging_.data(), input, count);
+      CheckCuda(cudaMemcpyAsync(
+                    kind == cudaMemcpyHostToDevice ? target : staging_.data(),
+                    kind == cudaMemcpyHostToDevice ? staging_.data() : input,
+                    count, kind, stream_),
+                "resident stream copy");
       CheckCuda(cudaEventRecord(completed_, stream_),
                 "resident completion event record");
       const auto start = std::chrono::steady_clock::now();
@@ -77,17 +98,21 @@ public:
               .count();
       CheckCuda(status, "resident completion query");
       if (kind == cudaMemcpyDeviceToHost)
-        std::memcpy(target, staging_, count);
+        std::memcpy(target, staging_.data(), count);
     }
   }
   ~Allocations() {
+    // Factor metadata is uploaded on this owner's stream, but read by the
+    // resident simulation stream. Both must finish before asynchronous release,
+    // including exceptional exits before the normal output-copy completion.
+    if (consumer_ && consumer_ != stream_ &&
+        cudaStreamSynchronize(consumer_) != cudaSuccess)
+      ++emi03_cuda_internal::Statistics().cleanup_failures;
     if (cudaStreamSynchronize(stream_) != cudaSuccess)
       ++emi03_cuda_internal::Statistics().cleanup_failures;
     for (auto it = owned_.rbegin(); it != owned_.rend(); ++it)
       emi03_cuda_internal::FreeDevice(it->first, it->second);
     if (completed_ && cudaEventDestroy(completed_) != cudaSuccess)
-      ++emi03_cuda_internal::Statistics().cleanup_failures;
-    if (staging_ && cudaFreeHost(staging_) != cudaSuccess)
       ++emi03_cuda_internal::Statistics().cleanup_failures;
     if (cudaStreamDestroy(stream_) != cudaSuccess)
       ++emi03_cuda_internal::Statistics().cleanup_failures;
@@ -115,10 +140,10 @@ public:
   }
 
 private:
-  static constexpr std::size_t kStagingBytes = Chunk * (N + 1) * sizeof(double);
   cudaStream_t stream_ = nullptr;
   cudaEvent_t completed_ = nullptr;
-  void *staging_ = nullptr;
+  HostStaging &staging_;
+  cudaStream_t consumer_ = nullptr;
   std::vector<std::pair<void *, std::size_t>> owned_;
 };
 void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
@@ -170,7 +195,7 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
   for (int j = 0; j < model.n; ++j)
     qi[q[j]] = j;
   {
-    Allocations temporary;
+    Allocations temporary(allocation.staging());
     auto w = std::make_unique<Workspace>();
     std::vector<int> dense_offsets, dense_columns;
     std::vector<double> ordered_values;
@@ -669,13 +694,15 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
     emi03_cuda_internal::RequireJob();
     emi03_cuda_internal::Statistics().transient_algorithm =
         "resident-be-trap-fp64-v1";
-    Allocations allocation;
+    HostStaging staging;
+    Allocations allocation(staging);
     auto workspace = std::make_unique<Workspace>();
     auto model = Prepare(system, analysis, limits, allocation, *workspace);
     auto initial = BuildTransientInitialState(system, false);
     if (!initial.ok())
       return Outcome::Fail(initial.error().code, initial.error().message);
-    auto factor_allocation = std::make_unique<Allocations>();
+    auto factor_allocation =
+        std::make_unique<Allocations>(staging, allocation.stream());
     PrepareFactorPlan(system, analysis, initial.value(), model,
                       *factor_allocation);
     std::size_t plan_count = 1;
@@ -790,7 +817,7 @@ RunEmi03ResidentTransient(const MnaSystem &system, const TranAnalysis &analysis,
                         values.size() * sizeof(double), cudaMemcpyDeviceToHost);
         emi03_cuda_internal::Statistics().readback_bytes +=
             values.size() * sizeof(double);
-        auto next = std::make_unique<Allocations>();
+        auto next = std::make_unique<Allocations>(staging, allocation.stream());
         PrepareFactorPlan(system, analysis, initial.value(), model, *next,
                           &values);
         shared_bytes = (SharedBytes() + 7) / 8 * 8;

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "race-concurrent",
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-81/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate"
+    ],
+    "exit_code": 124,
+    "pass": false,
+    "elapsed_s": 600.001576423645,
+    "binary_sha256": "e2d28226d1fcebc5ade2c46bf05fec1b726019dffbe299fc3c8eb52d81eb4ce6",
+    "scope": "Full concurrent 16-job race check, all launches; instrumented correctness only."
+  }
+]

@@ -13,7 +13,14 @@ SANITIZER_INCOMPATIBILITY = select({
 py_library(
     name = "support",
     srcs = ["ensemble.py"],
-    data = ["BUILD.bazel", "README.md", "//:emi03_provenance_inputs"],
+    data = [
+        "BUILD.bazel",
+        "README.md",
+        "ensemble_test.py",
+        "gpu_worker_process_test.py",
+        "worker_process_test.py",
+        "//:emi03_provenance_inputs",
+    ],
     deps = [
         "//reference/emi01:support",
         "//reference/emi02:support",
@@ -56,4 +63,19 @@ py_test(
     data = ["//cpp:emi03_cpu_worker"],
     legacy_create_init = False,
     python_version = "3.12.13",
+)
+
+py_test(
+    name = "gpu_worker_process_test",
+    srcs = ["gpu_worker_process_test.py"],
+    # Like the qualification harness, run the Python reference with its CPU
+    # toolchain and supply an independently built/frozen CUDA executable.
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    deps = [":support"],
 )

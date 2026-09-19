@@ -21,9 +21,9 @@ explicit opt-in CUDA worker path; the default CPU build does not need CUDA.
 ```sh
 bazel test //reference/emi03:ensemble_test //reference/emi03:worker_process_test
 bazel run -c opt //reference/emi03:ensemble -- \
-  --gpu=/absolute/path/to/emi03_gpu_worker --out=/absolute/new/invocation-a
+  --gpu=/absolute/path/to/emi03_resident_worker --out=/absolute/new/invocation-a
 bazel run -c opt //reference/emi03:ensemble -- \
-  --gpu=/absolute/path/to/emi03_gpu_worker --out=/absolute/new/invocation-b
+  --gpu=/absolute/path/to/emi03_resident_worker --out=/absolute/new/invocation-b
 ```
 
 The resident follow-up is available for continued development with
@@ -35,6 +35,18 @@ to `--gpu` explicitly. Its telemetry identifies
 and unit-test passes cannot replace full EMI correctness, resource, cold-time,
 median, and P95 gates. See ADR-008 for its ownership and numerical policy.
 
+Freeze that CUDA executable outside Bazel output directories, then run the
+actual 16-owner protocol/failure test on the CPU Python toolchain:
+
+```sh
+bazel test -c opt //reference/emi03:gpu_worker_process_test \
+  --test_arg=--worker=/absolute/path/to/emi03_resident_worker
+```
+
+Do not pass `--config=cuda` to the Python harness or this protocol test. The
+CUDA worker is built separately; the reference runtime must retain its CPU
+linkage, including the pinned zlib shared-library identity.
+
 `--qualify-only` stops after complete qualification and cannot publish a speedup.
 Use two independent invocations, and run no other build or benchmark during
 evidence collection. Source identities are checked again before the summary is
@@ -45,38 +57,52 @@ It also reconciles complete timing artifacts, worker request sequences, native
 allocation peaks and recorded memory observations. Both passing and failed
 qualification evidence are auditable.
 
-After qualification, each CPU/GPU mode uses actual persistent worker processes
-for one complete warmup and five measured complete studies at both nine and
-thirty-six jobs. CPU worker counts are 1, 4 and 16; the GPU candidate uses four
-persistent workers to bound CUDA context residency. Replicas appear in
+After qualification, each mode uses persistent owners for one complete warmup
+and five measured complete studies at both nine and thirty-six jobs. CPU worker
+counts are 1, 4 and 16 separate processes. The current GPU candidate uses sixteen
+private owner threads in one process and primary CUDA context. Its execution
+identity is `one-process-private-owner-threads-v1`; it remains unqualified. Replicas appear in
 replica-major order and retain their physical and numerical reference identity.
 The persistent protocol is one line of three absolute paths separated by tabs:
 `input.cir`, `output.raw`, and `statistics.json`. One JSON response echoes `input`
 and has status `complete` or a typed failure. State is rebuilt for every request.
 GPU workers additionally write `statistics.json.gpu.json` with execution,
 fallback and allocation telemetry; common nonlinear statistics retain their
-existing schema. Worker process IDs and request counts establish persistence.
+existing schema. Process, owner and Linux thread IDs plus per-owner request
+sequences establish persistence. Each GPU owner has private inherited request,
+response and diagnostic channels. The parent checks the readiness identity,
+every response identity and actual thread affinity. A dead or exhausted shared
+process fails its affected jobs without respawning or retrying them.
 The recorded Ryzen 9 9950X3D host uses one hardware thread from each physical
 core. CPU worker affinity is the first 1, 4 or 16 entries of
-`[4,6,20,22,0,2,8,10,12,14,16,18,24,26,28,30]`; GPU workers use its first four.
+`[4,6,20,22,0,2,8,10,12,14,16,18,24,26,28,30]`; GPU owner threads use all sixteen.
 Fresh CPU/ngspice qualification shares the first four cores. The harness verifies
 the host topology and available affinity before executing, and records actual
 worker affinity.
 
 The parent enforces per-request 120 s wall and 110 s CPU budgets without treating
-cumulative worker CPU time as a per-job budget. CPU workers keep the 1 GiB address
+cumulative worker CPU time as a per-job budget. For concurrent GPU owners, each
+request is conservatively charged the entire shared process CPU delta over its
+execution interval, including driver/helper threads; this upper bound can
+overcount overlapping work but cannot hide CPU use. CPU workers keep the 1 GiB address
 space budget. CUDA virtual reservations do not count as resident host memory.
 Whole-invocation host accounting samples the harness and every recursively
 enumerated live descendant at 20 ms intervals, including fresh CPU/ngspice
 qualification, refinement and persistent workers. It conservatively sums each
-process's Linux resident high-water mark and applies the 16 GiB gate. Observed
+process's Linux resident high-water mark and applies the 16 GiB gate. Shared
+GPU process IDs are counted once for host memory; every private owner's peak
+is counted separately for native device allocations. Observed
 excess or unavailable monitoring rejects the invocation and prevents throughput
 publication. Process births/exits between samples remain a sampling limitation;
 native CPU address-space limits independently constrain oracle jobs.
 
 The native CUDA ledger enforces 256 MiB per worker across controlled expression
 buffers and cuDSS device allocations, and the harness conservatively sums worker
-allocation peaks against 4 GiB. Additional driver/context residency is observed
+allocation peaks against 4 GiB. Device allocations complete on each job's
+private nonblocking allocation stream before use; release completes only after
+the use stream. Each job owns at most 526,336 bytes of pinned transfer staging,
+reused sequentially across its private streams. Driver memory-pool caching
+remains included in the separately observed device residency. Additional driver/context residency is observed
 with `nvidia-smi` before worker creation, every 100 ms, and after each complete
 study. The retained records include the raw preworker baseline, total observed
 usage, and `max(0, sampled_peak - baseline)` incremental usage. The baseline is

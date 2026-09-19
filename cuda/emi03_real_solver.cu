@@ -26,6 +26,7 @@ using emi03_cuda_internal::Clock;
 using emi03_cuda_internal::Elapsed;
 
 struct JobState {
+  cudaStream_t allocation_stream = nullptr;
   bool active = false;
   bool fault_consumed = false;
   bool library_allocation_failed = false;
@@ -76,20 +77,36 @@ cudaError_t Allocate(JobState &job, void **pointer, std::size_t bytes,
       return cudaErrorMemoryAllocation;
     }
   } while (!job.current.compare_exchange_weak(current, current + bytes));
-  // Synchronous allocation/free keeps the ledger an upper bound even when
-  // distinct factorizations own different streams. Driver context residency
-  // is outside this tracked allocation ledger and measured by the harness.
-  const auto status = cudaMalloc(pointer, bytes);
+  // Complete allocation on a private nonblocking stream before exposing it to
+  // an owner stream. Avoid the device-wide synchronization of legacy malloc.
+  auto status = cudaMallocAsync(pointer, bytes, job.allocation_stream);
+  if (status == cudaSuccess) {
+    // Record ownership before synchronization: even an asynchronous error or
+    // unsuccessful cleanup must retain the full allocation in the ledger.
+    Maximum(job.peak, current + bytes);
+    auto &owned = library ? job.cudss : job.controlled;
+    auto &peak = library ? job.cudss_peak : job.controlled_peak;
+    Maximum(peak, owned.fetch_add(bytes) + bytes);
+    status = cudaStreamSynchronize(job.allocation_stream);
+    if (status != cudaSuccess && *pointer) {
+      const auto released = cudaFreeAsync(*pointer, job.allocation_stream);
+      if (released != cudaSuccess ||
+          cudaStreamSynchronize(job.allocation_stream) != cudaSuccess) {
+        ++job.statistics.cleanup_failures;
+        ++job.statistics.allocation_failures;
+        job.library_allocation_failed = library;
+        return status;
+      }
+      owned.fetch_sub(bytes);
+      *pointer = nullptr;
+    }
+  }
   if (status != cudaSuccess) {
     job.current.fetch_sub(bytes);
     ++job.statistics.allocation_failures;
     job.library_allocation_failed = library;
     return status;
   }
-  Maximum(job.peak, current + bytes);
-  auto &owned = library ? job.cudss : job.controlled;
-  auto &peak = library ? job.cudss_peak : job.controlled_peak;
-  Maximum(peak, owned.fetch_add(bytes) + bytes);
   return cudaSuccess;
 }
 
@@ -97,15 +114,20 @@ cudaError_t Free(JobState &job, void *pointer, std::size_t bytes,
                  bool library) {
   if (pointer == nullptr)
     return cudaSuccess;
-  const auto status = cudaFree(pointer);
-  if (status != cudaSuccess) {
-    ++job.statistics.cleanup_failures;
-    return status;
-  }
   auto &owned = library ? job.cudss : job.controlled;
   if (owned.load() < bytes || job.current.load() < bytes) {
     ++job.statistics.cleanup_failures;
     return cudaErrorInvalidValue;
+  }
+  // Every controlled owner synchronizes its use stream before freeing. Library
+  // callbacks additionally complete their supplied stream at the boundary
+  // below.
+  auto status = cudaFreeAsync(pointer, job.allocation_stream);
+  if (status == cudaSuccess)
+    status = cudaStreamSynchronize(job.allocation_stream);
+  if (status != cudaSuccess) {
+    ++job.statistics.cleanup_failures;
+    return status;
   }
   owned.fetch_sub(bytes);
   job.current.fetch_sub(bytes);
@@ -124,9 +146,15 @@ int LibraryAllocate(void *context, void **pointer, std::size_t bytes,
   return static_cast<int>(Allocate(job, pointer, bytes, true));
 }
 
-int LibraryFree(void *context, void *pointer, std::size_t bytes, cudaStream_t) {
-  return static_cast<int>(
-      Free(*static_cast<JobState *>(context), pointer, bytes, true));
+int LibraryFree(void *context, void *pointer, std::size_t bytes,
+                cudaStream_t stream) {
+  auto &owner = *static_cast<JobState *>(context);
+  const auto status = cudaStreamSynchronize(stream);
+  if (status != cudaSuccess) {
+    ++owner.statistics.cleanup_failures;
+    return static_cast<int>(status);
+  }
+  return static_cast<int>(Free(owner, pointer, bytes, true));
 }
 
 void CheckCudss(cudssStatus_t status, const char *operation) {
@@ -239,7 +267,9 @@ Result<bool> BeginEmi03CudaJob(std::string job_id,
       CheckCuda(cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync),
                 "EMI-03 blocking host synchronization");
     });
-    CheckCuda(cudaFree(nullptr), "EMI-03 initialize CUDA context");
+    CheckCuda(cudaStreamCreateWithFlags(&job.allocation_stream,
+                                        cudaStreamNonBlocking),
+              "EMI-03 private allocation stream");
     job.statistics.context_setup_ns = Elapsed(start);
     job.active = true;
     return Result<bool>::Ok(true);
@@ -268,6 +298,14 @@ Result<Emi03CudaStatistics> EndEmi03CudaJob() {
     return Result<Emi03CudaStatistics>::Fail(
         ErrorCode::kPreparedBackendFailure,
         "EMI-03 CUDA cleanup left live resources or reported an error");
+  const auto destroyed = cudaStreamDestroy(job.allocation_stream);
+  if (destroyed != cudaSuccess) {
+    ++job.statistics.cleanup_failures;
+    return Result<Emi03CudaStatistics>::Fail(
+        ErrorCode::kPreparedBackendFailure,
+        "EMI-03 allocation stream cleanup failed");
+  }
+  job.allocation_stream = nullptr;
   job.active = false;
   return Result<Emi03CudaStatistics>::Ok(SnapshotEmi03CudaJob());
 }

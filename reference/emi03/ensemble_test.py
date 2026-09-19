@@ -289,6 +289,11 @@ class EnsembleTest(unittest.TestCase):
         for clocks, usages, reply, expected in cases:
             worker = ensemble.Worker.__new__(ensemble.Worker)
             worker.process = mock.Mock(pid=123)
+            worker.owner = 0
+            worker.thread_id = 123
+            worker.shared = None
+            worker.input = worker.process.stdin
+            worker.output = worker.process.stdout
             worker.process.poll.return_value = None
             worker.limits = {"wall_s": 1, "cpu_s": 110}
             worker.log = mock.Mock()
@@ -308,9 +313,50 @@ class EnsembleTest(unittest.TestCase):
             ):
                 worker._request(source, raw, stats, threading.Event())
 
+    def test_worker_rejects_crossed_gpu_owner_replies_and_stops_shared_process(self):
+        source, raw, stats = map(Path, ("/input.cir", "/output.raw", "/stats.json"))
+        good = {
+            "status": "complete",
+            "input": str(source),
+            "exit_code": 0,
+            "owner": 3,
+            "thread_id": 456,
+        }
+        for field, value in (
+            ("owner", 4),
+            ("owner", True),
+            ("thread_id", 457),
+            ("thread_id", True),
+        ):
+            worker = ensemble.Worker.__new__(ensemble.Worker)
+            worker.process = mock.Mock(pid=123)
+            worker.process.poll.return_value = None
+            worker.shared = mock.Mock()
+            worker.owner, worker.thread_id = 3, 456
+            worker.input, worker.output = mock.Mock(), mock.Mock()
+            worker.limits = {"wall_s": 120, "cpu_s": 110}
+            worker.log, worker.selector = mock.Mock(), mock.Mock()
+            worker.selector.select.return_value = [True]
+            worker.buffer = b""
+            with (
+                self.subTest(field=field, value=value),
+                mock.patch.object(ensemble, "process_usage", return_value=(0, 0)),
+                mock.patch.object(
+                    ensemble.os,
+                    "read",
+                    return_value=json.dumps({**good, field: value}).encode() + b"\n",
+                ),
+                self.assertRaisesRegex(ValueError, "crossed GPU owner"),
+            ):
+                worker._request(source, raw, stats, threading.Event())
+            worker.shared.stop.assert_called_once()
+
     def test_worker_failure_preserves_request_identity_and_cost(self):
         worker = ensemble.Worker.__new__(ensemble.Worker)
         worker.process = mock.Mock(pid=123)
+        worker.owner = 0
+        worker.thread_id = 123
+        worker.shared = None
         worker.process.poll.return_value = None
         worker.requests = 2
         worker._request = mock.Mock(side_effect=ValueError("unsupported_input: fault"))
@@ -392,15 +438,27 @@ class EnsembleTest(unittest.TestCase):
     def test_audit_recomputes_native_peaks_residency_delta_and_request_sequence(self):
         records = [
             {
-                "process": {"worker_pid": 12, "worker_request": 1},
+                "process": {
+                    "worker_pid": 12,
+                    "worker_request": 1,
+                    "worker_owner": 0,
+                    "worker_thread": 13,
+                    "cpu_accounting": "shared-process upper bound",
+                },
                 "gpu": {"peak_device_bytes": 10},
             },
             {
-                "process": {"worker_pid": 12, "worker_request": 2},
+                "process": {
+                    "worker_pid": 12,
+                    "worker_request": 2,
+                    "worker_owner": 0,
+                    "worker_thread": 13,
+                    "cpu_accounting": "shared-process upper bound",
+                },
                 "gpu": {"peak_device_bytes": 20},
             },
         ]
-        workers = [{"pid": 12, "requests": 2}]
+        workers = [{"pid": 12, "owner": 0, "thread_id": 13, "requests": 2}]
         retained = {
             "peak_device_bytes_upper_bound": 20,
             "device_observations_bytes": [100, 120, 110],
@@ -427,6 +485,94 @@ class EnsembleTest(unittest.TestCase):
         records[1]["process"]["worker_request"] = 1
         with self.assertRaisesRegex(ValueError, "request completion"):
             ensemble.audit_resources(retained, records, workers, True)
+
+    def test_shared_process_keeps_all_owner_peaks_and_rejects_crossed_identities(self):
+        workers = [
+            {
+                "pid": 100,
+                "owner": owner,
+                "thread_id": 101 + owner,
+                "cpu_affinity": [ensemble.CPU_AFFINITY[owner]],
+                "requests": 2,
+            }
+            for owner in range(16)
+        ]
+        records = [
+            {
+                "process": {
+                    "worker_pid": 100,
+                    "worker_owner": owner,
+                    "worker_thread": 101 + owner,
+                    "worker_request": request,
+                    "cpu_accounting": "shared-process upper bound",
+                },
+                "gpu": {"peak_device_bytes": 10 * request},
+            }
+            for owner in range(16)
+            for request in (1, 2)
+        ]
+        retained = {
+            "peak_device_bytes_upper_bound": 320,
+            "device_observations_bytes": [100, 420],
+            "device_samples": 2,
+            "device_baseline_bytes": 100,
+            "device_sampled_peak_bytes": 420,
+            "device_incremental_peak_bytes": 320,
+            "peak_host_bytes": 1024,
+            "monitor_errors": 0,
+            "resource_pass": True,
+        }
+        self.assertTrue(ensemble.audit_resources(retained, records, workers, True))
+        ensemble.audit_worker_affinity(workers, True, 16)
+        for key, value in (
+            ("worker_owner", 1),
+            ("worker_owner", True),
+            ("worker_thread", 102),
+            ("worker_thread", None),
+            ("cpu_accounting", "process delta"),
+        ):
+            changed = copy.deepcopy(records)
+            changed[0]["process"][key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                ensemble.audit_resources(retained, changed, workers, True)
+        for key, value in (
+            ("pid", 200),
+            ("owner", 1),
+            ("thread_id", 102),
+            ("cpu_affinity", [ensemble.CPU_AFFINITY[1]]),
+        ):
+            changed = copy.deepcopy(workers)
+            changed[0][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                ensemble.audit_worker_affinity(changed, True, 16)
+        with self.assertRaisesRegex(ValueError, "allocation accounting"):
+            ensemble.audit_resources(
+                {**retained, "peak_device_bytes_upper_bound": 20},
+                records,
+                workers,
+                True,
+            )
+
+    def test_resource_snapshot_is_immutable_while_monitor_continues(self):
+        pool = types.SimpleNamespace(
+            device_lock=threading.Lock(),
+            exhausted=threading.Event(),
+            monitor_errors=0,
+            peak_host_bytes=1024,
+            device_peaks={(100, 0): 20},
+            device_baseline_bytes=100,
+            device_sampled_peak_bytes=100,
+            device_samples=1,
+            device_observations=[100],
+        )
+        before = ensemble.pool_resources(pool)
+        ensemble.record_device_sample(pool, 150)
+        after = ensemble.pool_resources(pool)
+        self.assertEqual(before["device_observations_bytes"], [100])
+        self.assertEqual(before["device_samples"], 1)
+        self.assertEqual(after["device_observations_bytes"], [100, 150])
+        self.assertEqual(after["device_samples"], 2)
+        self.assertEqual(after["device_incremental_peak_bytes"], 50)
 
     def test_whole_invocation_monitor_follows_worker_and_oracle_descendants(self):
         contents = {

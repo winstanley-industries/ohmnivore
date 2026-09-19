@@ -1,0 +1,18 @@
+[
+  {
+    "tool": "memcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "memcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-resident-test-77-final",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 255,
+    "elapsed_s": 0.11416363716125488,
+    "binary_sha256": "c251ae17597467dafcb1e610e3cc185ba15248e990cd95e51291e31eae9194ba",
+    "scope": "Instrumented correctness check only, not a performance observation"
+  }
+]

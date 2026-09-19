@@ -199,7 +199,9 @@ __device__ double Maximum(double value, Shared &shared) {
       shared.maximum = value;
   }
   __syncthreads();
-  return shared.maximum;
+  const double result = shared.maximum;
+  __syncthreads();
+  return result;
 }
 // All six validation maxima share one pair of block barriers. Their
 // nonnegative inputs and reduction operations are unchanged.
@@ -314,6 +316,9 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
     return;
   }
   const bool reuse_values = same && !force_fresh;
+  // Every warp must finish reading cache metadata before the owner invalidates
+  // it. The no-cache path does not pass through Maximum's block barriers.
+  __syncthreads();
   if (threadIdx.x == 0)
     s.expression_cache_valid = false;
   __syncthreads();
@@ -417,6 +422,7 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
     w.progress.expression_value_cycles += clock64() - value_start;
   const auto ad_start = clock64();
   if (derivatives && !s.error) {
+    __syncthreads();
     for (int level = m.expression_levels - 1; level >= 0; --level) {
       for (int at = m.expression_level_offsets[level] + threadIdx.x;
            at < m.expression_level_offsets[level + 1]; at += Threads) {
@@ -907,9 +913,11 @@ __device__ void Linear(const Model &m, Workspace &w, Shared &s) {
   if (s.error)
     return;
   for (int retry = 0; retry < 2 && !s.error; ++retry) {
+    __syncthreads();
     Triangular(m, w, s, w.affine_rhs, w.solution);
     bool corrected = false, accepted = false;
     for (int iteration = 0; iteration <= 4 && !s.error; ++iteration) {
+      __syncthreads();
       const auto residual_start = clock64();
       double component = 0, normalized = 0, matrix_norm = 0, rhs_norm = 0,
              solution_norm = 0, nonzero = 0;
@@ -978,6 +986,7 @@ __device__ void Linear(const Model &m, Workspace &w, Shared &s) {
     if (accepted || s.error)
       break;
     if (retry == 0 && s.sparse_factor) {
+      __syncthreads();
       if (threadIdx.x == 0) {
         s.sparse_factor = false;
         ++w.progress.linear_retries;
@@ -1074,6 +1083,7 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
     if (s.error && chord) {
       // Refresh at the same current state if the lagged linear system fails.
       // This remains inside the bounded Newton solve, with no job retry.
+      __syncthreads();
       if (threadIdx.x == 0) {
         s.error = 0;
         s.factor_valid = false;
@@ -1092,6 +1102,9 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
     __syncthreads();
     double scale = 1;
     for (int backtrack = 0; backtrack <= 16; ++backtrack) {
+      // Finish every warp's previous error decision before clearing it for a
+      // new trial. Otherwise slow warps can take a different recovery branch.
+      __syncthreads();
       if (threadIdx.x == 0)
         s.error = 0;
       __syncthreads();
@@ -1110,6 +1123,7 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
       scale *= .5;
     }
     if (s.error) {
+      __syncthreads();
       if (threadIdx.x == 0)
         s.error = Nonconvergence;
       __syncthreads();
@@ -1160,6 +1174,7 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
       Assemble(m, w, s, w.current, true);
     }
   }
+  __syncthreads();
   if (threadIdx.x == 0 && !s.error)
     s.error = Nonconvergence;
   __syncthreads();
@@ -1171,6 +1186,7 @@ __device__ void Step(const Model &m, Workspace &w, Shared &s,
     Expressions(m, w, s, before, false);
   if (s.error)
     return;
+  __syncthreads();
   const double factor = (backward ? 1.0 : 2.0) / h;
   if (threadIdx.x == 0)
     s.active_scale = factor;
@@ -1224,6 +1240,7 @@ __device__ void Integrate(const Model &m, Workspace &w, Shared &s) {
   Step(m, w, s, w.state, t, next, h, s.backward, s.waveform, w.full);
   if (s.error)
     return;
+  __syncthreads();
   double history_error = 0, positive_feedback = 0;
   if (!s.backward && w.progress.has_current) {
     for (int i = threadIdx.x; i < m.reactive; i += Threads) {
@@ -1489,6 +1506,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
     if (!s.error)
       Integrate(m, w, s);
     if (s.error) {
+      __syncthreads();
       if (threadIdx.x == 0) {
         if (s.error == Nonconvergence && s.step * .5 >= m.minimum_step) {
           ++w.progress.rejected;

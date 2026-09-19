@@ -6,6 +6,7 @@ are retained as negative evidence, and cannot become performance observations.
 
 import argparse
 import concurrent.futures
+import contextlib
 import gzip
 import hashlib
 import json
@@ -31,7 +32,8 @@ from reference.emi02 import importer, qualification
 
 SCHEMA = "emi03-ensemble-v1"
 CPU_WORKERS = (1, 4, 16)
-GPU_WORKERS = (4,)
+GPU_WORKERS = (16,)
+GPU_EXECUTION_MODEL = "one-process-private-owner-threads-v1"
 CPU_AFFINITY = (4, 6, 20, 22, 0, 2, 8, 10, 12, 14, 16, 18, 24, 26, 28, 30)
 ENSEMBLES = (9, 36)
 WARMUPS = 1
@@ -44,6 +46,9 @@ _ARCHIVE_LOCK = threading.Lock()
 _INVOCATION_MONITOR = None
 SOURCE_FILES = (
     "reference/emi03/ensemble.py",
+    "reference/emi03/ensemble_test.py",
+    "reference/emi03/gpu_worker_process_test.py",
+    "reference/emi03/worker_process_test.py",
     "reference/emi03/README.md",
     "reference/emi03/BUILD.bazel",
     "docs/adr/ADR-008-emi03-transient-ensembles.md",
@@ -61,6 +66,8 @@ SOURCE_FILES = (
     "cuda/emi03_resident.cu",
     "cuda/emi03_resident_device.cuh",
     "cuda/emi03_resident.h",
+    "cuda/emi03_worker_pool.cc",
+    "cuda/emi03_worker_pool.h",
     "cuda/emi03_expression_test.cc",
     "cuda/emi03_real_solver_test.cc",
     "cuda/emi03_resident_test.cc",
@@ -276,36 +283,172 @@ def _child_limits(limits, gpu, core=None):
     # each request's 110-second CPU delta, including unsuccessful requests.
 
 
-class Worker:
-    """One real persistent process, one private transient solve at a time."""
+def worker_environment():
+    return {
+        "PATH": "",
+        "LC_ALL": "C",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+    }
 
-    def __init__(self, binary, directory, limits, gpu, core):
+
+class GpuProcess:
+    """One process/context; bounded private channels and pinned owner threads."""
+
+    def __init__(self, binary, directory, limits, count):
+        if type(count) is not int or not 1 <= count <= 16:
+            fail("unsupported_input", "GPU owner count must be between 1 and 16")
+        self.channels = []
+        self.lock = threading.Lock()
+        self.process = None
+        directory.mkdir(parents=True, exist_ok=True)
+        self.log = (directory / "pool.log").open("wb")
+        child_fds = []
+        arguments = [str(binary), "--worker-fds"]
+        try:
+            with contextlib.ExitStack() as pending:
+
+                def wrap(fd, mode):
+                    try:
+                        return pending.enter_context(os.fdopen(fd, mode))
+                    except BaseException:
+                        os.close(fd)
+                        raise
+
+                for index in range(count):
+                    owner = directory / f"worker-{index}"
+                    owner.mkdir()
+                    log = pending.enter_context((owner / "worker.log").open("wb"))
+                    request_read, request_write = os.pipe()
+                    child_fds.append(request_read)
+                    request = wrap(request_write, "wb")
+                    response_read, response_write = os.pipe()
+                    child_fds.append(response_write)
+                    response = wrap(response_read, "rb")
+                    self.channels.append((request, response, log))
+                    arguments.append(
+                        f"{request_read}:{response_write}:{log.fileno()}:{CPU_AFFINITY[index]}"
+                    )
+                self.process = subprocess.Popen(
+                    arguments,
+                    stdin=subprocess.DEVNULL,
+                    stdout=self.log,
+                    stderr=self.log,
+                    pass_fds=tuple(child_fds)
+                    + tuple(channel[2].fileno() for channel in self.channels),
+                    env=worker_environment(),
+                    start_new_session=True,
+                    preexec_fn=lambda: _child_limits(limits, True),
+                )
+                pending.pop_all()
+        except BaseException:
+            self.close()
+            raise
+        finally:
+            for fd in child_fds:
+                os.close(fd)
+
+    def stop(self):
+        with self.lock:
+            if self.process is not None:
+                if self.process.poll() is None:
+                    try:
+                        os.killpg(self.process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                self.process.wait()
+
+    def close(self):
+        self.stop()
+        for channel in self.channels:
+            for stream in channel:
+                stream.close()
+        self.log.close()
+
+
+def worker_key(worker):
+    return worker.process.pid, getattr(worker, "owner", 0)
+
+
+class Worker:
+    """One persistent owner, one private transient solve at a time."""
+
+    def __init__(self, binary, directory, limits, gpu, core, shared=None, owner=0):
         self.limits = limits
         self.directory = directory
         self.core = core
-        self.log = (directory / "worker.log").open("wb")
-        self.process = subprocess.Popen(
-            [str(binary), "--worker"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=self.log,
-            env={
-                "PATH": "",
-                "LC_ALL": "C",
-                "OMP_NUM_THREADS": "1",
-                "OPENBLAS_NUM_THREADS": "1",
-                "MKL_NUM_THREADS": "1",
-            },
-            start_new_session=True,
-            preexec_fn=lambda: _child_limits(limits, gpu, core),
-        )
-        self.observed_affinity = sorted(os.sched_getaffinity(self.process.pid))
+        self.shared = shared
+        self.owner = owner
+        if shared is None:
+            self.log = (directory / "worker.log").open("wb")
+            self.process = subprocess.Popen(
+                [str(binary), "--worker"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=self.log,
+                env=worker_environment(),
+                start_new_session=True,
+                preexec_fn=lambda: _child_limits(limits, gpu, core),
+            )
+            self.input, self.output = self.process.stdin, self.process.stdout
+        else:
+            self.process = shared.process
+            self.input, self.output, self.log = shared.channels[owner]
         self.selector = selectors.DefaultSelector()
-        self.selector.register(self.process.stdout, selectors.EVENT_READ)
+        self.selector.register(self.output, selectors.EVENT_READ)
         self.buffer = b""
         self.requests = 0
+        self.thread_id = self.process.pid
+        try:
+            if shared is not None:
+                started = time.perf_counter()
+                while b"\n" not in self.buffer:
+                    if time.perf_counter() - started > 5:
+                        self.stop()
+                        fail("resource_limit", "GPU owner startup deadline")
+                    if self.selector.select(timeout=0.02):
+                        block = os.read(self.output.fileno(), 8192)
+                        if not block or len(self.buffer) + len(block) > 64 * 1024:
+                            self.stop()
+                            fail("malformed_output", "GPU owner startup channel")
+                        self.buffer += block
+                line, self.buffer = self.buffer.split(b"\n", 1)
+                ready = json.loads(line)
+                if (
+                    not isinstance(ready, dict)
+                    or ready.get("status") != "ready"
+                    or type(ready.get("owner")) is not int
+                    or ready["owner"] != owner
+                    or type(ready.get("thread_id")) is not int
+                    or ready["thread_id"] <= 0
+                    or self.buffer
+                ):
+                    self.stop()
+                    fail("provenance_mismatch", "GPU owner startup identity")
+                self.thread_id = ready["thread_id"]
+                if not Path(f"/proc/{self.process.pid}/task/{self.thread_id}").is_dir():
+                    self.stop()
+                    fail(
+                        "provenance_mismatch", "GPU owner thread is outside its process"
+                    )
+            self.observed_affinity = sorted(os.sched_getaffinity(self.thread_id))
+            if self.observed_affinity != [core]:
+                self.stop()
+                fail("provenance_mismatch", "persistent owner CPU affinity")
+        except BaseException:
+            self.stop()
+            self.selector.close()
+            if shared is None:
+                self.input.close()
+                self.output.close()
+                self.log.close()
+            raise
 
     def stop(self):
+        if self.shared is not None:
+            self.shared.stop()
+            return
         if self.process.poll() is None:
             os.killpg(self.process.pid, signal.SIGKILL)
         self.process.wait()
@@ -321,8 +464,13 @@ class Worker:
         self.last_process = {
             "status": "internal_failure",
             "worker_pid": self.process.pid,
+            "worker_owner": self.owner,
+            "worker_thread": self.thread_id,
             "worker_request": self.requests,
             "input": str(source.resolve()),
+            "cpu_accounting": "shared-process upper bound"
+            if self.shared
+            else "process delta",
         }
         try:
             self.last_process = self._request(source, raw, stats, exhausted)
@@ -349,8 +497,8 @@ class Worker:
         begin = time.perf_counter()
         cpu_start, _ = process_usage(self.process.pid)
         log_start = self.log.tell()
-        self.process.stdin.write(("\t".join(paths) + "\n").encode())
-        self.process.stdin.flush()
+        self.input.write(("\t".join(paths) + "\n").encode())
+        self.input.flush()
         while b"\n" not in self.buffer:
             if exhausted.is_set():
                 self.stop()
@@ -367,7 +515,7 @@ class Worker:
                 self.stop()
                 fail("resource_limit", "per-job CPU budget")
             if self.selector.select(timeout=0.02):
-                block = os.read(self.process.stdout.fileno(), 8192)
+                block = os.read(self.output.fileno(), 8192)
                 if not block:
                     code = self.process.poll()
                     fail(
@@ -395,6 +543,14 @@ class Worker:
             fail("malformed_output", "worker response JSON")
         if not isinstance(response, dict) or response.get("input") != paths[0]:
             fail("provenance_mismatch", "crossed worker job identity")
+        if self.shared is not None and (
+            type(response.get("owner")) is not int
+            or response["owner"] != self.owner
+            or type(response.get("thread_id")) is not int
+            or response["thread_id"] != self.thread_id
+        ):
+            self.stop()
+            fail("provenance_mismatch", "crossed GPU owner identity")
         if type(response.get("exit_code")) is not int or (
             response.get("status") == "complete" and response["exit_code"] != 0
         ):
@@ -424,18 +580,25 @@ class Worker:
             "wall_s": time.perf_counter() - begin,
             "cpu_s": max(0, cpu - cpu_start),
             "worker_pid": self.process.pid,
+            "worker_owner": self.owner,
+            "worker_thread": self.thread_id,
             "worker_request": self.requests,
+            "cpu_accounting": "shared-process upper bound"
+            if self.shared
+            else "process delta",
         }
 
     def close(self):
         self.stop()
         self.selector.close()
-        self.process.stdin.close()
-        self.process.stdout.close()
+        self.input.close()
+        self.output.close()
         self.log.close()
         data = (self.directory / "worker.log").read_bytes()
         return {
             "pid": self.process.pid,
+            "owner": self.owner,
+            "thread_id": self.thread_id,
             "requests": self.requests,
             "cpu_affinity": self.observed_affinity,
             "diagnostic_sha256": study.sha(data),
@@ -462,6 +625,7 @@ class PersistentPool:
         self.device_observations = []
         self.monitor_errors = 0
         self.gpu = gpu
+        self.shared = None
         self.device_tool = accelerator_executable() if gpu else None
         start = time.perf_counter()
         if gpu:
@@ -470,17 +634,29 @@ class PersistentPool:
             self.device_samples = 1
             self.device_observations.append(self.device_baseline_bytes)
         try:
+            if gpu:
+                self.shared = GpuProcess(binary, directory, limits, count)
             for index in range(count):
                 worker_directory = directory / f"worker-{index}"
-                worker_directory.mkdir(parents=True)
+                worker_directory.mkdir(parents=True, exist_ok=gpu)
                 worker = Worker(
-                    binary, worker_directory, limits, gpu, CPU_AFFINITY[index]
+                    binary,
+                    worker_directory,
+                    limits,
+                    gpu,
+                    CPU_AFFINITY[index],
+                    self.shared,
+                    index if gpu else 0,
                 )
                 self.workers.append(worker)
                 self.available.put(worker)
+            if len({worker.thread_id for worker in self.workers}) != count:
+                fail("provenance_mismatch", "duplicate persistent owner threads")
         except BaseException:
             for worker in self.workers:
                 worker.close()
+            if self.shared:
+                self.shared.close()
             raise
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=count)
         self.monitor = threading.Thread(target=self._monitor, daemon=True)
@@ -496,9 +672,10 @@ class PersistentPool:
             ):
                 self.exhausted.set()
             resident = 0
-            for pid in [os.getpid()] + [w.process.pid for w in self.workers]:
+            for pid in {os.getpid(), *(w.process.pid for w in self.workers)}:
                 try:
-                    resident += process_usage(pid)[1]
+                    process_resident = process_usage(pid)[1]
+                    resident += process_resident
                     highwater = [
                         line
                         for line in Path(f"/proc/{pid}/status").read_text().splitlines()
@@ -507,26 +684,22 @@ class PersistentPool:
                     if highwater:
                         resident += max(
                             0,
-                            int(highwater[0].split()[1]) * 1024 - process_usage(pid)[1],
+                            int(highwater[0].split()[1]) * 1024 - process_resident,
                         )
                 except OSError:
                     pass
-            self.peak_host_bytes = max(self.peak_host_bytes, resident)
-            if resident > HOST_BYTES:
-                self.exhausted.set()
+            with self.device_lock:
+                self.peak_host_bytes = max(self.peak_host_bytes, resident)
+                if resident > HOST_BYTES:
+                    self.exhausted.set()
             if self.gpu and time.perf_counter() >= next_device_sample:
                 try:
                     device = device_resident_bytes(self.device_tool)
-                    self.device_sampled_peak_bytes = max(
-                        self.device_sampled_peak_bytes, device
-                    )
-                    self.device_samples += 1
-                    self.device_observations.append(device)
-                    if max(0, device - self.device_baseline_bytes) > DEVICE_BYTES:
-                        self.exhausted.set()
+                    record_device_sample(self, device)
                 except (ValueError, OSError, subprocess.TimeoutExpired):
-                    self.monitor_errors += 1
-                    self.exhausted.set()
+                    with self.device_lock:
+                        self.monitor_errors += 1
+                        self.exhausted.set()
                 next_device_sample = time.perf_counter() + 0.1
             self.finished.wait(0.02)
 
@@ -534,23 +707,38 @@ class PersistentPool:
         self.executor.shutdown(wait=True)
         self.finished.set()
         self.monitor.join()
-        return [worker.close() for worker in self.workers]
+        records = [worker.close() for worker in self.workers]
+        if self.shared:
+            self.shared.close()
+        return records
+
+
+def record_device_sample(pool, device):
+    # The monitor and end-of-study sampler may finish concurrently. Keep each
+    # observation and its derived fields atomic with respect to evidence copies.
+    with pool.device_lock:
+        pool.device_sampled_peak_bytes = max(pool.device_sampled_peak_bytes, device)
+        pool.device_samples += 1
+        pool.device_observations.append(device)
+        if max(0, device - pool.device_baseline_bytes) > DEVICE_BYTES:
+            pool.exhausted.set()
 
 
 def pool_resources(pool):
-    return {
-        "resource_pass": not pool.exhausted.is_set() and pool.monitor_errors == 0,
-        "peak_host_bytes": pool.peak_host_bytes,
-        "peak_device_bytes_upper_bound": sum(pool.device_peaks.values()),
-        "device_baseline_bytes": pool.device_baseline_bytes,
-        "device_sampled_peak_bytes": pool.device_sampled_peak_bytes,
-        "device_incremental_peak_bytes": max(
-            0, pool.device_sampled_peak_bytes - pool.device_baseline_bytes
-        ),
-        "device_samples": pool.device_samples,
-        "device_observations_bytes": pool.device_observations,
-        "monitor_errors": pool.monitor_errors,
-    }
+    with pool.device_lock:
+        return {
+            "resource_pass": not pool.exhausted.is_set() and pool.monitor_errors == 0,
+            "peak_host_bytes": pool.peak_host_bytes,
+            "peak_device_bytes_upper_bound": sum(pool.device_peaks.values()),
+            "device_baseline_bytes": pool.device_baseline_bytes,
+            "device_sampled_peak_bytes": pool.device_sampled_peak_bytes,
+            "device_incremental_peak_bytes": max(
+                0, pool.device_sampled_peak_bytes - pool.device_baseline_bytes
+            ),
+            "device_samples": pool.device_samples,
+            "device_observations_bytes": list(pool.device_observations),
+            "monitor_errors": pool.monitor_errors,
+        }
 
 
 def validate_gpu_telemetry(value, expected_input=None):
@@ -721,8 +909,8 @@ def run_job(spec, binary_sha, archive, out, pool, gpu, references, reference_out
                             else None
                         )
                         if type(peak) is int and peak >= 0:
-                            pool.device_peaks[worker.process.pid] = max(
-                                pool.device_peaks.get(worker.process.pid, 0), peak
+                            pool.device_peaks[worker_key(worker)] = max(
+                                pool.device_peaks.get(worker_key(worker), 0), peak
                             )
                         if sum(pool.device_peaks.values()) > DEVICE_BYTES:
                             pool.exhausted.set()
@@ -790,8 +978,8 @@ def run_job(spec, binary_sha, archive, out, pool, gpu, references, reference_out
                             )
                             if type(peak) is int and peak >= 0:
                                 with pool.device_lock:
-                                    pool.device_peaks[worker.process.pid] = max(
-                                        pool.device_peaks.get(worker.process.pid, 0),
+                                    pool.device_peaks[worker_key(worker)] = max(
+                                        pool.device_peaks.get(worker_key(worker), 0),
                                         peak,
                                     )
                             else:
@@ -912,14 +1100,11 @@ def complete_study(
     if gpu:
         try:
             device = device_resident_bytes(pool.device_tool)
-            pool.device_sampled_peak_bytes = max(pool.device_sampled_peak_bytes, device)
-            pool.device_samples += 1
-            pool.device_observations.append(device)
-            if max(0, device - pool.device_baseline_bytes) > DEVICE_BYTES:
-                pool.exhausted.set()
+            record_device_sample(pool, device)
         except (ValueError, OSError, subprocess.TimeoutExpired):
-            pool.monitor_errors += 1
-            pool.exhausted.set()
+            with pool.device_lock:
+                pool.monitor_errors += 1
+                pool.exhausted.set()
     success = (
         len(records) == len(specs)
         and not pool.exhausted.is_set()
@@ -1337,7 +1522,23 @@ def audit_resources(resource_record, records, workers, gpu):
         process = record.get("process", {})
         pid = process.get("worker_pid")
         if pid is not None:
-            requests.setdefault(pid, []).append(process.get("worker_request"))
+            owner = process.get("worker_owner", 0)
+            if (
+                type(pid) is not int
+                or pid <= 0
+                or type(owner) is not int
+                or not 0 <= owner < 16
+            ):
+                fail("malformed_output", "persistent owner identity")
+            if gpu and (
+                type(process.get("worker_owner")) is not int
+                or type(process.get("worker_thread")) is not int
+                or process["worker_thread"] <= 0
+                or process.get("cpu_accounting") != "shared-process upper bound"
+            ):
+                fail("malformed_output", "GPU owner CPU accounting and thread identity")
+            key = pid, owner
+            requests.setdefault(key, []).append(process.get("worker_request"))
             if "gpu" in record:
                 value = (
                     record["gpu"].get("peak_device_bytes")
@@ -1345,21 +1546,28 @@ def audit_resources(resource_record, records, workers, gpu):
                     else None
                 )
                 if type(value) is int and value >= 0:
-                    device_peaks[pid] = max(device_peaks.get(pid, 0), value)
+                    device_peaks[key] = max(device_peaks.get(key, 0), value)
     if sum(device_peaks.values()) != resource_record.get(
         "peak_device_bytes_upper_bound"
     ):
         fail("provenance_mismatch", "aggregate native device allocation accounting")
     if not isinstance(workers, list) or len(
-        {worker.get("pid") for worker in workers}
+        {(worker.get("pid"), worker.get("owner", 0)) for worker in workers}
     ) != len(workers):
         fail("provenance_mismatch", "persistent worker identities")
-    if set(requests) - {worker["pid"] for worker in workers}:
+    if set(requests) - {(worker["pid"], worker.get("owner", 0)) for worker in workers}:
         fail("provenance_mismatch", "unknown worker process")
     for worker in workers:
-        observed = requests.get(worker["pid"], [])
+        observed = requests.get((worker["pid"], worker.get("owner", 0)), [])
         if sorted(observed) != list(range(1, worker["requests"] + 1)):
             fail("provenance_mismatch", "persistent request completion sequence")
+        for record in records:
+            process = record.get("process", {})
+            if (process.get("worker_pid"), process.get("worker_owner", 0)) == (
+                worker["pid"],
+                worker.get("owner", 0),
+            ) and process.get("worker_thread") != worker.get("thread_id"):
+                fail("provenance_mismatch", "persistent owner thread association")
     observations = resource_record.get("device_observations_bytes")
     if (
         not isinstance(observations, list)
@@ -1387,6 +1595,23 @@ def audit_resources(resource_record, records, workers, gpu):
     if resource_record.get("resource_pass") is True and not expected:
         fail("provenance_mismatch", "resource acceptance gate")
     return resource_record.get("resource_pass") is True
+
+
+def audit_worker_affinity(workers, gpu, count):
+    if [worker.get("cpu_affinity") for worker in workers] != [
+        [cpu] for cpu in CPU_AFFINITY[:count]
+    ]:
+        fail("provenance_mismatch", "actual persistent owner affinity")
+    if gpu and (
+        len({worker.get("pid") for worker in workers}) != 1
+        or [worker.get("owner") for worker in workers] != list(range(count))
+        or any(
+            type(worker.get("thread_id")) is not int or worker["thread_id"] <= 0
+            for worker in workers
+        )
+        or len({worker["thread_id"] for worker in workers}) != count
+    ):
+        fail("provenance_mismatch", "shared GPU process and owner identities")
 
 
 def audit_host_resources(value):
@@ -1464,6 +1689,7 @@ def audit(out, archive, cpu_binary, gpu_binary, oracle_binary):
         or invocation.get("ngspice_sha256") != study.check_elf(oracle_binary)
         or invocation.get("cpu_workers") != list(CPU_WORKERS)
         or invocation.get("gpu_workers") != list(GPU_WORKERS)
+        or invocation.get("gpu_execution_model") != GPU_EXECUTION_MODEL
         or invocation.get("ensemble_sizes") != list(ENSEMBLES)
         or invocation.get("warmups") != WARMUPS
         or invocation.get("measured") != MEASURED
@@ -1518,10 +1744,7 @@ def audit(out, archive, cpu_binary, gpu_binary, oracle_binary):
     qualification_workers = qualification.read_json_bounded(
         baseline / "gpu-workers.json"
     )
-    if [worker.get("cpu_affinity") for worker in qualification_workers] != [
-        [cpu] for cpu in CPU_AFFINITY[:4]
-    ]:
-        fail("provenance_mismatch", "GPU qualification workers or affinity")
+    audit_worker_affinity(qualification_workers, True, GPU_WORKERS[0])
     resource_pass = audit_resources(
         result["gpu_resources"],
         gpu,
@@ -1592,10 +1815,9 @@ def audit(out, archive, cpu_binary, gpu_binary, oracle_binary):
         audit_resources(
             mode, mode_records, mode["worker_records"], mode["engine"] == "gpu"
         )
-        if [worker.get("cpu_affinity") for worker in mode["worker_records"]] != [
-            [cpu] for cpu in CPU_AFFINITY[: mode["workers"]]
-        ]:
-            fail("provenance_mismatch", "actual persistent worker affinity")
+        audit_worker_affinity(
+            mode["worker_records"], mode["engine"] == "gpu", mode["workers"]
+        )
     expected_gate = (
         performance_gate(
             modes,
@@ -1674,6 +1896,7 @@ def main():
         "manifest_sha256": manifest_sha,
         "cpu_workers": CPU_WORKERS,
         "gpu_workers": GPU_WORKERS,
+        "gpu_execution_model": GPU_EXECUTION_MODEL,
         "ensemble_sizes": ENSEMBLES,
         "warmups": WARMUPS,
         "measured": MEASURED,
@@ -1745,7 +1968,7 @@ def main():
             scratch / "qualification-workers",
             manifest["limits"],
             True,
-            4,
+            GPU_WORKERS[0],
         )
         try:
             gpu_study = complete_study(

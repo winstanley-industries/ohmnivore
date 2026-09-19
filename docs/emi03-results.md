@@ -119,6 +119,16 @@ four shortened-job time from 8.449 s to 2.318 s after replacing legacy device
 allocation and reusing private job staging. These diagnostic observations do not
 qualify the scheduling change or satisfy any complete-study performance gate.
 
+The [owner-pool and synchronization checkpoint](evidence/emi03/diagnostics/resident-owner-pool/README.md)
+adds sixteen private owner threads in one process and retains memory-lifetime and
+shared-control race fixes found by Compute Sanitizer. Targeted memcheck, racecheck,
+synccheck and initcheck pass with their exact coverage recorded. Fresh DPT q0/q1/q2
+comparisons and all eight refinements pass through the real pool at GPU request
+wall times 8.526 / 11.669 / 14.492 s. The three-job diagnostic observes 300 MiB
+incremental device residency and passes its resource audit. These results do not
+qualify the full coupled workload or satisfy its performance targets. Historical
+profiling prototype results remain identified separately from this corrected code.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and

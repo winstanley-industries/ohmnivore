@@ -1,0 +1,66 @@
+[
+  {
+    "tool": "memcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "memcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-78/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 77.60825991630554,
+    "binary_sha256": "57943c9518bab4a73907cd32b49475140063475afa1fd364aeb14c2cff990584",
+    "scope": "Instrumented correctness check only, not a performance observation"
+  },
+  {
+    "tool": "synccheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "synccheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-78/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 28.56943678855896,
+    "binary_sha256": "57943c9518bab4a73907cd32b49475140063475afa1fd364aeb14c2cff990584",
+    "scope": "Instrumented correctness check only, not a performance observation"
+  },
+  {
+    "tool": "initcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "initcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-78/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 51.41346764564514,
+    "binary_sha256": "57943c9518bab4a73907cd32b49475140063475afa1fd364aeb14c2cff990584",
+    "scope": "Instrumented correctness check only, not a performance observation"
+  },
+  {
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-78/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": -2,
+    "elapsed_s": 307.3333170413971,
+    "binary_sha256": "57943c9518bab4a73907cd32b49475140063475afa1fd364aeb14c2cff990584",
+    "scope": "Instrumented correctness check only, not a performance observation"
+  }
+]
