@@ -1,0 +1,105 @@
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..7177393 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -866,37 +866,80 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+     DenseTriangular(m, w, s, rhs, result);
+     return;
+   }
+-  if (threadIdx.x < 32 && !s.error) {
+-    const int lane = threadIdx.x;
++  const bool execute = !s.error;
++  __syncthreads();
++  if (execute) {
++    const int lane = threadIdx.x & 31, warp = threadIdx.x >> 5;
++    constexpr int LongRow = 8;
+     const auto forward_start = clock64();
+     for (int level = 0; level < m.forward_levels; ++level) {
+-      for (int at = s.forward_offsets[level] + lane;
+-           at < s.forward_offsets[level + 1]; at += 32) {
++      if (warp == 0) {
++        for (int at = s.forward_offsets[level] + lane;
++             at < s.forward_offsets[level + 1]; at += 32) {
++          const int row = s.forward_rows[at], original = s.row_permutation[row];
++          const int begin = s.factor_rows[row], end = s.factor_diagonal[row];
++          if (end - begin >= LongRow)
++            continue;
++          double value = Equilibrated(rhs[original], original, w, s);
++          for (int j = begin; j < end; ++j)
++            value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
++          s.triangular[row] = value;
++        }
++      }
++      for (int at = s.forward_offsets[level] + warp;
++           at < s.forward_offsets[level + 1]; at += Threads / 32) {
+         const int row = s.forward_rows[at], original = s.row_permutation[row];
+-        double value = Equilibrated(rhs[original], original, w, s);
+-        for (int j = s.factor_rows[row]; j < s.factor_diagonal[row]; ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
+-        s.triangular[row] = value;
++        const int begin = s.factor_rows[row], end = s.factor_diagonal[row];
++        if (end - begin < LongRow)
++          continue;
++        double sum = 0;
++        for (int j = begin + lane; j < end; j += 32)
++          sum = fma(-s.factor[j], s.triangular[s.factor_columns[j]], sum);
++        for (int offset = 16; offset; offset /= 2)
++          sum += __shfl_down_sync(0xffffffff, sum, offset);
++        if (lane == 0)
++          s.triangular[row] = Equilibrated(rhs[original], original, w, s) + sum;
+       }
+-      __syncwarp();
++      __syncthreads();
+     }
+     if (threadIdx.x == 0)
+       w.progress.forward_cycles += clock64() - forward_start;
+     for (int level = 0; level < m.backward_levels; ++level) {
+-      for (int at = s.backward_offsets[level] + lane;
+-           at < s.backward_offsets[level + 1]; at += 32) {
++      if (warp == 0) {
++        for (int at = s.backward_offsets[level] + lane;
++             at < s.backward_offsets[level + 1]; at += 32) {
++          const int row = s.backward_rows[at];
++          const int begin = s.factor_diagonal[row] + 1, end = s.factor_rows[row + 1];
++          if (end - begin >= LongRow)
++            continue;
++          double value = s.triangular[row];
++          for (int j = begin; j < end; ++j)
++            value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
++          s.triangular[row] = value * s.inverse[row];
++          if (!Bounded(s.triangular[row]))
++            Reject(s, Nonfinite);
++        }
++      }
++      for (int at = s.backward_offsets[level] + warp;
++           at < s.backward_offsets[level + 1]; at += Threads / 32) {
+         const int row = s.backward_rows[at];
+-        double value = s.triangular[row];
+-        for (int j = s.factor_diagonal[row] + 1; j < s.factor_rows[row + 1];
+-             ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
+-        s.triangular[row] = value * s.inverse[row];
+-        if (!Bounded(s.triangular[row]))
+-          Reject(s, Nonfinite);
++        const int begin = s.factor_diagonal[row] + 1, end = s.factor_rows[row + 1];
++        if (end - begin < LongRow)
++          continue;
++        double sum = 0;
++        for (int j = begin + lane; j < end; j += 32)
++          sum = fma(-s.factor[j], s.triangular[s.factor_columns[j]], sum);
++        for (int offset = 16; offset; offset /= 2)
++          sum += __shfl_down_sync(0xffffffff, sum, offset);
++        if (lane == 0) {
++          s.triangular[row] = (s.triangular[row] + sum) * s.inverse[row];
++          if (!Bounded(s.triangular[row]))
++            Reject(s, Nonfinite);
++        }
+       }
+-      __syncwarp();
++      __syncthreads();
+     }
+-    for (int row = lane; row < m.n; row += 32)
++    for (int row = threadIdx.x; row < m.n; row += Threads)
+       result[s.column_permutation[row]] = s.triangular[row];
+   }
+   __syncthreads();

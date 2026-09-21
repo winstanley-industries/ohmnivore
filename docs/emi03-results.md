@@ -139,6 +139,13 @@ The retained audit reconstructs six source variants, 56 trajectories, 46 GPU
 waveform comparisons and 16 DPT refinement checks. None supplies a complete-study
 acceptance pass; the original resource and performance targets remain in force.
 
+Three further [factor-dependency and triangular-row trials](evidence/emi03/diagnostics/resident-factor-dependencies/README.md)
+also fail to improve execution time. Reusing provably unchanged factor entries is
+neutral; every factorization level still contains changing entries. Cooperative
+long-row reductions are 5.9% slower on the shortened case. Thirty GPU waveform
+comparisons and all thirty resident test executions pass across the three trials,
+but all changes are removed. These remain diagnostic results.
+
 Two [kernel screening experiments](evidence/emi03/diagnostics/resident-kernel-screening/README.md)
 are rejected. Serial sparse triangular solving takes 4.149 s versus 2.285 s for
 the corrected baseline on a shortened coupled case. Outlining the timestep
