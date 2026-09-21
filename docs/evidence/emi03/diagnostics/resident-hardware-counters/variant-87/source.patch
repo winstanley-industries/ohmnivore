@@ -1,0 +1,709 @@
+diff --git a/cuda/emi03_resident.cu b/cuda/emi03_resident.cu
+index 5148f78..dc57223 100644
+--- a/cuda/emi03_resident.cu
++++ b/cuda/emi03_resident.cu
+@@ -349,7 +349,7 @@ Model Prepare(const MnaSystem &system, const TranAnalysis &analysis,
+   if (system.g.rows == 0 || system.g.rows > N ||
+       system.node_names.size() > system.g.rows ||
+       system.behavioral_descriptors.empty() ||
+-      system.behavioral_descriptors.size() > 128 ||
++      system.behavioral_descriptors.size() > MaximumPrograms ||
+       system.capacitor_initial_constraints.size() +
+               system.inductor_initial_constraints.size() >
+           N ||
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..04c9203 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -1,6 +1,7 @@
+ // Private native-FP64 device implementation for bounded transient jobs.
+ constexpr int N = 256;
+-constexpr int Threads = 256;
++constexpr int Threads = 32;
++constexpr int MaximumPrograms = 128;
+ constexpr int Chunk = 256;
+ constexpr int Nonfinite = static_cast<int>(ErrorCode::kNonFinite) + 1;
+ constexpr int Singular = static_cast<int>(ErrorCode::kSingular) + 1;
+@@ -8,6 +9,13 @@ constexpr int Nonconvergence = static_cast<int>(ErrorCode::kNonConvergence) + 1;
+ constexpr int Invalid = static_cast<int>(ErrorCode::kSolutionValidation) + 1;
+ constexpr int Budget = static_cast<int>(ErrorCode::kUnsupportedSize) + 1;
+ 
++__device__ __forceinline__ void BlockSync() {
++  if constexpr (Threads == 32)
++    __syncwarp();
++  else
++    __syncthreads();
++}
++
+ struct Pair {
+   double time, value;
+ };
+@@ -189,23 +197,31 @@ __device__ double PositiveMaximum(double a, double b) {
+ __device__ double Maximum(double value, Shared &shared) {
+   const int lane = threadIdx.x & 31, warp = threadIdx.x >> 5;
+   value = WarpMagnitudeMaximum(value);
++  if constexpr (Threads == 32)
++    return value;
+   if (lane == 0)
+     shared.reductions[warp] = value;
+-  __syncthreads();
++  BlockSync();
+   if (warp == 0) {
+     value =
+         WarpMagnitudeMaximum(lane < Threads / 32 ? shared.reductions[lane] : 0);
+     if (lane == 0)
+       shared.maximum = value;
+   }
+-  __syncthreads();
++  BlockSync();
+   const double result = shared.maximum;
+-  __syncthreads();
++  BlockSync();
+   return result;
+ }
+ // All six validation maxima share one pair of block barriers. Their
+ // nonnegative inputs and reduction operations are unchanged.
+ __device__ void ValidationMaxima(double (&values)[6], Shared &s) {
++  if constexpr (Threads == 32) {
++#pragma unroll
++    for (int index = 0; index < 6; ++index)
++      values[index] = WarpMagnitudeMaximum(values[index]);
++    return;
++  }
+   const int lane = threadIdx.x & 31, warp = threadIdx.x >> 5;
+ #pragma unroll
+   for (int index = 0; index < 6; ++index) {
+@@ -213,14 +229,14 @@ __device__ void ValidationMaxima(double (&values)[6], Shared &s) {
+     if (lane == 0)
+       s.validation_reductions[index][warp] = value;
+   }
+-  __syncthreads();
+-  if (warp < 6) {
++  BlockSync();
++  for (int index = warp; index < 6; index += Threads / 32) {
+     const double value = WarpMagnitudeMaximum(
+-        lane < Threads / 32 ? s.validation_reductions[warp][lane] : 0);
++        lane < Threads / 32 ? s.validation_reductions[index][lane] : 0);
+     if (lane == 0)
+-      s.validation_maxima[warp] = value;
++      s.validation_maxima[index] = value;
+   }
+-  __syncthreads();
++  BlockSync();
+ #pragma unroll
+   for (int index = 0; index < 6; ++index)
+     values[index] = s.validation_maxima[index];
+@@ -312,16 +328,16 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
+       ++w.progress.expression_cache_hits;
+       w.progress.expression_cycles += clock64() - cycles;
+     }
+-    __syncthreads();
++    BlockSync();
+     return;
+   }
+   const bool reuse_values = same && !force_fresh;
+   // Every warp must finish reading cache metadata before the owner invalidates
+   // it. The no-cache path does not pass through Maximum's block barriers.
+-  __syncthreads();
++  BlockSync();
+   if (threadIdx.x == 0)
+     s.expression_cache_valid = false;
+-  __syncthreads();
++  BlockSync();
+   for (int i = threadIdx.x; i < m.expression_node_count; i += Threads) {
+     if (!reuse_values) {
+       s.expression_values[i] = 0;
+@@ -339,7 +355,7 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
+         w.gradients[at] = 0;
+     }
+   }
+-  __syncthreads();
++  BlockSync();
+   const auto value_start = clock64();
+   if (!reuse_values) {
+     for (int level = 0; level < m.expression_levels; ++level) {
+@@ -408,7 +424,7 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
+         if (!Bounded(value))
+           Reject(s, Nonfinite);
+       }
+-      __syncthreads();
++      BlockSync();
+     }
+   }
+   for (int i = threadIdx.x; i < m.programs; i += Threads) {
+@@ -417,12 +433,12 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
+                         s.error ? 1U : 0U};
+     s.expression_adjoints[program.node_offset + program.root] = 1;
+   }
+-  __syncthreads();
++  BlockSync();
+   if (threadIdx.x == 0)
+     w.progress.expression_value_cycles += clock64() - value_start;
+   const auto ad_start = clock64();
+   if (derivatives && !s.error) {
+-    __syncthreads();
++    BlockSync();
+     for (int level = m.expression_levels - 1; level >= 0; --level) {
+       for (int at = m.expression_level_offsets[level] + threadIdx.x;
+            at < m.expression_level_offsets[level + 1]; at += Threads) {
+@@ -504,7 +520,7 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
+         if (error)
+           Reject(s, Nonfinite);
+       }
+-      __syncthreads();
++      BlockSync();
+     }
+     // Each dependency owns its ordered list of state leaves. The list retains
+     // the original descending AD accumulation order, including zero adjoints
+@@ -529,14 +545,14 @@ __device__ void Expressions(const Model &m, Workspace &w, Shared &s,
+   }
+   for (int index = threadIdx.x; index < m.n; index += Threads)
+     s.expression_state[index] = state[index];
+-  __syncthreads();
++  BlockSync();
+   if (threadIdx.x == 0) {
+     s.expression_cache_valid = !s.error;
+     s.expression_cache_derivatives =
+         !s.error && (derivatives || keep_derivatives);
+     w.progress.expression_cycles += clock64() - cycles;
+   }
+-  __syncthreads();
++  BlockSync();
+ }
+ __device__ double NonlinearHistory(const Model &m, const Workspace &w,
+                                    int row) {
+@@ -595,7 +611,7 @@ __device__ void Assemble(const Model &m, Workspace &w, Shared &s,
+     if (!Bounded(residual) || !Bounded(scale) || !Bounded(affine.Value()))
+       Reject(s, Nonfinite);
+   }
+-  __syncthreads();
++  BlockSync();
+ }
+ 
+ // A block cooperatively pivots and updates each private LU. Compact nonzero
+@@ -618,10 +634,10 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
+     w.equil[row] = scale;
+     w.permutation[row] = row;
+   }
+-  __syncthreads();
++  BlockSync();
+   for (int i = threadIdx.x; i < m.n * N; i += Threads)
+     w.lu[i] = 0;
+-  __syncthreads();
++  BlockSync();
+   for (int row = threadIdx.x; row < m.n; row += Threads) {
+     for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+       const double value = w.jacobian[k] / w.equil[row];
+@@ -630,7 +646,7 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
+         Reject(s, Nonfinite);
+     }
+   }
+-  __syncthreads();
++  BlockSync();
+   for (int k = 0; k < m.n && !s.error; ++k) {
+     double best = 0;
+     for (int row = k + threadIdx.x; row < m.n; row += Threads)
+@@ -643,20 +659,20 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
+       if (!(best >= 2.2250738585072014e-308) || !Bounded(best))
+         Reject(s, Singular);
+     }
+-    __syncthreads();
++    BlockSync();
+     if (s.error)
+       break;
+     for (int row = k + threadIdx.x; row < m.n; row += Threads)
+       if (fabs(w.lu[row * N + k]) == best)
+         atomicMin(&s.dense_selected, row);
+-    __syncthreads();
++    BlockSync();
+     if (threadIdx.x == 0) {
+       const double diagonal = fabs(w.lu[k * N + k]);
+       if (prefer_diagonal && diagonal >= .001 * best &&
+           diagonal >= 2.2250738585072014e-308)
+         s.dense_selected = k;
+     }
+-    __syncthreads();
++    BlockSync();
+     const int selected = s.dense_selected;
+     if (selected != k) {
+       for (int col = threadIdx.x; col < m.n; col += Threads) {
+@@ -670,20 +686,20 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
+         w.permutation[selected] = value;
+       }
+     }
+-    __syncthreads();
++    BlockSync();
+     for (int row = k + 1 + threadIdx.x; row < m.n; row += Threads)
+       if (w.lu[row * N + k] != 0)
+         s.dense_rows[atomicAdd(&s.dense_row_count, 1)] = row;
+     for (int col = k + 1 + threadIdx.x; col < m.n; col += Threads)
+       if (w.lu[k * N + col] != 0)
+         s.dense_columns[atomicAdd(&s.dense_column_count, 1)] = col;
+-    __syncthreads();
++    BlockSync();
+     const double pivot = w.lu[k * N + k];
+     for (int at = threadIdx.x; at < s.dense_row_count; at += Threads) {
+       const int row = s.dense_rows[at];
+       w.lu[row * N + k] /= pivot;
+     }
+-    __syncthreads();
++    BlockSync();
+     // Each destination is updated exactly once per pivot. Compacting the
+     // nonzero row/column lists changes ownership, never arithmetic order.
+     for (int at = threadIdx.x; at < s.dense_row_count * s.dense_column_count;
+@@ -693,13 +709,13 @@ __device__ void DenseFactor(const Model &m, Workspace &w, Shared &s,
+       w.lu[row * N + col] =
+           fma(-w.lu[row * N + k], w.lu[k * N + col], w.lu[row * N + col]);
+     }
+-    __syncthreads();
++    BlockSync();
+   }
+   if (threadIdx.x == 0) {
+     ++w.progress.factors;
+     ++w.progress.dense_factors;
+   }
+-  __syncthreads();
++  BlockSync();
+ }
+ // Numeric pivot discovery executes on the device; the host only constructs the
+ // symbolic fill graph for the resulting row/column permutation.
+@@ -711,7 +727,7 @@ __global__ void DiscoverPivots(Model m, Workspace *workspace, int *error,
+     shared.matrix_rows = m.row_offsets;
+     shared.matrix_columns = m.columns;
+   }
+-  __syncthreads();
++  BlockSync();
+   DenseFactor(m, *workspace, shared, prefer_diagonal);
+   if (threadIdx.x == 0)
+     *error = shared.error;
+@@ -747,20 +763,20 @@ __device__ void DenseTriangular(const Model &m, Workspace &w, Shared &s,
+       __syncwarp();
+     }
+   }
+-  __syncthreads();
++  BlockSync();
+ }
+ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+   const auto prepare_start = clock64();
+   if (threadIdx.x == 0)
+     s.sparse_factor = m.factor_nonzeros > 0;
+-  __syncthreads();
++  BlockSync();
+   if (!s.sparse_factor) {
+     DenseFactor(m, w, s);
+     return;
+   }
+   for (int i = threadIdx.x; i < m.factor_nonzeros; i += Threads)
+     s.factor[i] = 0;
+-  __syncthreads();
++  BlockSync();
+   for (int row = threadIdx.x; row < m.n; row += Threads) {
+     double scale = 0;
+     for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k)
+@@ -786,12 +802,12 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+                                  ? row_norm * w.inverse_equil[row]
+                                  : row_norm / scale;
+   }
+-  __syncthreads();
++  BlockSync();
+   if (threadIdx.x == 0) {
+     s.pivot_failure = 0;
+     w.progress.factor_prepare_cycles += clock64() - prepare_start;
+   }
+-  __syncthreads();
++  BlockSync();
+   for (int level = 0; level < m.factor_levels && !s.error; ++level) {
+     for (int at = s.factor_level_offsets[level] + threadIdx.x;
+          at < s.factor_level_offsets[level + 1]; at += Threads) {
+@@ -815,7 +831,7 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+           atomicExch(&s.pivot_failure, 1);
+       }
+     }
+-    __syncthreads();
++    BlockSync();
+     if (s.pivot_failure)
+       break;
+   }
+@@ -823,7 +839,7 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+     s.sparse_factor = false;
+   if (threadIdx.x == 0)
+     ++w.progress.factors;
+-  __syncthreads();
++  BlockSync();
+   if (!s.sparse_factor && !s.error)
+     DenseFactor(m, w, s);
+ }
+@@ -831,12 +847,12 @@ __device__ void Factor(const Model &m, Workspace &w, Shared &s) {
+   const auto cycles = clock64();
+   if (threadIdx.x == 0)
+     s.factor_changed = !s.factor_valid;
+-  __syncthreads();
++  BlockSync();
+   for (int k = threadIdx.x; k < m.nnz; k += Threads)
+     if (s.factor_valid && __double_as_longlong(w.jacobian[k]) !=
+                               __double_as_longlong(w.factored_jacobian[k]))
+       atomicExch(&s.factor_changed, 1);
+-  __syncthreads();
++  BlockSync();
+   if (!s.factor_changed) {
+     if (threadIdx.x == 0)
+       ++w.progress.reuses;
+@@ -844,12 +860,12 @@ __device__ void Factor(const Model &m, Workspace &w, Shared &s) {
+     FactorImpl(m, w, s);
+     for (int k = threadIdx.x; k < m.nnz; k += Threads)
+       w.factored_jacobian[k] = w.jacobian[k];
+-    __syncthreads();
++    BlockSync();
+     if (threadIdx.x == 0) {
+       s.factor_valid = !s.error;
+       s.factored_scale = s.active_scale;
+     }
+-    __syncthreads();
++    BlockSync();
+   }
+   if (threadIdx.x == 0)
+     w.progress.factor_cycles += clock64() - cycles;
+@@ -899,7 +915,7 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+     for (int row = lane; row < m.n; row += 32)
+       result[s.column_permutation[row]] = s.triangular[row];
+   }
+-  __syncthreads();
++  BlockSync();
+ }
+ __device__ void Triangular(const Model &m, Workspace &w, Shared &s,
+                            const double *rhs, double *result) {
+@@ -913,11 +929,11 @@ __device__ void Linear(const Model &m, Workspace &w, Shared &s) {
+   if (s.error)
+     return;
+   for (int retry = 0; retry < 2 && !s.error; ++retry) {
+-    __syncthreads();
++    BlockSync();
+     Triangular(m, w, s, w.affine_rhs, w.solution);
+     bool corrected = false, accepted = false;
+     for (int iteration = 0; iteration <= 4 && !s.error; ++iteration) {
+-      __syncthreads();
++      BlockSync();
+       const auto residual_start = clock64();
+       double component = 0, normalized = 0, matrix_norm = 0, rhs_norm = 0,
+              solution_norm = 0, nonzero = 0;
+@@ -981,27 +997,27 @@ __device__ void Linear(const Model &m, Workspace &w, Shared &s) {
+       if (threadIdx.x == 0)
+         ++w.progress.refinements;
+       corrected = true;
+-      __syncthreads();
++      BlockSync();
+     }
+     if (accepted || s.error)
+       break;
+     if (retry == 0 && s.sparse_factor) {
+-      __syncthreads();
++      BlockSync();
+       if (threadIdx.x == 0) {
+         s.sparse_factor = false;
+         ++w.progress.linear_retries;
+       }
+-      __syncthreads();
++      BlockSync();
+       DenseFactor(m, w, s);
+     } else {
+       if (threadIdx.x == 0)
+         Reject(s, Invalid);
+-      __syncthreads();
++      BlockSync();
+     }
+   }
+   if (threadIdx.x == 0 && !s.error)
+     ++w.progress.solves;
+-  __syncthreads();
++  BlockSync();
+ }
+ __device__ double ResidualNorm(const Model &m, Workspace &w, Shared &s) {
+   double norm = 0;
+@@ -1065,13 +1081,13 @@ __device__ void ChordRhs(const Model &m, Workspace &w, Shared &s,
+   }
+   if (threadIdx.x == 0)
+     ++w.progress.chord_iterations;
+-  __syncthreads();
++  BlockSync();
+ }
+ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+                        const double *initial, double *result) {
+   for (int i = threadIdx.x; i < m.n; i += Threads)
+     w.current[i] = initial[i];
+-  __syncthreads();
++  BlockSync();
+   bool chord = s.factor_valid && s.active_scale == s.factored_scale;
+   Assemble(m, w, s, w.current, !chord);
+   if (chord && !s.error)
+@@ -1083,13 +1099,13 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+     if (s.error && chord) {
+       // Refresh at the same current state if the lagged linear system fails.
+       // This remains inside the bounded Newton solve, with no job retry.
+-      __syncthreads();
++      BlockSync();
+       if (threadIdx.x == 0) {
+         s.error = 0;
+         s.factor_valid = false;
+         ++w.progress.chord_refreshes;
+       }
+-      __syncthreads();
++      BlockSync();
+       Assemble(m, w, s, w.current, true);
+       if (!s.error)
+         Linear(m, w, s);
+@@ -1099,21 +1115,21 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+       return;
+     for (int i = threadIdx.x; i < m.n; i += Threads)
+       w.delta[i] = w.solution[i] - w.current[i];
+-    __syncthreads();
++    BlockSync();
+     double scale = 1;
+     for (int backtrack = 0; backtrack <= 16; ++backtrack) {
+       // Finish every warp's previous error decision before clearing it for a
+       // new trial. Otherwise slow warps can take a different recovery branch.
+-      __syncthreads();
++      BlockSync();
+       if (threadIdx.x == 0)
+         s.error = 0;
+-      __syncthreads();
++      BlockSync();
+       for (int i = threadIdx.x; i < m.n; i += Threads) {
+         w.proposed[i] = w.current[i] + scale * w.delta[i];
+         if (!Bounded(w.proposed[i]))
+           Reject(s, Nonfinite);
+       }
+-      __syncthreads();
++      BlockSync();
+       if (!s.error)
+         Assemble(m, w, s, w.proposed, false);
+       if (!s.error)
+@@ -1123,10 +1139,10 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+       scale *= .5;
+     }
+     if (s.error) {
+-      __syncthreads();
++      BlockSync();
+       if (threadIdx.x == 0)
+         s.error = Nonconvergence;
+-      __syncthreads();
++      BlockSync();
+       return;
+     }
+     const double update = UpdateNorm(m, w, s), residual = ResidualNorm(m, w, s);
+@@ -1138,17 +1154,28 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+       Assemble(m, w, s, w.proposed, true);
+       if (s.error)
+         return;
+-      double value =
+-          threadIdx.x < m.programs ? w.expressions[threadIdx.x].value : 0;
++      constexpr int programs_per_thread =
++          (MaximumPrograms + Threads - 1) / Threads;
++      double values[programs_per_thread]{};
++#pragma unroll
++      for (int at = 0; at < programs_per_thread; ++at) {
++        const int program = threadIdx.x + at * Threads;
++        if (program < m.programs)
++          values[at] = w.expressions[program].value;
++      }
+       Assemble(m, w, s, w.proposed, false, true);
+-      if (threadIdx.x < m.programs &&
+-          __double_as_longlong(value) !=
+-              __double_as_longlong(w.expressions[threadIdx.x].value))
+-        Reject(s, Invalid);
++#pragma unroll
++      for (int at = 0; at < programs_per_thread; ++at) {
++        const int program = threadIdx.x + at * Threads;
++        if (program < m.programs &&
++            __double_as_longlong(values[at]) !=
++                __double_as_longlong(w.expressions[program].value))
++          Reject(s, Invalid);
++      }
+       const double final_residual = ResidualNorm(m, w, s);
+       if (final_residual > 1 && threadIdx.x == 0)
+         Reject(s, Invalid);
+-      __syncthreads();
++      BlockSync();
+       if (s.error)
+         return;
+       // A zero RHS cannot conceal singularity in the accepted Jacobian.
+@@ -1157,12 +1184,12 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+         ++w.progress.solves;
+       for (int i = threadIdx.x; i < m.n; i += Threads)
+         result[i] = w.proposed[i];
+-      __syncthreads();
++      BlockSync();
+       return;
+     }
+     for (int i = threadIdx.x; i < m.n; i += Threads)
+       w.current[i] = w.proposed[i];
+-    __syncthreads();
++    BlockSync();
+     chord = s.factor_valid && iteration % 3 != 2 &&
+             residual < .5 * previous_residual;
+     previous_residual = residual;
+@@ -1174,10 +1201,10 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+       Assemble(m, w, s, w.current, true);
+     }
+   }
+-  __syncthreads();
++  BlockSync();
+   if (threadIdx.x == 0 && !s.error)
+     s.error = Nonconvergence;
+-  __syncthreads();
++  BlockSync();
+ }
+ __device__ void Step(const Model &m, Workspace &w, Shared &s,
+                      const double *before, double t0, double t1, double h,
+@@ -1186,7 +1213,7 @@ __device__ void Step(const Model &m, Workspace &w, Shared &s,
+     Expressions(m, w, s, before, false);
+   if (s.error)
+     return;
+-  __syncthreads();
++  BlockSync();
+   const double factor = (backward ? 1.0 : 2.0) / h;
+   if (threadIdx.x == 0)
+     s.active_scale = factor;
+@@ -1208,7 +1235,7 @@ __device__ void Step(const Model &m, Workspace &w, Shared &s,
+     if (!Bounded(w.companion_rhs[row]))
+       Reject(s, Nonfinite);
+   }
+-  __syncthreads();
++  BlockSync();
+   if (!s.error)
+     Newton(m, w, s, before, result);
+ }
+@@ -1234,13 +1261,13 @@ __device__ void Integrate(const Model &m, Workspace &w, Shared &s) {
+   if (!(mid > t && mid < next)) {
+     if (threadIdx.x == 0)
+       Reject(s, Invalid);
+-    __syncthreads();
++    BlockSync();
+     return;
+   }
+   Step(m, w, s, w.state, t, next, h, s.backward, s.waveform, w.full);
+   if (s.error)
+     return;
+-  __syncthreads();
++  BlockSync();
+   double history_error = 0, positive_feedback = 0;
+   if (!s.backward && w.progress.has_current) {
+     for (int i = threadIdx.x; i < m.reactive; i += Threads) {
+@@ -1295,7 +1322,7 @@ __device__ void Integrate(const Model &m, Workspace &w, Shared &s) {
+     s.checked = false;
+     s.used_history = !doubling;
+   }
+-  __syncthreads();
++  BlockSync();
+   if (doubling) {
+     Step(m, w, s, w.state, t, mid, mid - t, s.backward, false, w.half);
+     if (s.error)
+@@ -1331,7 +1358,7 @@ __device__ void Integrate(const Model &m, Workspace &w, Shared &s) {
+   }
+   if (threadIdx.x == 0)
+     w.progress.history_estimates += s.used_history;
+-  __syncthreads();
++  BlockSync();
+ }
+ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+   __shared__ Shared s;
+@@ -1416,7 +1443,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+         m.shared_structure ? reinterpret_cast<const int *>(end) : m.row_offsets;
+     s.matrix_columns = m.shared_structure ? s.matrix_rows + m.n + 1 : m.columns;
+   }
+-  __syncthreads();
++  BlockSync();
+   if (m.shared_structure) {
+     for (int i = threadIdx.x; i <= m.n; i += Threads)
+       const_cast<int *>(s.matrix_rows)[i] = m.row_offsets[i];
+@@ -1449,7 +1476,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+     s.factor_order[i] = m.factor_order[i];
+   for (int i = threadIdx.x; i <= m.factor_levels; i += Threads)
+     s.factor_level_offsets[i] = m.factor_level_offsets[i];
+-  __syncthreads();
++  BlockSync();
+   if (m.shared_factor_metadata) {
+     for (int i = threadIdx.x; i < m.factor_nonzeros; i += Threads)
+       const_cast<FactorEntry *>(s.factor_entries)[i] = m.factor_entries[i];
+@@ -1461,7 +1488,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+          index += Threads)
+       const_cast<PackedExpressionNode *>(s.expression_nodes)[index] =
+           m.parallel_nodes[index];
+-  __syncthreads();
++  BlockSync();
+   const auto dense_before = w.progress.dense_factors;
+   for (int chunk = 0;
+        (chunk < Chunk) && (w.progress.time < m.stop) && !w.progress.error &&
+@@ -1502,11 +1529,11 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+             w.progress.accepted == 0 || w.progress.recovery || s.waveform;
+       }
+     }
+-    __syncthreads();
++    BlockSync();
+     if (!s.error)
+       Integrate(m, w, s);
+     if (s.error) {
+-      __syncthreads();
++      BlockSync();
+       if (threadIdx.x == 0) {
+         if (s.error == Nonconvergence && s.step * .5 >= m.minimum_step) {
+           ++w.progress.rejected;
+@@ -1518,7 +1545,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+         } else
+           w.progress.error = s.error;
+       }
+-      __syncthreads();
++      BlockSync();
+       continue;
+     }
+     const double error = s.normalized_error;
+@@ -1533,7 +1560,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+       w.progress.fallback = true;
+       ++w.progress.fallback_entries;
+     }
+-    __syncthreads();
++    BlockSync();
+     if (error > 1) {
+       if (threadIdx.x == 0) {
+         ++w.progress.rejected;
+@@ -1543,12 +1570,12 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+         if (adapted < m.minimum_step)
+           w.progress.error = Invalid;
+       }
+-      __syncthreads();
++      BlockSync();
+       continue;
+     }
+     if (threadIdx.x == 0 && w.progress.accepted >= m.maximum_accepted)
+       w.progress.error = Budget;
+-    __syncthreads();
++    BlockSync();
+     if (w.progress.error)
+       break;
+     const bool reset = s.backward || s.waveform;
+@@ -1562,7 +1589,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+       w.output[w.progress.output_count * (m.n + 1) + i + 1] = w.full[i];
+     }
+     // Every writer must finish the current row before its shared index changes.
+-    __syncthreads();
++    BlockSync();
+     if (threadIdx.x == 0) {
+       w.output[w.progress.output_count * (m.n + 1)] = s.next_time;
+       ++w.progress.output_count;
+@@ -1595,7 +1622,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+         w.progress.agreements = 0;
+       }
+     }
+-    __syncthreads();
++    BlockSync();
+   }
+   for (int i = threadIdx.x; i < m.n; i += Threads) {
+     workspace->state[i] = w.state[i];
+@@ -1605,7 +1632,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+       workspace->history_trial[i] = w.history_trial[i];
+     }
+   }
+-  __syncthreads();
++  BlockSync();
+   if (threadIdx.x == 0) {
+     w.progress.total_cycles += clock64() - cycles;
+     workspace->progress = w.progress;

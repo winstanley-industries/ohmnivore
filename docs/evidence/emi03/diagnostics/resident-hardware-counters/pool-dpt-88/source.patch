@@ -1,0 +1,13 @@
+diff --git a/cuda/emi03_resident.cu b/cuda/emi03_resident.cu
+index 5148f78..150525a 100644
+--- a/cuda/emi03_resident.cu
++++ b/cuda/emi03_resident.cu
+@@ -176,7 +176,7 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
+   klu_common common;
+   klu_defaults(&common);
+   common.ordering =
+-      1; // COLAMD: structural ordering only, never a CPU numeric solve.
++      0; // AMD: structural ordering only, never a CPU numeric solve.
+   const auto release_symbolic = [&common](klu_symbolic *value) {
+     if (value)
+       klu_free_symbolic(&value, &common);

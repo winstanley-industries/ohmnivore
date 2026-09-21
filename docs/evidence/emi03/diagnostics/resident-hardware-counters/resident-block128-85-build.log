@@ -1,0 +1,73 @@
+Starting local Bazel server (9.2.0) and connecting to it...
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+Computing main repo mapping: 
+Loading: 
+Loading: 1 packages loaded
+Analyzing: 2 targets (6 packages loaded, 6 targets configured)
+Analyzing: 2 targets (6 packages loaded, 6 targets configured)
+
+Analyzing: 2 targets (134 packages loaded, 6327 targets configured)
+
+INFO: Analyzed 2 targets (138 packages loaded, 7437 targets configured).
+[17 / 189] checking cached actions
+[100 / 189] [Prepa] Compiling cuda/emi03_resident.cu
+[100 / 189] Compiling cuda/emi03_resident.cu; 1s linux-sandbox
+[100 / 189] Compiling cuda/emi03_resident.cu; 11s linux-sandbox
+[101 / 189] [Prepa] Compiling cuda/emi03_real_solver.cu
+[101 / 189] Compiling cuda/emi03_real_solver.cu; 1s linux-sandbox
+[102 / 189] [Prepa] Compiling cuda/emi03_expression.cu
+[102 / 189] Compiling cuda/emi03_expression.cu; 1s linux-sandbox
+[103 / 189] [Prepa] Linking cuda/libemi03_cuda.a
+[106 / 189] Linking cuda/emi03_resident_worker; 0s linux-sandbox
+[107 / 189] [Prepa] runfiles for //cuda:emi03_resident_worker
+[128 / 189] [Scann] Compiling AMD/Source/amd_2.c
+[144 / 189] [Scann] Compiling BTF/Source/btf_strongcomp.c
+INFO: From Compiling KLU/Source/klu_diagnostics.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c: In function 'klu_rgrowth':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^~
+[157 / 189] [Sched] Compiling KLU/Source/klu_dump.c
+INFO: From Compiling KLU/Source/klu_kernel.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c: In function 'prune':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^~
+INFO: From Compiling KLU/Source/klu_sort.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c: In function 'klu_sort':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+[169 / 189] [Scann] Compiling KLU/Source/klu_version.c
+INFO: From Compiling KLU/Source/klu_z_diagnostics.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_diagnostics.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c: In function 'klu_z_rgrowth':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^~
+INFO: From Compiling KLU/Source/klu_z_kernel.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_kernel.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c: In function 'prune':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^~
+[179 / 189] [Scann] Compiling KLU/Source/klu_z_solve.c
+INFO: From Compiling KLU/Source/klu_z_sort.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_sort.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c: In function 'klu_z_sort':
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+[187 / 189] [Prepa] Linking cuda/emi03_resident_test
+[187 / 189] Linking cuda/emi03_resident_test; 1s linux-sandbox
+[188 / 189] [Prepa] runfiles for //cuda:emi03_resident_test
+INFO: Found 2 targets...
+INFO: Elapsed time: 53.582s, Critical Path: 27.79s
+INFO: 59 processes: 130 action cache hit, 3 internal, 56 linux-sandbox.
+INFO: Build completed successfully, 59 total actions

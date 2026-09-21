@@ -1,0 +1,261 @@
+{
+  "attempts": 1,
+  "backend": "cuda-fp64",
+  "binary_sha256": "47a6d554cf95fc5432b7daf59df4816036d75e5a74974a32128f7c68e6af8df7",
+  "candidate": null,
+  "completion_latency_s": 26.745893993997015,
+  "corner": null,
+  "cpu_validation": {
+    "classification_agrees": true,
+    "id": "q2-dpt",
+    "metrics": {
+      "frequency_hz": {
+        "difference": 0.0,
+        "limit": 6611570.247933827
+      },
+      "log_decrement": {
+        "difference": 9.674502310375033e-09,
+        "limit": 0.12249334735880524
+      },
+      "off_edge_s": {
+        "difference": 5.118620100257737e-17,
+        "limit": 3.2657757779696237e-09
+      },
+      "off_energy_j": {
+        "difference": 5.863419355622325e-13,
+        "limit": 4.178356475572955e-06
+      },
+      "off_half_s": {
+        "difference": 9.480500965438482e-17,
+        "limit": 3.2657757779696237e-09
+      },
+      "on_edge_s": {
+        "difference": 6.132349131531684e-17,
+        "limit": 3.7125694333542565e-09
+      },
+      "on_energy_j": {
+        "difference": 5.213643102311427e-13,
+        "limit": 8.219044841210118e-06
+      },
+      "on_half_s": {
+        "difference": 1.1394287206464848e-17,
+        "limit": 3.7125694333542565e-09
+      },
+      "peak_v": {
+        "difference": 1.4735811646460206e-06,
+        "limit": 10.785676896673028
+      }
+    },
+    "pass": true,
+    "waveforms": {
+      "i(lload)": {
+        "difference_rms": 1.3864170177153288e-10,
+        "limit": 0.3103287237495357,
+        "passed": true,
+        "reference_rms": 14.516436187476783
+      },
+      "i(vdrain)": {
+        "difference_rms": 1.9581891922648777e-06,
+        "limit": 0.23210305831951294,
+        "passed": true,
+        "reference_rms": 10.605152915975648
+      },
+      "v(d)": {
+        "difference_rms": 3.193869275785506e-05,
+        "limit": 10.0,
+        "passed": true,
+        "reference_rms": 224.24899087434142
+      },
+      "v(g)": {
+        "difference_rms": 1.7384514123555644e-06,
+        "limit": 0.5,
+        "passed": true,
+        "reference_rms": 16.634202030562594
+      }
+    }
+  },
+  "cpu_validation_s": 0.010874271974898875,
+  "deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+  "elapsed_s": 26.733495227003004,
+  "files": {
+    "gpu.json": "ffdf21d6db9fe117ef714dfad434671bc0b2b23f2ffba4886f52fc3b6194436e",
+    "import.json": "9c1bd4fbb4effd4a457c827d423b11ca3663739bbca86a8f1763bcc4652a3bb8",
+    "process.json": "ba387cc8fc2f10d7d9fe2a24be5930d0e6ad2470971a570d073fecc241bfc939",
+    "raw.header": "9a37464ac21e66aa3617b466434d829fe8d8ada794264a48993a10cd1aeffffe",
+    "raw.json": "d887a14b374d3d97e49cace6c18ecb56a1f9185155cc96cd4aa39add19cba9c4",
+    "statistics.json": "a7ca67b19625f2452bff88fe6fe1718cbf30a12c9ea1a0d4b6a037c23861fe40"
+  },
+  "fixture": "dpt",
+  "flattened_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c",
+  "gpu": {
+    "allocation_failures": 0,
+    "analyses": 33,
+    "analysis_ns": 63341638,
+    "backend": "cuda-fp64",
+    "cleanup_failures": 0,
+    "context_setup_ns": 201148020,
+    "controlled_peak_device_bytes": 574403,
+    "cudss_estimated_peak_device_bytes": 656004,
+    "cudss_peak_device_bytes": 656004,
+    "current_device_bytes": 0,
+    "expression_batches": 356118,
+    "expression_evaluate_ns": 17861881,
+    "expression_full_ad": 3137610,
+    "expression_prepare_ns": 97706,
+    "expression_program_uploads": 2,
+    "expression_value_only": 7545930,
+    "factor_ns": 94384444,
+    "factorizations": 156610,
+    "gpu_fallbacks": 0,
+    "job_id": "/home/adam/emi03-work/tmp/emi03-job-vq7z3yro/input.cir",
+    "live_factorizations": 0,
+    "maximum_device_bytes": 268435456,
+    "outstanding_device_bytes": 0,
+    "peak_device_bytes": 1056055,
+    "readback_bytes": 25552144,
+    "readback_ns": 5826107,
+    "refactorizations": 4,
+    "refinements": 149803,
+    "rejected_pivots": 0,
+    "reuses": 98281,
+    "schema": "emi03-cuda-v1",
+    "solve_ns": 78630317,
+    "solver_setup_ns": 7715898,
+    "solves": 370229,
+    "successful_solves": 220426,
+    "synchronization_ns": 25650190453,
+    "transient_algorithm": "resident-be-trap-fp64-v1",
+    "upload_bytes": 511805,
+    "upload_ns": 1415952,
+    "validation_ns": 32474
+  },
+  "id": "q2-dpt",
+  "import": {
+    "adapted_bytes": 29136,
+    "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+    "adapter_version": "emi01-microchip-ngspice-v1",
+    "ambient_temperature_c": 27.0,
+    "archive_bytes": 28318,
+    "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    "expanded_components": 73,
+    "expression_tokens": 1066,
+    "flat_deck_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c",
+    "importer": "emi02-microchip-import-v1",
+    "instances": 4,
+    "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+    "member_bytes": 29805,
+    "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+    "mna_unknowns": 80,
+    "model_build_date": "2026-05-05",
+    "model_internal_version": "2026.5",
+    "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+    "packages": 2,
+    "source_deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+    "vt_volts": 0.025864916895449997
+  },
+  "level": 2,
+  "max_step_s": 5e-10,
+  "metrics": {
+    "gate_dynamics": {
+      "drop_limits_v": [
+        0.2,
+        30.0
+      ],
+      "half_crossing_gate_limits_v": [
+        -3.0,
+        23.0
+      ],
+      "on_edge_gate_drop_v": 1.5305102485569222,
+      "pass": true
+    },
+    "load_at_second_on_a": 17.97302986726348,
+    "min_gate_v": -3.3032766769292823,
+    "min_v": -20.01001389159179,
+    "off_edge_s": 1.2657757830882436e-08,
+    "off_energy_j": 4.3567128925117176e-05,
+    "off_gate_at_vds_10_50_90_v": [
+      3.247373415462621,
+      0.388139066036882,
+      0.39122587181220647
+    ],
+    "off_half_s": 1.4034742058291413e-05,
+    "on_edge_s": 1.7125694394866053e-08,
+    "on_energy_j": 0.00012438089734556667,
+    "on_gate_at_vds_10_50_90_v": [
+      9.013375496346345,
+      15.76279899529581,
+      10.543885744903267
+    ],
+    "on_half_s": 1.2024822682754387e-05,
+    "pass": true,
+    "peak_gate_v": 24.193242959824207,
+    "peak_v": 439.2838433600702,
+    "ringing": {
+      "frequency_hz": 66115702.47933827,
+      "log_decrement": 0.6124667271195239,
+      "peak_amplitudes_v": [
+        39.28384336007019,
+        18.09194560352961,
+        11.540699444398058
+      ],
+      "peak_times_s": [
+        1.4044750000000001e-05,
+        1.4060000000000001e-05,
+        1.4075000000000002e-05
+      ],
+      "polarity": "positive",
+      "residual_reference_v": 400.0,
+      "status": "measured"
+    },
+    "sample_step_s": 2.5e-10
+  },
+  "process": {
+    "cpu_accounting": "shared-process upper bound",
+    "cpu_s": 3.03,
+    "exit_code": 0,
+    "input": "/home/adam/emi03-work/tmp/emi03-job-vq7z3yro/input.cir",
+    "status": "ok",
+    "wall_s": 26.678964466031175,
+    "worker_owner": 1,
+    "worker_pid": 1299608,
+    "worker_request": 1,
+    "worker_thread": 1299610
+  },
+  "queue_s": 0.001340174989309162,
+  "raw_points": 39172,
+  "raw_sha256": "6e143496cc701ee191f04ef8401e194832560915c7ab79d472110836117c7afc",
+  "reference_raw_sha256": "cd14af20b85143480603b9c02511b9c66df194afdfd567ef9016360aa3a86621",
+  "reference_version": "emi01-v2",
+  "request_attempted": true,
+  "request_input": "/home/adam/emi03-work/tmp/emi03-job-vq7z3yro/input.cir",
+  "sample_step_s": 2.5e-10,
+  "statistics": {
+    "attempts": 41504,
+    "behavioral_error_estimator": "derivative-history-audited-v1",
+    "behavioral_integration_method": "trapezoidal",
+    "derivative_history_error_estimates": 26935,
+    "derivative_history_fallback_entries": 6,
+    "derivative_history_fallback_recoveries": 6,
+    "derivative_history_step_doubling_checks": 14506,
+    "elapsed_seconds": 26.476113744,
+    "nonlinear_rejections": 0,
+    "points": 39172,
+    "raw_bytes": 1567091,
+    "rejected_steps": 2333,
+    "schema": "emi02-cpu-v2",
+    "status": "complete",
+    "step_doubling_error_estimates": 14569,
+    "transient_solver_statistics": {
+      "iterative_refinement_solves": 149799,
+      "numeric_factorizations": 156577,
+      "numeric_refactorization_fallbacks": 34437,
+      "numeric_refactorizations": 0,
+      "numeric_reuses": 98281,
+      "solves": 220421,
+      "symbolic_analyses": 32
+    },
+    "unknowns": 80,
+    "variables": 5
+  },
+  "status": "qualified"
+}

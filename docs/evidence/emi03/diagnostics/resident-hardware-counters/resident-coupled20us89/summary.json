@@ -1,0 +1,435 @@
+{
+  "acceptance_pass": false,
+  "results": [
+    {
+      "exit_code": 0,
+      "lane": "cpu",
+      "pass": true,
+      "points": 45952,
+      "raw_sha256": "cbb46f200c4ccb7ecd5be02810b8c739b8ed9da0fa3c75a81187094beea15a4f",
+      "wall_s": 3.1031416690093465
+    },
+    {
+      "exit_code": 0,
+      "lane": "baseline81",
+      "pass": true,
+      "points": 67140,
+      "raw_sha256": "f96eb29ca80b1d9281b9a9376752b36e0354506e4e3744b5f2ebeed0f9ac5fa1",
+      "wall_s": 30.598166799987666,
+      "waveforms": {
+        "i(lch)": {
+          "limit": 0.05879109763448706,
+          "pass": true,
+          "rms_error": 0.0007359345916293688
+        },
+        "i(lcma)": {
+          "limit": 0.1029931031097841,
+          "pass": true,
+          "rms_error": 3.3529774149014196e-06
+        },
+        "i(lcmb)": {
+          "limit": 0.077190564931161,
+          "pass": true,
+          "rms_error": 3.3610779944542717e-06
+        },
+        "i(lda)": {
+          "limit": 0.10298770932081922,
+          "pass": true,
+          "rms_error": 2.004829947178153e-05
+        },
+        "i(ldb)": {
+          "limit": 0.07719976843658236,
+          "pass": true,
+          "rms_error": 2.0051729493832293e-05
+        },
+        "i(lload)": {
+          "limit": 0.02842832476717003,
+          "pass": true,
+          "rms_error": 7.449165825584829e-08
+        },
+        "i(va)": {
+          "limit": 0.030375519440093215,
+          "pass": true,
+          "rms_error": 1.3898073077441266e-05
+        },
+        "i(vb)": {
+          "limit": 0.029960878172133533,
+          "pass": true,
+          "rms_error": 1.3897521343646989e-05
+        },
+        "i(vdah)": {
+          "limit": 0.08178304988002955,
+          "pass": true,
+          "rms_error": 0.00043734846972023775
+        },
+        "i(vdal)": {
+          "limit": 0.0794447562069189,
+          "pass": true,
+          "rms_error": 0.00032515679188957285
+        },
+        "i(vdbh)": {
+          "limit": 0.03798873278523191,
+          "pass": true,
+          "rms_error": 0.0004370421905202945
+        },
+        "i(vdbl)": {
+          "limit": 0.07923537109871158,
+          "pass": true,
+          "rms_error": 0.0003256417649755508
+        },
+        "v(a)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.0047213068619216675
+        },
+        "v(b)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.004724025089090502
+        },
+        "v(ch)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007814194747228335
+        },
+        "v(fa)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007819831676920005
+        },
+        "v(fb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007819833993600431
+        },
+        "v(ga)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.0001971856996315021
+        },
+        "v(gb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.0001972774582922538
+        },
+        "v(la)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007838464255259345
+        },
+        "v(lb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.00783846591390473
+        },
+        "v(lr)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007838464987935079
+        },
+        "v(p)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.004436546459519902
+        },
+        "v(xcap)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007819831727784266
+        },
+        "v(yca)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007814119369531677
+        },
+        "v(ycb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.007814121843211315
+        }
+      }
+    },
+    {
+      "exit_code": 0,
+      "lane": "amd88",
+      "pass": true,
+      "points": 86180,
+      "raw_sha256": "73ccb1479a96653b17060d4059d0006db4ae891040015dd1fcae3eff16196981",
+      "wall_s": 33.67955763201462,
+      "waveforms": {
+        "i(lch)": {
+          "limit": 0.05879109763448706,
+          "pass": true,
+          "rms_error": 0.0012987248426532413
+        },
+        "i(lcma)": {
+          "limit": 0.1029931031097841,
+          "pass": true,
+          "rms_error": 3.5959170143160024e-06
+        },
+        "i(lcmb)": {
+          "limit": 0.077190564931161,
+          "pass": true,
+          "rms_error": 3.6072422110460132e-06
+        },
+        "i(lda)": {
+          "limit": 0.10298770932081922,
+          "pass": true,
+          "rms_error": 2.132653281409312e-05
+        },
+        "i(ldb)": {
+          "limit": 0.07719976843658236,
+          "pass": true,
+          "rms_error": 2.133023299927911e-05
+        },
+        "i(lload)": {
+          "limit": 0.02842832476717003,
+          "pass": true,
+          "rms_error": 8.088272164642913e-08
+        },
+        "i(va)": {
+          "limit": 0.030375519440093215,
+          "pass": true,
+          "rms_error": 1.4783090578959591e-05
+        },
+        "i(vb)": {
+          "limit": 0.029960878172133533,
+          "pass": true,
+          "rms_error": 1.4782499687085266e-05
+        },
+        "i(vdah)": {
+          "limit": 0.08178304988002955,
+          "pass": true,
+          "rms_error": 0.0008253954942059579
+        },
+        "i(vdal)": {
+          "limit": 0.0794447562069189,
+          "pass": true,
+          "rms_error": 0.0007039811506011012
+        },
+        "i(vdbh)": {
+          "limit": 0.03798873278523191,
+          "pass": true,
+          "rms_error": 0.0008252134635220245
+        },
+        "i(vdbl)": {
+          "limit": 0.07923537109871158,
+          "pass": true,
+          "rms_error": 0.0007042369843619832
+        },
+        "v(a)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.009437289375104687
+        },
+        "v(b)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.009438750025761085
+        },
+        "v(ch)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014787301294504486
+        },
+        "v(fa)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014790457559071699
+        },
+        "v(fb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014790459006546164
+        },
+        "v(ga)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.00045527803588035694
+        },
+        "v(gb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.00045533484321903377
+        },
+        "v(la)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014801827416616117
+        },
+        "v(lb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.01480182846107833
+        },
+        "v(lr)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014801827880035588
+        },
+        "v(p)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.008870976529133713
+        },
+        "v(xcap)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.01479045759171849
+        },
+        "v(yca)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.01478727107361368
+        },
+        "v(ycb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014787272611873114
+        }
+      }
+    },
+    {
+      "exit_code": 0,
+      "lane": "ordering89",
+      "pass": true,
+      "points": 86180,
+      "raw_sha256": "73ccb1479a96653b17060d4059d0006db4ae891040015dd1fcae3eff16196981",
+      "wall_s": 33.66263578704093,
+      "waveforms": {
+        "i(lch)": {
+          "limit": 0.05879109763448706,
+          "pass": true,
+          "rms_error": 0.0012987248426532413
+        },
+        "i(lcma)": {
+          "limit": 0.1029931031097841,
+          "pass": true,
+          "rms_error": 3.5959170143160024e-06
+        },
+        "i(lcmb)": {
+          "limit": 0.077190564931161,
+          "pass": true,
+          "rms_error": 3.6072422110460132e-06
+        },
+        "i(lda)": {
+          "limit": 0.10298770932081922,
+          "pass": true,
+          "rms_error": 2.132653281409312e-05
+        },
+        "i(ldb)": {
+          "limit": 0.07719976843658236,
+          "pass": true,
+          "rms_error": 2.133023299927911e-05
+        },
+        "i(lload)": {
+          "limit": 0.02842832476717003,
+          "pass": true,
+          "rms_error": 8.088272164642913e-08
+        },
+        "i(va)": {
+          "limit": 0.030375519440093215,
+          "pass": true,
+          "rms_error": 1.4783090578959591e-05
+        },
+        "i(vb)": {
+          "limit": 0.029960878172133533,
+          "pass": true,
+          "rms_error": 1.4782499687085266e-05
+        },
+        "i(vdah)": {
+          "limit": 0.08178304988002955,
+          "pass": true,
+          "rms_error": 0.0008253954942059579
+        },
+        "i(vdal)": {
+          "limit": 0.0794447562069189,
+          "pass": true,
+          "rms_error": 0.0007039811506011012
+        },
+        "i(vdbh)": {
+          "limit": 0.03798873278523191,
+          "pass": true,
+          "rms_error": 0.0008252134635220245
+        },
+        "i(vdbl)": {
+          "limit": 0.07923537109871158,
+          "pass": true,
+          "rms_error": 0.0007042369843619832
+        },
+        "v(a)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.009437289375104687
+        },
+        "v(b)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.009438750025761085
+        },
+        "v(ch)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014787301294504486
+        },
+        "v(fa)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014790457559071699
+        },
+        "v(fb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014790459006546164
+        },
+        "v(ga)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.00045527803588035694
+        },
+        "v(gb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.00045533484321903377
+        },
+        "v(la)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014801827416616117
+        },
+        "v(lb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.01480182846107833
+        },
+        "v(lr)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014801827880035588
+        },
+        "v(p)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.008870976529133713
+        },
+        "v(xcap)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.01479045759171849
+        },
+        "v(yca)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.01478727107361368
+        },
+        "v(ycb)": {
+          "limit": 10.0,
+          "pass": true,
+          "rms_error": 0.014787272611873114
+        }
+      }
+    }
+  ],
+  "scope": "Twenty-microsecond coupled reference/nominal diagnostic; no full-window spectra or acceptance timing",
+  "waveforms_pass": true
+}

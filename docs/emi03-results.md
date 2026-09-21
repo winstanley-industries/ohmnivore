@@ -129,6 +129,16 @@ incremental device residency and passes its resource audit. These results do not
 qualify the full coupled workload or satisfy its performance targets. Historical
 profiling prototype results remain identified separately from this corrected code.
 
+The [hardware-counter investigation](evidence/emi03/diagnostics/resident-hardware-counters/README.md)
+now captures the full Nsight Compute set successfully. Its source-level samples
+locate waits around the triangular solve and factorization levels, with no
+spilling or bandwidth bottleneck. Three smaller thread blocks, two symbolic
+ordering policies and ordered operand prefetch were rejected. An initial AMD
+prefix improvement reverses in a longer coupled run and in full DPT diagnostics.
+The retained audit reconstructs six source variants, 56 trajectories, 46 GPU
+waveform comparisons and 16 DPT refinement checks. None supplies a complete-study
+acceptance pass; the original resource and performance targets remain in force.
+
 Two [kernel screening experiments](evidence/emi03/diagnostics/resident-kernel-screening/README.md)
 are rejected. Serial sparse triangular solving takes 4.149 s versus 2.285 s for
 the corrected baseline on a shortened coupled case. Outlining the timestep
