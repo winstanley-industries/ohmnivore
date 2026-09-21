@@ -156,6 +156,15 @@ The actual child environment is integration-tested and invocation-audited. These
 results select the queue setting for further qualification; they do not satisfy
 the full thirty-job qualification or complete-study performance gates.
 
+Four [correction-equation diagnostics](evidence/emi03/diagnostics/resident-correction-equations/README.md)
+remain unselected. Direct correction solving fails the unchanged componentwise
+linear certification on nearly zero rows. A bounded retry using the original
+affine equation passes fresh DPT comparisons and refinements, but gives no
+consistent timing benefit. Compensated companion history also fails to improve
+the short diagnostic. All four source variants, 37 completed trajectories,
+29 GPU waveform comparisons, eight DPT refinements and both terminal failures
+reconstruct. These experiments do not qualify a replacement numerical policy.
+
 Two [kernel screening experiments](evidence/emi03/diagnostics/resident-kernel-screening/README.md)
 are rejected. Serial sparse triangular solving takes 4.149 s versus 2.285 s for
 the corrected baseline on a shortened coupled case. Outlining the timestep

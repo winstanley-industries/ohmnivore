@@ -1,0 +1,7 @@
+{"lane": "cpu", "trial": -1, "profile": false, "wall_s": 0.21273161302087829, "exit_code": 0, "raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7", "points": 3158, "pass": true}
+{"lane": "baseline81", "trial": -1, "profile": false, "wall_s": 2.05695838900283, "exit_code": 0, "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6", "points": 3158, "pass": true}
+Traceback (most recent call last):
+  File "/home/adam/emi03-work/delta94.py", line 23, in <module>
+    if p.returncode:raise RuntimeError(row)
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: {'lane': 'delta94', 'trial': -1, 'profile': False, 'wall_s': 0.6915582710062154, 'exit_code': 1, 'raw_sha256': None}

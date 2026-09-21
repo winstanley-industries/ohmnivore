@@ -1,0 +1,157 @@
+module(
+    name = "ohmnivore",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.22")
+bazel_dep(name = "rules_cuda", version = "0.3.0")
+
+bazel_dep(name = "rules_foreign_cc", version = "0.15.1", dev_dependency = True)
+
+bazel_dep(name = "platforms", version = "1.1.0")
+
+single_version_override(
+    module_name = "rules_foreign_cc",
+    patch_strip = 1,
+    patches = ["//third_party/ngspice:rules_foreign_cc_make_llvm.patch"],
+    version = "0.15.1",
+)
+
+# CUDA 13.0 supports GCC 15, while the default LLVM 22/libc++ toolchain is
+# intentionally newer than nvcc's supported host range.
+bazel_dep(name = "gcc_toolchain", version = "0.10.0")
+
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2", dev_dependency = True)
+
+bazel_dep(name = "llvm", version = "0.8.11")
+
+bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.3", dev_dependency = True)
+bazel_dep(name = "ruff_prebuilt", version = "0.15.19.1", dev_dependency = True, repo_name = "ruff")
+bazel_dep(name = "rules_shellcheck", version = "0.6.3", dev_dependency = True)
+
+# EMI-01 reference tooling only: a checksum-pinned interpreter and binary NumPy
+# wheel. Neither dependency is part of the production C++ simulator.
+bazel_dep(name = "rules_python", version = "2.3.3", dev_dependency = True)
+bazel_dep(name = "zlib", version = "1.3.1.bcr.5", dev_dependency = True)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
+python.defaults(python_version = "3.12.13")
+python.toolchain(python_version = "3.12.13")
+use_repo(python, "python_3_12_13")
+
+emi01_pip = use_extension(
+    "@rules_python//python/extensions:pip.bzl",
+    "pip",
+    dev_dependency = True,
+)
+emi01_pip.parse(
+    download_only = True,
+    extra_pip_args = [
+        "--require-hashes",
+        "--only-binary=:all:",
+    ],
+    hub_name = "emi01_pypi",
+    python_version = "3.12.13",
+    requirements_lock = "//reference/emi01:requirements.txt",
+    target_platforms = ["linux_x86_64"],
+)
+use_repo(emi01_pip, "emi01_pypi")
+
+register_toolchains("@llvm//toolchain:all")
+
+# The selected CUDA redistributables are checksum verified. The build never
+# probes for a host CUDA installation.
+cuda = use_extension("@rules_cuda//cuda:extensions.bzl", "toolchain")
+cuda.redist_json(
+    name = "ohmnivore_cuda_13_0_2_manifest",
+    components = [
+        "cccl",
+        "cublas",
+        "crt",
+        "culibos",
+        "cudart",
+        "nvcc",
+        "nvvm",
+    ],
+    sha256 = "fce66717a81c510ffeb89ecc3e79849ab34af3b80139f750876d9033e31d71c2",
+    version = "13.0.2",
+)
+cuda.toolkit(name = "cuda")
+use_repo(cuda, "cuda")
+
+# nvcc host compilation uses a checksum-pinned GCC distribution and its
+# bundled sysroot. This toolchain is selected only by --config=cuda.
+cuda_gcc = use_extension("@gcc_toolchain//toolchain:module_extensions.bzl", "gcc_toolchains")
+cuda_gcc.toolchain(
+    name = "ohmnivore_cuda_gcc15",
+    enable_fortran = False,
+    extra_ldflags = [
+        "-Wl,-Bstatic",
+        "-lstdc++",
+        "-Wl,-Bdynamic",
+    ],
+    gcc_version = "15.2.0",
+    target_arch = "x86_64",
+)
+use_repo(cuda_gcc, "ohmnivore_cuda_gcc15")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "busybox_1_35_0_x86_64_musl",
+    downloaded_file_path = "busybox",
+    executable = True,
+    sha256 = "6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348",
+    urls = ["https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox"],
+)
+
+http_archive(
+    name = "ngspice_46",
+    build_file = "//third_party/ngspice:ngspice.BUILD.bazel",
+    patch_strip = 1,
+    patches = ["//third_party/ngspice:ngspice-static-hicum-link.patch"],
+    sha256 = "a0d1699af1940b06649276dcd6ff5a566c8c0cad01b2f7b5e99dedbb4d64c19b",
+    strip_prefix = "ngspice-46",
+    urls = ["https://downloads.sourceforge.net/project/ngspice/ng-spice-rework/46/ngspice-46.tar.gz"],
+)
+
+# Phase 2D builds only KLU and its serial ordering/configuration dependencies
+# from this checksum-pinned source archive.  The repository BUILD file does
+# not run upstream CMake and has no BLAS, LAPACK, or Fortran dependency.
+http_archive(
+    name = "suitesparse_7_12_3",
+    build_file = "//third_party/suitesparse:BUILD.suitesparse.bazel",
+    sha256 = "158ee4ed2ce3fdcbf52c4e47e94b0d1a8ae13344b4a835991d78a3ad20f08086",
+    strip_prefix = "SuiteSparse-7.12.3",
+    urls = ["https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v7.12.3.tar.gz"],
+)
+
+# GPU-02 links only the checksum-pinned static cuDSS archive. Its sole CUDA
+# library dependency is the cuBLAS component selected above from the pinned
+# CUDA 13.0.2 redistributable manifest.
+http_archive(
+    name = "cudss_0_8_0_10_cuda13",
+    build_file = "//third_party/cudss:BUILD.cudss.bazel",
+    sha256 = "ba18f5fd80dcbbe905d158caac5b3061d848442bb5abd477b5f296b4257a4937",
+    strip_prefix = "libcudss-linux-x86_64-0.8.0.10_cuda13-archive",
+    urls = ["https://developer.download.nvidia.com/compute/cudss/redist/libcudss/linux-x86_64/libcudss-linux-x86_64-0.8.0.10_cuda13-archive.tar.xz"],
+)
+
+# Root-registered fail sentinels take precedence over rules_foreign_cc's
+# optional host-tool fallbacks. The release build uses only its generated
+# configure products and the rules_foreign_cc checksum-pinned GNU Make 4.4.1.
+register_toolchains(
+    "//third_party/ngspice:fail_autoconf_toolchain",
+    "//third_party/ngspice:fail_automake_toolchain",
+    "//third_party/ngspice:fail_m4_toolchain",
+    "//third_party/ngspice:fail_pkgconfig_toolchain",
+)
+
+# EMI-01 evaluation input is fetched from its vendor, never redistributed here.
+http_file(
+    name = "emi01_microchip_model",
+    downloaded_file_path = "model.zip",
+    sha256 = "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+    urls = ["https://ww1.microchip.com/downloads/aemDocuments/documents/sic/ProductDocuments/BoardDesignFiles/1200V-SMA-SiC-MOSFET-SPICE-Models.zip"],
+)

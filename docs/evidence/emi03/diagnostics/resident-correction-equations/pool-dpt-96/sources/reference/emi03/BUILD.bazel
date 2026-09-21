@@ -1,0 +1,81 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+
+package(default_visibility = ["//visibility:private"])
+
+SANITIZER_INCOMPATIBILITY = select({
+    "//:asan_enabled": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+}) + select({
+    "//:ubsan_enabled": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
+py_library(
+    name = "support",
+    srcs = ["ensemble.py"],
+    data = [
+        "BUILD.bazel",
+        "README.md",
+        "ensemble_test.py",
+        "gpu_worker_process_test.py",
+        "worker_process_test.py",
+        "//:emi03_provenance_inputs",
+    ],
+    deps = [
+        "//reference/emi01:support",
+        "//reference/emi02:support",
+    ],
+)
+
+py_binary(
+    name = "ensemble",
+    testonly = True,
+    srcs = ["ensemble.py"],
+    args = [
+        "--cpu=$(rootpath //cpp:emi03_cpu_worker)",
+        "--ngspice=$(rootpath //third_party/ngspice:ngspice_binary)",
+        "--model-archive=$(rootpath @emi01_microchip_model//file)",
+    ],
+    data = [
+        "//cpp:emi03_cpu_worker",
+        "//third_party/ngspice:ngspice_binary",
+        "@emi01_microchip_model//file",
+    ],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    tags = ["manual"],
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    deps = [":support"],
+)
+
+py_test(
+    name = "ensemble_test",
+    srcs = ["ensemble_test.py"],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    deps = [":support"],
+)
+
+py_test(
+    name = "worker_process_test",
+    srcs = ["worker_process_test.py"],
+    args = ["--worker=$(rootpath //cpp:emi03_cpu_worker)"],
+    data = ["//cpp:emi03_cpu_worker"],
+    legacy_create_init = False,
+    python_version = "3.12.13",
+)
+
+py_test(
+    name = "gpu_worker_process_test",
+    srcs = ["gpu_worker_process_test.py"],
+    # Like the qualification harness, run the Python reference with its CPU
+    # toolchain and supply an independently built/frozen CUDA executable.
+    legacy_create_init = False,
+    python_version = "3.12.13",
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    target_compatible_with = SANITIZER_INCOMPATIBILITY,
+    deps = [":support"],
+)
