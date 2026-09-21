@@ -68,6 +68,17 @@ class GpuWorkerProcessTest(unittest.TestCase):
                     records.append({"process": process, "gpu": native})
 
             try:
+                environment = dict(
+                    field.split(b"=", 1)
+                    for field in Path(f"/proc/{pool.shared.process.pid}/environ")
+                    .read_bytes()
+                    .split(b"\0")
+                    if field
+                )
+                self.assertEqual(environment[b"CUDA_DEVICE_MAX_CONNECTIONS"], b"32")
+                self.assertEqual(
+                    environment[b"CUDA_DEVICE_MAX_COPY_CONNECTIONS"], b"32"
+                )
                 for phase in (0, 1):
                     with concurrent.futures.ThreadPoolExecutor(
                         max_workers=16

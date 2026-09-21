@@ -1,0 +1,6242 @@
+[
+  {
+    "batch": -1,
+    "directory": "batch--1/job-0",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 60263118,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 179321003,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27470,
+      "expression_evaluate_ns": 180231961,
+      "expression_full_ad": 491760,
+      "expression_prepare_ns": 1805075,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 154726017,
+      "factorizations": 9961,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-0/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 181155012,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7421,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 102276215,
+      "solver_setup_ns": 15631846,
+      "solves": 29395,
+      "successful_solves": 17376,
+      "synchronization_ns": 3242945502,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1390875,
+      "validation_ns": 275116
+    },
+    "owner": 0,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-0/input.cir",
+      "status": "ok",
+      "wall_s": 5.48385226901155,
+      "worker_owner": 0,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328017
+    },
+    "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.98638290347306e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.15378784503908e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.154535705070515e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215624394584976e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215624346285813e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 6.446040548658236e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.020462681769193e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.020030161598955e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1792458638147332e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9168439461812447e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1792449936847295e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9168439423636855e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456710444302
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456659860161
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713256397937494
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281267492897
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360880815
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399689297845957e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399690323762342e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105065599
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105079241
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235104968535
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005183070711601834
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360903626
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695166836
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695160342
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-1",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 66003633,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 179579755,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27470,
+      "expression_evaluate_ns": 52660496,
+      "expression_full_ad": 491760,
+      "expression_prepare_ns": 368976,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 173262280,
+      "factorizations": 9961,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-1/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 52366607,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7421,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 102474224,
+      "solver_setup_ns": 8437786,
+      "solves": 29395,
+      "successful_solves": 17376,
+      "synchronization_ns": 3255598571,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1745207,
+      "validation_ns": 247514
+    },
+    "owner": 1,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-1/input.cir",
+      "status": "ok",
+      "wall_s": 5.480977481987793,
+      "worker_owner": 1,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328018
+    },
+    "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.98638290347306e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.15378784503908e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.154535705070515e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215624394584976e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215624346285813e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 6.446040548658236e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.020462681769193e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.020030161598955e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1792458638147332e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9168439461812447e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1792449936847295e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9168439423636855e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456710444302
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456659860161
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713256397937494
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281267492897
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360880815
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399689297845957e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399690323762342e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105065599
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105079241
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235104968535
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005183070711601834
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360903626
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695166836
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695160342
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-2",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 59302803,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 180495909,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27475,
+      "expression_evaluate_ns": 25354237,
+      "expression_full_ad": 492060,
+      "expression_prepare_ns": 398536,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 107506882,
+      "factorizations": 9969,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-2/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 20380101,
+      "refactorizations": 19,
+      "refinements": 12022,
+      "rejected_pivots": 0,
+      "reuses": 7416,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 96979722,
+      "solver_setup_ns": 13760591,
+      "solves": 29401,
+      "successful_solves": 17379,
+      "synchronization_ns": 3032538486,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1406026,
+      "validation_ns": 262458
+    },
+    "owner": 2,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-2/input.cir",
+      "status": "ok",
+      "wall_s": 5.483067249006126,
+      "worker_owner": 2,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328019
+    },
+    "raw_sha256": "6707b86fe1c230b5acc42a388741d1c8777a63cd3d584c1e005c0b2a73efb986",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 2.4626829716611712e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 5.074796361868002e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 5.075047074862363e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 3.358148723263715e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 3.3581487154637532e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 9.2766632193918e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 3.8008166185177315e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 3.8006021637300004e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 6.659268682794575e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.1222234358178075e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 6.659272706872992e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.1222234428743367e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003830834682574649
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038308346748124907
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003743581181645496
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003742886560143856
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037428865010519946
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.329389912432182e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.329389966394157e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037435672690668806
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003743567269033317
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037435672689372913
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003398526508864243
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003742886500986901
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003743576819540054
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003743576819569352
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-3",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 67138067,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 179454627,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27502,
+      "expression_evaluate_ns": 90482885,
+      "expression_full_ad": 492540,
+      "expression_prepare_ns": 314928,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1157580,
+      "factor_ns": 107198740,
+      "factorizations": 9967,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-3/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 88941969,
+      "refactorizations": 19,
+      "refinements": 12032,
+      "rejected_pivots": 0,
+      "reuses": 7432,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98300680,
+      "solver_setup_ns": 9021570,
+      "solves": 29425,
+      "successful_solves": 17393,
+      "synchronization_ns": 2899710560,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1045452,
+      "validation_ns": 262759
+    },
+    "owner": 3,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.11,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-3/input.cir",
+      "status": "ok",
+      "wall_s": 5.47842836700147,
+      "worker_owner": 3,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328020
+    },
+    "raw_sha256": "f3c9f0189e7d7da5456bbc49f63ab85b6fe4207da2a531e7c90f2c8c72cb001a",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.977430957080038e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.136243804599271e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.137963810792576e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.207722538689912e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.20772248575508e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 9.030553303943987e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.009702127635838e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.010355979055732e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1722861627053503e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.908969542539815e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1722861478394167e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9089696625757797e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005894576580137913
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000589457654923069
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709698991859504
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718370917902
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718389412673
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1346344881986348e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.134634586219172e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741323221
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741300325
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741184416
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005181097573794907
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718389404708
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709692299853071
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709692299923523
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-4",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 57893673,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 176579244,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27472,
+      "expression_evaluate_ns": 154567154,
+      "expression_full_ad": 491640,
+      "expression_prepare_ns": 370107,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156680,
+      "factor_ns": 108235698,
+      "factorizations": 9944,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-4/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 154599820,
+      "refactorizations": 19,
+      "refinements": 12024,
+      "rejected_pivots": 0,
+      "reuses": 7443,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 104362885,
+      "solver_setup_ns": 17000060,
+      "solves": 29406,
+      "successful_solves": 17382,
+      "synchronization_ns": 2816845627,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1767231,
+      "validation_ns": 282905
+    },
+    "owner": 4,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 4.93,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-4/input.cir",
+      "status": "ok",
+      "wall_s": 5.305255112005398,
+      "worker_owner": 4,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328021
+    },
+    "raw_sha256": "51cdf959872d813b83fff7737c965d7c290dc0ada6f4bb36f945bfefc499e883",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.02305088433071e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.205330191810134e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.208002965705639e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.266238135141256e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.266238053319065e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.6776735175692865e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.070760406422318e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.071099345172445e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1832168925156779e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9313917040799762e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1832166173047913e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9313917644686058e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955959177804587
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955959154705117
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761294459437473
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760272715798245
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760272710311134
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.166200275251745e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662003175807646e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761272871168338
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761272871183492
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761272871071107
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223377824681433
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760272710160553
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761287667868001
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761287667920107
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-5",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 66662182,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 178993943,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27776,
+      "expression_evaluate_ns": 26201701,
+      "expression_full_ad": 498540,
+      "expression_prepare_ns": 317788,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1168020,
+      "factor_ns": 157211172,
+      "factorizations": 10059,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-5/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4836536,
+      "readback_ns": 30128154,
+      "refactorizations": 19,
+      "refinements": 12142,
+      "rejected_pivots": 0,
+      "reuses": 7483,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 101620779,
+      "solver_setup_ns": 10597176,
+      "solves": 29678,
+      "successful_solves": 17536,
+      "synchronization_ns": 3212089888,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 972008,
+      "validation_ns": 244748
+    },
+    "owner": 5,
+    "pass": true,
+    "points": 3161,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-5/input.cir",
+      "status": "ok",
+      "wall_s": 5.482458869984839,
+      "worker_owner": 5,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328022
+    },
+    "raw_sha256": "fffe80c67c92ed2105edddbd6cf07a3a02d54d25349d271c3b9a399e694665de",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 5.301966203171309e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 1.1177575578508316e-11
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 1.1178102626773806e-11
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 7.481108678417752e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 7.481108693368016e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.8921416595794805e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 8.357467568410207e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 8.356826409908698e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.5294419252906412e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 2.395497650403747e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.529441927530012e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 2.395497644795055e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008732524131418206
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008732524121857336
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008787814695016159
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008786304942467705
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008786304828065667
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.8472685595608173e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.8472685840665582e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00087877861067633
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008787786106756202
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008787786106618599
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007872808767275072
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008786304828022307
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008787805509651205
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0008787805509690505
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-6",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 63542491,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 174731447,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27589,
+      "expression_evaluate_ns": 28591692,
+      "expression_full_ad": 494160,
+      "expression_prepare_ns": 219347,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1161180,
+      "factor_ns": 170872424,
+      "factorizations": 9984,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-6/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 20961083,
+      "refactorizations": 19,
+      "refinements": 12068,
+      "rejected_pivots": 0,
+      "reuses": 7461,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 92957556,
+      "solver_setup_ns": 11171239,
+      "solves": 29507,
+      "successful_solves": 17439,
+      "synchronization_ns": 2922154390,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1276052,
+      "validation_ns": 277980
+    },
+    "owner": 6,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.11,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-6/input.cir",
+      "status": "ok",
+      "wall_s": 5.473948093014769,
+      "worker_owner": 6,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328023
+    },
+    "raw_sha256": "cadde62f740a08dc5aad50e20cc0b0117b26ac77aa83b47b7641549c4852af9d",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.968854847009814e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.129900355669503e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.131600684627558e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.229275298453004e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.229275232988672e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 9.065056429943545e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.014633565242744e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.015791574332723e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1414885236167325e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.8795135274934763e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1414880688068873e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.8795134758625535e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005943499469815882
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005943499449165757
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773712729983834
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005772728941486197
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000577272892584981
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.127331897057525e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.127331824572631e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773691473722894
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773691473729129
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773691473546475
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005236493322211471
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005772728925775564
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773706026115641
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773706026164601
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-7",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 60876330,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 183910340,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27520,
+      "expression_evaluate_ns": 181837652,
+      "expression_full_ad": 492840,
+      "expression_prepare_ns": 246332,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1158360,
+      "factor_ns": 147290471,
+      "factorizations": 9958,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-7/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 173757949,
+      "refactorizations": 19,
+      "refinements": 12037,
+      "rejected_pivots": 0,
+      "reuses": 7448,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98344407,
+      "solver_setup_ns": 14585491,
+      "solves": 29437,
+      "successful_solves": 17400,
+      "synchronization_ns": 3367022036,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1043607,
+      "validation_ns": 240153
+    },
+    "owner": 7,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-7/input.cir",
+      "status": "ok",
+      "wall_s": 5.487938231031876,
+      "worker_owner": 7,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328024
+    },
+    "raw_sha256": "1701673bce8abd0c8f9913edba86735b733e24c7b393abb501ac9f0d88412684",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.9647624446551354e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.118942294103278e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.120190568692835e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215927200815551e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215927114643909e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.7186856339622704e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.004679691278993e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.004384185188837e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.147181431956362e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.883931339743941e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1471814634735578e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.8839312534314692e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005921868389849241
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005921868397999722
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749282673703235
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278950360449
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278946621034
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1258718296292338e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1258717647653857e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456194796
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456216518
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456112966
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005215842266549538
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278946574835
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000574927598487126
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749275984755359
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-8",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 63262189,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 177921396,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27480,
+      "expression_evaluate_ns": 129187356,
+      "expression_full_ad": 492060,
+      "expression_prepare_ns": 201903,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156740,
+      "factor_ns": 145296839,
+      "factorizations": 9953,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-8/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 130471187,
+      "refactorizations": 19,
+      "refinements": 12025,
+      "rejected_pivots": 0,
+      "reuses": 7435,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 104441876,
+      "solver_setup_ns": 10268752,
+      "solves": 29408,
+      "successful_solves": 17383,
+      "synchronization_ns": 3179224281,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1413433,
+      "validation_ns": 249344
+    },
+    "owner": 8,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-8/input.cir",
+      "status": "ok",
+      "wall_s": 5.478969338990282,
+      "worker_owner": 8,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328025
+    },
+    "raw_sha256": "2f1aa77def283aba4cfdff205c82f8c2376178db234ffda4482fb28f8eb5ad1d",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.003070044666376e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.167778171678975e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.166800886858527e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.241143392722123e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.241143420905047e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 2.3935917610270524e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.040781358002223e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.040183107948026e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1737518937738678e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9188866100354657e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1737517920012344e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9188867593036564e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005930553125658869
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005930553106137146
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737837837529286
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005736838592697657
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005736838612803565
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1541897864951614e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.154189884724768e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737816364270121
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737816364220378
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737816364148123
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005203686958019275
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005736838612585989
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737831081960715
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737831081964582
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-9",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 66569752,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 179106691,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27470,
+      "expression_evaluate_ns": 80200548,
+      "expression_full_ad": 491760,
+      "expression_prepare_ns": 201222,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 104984374,
+      "factorizations": 9961,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-9/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 78952470,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7421,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 131151524,
+      "solver_setup_ns": 9002900,
+      "solves": 29395,
+      "successful_solves": 17376,
+      "synchronization_ns": 2443353846,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1257635,
+      "validation_ns": 258424
+    },
+    "owner": 9,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 3.93,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-9/input.cir",
+      "status": "ok",
+      "wall_s": 4.330967572983354,
+      "worker_owner": 9,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328026
+    },
+    "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.98638290347306e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.15378784503908e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.154535705070515e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215624394584976e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215624346285813e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 6.446040548658236e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.020462681769193e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.020030161598955e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1792458638147332e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9168439461812447e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1792449936847295e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9168439423636855e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456710444302
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456659860161
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713256397937494
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281267492897
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360880815
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399689297845957e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399690323762342e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105065599
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105079241
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235104968535
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005183070711601834
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360903626
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695166836
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695160342
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-10",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 69019960,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 180487428,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27480,
+      "expression_evaluate_ns": 152950671,
+      "expression_full_ad": 492060,
+      "expression_prepare_ns": 448497,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156740,
+      "factor_ns": 142135773,
+      "factorizations": 9953,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-10/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 153444436,
+      "refactorizations": 19,
+      "refinements": 12025,
+      "rejected_pivots": 0,
+      "reuses": 7435,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98484901,
+      "solver_setup_ns": 10880583,
+      "solves": 29408,
+      "successful_solves": 17383,
+      "synchronization_ns": 2937916960,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1068410,
+      "validation_ns": 245358
+    },
+    "owner": 10,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.109999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-10/input.cir",
+      "status": "ok",
+      "wall_s": 5.477529521973338,
+      "worker_owner": 10,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328027
+    },
+    "raw_sha256": "2f1aa77def283aba4cfdff205c82f8c2376178db234ffda4482fb28f8eb5ad1d",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.003070044666376e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.167778171678975e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.166800886858527e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.241143392722123e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.241143420905047e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 2.3935917610270524e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.040781358002223e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.040183107948026e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1737518937738678e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9188866100354657e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1737517920012344e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9188867593036564e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005930553125658869
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005930553106137146
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737837837529286
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005736838592697657
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005736838612803565
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1541897864951614e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.154189884724768e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737816364270121
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737816364220378
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737816364148123
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005203686958019275
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005736838612585989
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737831081960715
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005737831081964582
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-11",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 66117109,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 174672606,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27502,
+      "expression_evaluate_ns": 29034044,
+      "expression_full_ad": 492540,
+      "expression_prepare_ns": 229275,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1157580,
+      "factor_ns": 109014733,
+      "factorizations": 9967,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-11/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 24907199,
+      "refactorizations": 19,
+      "refinements": 12032,
+      "rejected_pivots": 0,
+      "reuses": 7432,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 96276792,
+      "solver_setup_ns": 9569545,
+      "solves": 29425,
+      "successful_solves": 17393,
+      "synchronization_ns": 2844509191,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 2781553,
+      "validation_ns": 253091
+    },
+    "owner": 11,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 4.7299999999999995,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-11/input.cir",
+      "status": "ok",
+      "wall_s": 5.129026403999887,
+      "worker_owner": 11,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328028
+    },
+    "raw_sha256": "f3c9f0189e7d7da5456bbc49f63ab85b6fe4207da2a531e7c90f2c8c72cb001a",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.977430957080038e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.136243804599271e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.137963810792576e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.207722538689912e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.20772248575508e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 9.030553303943987e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.009702127635838e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.010355979055732e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1722861627053503e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.908969542539815e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1722861478394167e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9089696625757797e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005894576580137913
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000589457654923069
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709698991859504
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718370917902
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718389412673
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1346344881986348e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.134634586219172e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741323221
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741300325
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741184416
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005181097573794907
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718389404708
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709692299853071
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709692299923523
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-12",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 63301463,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 173871995,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27750,
+      "expression_evaluate_ns": 117911358,
+      "expression_full_ad": 498000,
+      "expression_prepare_ns": 242281,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1167000,
+      "factor_ns": 105692161,
+      "factorizations": 10079,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-12/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 115125007,
+      "refactorizations": 19,
+      "refinements": 12135,
+      "rejected_pivots": 0,
+      "reuses": 7451,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98880806,
+      "solver_setup_ns": 13164405,
+      "solves": 29659,
+      "successful_solves": 17524,
+      "synchronization_ns": 2795631439,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1275692,
+      "validation_ns": 249052
+    },
+    "owner": 12,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.11,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-12/input.cir",
+      "status": "ok",
+      "wall_s": 5.469332462002058,
+      "worker_owner": 12,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328029
+    },
+    "raw_sha256": "1257e9a65779c11894684ee0b3101c09966beade960aacd71becd770afb580b5",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 5.126158219136679e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 1.0325841636226533e-11
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 1.0328074323069579e-11
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 6.4392812904432e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 6.439281252904747e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 4.57028825803271e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 7.583965811615035e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 7.5839258098789e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.5956332170700157e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 2.569007180373175e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.5956329428825833e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 2.569007153837909e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007095607413827427
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007095607402489033
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006658107050099013
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006656904115588341
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006656904246230197
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.7580000451658195e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.758000059173434e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006658078967532507
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006658078967562181
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006658078967447741
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000615690586463917
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006656904246109266
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006658098379831802
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0006658098379883853
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-13",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 64863164,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 178016693,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27460,
+      "expression_evaluate_ns": 77994147,
+      "expression_full_ad": 491400,
+      "expression_prepare_ns": 271305,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156200,
+      "factor_ns": 148856707,
+      "factorizations": 9955,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-13/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 77434293,
+      "refactorizations": 19,
+      "refinements": 12018,
+      "rejected_pivots": 0,
+      "reuses": 7424,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 96448893,
+      "solver_setup_ns": 11737035,
+      "solves": 29392,
+      "successful_solves": 17374,
+      "synchronization_ns": 2896544339,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 929226,
+      "validation_ns": 241168
+    },
+    "owner": 13,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-13/input.cir",
+      "status": "ok",
+      "wall_s": 5.4794333409518,
+      "worker_owner": 13,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328030
+    },
+    "raw_sha256": "057c3119ec47d34f42baa196c3398d02ec5b4ffb1e40c529af343dff4a185d08",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.023048791084895e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.20744034755604e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.20566112531089e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.266310726991661e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.266310748052561e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.4790256113950934e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.070842736138024e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.070692720041184e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1832123336639548e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.93138325126092e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1832121643263773e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9313832912373803e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964410870056
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964423866393
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761337337463695
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326790718826
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326796073437
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041823231158e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041700046228e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746882445
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746890699
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746828557
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223384880578078
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326795998148
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545429264
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545463278
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-14",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 59232884,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 178616547,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27460,
+      "expression_evaluate_ns": 21773630,
+      "expression_full_ad": 491400,
+      "expression_prepare_ns": 455229,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156200,
+      "factor_ns": 172114675,
+      "factorizations": 9955,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-14/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 23327425,
+      "refactorizations": 19,
+      "refinements": 12018,
+      "rejected_pivots": 0,
+      "reuses": 7424,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 99235810,
+      "solver_setup_ns": 17093894,
+      "solves": 29392,
+      "successful_solves": 17374,
+      "synchronization_ns": 2925796499,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1047009,
+      "validation_ns": 245590
+    },
+    "owner": 14,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.12,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-14/input.cir",
+      "status": "ok",
+      "wall_s": 5.4789560150238685,
+      "worker_owner": 14,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328031
+    },
+    "raw_sha256": "057c3119ec47d34f42baa196c3398d02ec5b4ffb1e40c529af343dff4a185d08",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.023048791084895e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.20744034755604e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.20566112531089e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.266310726991661e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.266310748052561e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.4790256113950934e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.070842736138024e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.070692720041184e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1832123336639548e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.93138325126092e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1832121643263773e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9313832912373803e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964410870056
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964423866393
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761337337463695
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326790718826
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326796073437
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041823231158e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041700046228e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746882445
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746890699
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746828557
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223384880578078
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326795998148
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545429264
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545463278
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "batch--1/job-15",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 58661385,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 176398072,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27470,
+      "expression_evaluate_ns": 28424413,
+      "expression_full_ad": 491760,
+      "expression_prepare_ns": 1714334,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 105977281,
+      "factorizations": 9961,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-15/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 25527896,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7421,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98756370,
+      "solver_setup_ns": 17061918,
+      "solves": 29395,
+      "successful_solves": 17376,
+      "synchronization_ns": 3085876690,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 2442418,
+      "validation_ns": 241704
+    },
+    "owner": 15,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.11,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch--1/job-15/input.cir",
+      "status": "ok",
+      "wall_s": 5.480051380000077,
+      "worker_owner": 15,
+      "worker_pid": 1328016,
+      "worker_request": 1,
+      "worker_thread": 1328032
+    },
+    "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.98638290347306e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.15378784503908e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.154535705070515e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215624394584976e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215624346285813e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 6.446040548658236e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.020462681769193e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.020030161598955e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1792458638147332e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9168439461812447e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1792449936847295e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9168439423636855e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456710444302
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456659860161
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713256397937494
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281267492897
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360880815
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399689297845957e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399690323762342e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105065599
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105079241
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235104968535
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005183070711601834
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360903626
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695166836
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695160342
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-0",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 8884254,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 5391,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27502,
+      "expression_evaluate_ns": 58827912,
+      "expression_full_ad": 492540,
+      "expression_prepare_ns": 34304329,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1157580,
+      "factor_ns": 6094388,
+      "factorizations": 9967,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-0/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 65249010,
+      "refactorizations": 19,
+      "refinements": 12032,
+      "rejected_pivots": 0,
+      "reuses": 7432,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 15441770,
+      "solver_setup_ns": 14005992,
+      "solves": 29425,
+      "successful_solves": 17393,
+      "synchronization_ns": 2350236073,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1365652,
+      "validation_ns": 242989
+    },
+    "owner": 0,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 3.7699999999999996,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-0/input.cir",
+      "status": "ok",
+      "wall_s": 3.168481466011144,
+      "worker_owner": 0,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328017
+    },
+    "raw_sha256": "f3c9f0189e7d7da5456bbc49f63ab85b6fe4207da2a531e7c90f2c8c72cb001a",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.977430957080038e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.136243804599271e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.137963810792576e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.207722538689912e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.20772248575508e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 9.030553303943987e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.009702127635838e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.010355979055732e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1722861627053503e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.908969542539815e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1722861478394167e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9089696625757797e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005894576580137913
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000589457654923069
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709698991859504
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718370917902
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718389412673
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1346344881986348e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.134634586219172e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741323221
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741300325
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709677741184416
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005181097573794907
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005708718389404708
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709692299853071
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005709692299923523
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-1",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 38847593,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6533,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27470,
+      "expression_evaluate_ns": 208288592,
+      "expression_full_ad": 491760,
+      "expression_prepare_ns": 32312683,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 5322249,
+      "factorizations": 9961,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-1/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 212409042,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7421,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 13137202,
+      "solver_setup_ns": 4820625,
+      "solves": 29395,
+      "successful_solves": 17376,
+      "synchronization_ns": 2587874969,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1758723,
+      "validation_ns": 235970
+    },
+    "owner": 1,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.539999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-1/input.cir",
+      "status": "ok",
+      "wall_s": 4.678832545003388,
+      "worker_owner": 1,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328018
+    },
+    "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.98638290347306e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.15378784503908e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.154535705070515e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215624394584976e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215624346285813e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 6.446040548658236e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.020462681769193e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.020030161598955e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1792458638147332e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9168439461812447e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1792449936847295e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9168439423636855e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456710444302
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456659860161
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713256397937494
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281267492897
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360880815
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399689297845957e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399690323762342e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105065599
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105079241
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235104968535
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005183070711601834
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360903626
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695166836
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695160342
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-2",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 44818357,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 631243,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27589,
+      "expression_evaluate_ns": 10017982,
+      "expression_full_ad": 494160,
+      "expression_prepare_ns": 3320843,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1161180,
+      "factor_ns": 5185436,
+      "factorizations": 9984,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-2/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 13802878,
+      "refactorizations": 19,
+      "refinements": 12068,
+      "rejected_pivots": 0,
+      "reuses": 7461,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 12862397,
+      "solver_setup_ns": 8918199,
+      "solves": 29507,
+      "successful_solves": 17439,
+      "synchronization_ns": 2412783742,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1144853,
+      "validation_ns": 248183
+    },
+    "owner": 2,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-2/input.cir",
+      "status": "ok",
+      "wall_s": 4.680791845021304,
+      "worker_owner": 2,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328019
+    },
+    "raw_sha256": "cadde62f740a08dc5aad50e20cc0b0117b26ac77aa83b47b7641549c4852af9d",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.968854847009814e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.129900355669503e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.131600684627558e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.229275298453004e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.229275232988672e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 9.065056429943545e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.014633565242744e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.015791574332723e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1414885236167325e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.8795135274934763e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1414880688068873e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.8795134758625535e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005943499469815882
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005943499449165757
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773712729983834
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005772728941486197
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000577272892584981
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.127331897057525e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.127331824572631e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773691473722894
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773691473729129
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773691473546475
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005236493322211471
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005772728925775564
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773706026115641
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005773706026164601
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-3",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 4005974,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 18405,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27461,
+      "expression_evaluate_ns": 39279498,
+      "expression_full_ad": 491340,
+      "expression_prepare_ns": 7881842,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156320,
+      "factor_ns": 6073526,
+      "factorizations": 9945,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-3/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 49736205,
+      "refactorizations": 19,
+      "refinements": 12018,
+      "rejected_pivots": 0,
+      "reuses": 7434,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 18746965,
+      "solver_setup_ns": 3784124,
+      "solves": 29392,
+      "successful_solves": 17374,
+      "synchronization_ns": 2925769041,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 979494,
+      "validation_ns": 240383
+    },
+    "owner": 3,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-3/input.cir",
+      "status": "ok",
+      "wall_s": 4.6836228190222755,
+      "worker_owner": 3,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328020
+    },
+    "raw_sha256": "613b38f8685d988d4221622c496eee1e33c9538d6e06b22720b50c55a6e94d15",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 1.3646126193678648e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 2.8637436311745343e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 2.864328379055712e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 1.989858913721474e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 1.98985889433336e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 4.910863151917974e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 2.1785960719344668e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 2.1788367674533471e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 3.114192721456109e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 5.611499128365679e-06
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 3.1141887026444393e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 5.611500000662766e-06
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023325102574205578
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0002332510254773927
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023466713016983548
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023463015406047333
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023463015826675075
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 7.44612463961042e-06
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 7.4461249929820235e-06
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023466635281687873
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023466635281918816
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023466635281486713
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00020777536518117943
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023463015826384576
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023466688145561422
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00023466688146063795
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-4",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 3447279,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1953509,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27576,
+      "expression_evaluate_ns": 62752271,
+      "expression_full_ad": 493860,
+      "expression_prepare_ns": 139254,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1160700,
+      "factor_ns": 6704512,
+      "factorizations": 9987,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-4/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 70959847,
+      "refactorizations": 19,
+      "refinements": 12066,
+      "rejected_pivots": 0,
+      "reuses": 7455,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 19692695,
+      "solver_setup_ns": 872211,
+      "solves": 29502,
+      "successful_solves": 17436,
+      "synchronization_ns": 2570326076,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1315172,
+      "validation_ns": 246667
+    },
+    "owner": 4,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.359999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-4/input.cir",
+      "status": "ok",
+      "wall_s": 4.511615264986176,
+      "worker_owner": 4,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328021
+    },
+    "raw_sha256": "bfe1c5f3957c221153299ed335721aca01431a5896d05c1e589c6a3f6a43b977",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 2.3633887848242987e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 4.885325981450413e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 4.886478706953744e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 3.302683575485227e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 3.302683537301934e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 5.502291988713327e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 3.684901160652805e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 3.684984738163201e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 5.90139465835483e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.019461402622576e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 5.901390618084026e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.0194613871741206e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038048840770784536
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000380488407917921
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037559398235010303
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003755323083476778
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037553231321129694
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.2823978503908595e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.2823977418060041e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003755926429035122
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003755926428975497
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003755926428954696
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003394948119517114
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037553231321304744
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003755935589750292
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00037559355897617206
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-5",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 5933758,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1641256,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27482,
+      "expression_evaluate_ns": 105988268,
+      "expression_full_ad": 491940,
+      "expression_prepare_ns": 458586,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156980,
+      "factor_ns": 5564580,
+      "factorizations": 9975,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-5/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 115168895,
+      "refactorizations": 19,
+      "refinements": 12025,
+      "rejected_pivots": 0,
+      "reuses": 7413,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 18478984,
+      "solver_setup_ns": 13642192,
+      "solves": 29408,
+      "successful_solves": 17383,
+      "synchronization_ns": 2462109904,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1011343,
+      "validation_ns": 234522
+    },
+    "owner": 5,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.369999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-5/input.cir",
+      "status": "ok",
+      "wall_s": 4.519547647971194,
+      "worker_owner": 5,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328022
+    },
+    "raw_sha256": "4a3154c92855b11119bc5dda8b8a6baed6a1f3be115f089e1513b383bd65dd1f",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 5.48015736406102e-06
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 1.2337422422314049e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 1.2351727520562838e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 9.781732951617577e-10
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 9.781732711344214e-10
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.1552608107264112e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 9.854548412189772e-11
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 9.854800999628984e-11
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 8.36641868976805e-07
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.5012401522848105e-06
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 8.366511989825693e-07
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.5012395553536148e-06
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000119808274183233
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001198082755632857
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00012667076073462626
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00012664823661559437
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00012664823021771684
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 3.192193293141185e-06
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 3.19219326014857e-06
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00012667041593256067
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000126670415929675
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001266704159276643
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00010539920792113766
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001266482302169007
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00012667064615969582
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00012667064616578755
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-6",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 9615642,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6432,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27460,
+      "expression_evaluate_ns": 153804651,
+      "expression_full_ad": 491400,
+      "expression_prepare_ns": 13103755,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156200,
+      "factor_ns": 5475347,
+      "factorizations": 9953,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-6/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 160578933,
+      "refactorizations": 19,
+      "refinements": 12017,
+      "rejected_pivots": 0,
+      "reuses": 7425,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 16026739,
+      "solver_setup_ns": 2256212,
+      "solves": 29390,
+      "successful_solves": 17373,
+      "synchronization_ns": 2869707734,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1238992,
+      "validation_ns": 241029
+    },
+    "owner": 6,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-6/input.cir",
+      "status": "ok",
+      "wall_s": 4.682452858018223,
+      "worker_owner": 6,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328023
+    },
+    "raw_sha256": "bdde6cc9c97ca06ff88f00a46347ef195997e7de35cb7d961576b437024c1bfb",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.0220512902115166e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.203472025561439e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.206046656082647e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.265504687805145e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.265504623017357e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.146643696474016e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.069435903947336e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.06928234255685e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1826135028286437e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9306116374212327e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.182613805996127e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9306117114400464e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955357282336461
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955357266316213
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000576106855144618
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760056020599506
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760056038423941
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1656391411437445e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.165639230198848e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761046967040298
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761046966818699
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761046967014441
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223024612785488
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760056038416189
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761061760929255
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761061760976796
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-7",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 42601674,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1525045,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27520,
+      "expression_evaluate_ns": 194355829,
+      "expression_full_ad": 492840,
+      "expression_prepare_ns": 43703049,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1158360,
+      "factor_ns": 11072747,
+      "factorizations": 9958,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-7/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 199644393,
+      "refactorizations": 19,
+      "refinements": 12037,
+      "rejected_pivots": 0,
+      "reuses": 7448,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 18521288,
+      "solver_setup_ns": 5180684,
+      "solves": 29437,
+      "successful_solves": 17400,
+      "synchronization_ns": 3052673021,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 2457495,
+      "validation_ns": 244468
+    },
+    "owner": 7,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-7/input.cir",
+      "status": "ok",
+      "wall_s": 4.681216786033474,
+      "worker_owner": 7,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328024
+    },
+    "raw_sha256": "1701673bce8abd0c8f9913edba86735b733e24c7b393abb501ac9f0d88412684",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.9647624446551354e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.118942294103278e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.120190568692835e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215927200815551e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215927114643909e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.7186856339622704e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.004679691278993e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.004384185188837e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.147181431956362e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.883931339743941e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1471814634735578e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.8839312534314692e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005921868389849241
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005921868397999722
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749282673703235
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278950360449
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278946621034
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1258718296292338e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1258717647653857e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456194796
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456216518
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456112966
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005215842266549538
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278946574835
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000574927598487126
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749275984755359
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-8",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 6196753,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6651749,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27520,
+      "expression_evaluate_ns": 303692085,
+      "expression_full_ad": 492840,
+      "expression_prepare_ns": 23340867,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1158360,
+      "factor_ns": 5364640,
+      "factorizations": 9958,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-8/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 308054715,
+      "refactorizations": 19,
+      "refinements": 12037,
+      "rejected_pivots": 0,
+      "reuses": 7448,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 13155439,
+      "solver_setup_ns": 38919892,
+      "solves": 29437,
+      "successful_solves": 17400,
+      "synchronization_ns": 2851527063,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1238074,
+      "validation_ns": 236324
+    },
+    "owner": 8,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.530000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-8/input.cir",
+      "status": "ok",
+      "wall_s": 4.675940091023222,
+      "worker_owner": 8,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328025
+    },
+    "raw_sha256": "1701673bce8abd0c8f9913edba86735b733e24c7b393abb501ac9f0d88412684",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.9647624446551354e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.118942294103278e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.120190568692835e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215927200815551e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215927114643909e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.7186856339622704e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.004679691278993e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.004384185188837e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.147181431956362e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.883931339743941e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1471814634735578e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.8839312534314692e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005921868389849241
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005921868397999722
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749282673703235
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278950360449
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278946621034
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1258718296292338e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1258717647653857e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456194796
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456216518
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749261456112966
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005215842266549538
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005748278946574835
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000574927598487126
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005749275984755359
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-9",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 6291984,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6041,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27470,
+      "expression_evaluate_ns": 12517933,
+      "expression_full_ad": 491760,
+      "expression_prepare_ns": 2555145,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156440,
+      "factor_ns": 7178080,
+      "factorizations": 9961,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-9/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 22844000,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7421,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 21315553,
+      "solver_setup_ns": 2395643,
+      "solves": 29395,
+      "successful_solves": 17376,
+      "synchronization_ns": 2536397496,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1687018,
+      "validation_ns": 267668
+    },
+    "owner": 9,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 4.129999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-9/input.cir",
+      "status": "ok",
+      "wall_s": 3.454775712976698,
+      "worker_owner": 9,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328026
+    },
+    "raw_sha256": "b3d7be82e2124ef1e31f53795b15652d69fbc3ead4c69b344255cd3eea5640d6",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 3.98638290347306e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.15378784503908e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.154535705070515e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.215624394584976e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.215624346285813e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 6.446040548658236e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.020462681769193e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.020030161598955e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1792458638147332e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9168439461812447e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1792449936847295e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9168439423636855e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456710444302
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005900456659860161
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713256397937494
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281267492897
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360880815
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399689297845957e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1399690323762342e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105065599
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235105079241
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713235104968535
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005183070711601834
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005712281360903626
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695166836
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005713249695160342
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-10",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 16535364,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 7233,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27460,
+      "expression_evaluate_ns": 52029227,
+      "expression_full_ad": 491400,
+      "expression_prepare_ns": 35347843,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156200,
+      "factor_ns": 5820459,
+      "factorizations": 9955,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-10/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 56072140,
+      "refactorizations": 19,
+      "refinements": 12018,
+      "rejected_pivots": 0,
+      "reuses": 7424,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 13112752,
+      "solver_setup_ns": 9168539,
+      "solves": 29392,
+      "successful_solves": 17374,
+      "synchronization_ns": 2234543055,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1108506,
+      "validation_ns": 238746
+    },
+    "owner": 10,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 4.49,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-10/input.cir",
+      "status": "ok",
+      "wall_s": 3.7499244429636747,
+      "worker_owner": 10,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328027
+    },
+    "raw_sha256": "057c3119ec47d34f42baa196c3398d02ec5b4ffb1e40c529af343dff4a185d08",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.023048791084895e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.20744034755604e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.20566112531089e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.266310726991661e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.266310748052561e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.4790256113950934e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.070842736138024e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.070692720041184e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1832123336639548e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.93138325126092e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1832121643263773e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9313832912373803e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964410870056
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964423866393
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761337337463695
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326790718826
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326796073437
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041823231158e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041700046228e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746882445
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746890699
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746828557
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223384880578078
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326795998148
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545429264
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545463278
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-11",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 4074418,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 217554,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27626,
+      "expression_evaluate_ns": 9890498,
+      "expression_full_ad": 495120,
+      "expression_prepare_ns": 28293278,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1162440,
+      "factor_ns": 5810105,
+      "factorizations": 9998,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-11/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4833560,
+      "readback_ns": 15400472,
+      "refactorizations": 19,
+      "refinements": 12083,
+      "rejected_pivots": 0,
+      "reuses": 7467,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 14707542,
+      "solver_setup_ns": 5964468,
+      "solves": 29543,
+      "successful_solves": 17460,
+      "synchronization_ns": 2988283411,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1006366,
+      "validation_ns": 237222
+    },
+    "owner": 11,
+    "pass": true,
+    "points": 3159,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-11/input.cir",
+      "status": "ok",
+      "wall_s": 4.679021555988584,
+      "worker_owner": 11,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328028
+    },
+    "raw_sha256": "2fda55c4aad423f2f08c9b4251efae6a8db6306e13b66e1af6183aa45083b5a5",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 2.474382134742247e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 5.110545813547286e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 5.111110029520237e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 3.4002163342930414e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 3.4002163039364216e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.272059814824279e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 3.8340619282877143e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 3.8339460867773035e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 7.353505213116363e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.1343516478372529e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 7.353510682774582e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.1343516752167674e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003884892781196852
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038848927882920327
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038126595374308726
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038119904055522176
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038119903464915126
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.3545777194030974e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.354577784784394e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038126455645304236
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038126455645214654
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00038126455644351683
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00034471137342028795
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003811990346460755
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003812655146007798
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0003812655146020565
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-12",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 1411660,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 10201304,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27460,
+      "expression_evaluate_ns": 183876809,
+      "expression_full_ad": 491400,
+      "expression_prepare_ns": 37748405,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156200,
+      "factor_ns": 5896403,
+      "factorizations": 9955,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-12/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 189762801,
+      "refactorizations": 19,
+      "refinements": 12018,
+      "rejected_pivots": 0,
+      "reuses": 7424,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 14767952,
+      "solver_setup_ns": 33149361,
+      "solves": 29392,
+      "successful_solves": 17374,
+      "synchronization_ns": 2727728337,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1480214,
+      "validation_ns": 239407
+    },
+    "owner": 12,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.530000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-12/input.cir",
+      "status": "ok",
+      "wall_s": 4.6770081740105525,
+      "worker_owner": 12,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328029
+    },
+    "raw_sha256": "057c3119ec47d34f42baa196c3398d02ec5b4ffb1e40c529af343dff4a185d08",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.023048791084895e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.20744034755604e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.20566112531089e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.266310726991661e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.266310748052561e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.4790256113950934e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.070842736138024e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.070692720041184e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1832123336639548e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.93138325126092e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.1832121643263773e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9313832912373803e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964410870056
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955964423866393
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761337337463695
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326790718826
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326796073437
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041823231158e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1662041700046228e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746882445
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746890699
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761315746828557
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223384880578078
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760326795998148
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545429264
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761330545463278
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-13",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 12818322,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 39154,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27464,
+      "expression_evaluate_ns": 64255300,
+      "expression_full_ad": 491820,
+      "expression_prepare_ns": 36059184,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156020,
+      "factor_ns": 5633201,
+      "factorizations": 9975,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-13/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 69689846,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7406,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 14763431,
+      "solver_setup_ns": 9117547,
+      "solves": 29394,
+      "successful_solves": 17375,
+      "synchronization_ns": 2727910510,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1198517,
+      "validation_ns": 236240
+    },
+    "owner": 13,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-13/input.cir",
+      "status": "ok",
+      "wall_s": 4.68488121900009,
+      "worker_owner": 13,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328030
+    },
+    "raw_sha256": "e71826263a6850f60a386fa2adc5891cc249afebfc58373f0abb78175d310d33",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 7.533477870002601e-06
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 1.6632865934183587e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 1.6640313528911016e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 1.2594206635690809e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 1.2594206199487752e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 7.788006748303304e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 1.304548920049378e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 1.3047699780639645e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.614404965506907e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 2.619537857395658e-06
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.6144045610151942e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 2.619538020534358e-06
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015189842268244807
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015189842402561912
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862052636717242
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015859242646131712
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015859242348745158
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 4.285003266674897e-06
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 4.2850033000179556e-06
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862007017419214
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862007017236943
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862007017043857
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001336430307279232
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000158592423484356
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862037652703811
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001586203765275537
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-14",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 2283344,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 11099235,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27460,
+      "expression_evaluate_ns": 8956799,
+      "expression_full_ad": 491400,
+      "expression_prepare_ns": 488653,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156200,
+      "factor_ns": 6266481,
+      "factorizations": 9953,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-14/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 15099927,
+      "refactorizations": 19,
+      "refinements": 12017,
+      "rejected_pivots": 0,
+      "reuses": 7425,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 15084776,
+      "solver_setup_ns": 66696037,
+      "solves": 29390,
+      "successful_solves": 17373,
+      "synchronization_ns": 2367094672,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1386985,
+      "validation_ns": 238667
+    },
+    "owner": 14,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-14/input.cir",
+      "status": "ok",
+      "wall_s": 4.679155594028998,
+      "worker_owner": 14,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328031
+    },
+    "raw_sha256": "bdde6cc9c97ca06ff88f00a46347ef195997e7de35cb7d961576b437024c1bfb",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 4.0220512902115166e-05
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 8.203472025561439e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 8.206046656082647e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 5.265504687805145e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 5.265504623017357e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 1.146643696474016e-18
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 6.069435903947336e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 6.06928234255685e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.1826135028286437e-05
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 1.9306116374212327e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.182613805996127e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 1.9306117114400464e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955357282336461
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005955357266316213
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000576106855144618
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760056020599506
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760056038423941
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1656391411437445e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.165639230198848e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761046967040298
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761046966818699
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761046967014441
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005223024612785488
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005760056038416189
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761061760929255
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0005761061760976796
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "batch-0/job-15",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 4831081,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 724928,
+      "controlled_peak_device_bytes": 1308997,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 27464,
+      "expression_evaluate_ns": 54824052,
+      "expression_full_ad": 491820,
+      "expression_prepare_ns": 11770849,
+      "expression_program_uploads": 2,
+      "expression_value_only": 1156020,
+      "factor_ns": 5143574,
+      "factorizations": 9975,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-15/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923585,
+      "readback_bytes": 4832072,
+      "readback_ns": 62049705,
+      "refactorizations": 19,
+      "refinements": 12019,
+      "rejected_pivots": 0,
+      "reuses": 7406,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 16460413,
+      "solver_setup_ns": 5224026,
+      "solves": 29394,
+      "successful_solves": 17375,
+      "synchronization_ns": 2882251234,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439541,
+      "upload_ns": 1375407,
+      "validation_ns": 238409
+    },
+    "owner": 15,
+    "pass": true,
+    "points": 3158,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 5.550000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/queue98b-profile-8-data/batch-0/job-15/input.cir",
+      "status": "ok",
+      "wall_s": 4.68280444201082,
+      "worker_owner": 15,
+      "worker_pid": 1328016,
+      "worker_request": 2,
+      "worker_thread": 1328032
+    },
+    "raw_sha256": "e71826263a6850f60a386fa2adc5891cc249afebfc58373f0abb78175d310d33",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05829304628232079,
+        "pass": true,
+        "rms_error": 7.533477870002601e-06
+      },
+      "i(lcma)": {
+        "limit": 0.02000036030557083,
+        "pass": true,
+        "rms_error": 1.6632865934183587e-12
+      },
+      "i(lcmb)": {
+        "limit": 0.020000360305570796,
+        "pass": true,
+        "rms_error": 1.6640313528911016e-12
+      },
+      "i(lda)": {
+        "limit": 0.020009377185160368,
+        "pass": true,
+        "rms_error": 1.2594206635690809e-09
+      },
+      "i(ldb)": {
+        "limit": 0.020009377185160365,
+        "pass": true,
+        "rms_error": 1.2594206199487752e-09
+      },
+      "i(lload)": {
+        "limit": 0.020000000000000365,
+        "pass": true,
+        "rms_error": 7.788006748303304e-19
+      },
+      "i(va)": {
+        "limit": 0.020000803342320073,
+        "pass": true,
+        "rms_error": 1.304548920049378e-10
+      },
+      "i(vb)": {
+        "limit": 0.020000803342316565,
+        "pass": true,
+        "rms_error": 1.3047699780639645e-10
+      },
+      "i(vdah)": {
+        "limit": 0.07069148819264967,
+        "pass": true,
+        "rms_error": 1.614404965506907e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06489681168626768,
+        "pass": true,
+        "rms_error": 2.619537857395658e-06
+      },
+      "i(vdbh)": {
+        "limit": 0.07069148819268027,
+        "pass": true,
+        "rms_error": 1.6144045610151942e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.06489681168625995,
+        "pass": true,
+        "rms_error": 2.619538020534358e-06
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015189842268244807
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015189842402561912
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862052636717242
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015859242646131712
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015859242348745158
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 4.285003266674897e-06
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 4.2850033000179556e-06
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862007017419214
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862007017236943
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862007017043857
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001336430307279232
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000158592423484356
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00015862037652703811
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001586203765275537
+      }
+    }
+  }
+]

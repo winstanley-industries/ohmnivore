@@ -146,6 +146,16 @@ long-row reductions are 5.9% slower on the shortened case. Thirty GPU waveform
 comparisons and all thirty resident test executions pass across the three trials,
 but all changes are removed. These remain diagnostic results.
 
+The harness now explicitly requests [32 CUDA work queues](evidence/emi03/diagnostics/resident-work-queues/README.md).
+Sixteen independent owners previously shared CUDA's default eight queues. On
+sixteen shortened circuit jobs, increasing the queue count reduces ordinary
+median execution-only batch time from 5.877 to 2.741 s; a reversed-order repeat
+gives 5.142 versus 2.762 s. Separate hardware captures show increased SM activity.
+All 320 GPU short-window waveform comparisons and six pool resource audits pass.
+The actual child environment is integration-tested and invocation-audited. These
+results select the queue setting for further qualification; they do not satisfy
+the full thirty-job qualification or complete-study performance gates.
+
 Two [kernel screening experiments](evidence/emi03/diagnostics/resident-kernel-screening/README.md)
 are rejected. Serial sparse triangular solving takes 4.149 s versus 2.285 s for
 the corrected baseline on a shortened coupled case. Outlining the timestep

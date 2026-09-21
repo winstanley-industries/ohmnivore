@@ -283,14 +283,22 @@ def _child_limits(limits, gpu, core=None):
     # each request's 110-second CPU delta, including unsuccessful requests.
 
 
-def worker_environment():
-    return {
+def worker_environment(gpu=False):
+    environment = {
         "PATH": "",
         "LC_ALL": "C",
         "OMP_NUM_THREADS": "1",
         "OPENBLAS_NUM_THREADS": "1",
         "MKL_NUM_THREADS": "1",
     }
+    if gpu:
+        # Sixteen private owners use independent compute and allocation streams.
+        # CUDA's default eight queues serialize otherwise independent streams.
+        environment.update(
+            CUDA_DEVICE_MAX_CONNECTIONS="32",
+            CUDA_DEVICE_MAX_COPY_CONNECTIONS="32",
+        )
+    return environment
 
 
 class GpuProcess:
@@ -337,7 +345,7 @@ class GpuProcess:
                     stderr=self.log,
                     pass_fds=tuple(child_fds)
                     + tuple(channel[2].fileno() for channel in self.channels),
-                    env=worker_environment(),
+                    env=worker_environment(True),
                     start_new_session=True,
                     preexec_fn=lambda: _child_limits(limits, True),
                 )
@@ -387,7 +395,7 @@ class Worker:
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=self.log,
-                env=worker_environment(),
+                env=worker_environment(gpu),
                 start_new_session=True,
                 preexec_fn=lambda: _child_limits(limits, gpu, core),
             )
@@ -1690,6 +1698,7 @@ def audit(out, archive, cpu_binary, gpu_binary, oracle_binary):
         or invocation.get("cpu_workers") != list(CPU_WORKERS)
         or invocation.get("gpu_workers") != list(GPU_WORKERS)
         or invocation.get("gpu_execution_model") != GPU_EXECUTION_MODEL
+        or invocation.get("gpu_worker_environment") != worker_environment(True)
         or invocation.get("ensemble_sizes") != list(ENSEMBLES)
         or invocation.get("warmups") != WARMUPS
         or invocation.get("measured") != MEASURED
@@ -1897,6 +1906,7 @@ def main():
         "cpu_workers": CPU_WORKERS,
         "gpu_workers": GPU_WORKERS,
         "gpu_execution_model": GPU_EXECUTION_MODEL,
+        "gpu_worker_environment": worker_environment(True),
         "ensemble_sizes": ENSEMBLES,
         "warmups": WARMUPS,
         "measured": MEASURED,

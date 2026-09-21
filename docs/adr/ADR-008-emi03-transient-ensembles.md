@@ -223,6 +223,11 @@ Cached driver memory is still subject to the observed residency gate. Completion
 WSL driver. Transfer, polling and waiting costs remain inside measured wall time.
 All writers finish an output row before its shared index advances. The current
 study harness records `one-process-private-owner-threads-v1` with sixteen owners.
+The GPU process receives thirty-two compute and copy work queues through explicit
+`CUDA_DEVICE_MAX_CONNECTIONS` and `CUDA_DEVICE_MAX_COPY_CONNECTIONS` settings.
+This avoids the observed stream serialization with CUDA's default eight queues.
+The complete GPU worker environment is recorded and checked during invocation
+audits. CPU worker settings and all resource and acceptance bounds stay fixed.
 Its real-process integration test covers distinct output oracles, repeated
 requests, isolated parser failure and recovery, preexisting-file preservation,
 owner/thread association and shared-process failure. Those checks do not

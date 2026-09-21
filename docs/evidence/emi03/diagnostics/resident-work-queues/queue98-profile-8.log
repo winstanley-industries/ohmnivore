@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/home/adam/emi03-work/queue98.py", line 1, in <module>
+    from reference.emi03 import ensemble as e
+  File "/home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/bin/reference/emi03/ensemble.runfiles/_main/reference/emi03/ensemble.py", line 28, in <module>
+    from reference.emi01 import study
+  File "/home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/bin/reference/emi03/ensemble.runfiles/_main/reference/emi01/study.py", line 25, in <module>
+    np = load_numpy()
+         ^^^^^^^^^^^^
+  File "/home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/bin/reference/emi03/ensemble.runfiles/_main/third_party/emi_python/runtime.py", line 50, in load_numpy
+    raise RuntimeError(
+RuntimeError: Unpinned or missing NumPy runtime libgcc_s.so: ['/home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/external/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/lib64/libgcc_s.so.1', '/usr/lib/x86_64-linux-gnu/libgcc_s.so.1']
+GPU 0: General Metrics for NVIDIA GB20x
+Collecting data...
+Generating '/home/adam/emi03-work/tmp/nsys-adam/nsys-report-b573.qdstrm'
+[1/1] [0%                          ] queue98-profile-8.nsys-rep[1/1] [0%                          ] queue98-profile-8.nsys-rep[1/1] [1%                          ] queue98-profile-8.nsys-rep[1/1] [2%                          ] queue98-profile-8.nsys-rep[1/1] [5%                          ] queue98-profile-8.nsys-rep[1/1] [8%                          ] queue98-profile-8.nsys-rep[1/1] [==19%                       ] queue98-profile-8.nsys-rep[1/1] [==20%                       ] queue98-profile-8.nsys-rep[1/1] [==21%                       ] queue98-profile-8.nsys-rep[1/1] [=====================87%    ] queue98-profile-8.nsys-rep[1/1] [=======================96%  ] queue98-profile-8.nsys-rep[1/1] [========================98% ] queue98-profile-8.nsys-rep[1/1] [========================100%] queue98-profile-8.nsys-rep[1/1] [========================100%] queue98-profile-8.nsys-rep
+Generated:
+	/home/adam/emi03-work/queue98-profile-8.nsys-rep

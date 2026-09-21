@@ -1,0 +1,11 @@
+{
+  "base_commit": "f3c729b4c24d6e1131b6f82185e57b10771632db",
+  "sources": {
+    "reference/emi03/ensemble.py": "4f87471a2f959cc2133dab1d6eee8947c6ec8565318937c461c61468671edda6",
+    "reference/emi03/gpu_worker_process_test.py": "daed10125e5e8f45f32dd7185806a3e2db531f62b4f4a6c1510d972ff0ffa5ed",
+    "docs/adr/ADR-008-emi03-transient-ensembles.md": "877b97f78b26ea2d71ae434c5cb6569d6fe83afb87e0f7171e15bdd643229bbc"
+  },
+  "gpu_worker_sha256": "1cd28907d4feafd02c513b6542dded89260e2cb08fbc132fb6b49fe2e24968e2",
+  "acceptance_pass": false,
+  "scope": "Select explicit 32 compute/copy work queues in the GPU child environment; kernel unchanged; full qualification outstanding"
+}
