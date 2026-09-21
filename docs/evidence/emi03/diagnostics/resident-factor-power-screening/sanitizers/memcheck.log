@@ -1,0 +1,34 @@
+========= COMPUTE-SANITIZER
+Note: Google Test filter = Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Emi03Resident
+[ RUN      ] Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry
+========= CUDA API Warning: Selective device code recompilation in progress.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: ohmnivore::(anonymous namespace)::ProgramBatch::Evaluate(std::span<double const, 18446744073709551615ul>, bool) [0x7ba30c] in emi03_resident_test
+=========         Host Frame: ohmnivore::EvaluateEmi03CudaExpressions(std::span<ohmnivore::CompiledExpression const, 18446744073709551615ul>, std::span<double const, 18446744073709551615ul>, bool) [0x7bca80] in emi03_resident_test
+=========         Host Frame: ohmnivore::(anonymous namespace)::GpuExpressions(ohmnivore::MnaSystem const&, std::vector<double, std::allocator<double> > const&, ohmnivore::internal::PreparedExpressionCache*, bool) [0xcdae5] in libcuda_Slibemi03_Ucore.so
+=========         Host Frame: ohmnivore::(anonymous namespace)::Assemble(ohmnivore::MnaSystem const&, std::vector<double, std::allocator<double> > const&, double, double, std::vector<bool, std::allocator<bool> > const*, ohmnivore::internal::PreparedExpressionCache*, ohmnivore::(anonymous namespace)::ExpressionPurpose, std::vector<ohmnivore::ExpressionEvaluation, std::allocator<ohmnivore::ExpressionEvaluation> > const*, ohmnivore::(anonymous namespace)::AssemblyMode, ohmnivore::internal::PreparedNewtonWorkspace*) [0xd2d11] in libcuda_Slibemi03_Ucore.so
+=========         Host Frame: ohmnivore::(anonymous namespace)::RunNewtonAttempt(ohmnivore::MnaSystem const&, ohmnivore::NonlinearStrategy, double, double, double, std::vector<double, std::allocator<double> > const&, unsigned long, std::vector<bool, std::allocator<bool> > const*, ohmnivore::SparseRealFactorization*, std::vector<ohmnivore::NonlinearIterationRecord, std::allocator<ohmnivore::NonlinearIterationRecord> >*, ohmnivore::internal::PreparedExpressionCache*, ohmnivore::internal::PreparedNewtonWorkspace*) [0xda7f4] in libcuda_Slibemi03_Ucore.so
+=========         Host Frame: ohmnivore::RunNonlinearDc(ohmnivore::MnaSystem const&, ohmnivore::NonlinearDcOptions const&) [0xdff82] in libcuda_Slibemi03_Ucore.so
+=========         Host Frame: ohmnivore::(anonymous namespace)::BuildTransientInitialStateImpl(ohmnivore::MnaSystem const&, bool, ohmnivore::(anonymous namespace)::SparseRealFactorizationCache*) [0x130616] in libcuda_Slibemi03_Ucore.so
+=========         Host Frame: ohmnivore::BuildTransientInitialState(ohmnivore::MnaSystem const&, bool) [0x130d55] in libcuda_Slibemi03_Ucore.so
+=========         Host Frame: ohmnivore::RunEmi03ResidentTransient(ohmnivore::MnaSystem const&, ohmnivore::TranAnalysis const&, ohmnivore::TransientExecutionLimits const&) [0x7b721f] in emi03_resident_test
+=========         Host Frame: ohmnivore::(anonymous namespace)::Emi03Resident_DenseCouplingRetainsEverySparseFactorEntry_Test::TestBody() [0x7904b2] in emi03_resident_test
+=========         Host Frame: void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) [0xf7016] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: testing::Test::Run() [0xf7275] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: testing::TestInfo::Run() [0xf7604] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: testing::TestSuite::Run() [0xfaaf6] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: testing::internal::UnitTestImpl::RunAllTests() [0x1014bb] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) [0xf788e] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: testing::UnitTest::Run() [0xf7a8d] in libexternal_Sgoogletest+_Slibgtest.so
+=========         Host Frame: main [0x770140] in emi03_resident_test
+========= 
+[       OK ] Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry (11060 ms)
+[----------] 1 test from Emi03Resident (11060 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (11060 ms total)
+[  PASSED  ] 1 test.
+========= ERROR SUMMARY: 1 error

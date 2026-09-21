@@ -190,6 +190,21 @@ short-window CPU waveform checks, but neither trial improves performance or
 qualifies a new implementation. Both patches and their negative results remain
 reconstructable; the working kernel retains neither change.
 
+Four further [factor, power and auxiliary-ordering screens](evidence/emi03/diagnostics/resident-factor-power-screening/README.md)
+are rejected: descriptor prefetch, common-exponent power operations and forward/
+reverse auxiliary-driver ordering are respectively 0.4%, 0.6%, 2.9% and 4.4%
+slower on the shortened coupled diagnostic. All 44 raw trajectories and 40 GPU
+waveform comparisons reconstruct, as do the four exact source snapshots. Eleven
+resident tests pass for each candidate and the selected implementation. A new
+dense-coupling analytic regression remains, with all-launch memcheck and
+first-chunk racecheck passing after a retained initial code-recompilation warning.
+
+A compiled-MNA probe confirms 40 isolated auxiliary voltage drivers with acyclic
+dependencies. Algebraic elimination could reduce 185 variables to 105, but naive
+expression expansion grows 892 nodes to 5,464. No such reduction is implemented
+or qualified. Both ordering trials retain the full equations and state; neither
+improves the selected solver. Full EMI-03 acceptance remains outstanding.
+
 ## Resource interpretation
 
 Each GPU worker enforces a shared 256 MiB cap for explicit expression/solver and

@@ -138,6 +138,60 @@ TEST_F(Emi03Resident, WideOutputRowsCrossChunkBoundariesWithoutCorruption) {
   EXPECT_LT(error, 1e-8);
 }
 
+TEST_F(Emi03Resident, DenseCouplingRetainsEverySparseFactorEntry) {
+  // A dense 34-node resistor coupling has more than 1,024 factor entries.
+  // Symmetry cancels the coupling currents, leaving an independent ramp-RC
+  // oracle while still exercising the full factor/solve and refinement paths.
+  std::string deck = "Vdrive drive 0 PWL(0 0 1u 1)\nBzero drive 0 I={0}\n";
+  for (int i = 0; i < 34; ++i) {
+    const auto name = std::to_string(i);
+    deck += "Rtop" + name + " drive out" + name + " 1k\nRbottom" + name +
+            " out" + name + " 0 1k\nCstore" + name + " out" + name + " 0 1n\n";
+    for (int j = 0; j < i; ++j)
+      deck += "Rcouple" + name + "_" + std::to_string(j) + " out" + name +
+              " out" + std::to_string(j) + " 1k\n";
+  }
+  const auto parsed = ParseBehavioralNetlist(deck);
+  ASSERT_TRUE(parsed.ok()) << parsed.error().message;
+  const auto compiled = CompileBehavioralMna(parsed.value());
+  ASSERT_TRUE(compiled.ok()) << compiled.error().message;
+  const auto &system = compiled.value();
+  std::vector<std::size_t> nodes;
+  for (int i = 0; i < 34; ++i) {
+    const auto node =
+        std::find(system.node_names.begin(), system.node_names.end(),
+                  "out" + std::to_string(i));
+    ASSERT_NE(node, system.node_names.end());
+    nodes.push_back(node - system.node_names.begin());
+  }
+  TransientExecutionLimits limits;
+  limits.retain_output_states = false;
+  limits.behavioral_error_estimator =
+      BehavioralErrorEstimator::kDerivativeHistory;
+  double error = 0, last = -1;
+  std::size_t points = 0;
+  limits.accepted_state_observer = [&](double time,
+                                       const std::vector<double> &state) {
+    EXPECT_GT(time, last);
+    last = time;
+    ++points;
+    constexpr double gain_denominator = 2 + 1e-9;
+    constexpr double tau = 1e-6 / gain_denominator;
+    const double expected =
+        (time + tau * std::expm1(-time / tau)) * 1e6 / gain_denominator;
+    for (auto index : nodes)
+      error = std::max(error, std::abs(state[index] - expected));
+    return Result<bool>::Ok(true);
+  };
+  const auto result =
+      RunEmi03ResidentTransient(system, {1e-9, 1e-6, 0, false}, limits);
+  ASSERT_TRUE(result.ok()) << result.error().message;
+  EXPECT_GT(points, 1000U);
+  EXPECT_EQ(result.value().emitted_points, points);
+  EXPECT_EQ(last, 1e-6);
+  EXPECT_LT(error, 2e-6);
+}
+
 TEST_F(Emi03Resident, ObserverFailureAndAttemptBudgetCannotPublishSuccess) {
   const auto parsed =
       ParseBehavioralNetlist("Vdrive in 0 PWL(0 0 1u 1)\nRseries in out "

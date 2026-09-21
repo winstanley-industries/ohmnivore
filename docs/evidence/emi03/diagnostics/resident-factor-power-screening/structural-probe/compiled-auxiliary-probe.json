@@ -1,0 +1,365 @@
+{
+  "scope": "Read-only compiled MNA and exported AST structural probe; no solver reduction or equivalence/acceptance claim",
+  "acceptance_pass": false,
+  "input_sha256": "96d1b506cdd5bed49245f9af992867e4c154ee80761625092211aec0348679c2",
+  "compiled_probe_sha256": "bb1c561de5c837570771906f0177c64f49d45656d00d2e0e62601c7f161f6624",
+  "original_unknowns": 185,
+  "compiled_isolated_grounded_drivers": 40,
+  "candidate_reduced_unknowns": 105,
+  "rejected_candidates": {},
+  "auxiliary_topological_order": [
+    "emi02_xdah_xm1__100",
+    "emi02_xdah_xm1__101",
+    "emi02_xdah_xm1__102",
+    "emi02_xdah_xm1__109",
+    "emi02_xdah_xm1__107",
+    "emi02_xdah_xm1__103",
+    "emi02_xdah_xm1__106",
+    "emi02_xdah_xm1__104",
+    "emi02_xdah_xm1__105",
+    "emi02_xdah_xm1__108",
+    "emi02_xdal_xm1__100",
+    "emi02_xdal_xm1__101",
+    "emi02_xdal_xm1__102",
+    "emi02_xdal_xm1__109",
+    "emi02_xdal_xm1__107",
+    "emi02_xdal_xm1__103",
+    "emi02_xdal_xm1__106",
+    "emi02_xdal_xm1__104",
+    "emi02_xdal_xm1__105",
+    "emi02_xdal_xm1__108",
+    "emi02_xdbh_xm1__100",
+    "emi02_xdbh_xm1__101",
+    "emi02_xdbh_xm1__102",
+    "emi02_xdbh_xm1__109",
+    "emi02_xdbh_xm1__107",
+    "emi02_xdbh_xm1__103",
+    "emi02_xdbh_xm1__106",
+    "emi02_xdbh_xm1__104",
+    "emi02_xdbh_xm1__105",
+    "emi02_xdbh_xm1__108",
+    "emi02_xdbl_xm1__100",
+    "emi02_xdbl_xm1__101",
+    "emi02_xdbl_xm1__102",
+    "emi02_xdbl_xm1__109",
+    "emi02_xdbl_xm1__107",
+    "emi02_xdbl_xm1__103",
+    "emi02_xdbl_xm1__106",
+    "emi02_xdbl_xm1__104",
+    "emi02_xdbl_xm1__105",
+    "emi02_xdbl_xm1__108"
+  ],
+  "auxiliary_branch_current_formula": "i(driver) = -1e-12 * v(auxiliary) because the original GMIN stamp remains",
+  "original_expression_nodes": 892,
+  "expanded_all_program_nodes": 5464,
+  "maximum_expanded_program_nodes": 304,
+  "maximum_expanded_depth": 15,
+  "programs": {
+    "e_xdah_xm1__fvds": {
+      "original_nodes": 3,
+      "expanded_tree_nodes": 3,
+      "expanded_depth": 2
+    },
+    "e_xdah_xm1__fvgs": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "e_xdah_xm1__fvgd": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "g_xdah_xm1__13": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "g_xdah_xm1__14": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "b_xdah_xm1__gd": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "g_xdah_xm1__41": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "b_xdah_xm1__ds": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "e_xdah_xm1__ibd2": {
+      "original_nodes": 11,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "e_xdah_xm1__k2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 21,
+      "expanded_depth": 6
+    },
+    "e_xdah_xm1__fb": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 286,
+      "expanded_depth": 12
+    },
+    "e_xdah_xm1__remapvgs": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdah_xm1__remapvgd": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdah_xm1__fcond1": {
+      "original_nodes": 13,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "e_xdah_xm1__fcond2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "e_xdal_xm1__fvds": {
+      "original_nodes": 3,
+      "expanded_tree_nodes": 3,
+      "expanded_depth": 2
+    },
+    "e_xdal_xm1__fvgs": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "e_xdal_xm1__fvgd": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "g_xdal_xm1__13": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "g_xdal_xm1__14": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "b_xdal_xm1__gd": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "g_xdal_xm1__41": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "b_xdal_xm1__ds": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "e_xdal_xm1__ibd2": {
+      "original_nodes": 11,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "e_xdal_xm1__k2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 21,
+      "expanded_depth": 6
+    },
+    "e_xdal_xm1__fb": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 286,
+      "expanded_depth": 12
+    },
+    "e_xdal_xm1__remapvgs": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdal_xm1__remapvgd": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdal_xm1__fcond1": {
+      "original_nodes": 13,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "e_xdal_xm1__fcond2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "e_xdbh_xm1__fvds": {
+      "original_nodes": 3,
+      "expanded_tree_nodes": 3,
+      "expanded_depth": 2
+    },
+    "e_xdbh_xm1__fvgs": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "e_xdbh_xm1__fvgd": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "g_xdbh_xm1__13": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "g_xdbh_xm1__14": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "b_xdbh_xm1__gd": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "g_xdbh_xm1__41": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "b_xdbh_xm1__ds": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "e_xdbh_xm1__ibd2": {
+      "original_nodes": 11,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "e_xdbh_xm1__k2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 21,
+      "expanded_depth": 6
+    },
+    "e_xdbh_xm1__fb": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 286,
+      "expanded_depth": 12
+    },
+    "e_xdbh_xm1__remapvgs": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdbh_xm1__remapvgd": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdbh_xm1__fcond1": {
+      "original_nodes": 13,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "e_xdbh_xm1__fcond2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "e_xdbl_xm1__fvds": {
+      "original_nodes": 3,
+      "expanded_tree_nodes": 3,
+      "expanded_depth": 2
+    },
+    "e_xdbl_xm1__fvgs": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "e_xdbl_xm1__fvgd": {
+      "original_nodes": 5,
+      "expanded_tree_nodes": 5,
+      "expanded_depth": 3
+    },
+    "g_xdbl_xm1__13": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "g_xdbl_xm1__14": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    },
+    "b_xdbl_xm1__gd": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "g_xdbl_xm1__41": {
+      "original_nodes": 1,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "b_xdbl_xm1__ds": {
+      "original_nodes": 30,
+      "expanded_tree_nodes": 30,
+      "expanded_depth": 8
+    },
+    "e_xdbl_xm1__ibd2": {
+      "original_nodes": 11,
+      "expanded_tree_nodes": 13,
+      "expanded_depth": 8
+    },
+    "e_xdbl_xm1__k2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 21,
+      "expanded_depth": 6
+    },
+    "e_xdbl_xm1__fb": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 286,
+      "expanded_depth": 12
+    },
+    "e_xdbl_xm1__remapvgs": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdbl_xm1__remapvgd": {
+      "original_nodes": 36,
+      "expanded_tree_nodes": 76,
+      "expanded_depth": 9
+    },
+    "e_xdbl_xm1__fcond1": {
+      "original_nodes": 13,
+      "expanded_tree_nodes": 304,
+      "expanded_depth": 15
+    },
+    "e_xdbl_xm1__fcond2": {
+      "original_nodes": 17,
+      "expanded_tree_nodes": 100,
+      "expanded_depth": 14
+    }
+  },
+  "requirements": [
+    "Keep eager domain checks for all original programs, including unused auxiliary expressions",
+    "Reconstruct all original states and currents on GPU",
+    "Preserve original residual, update and Jacobian nonsingularity checks",
+    "Fresh complete CPU and external qualification before any acceptance timing"
+  ]
+}
