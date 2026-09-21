@@ -165,6 +165,23 @@ the short diagnostic. All four source variants, 37 completed trajectories,
 29 GPU waveform comparisons, eight DPT refinements and both terminal failures
 reconstruct. These experiments do not qualify a replacement numerical policy.
 
+The [explicit shared-address candidate](evidence/emi03/diagnostics/resident-shared-addresses/README.md)
+keeps the sparse factor and triangular arithmetic and validation rules while
+reducing generic address operations. Its short ordinary median is 1.963 versus
+2.086 s; a triangular-only variant also improves a longer identical trajectory
+from 30.436 to 28.677 s. Larger timing differences with different internal step
+counts are kept separate. The selected factor/triangular variant passes all three
+fresh DPT CPU comparisons and eight refinements at 7.634 / 10.097 / 12.324 s GPU.
+Seven targeted Compute Sanitizer checks and nineteen canonical stages pass.
+All nine distinct 20 us candidate/corner prefixes also pass fresh CPU comparisons
+in two GPU batches. The warm request batch takes 46.313 s versus 7.017 s for the
+fresh CPU batch. Boundary/nominal has nearly equal attempt counts but takes
+21.867 s GPU versus 3.489 s CPU, pointing to execution cost per attempt as the
+main gap there. These request-only diagnostics do not establish frozen timings.
+The audit reconstructs three source variants, 75 trajectories and 58 GPU waveform
+comparisons. Full qualification and complete-study performance acceptance remain
+outstanding.
+
 Two [kernel screening experiments](evidence/emi03/diagnostics/resident-kernel-screening/README.md)
 are rejected. Serial sparse triangular solving takes 4.149 s versus 2.285 s for
 the corrected baseline on a shortened coupled case. Outlining the timestep

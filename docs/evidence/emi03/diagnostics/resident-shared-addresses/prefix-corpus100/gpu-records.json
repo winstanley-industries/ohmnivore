@@ -1,0 +1,3530 @@
+[
+  {
+    "batch": -1,
+    "directory": "gpu/-1/light-nominal",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 63417949,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 399439893,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 732466,
+      "expression_evaluate_ns": 29534207,
+      "expression_full_ad": 12796920,
+      "expression_prepare_ns": 412924,
+      "expression_program_uploads": 2,
+      "expression_value_only": 31151040,
+      "factor_ns": 101845116,
+      "factorizations": 280437,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/light-nominal/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 115976696,
+      "readback_ns": 28014019,
+      "refactorizations": 19,
+      "refinements": 309655,
+      "rejected_pivots": 0,
+      "reuses": 175000,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 102813388,
+      "solver_setup_ns": 9033718,
+      "solves": 765078,
+      "successful_solves": 455423,
+      "synchronization_ns": 40045871261,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 510057,
+      "upload_ns": 1324069,
+      "validation_ns": 273893
+    },
+    "id": "light-nominal",
+    "owner": 0,
+    "pass": true,
+    "points": 77776,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 10.450000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/light-nominal/input.cir",
+      "status": "ok",
+      "wall_s": 41.498438774026,
+      "worker_owner": 0,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604667
+    },
+    "raw_sha256": "97f0b2add83b4a4f19dafb5bc1b1708c69e9da4dadebbe7b29fa77631e7a804e",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.058578740924677256,
+        "pass": true,
+        "rms_error": 0.0001733283443886697
+      },
+      "i(lcma)": {
+        "limit": 0.23985985669728652,
+        "pass": true,
+        "rms_error": 3.429949142718611e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.2379289331042545,
+        "pass": true,
+        "rms_error": 3.4309243277804933e-06
+      },
+      "i(lda)": {
+        "limit": 0.2398507037844597,
+        "pass": true,
+        "rms_error": 6.251930558854963e-05
+      },
+      "i(ldb)": {
+        "limit": 0.23793172753941744,
+        "pass": true,
+        "rms_error": 6.25225843196487e-05
+      },
+      "i(lload)": {
+        "limit": 0.20288725685557704,
+        "pass": true,
+        "rms_error": 3.7938486493226764e-08
+      },
+      "i(va)": {
+        "limit": 0.2083019555484923,
+        "pass": true,
+        "rms_error": 1.4150800987283445e-05
+      },
+      "i(vb)": {
+        "limit": 0.2091508849830453,
+        "pass": true,
+        "rms_error": 1.4150831115787816e-05
+      },
+      "i(vdah)": {
+        "limit": 0.2205545268342093,
+        "pass": true,
+        "rms_error": 8.695559298755291e-05
+      },
+      "i(vdal)": {
+        "limit": 0.11245884042666524,
+        "pass": true,
+        "rms_error": 1.7696335005614942e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03907637001986208,
+        "pass": true,
+        "rms_error": 8.676137212963218e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.23834269796852983,
+        "pass": true,
+        "rms_error": 2.1663796116628566e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00043610312313032426
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00042006894036000775
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009091213373709097
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0018594091045186982
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0018594223967588494
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 8.389383142471382e-06
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.2388832483983775e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009196047462346213
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009196317392013365
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009196103272366455
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004011231290816241
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0018594090721430992
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004313387228140644
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004313957487595273
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/light-fast_low_lc",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 64213655,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 394452349,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 719662,
+      "expression_evaluate_ns": 29926236,
+      "expression_full_ad": 12512400,
+      "expression_prepare_ns": 510238,
+      "expression_program_uploads": 2,
+      "expression_value_only": 30667320,
+      "factor_ns": 103422713,
+      "factorizations": 278151,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/light-fast_low_lc/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 118865784,
+      "readback_ns": 29469758,
+      "refactorizations": 19,
+      "refinements": 306810,
+      "rejected_pivots": 0,
+      "reuses": 172581,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 101827387,
+      "solver_setup_ns": 6038312,
+      "solves": 757531,
+      "successful_solves": 450721,
+      "synchronization_ns": 39603266755,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 510105,
+      "upload_ns": 998306,
+      "validation_ns": 236018
+    },
+    "id": "light-fast_low_lc",
+    "owner": 1,
+    "pass": true,
+    "points": 79716,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 10.33,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/light-fast_low_lc/input.cir",
+      "status": "ok",
+      "wall_s": 41.17166711302707,
+      "worker_owner": 1,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604668
+    },
+    "raw_sha256": "af45099acdf91420e87a97db417559c30dad3f7706e97493802aeafd3ee37e18",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.06579382486909359,
+        "pass": true,
+        "rms_error": 0.00011284652507813985
+      },
+      "i(lcma)": {
+        "limit": 0.25266765223479065,
+        "pass": true,
+        "rms_error": 3.2470627502161874e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.2545207226098035,
+        "pass": true,
+        "rms_error": 3.2510990253176596e-06
+      },
+      "i(lda)": {
+        "limit": 0.25266424759200246,
+        "pass": true,
+        "rms_error": 3.883028673765839e-05
+      },
+      "i(ldb)": {
+        "limit": 0.25451302197337194,
+        "pass": true,
+        "rms_error": 3.8831363317478765e-05
+      },
+      "i(lload)": {
+        "limit": 0.22022256845387894,
+        "pass": true,
+        "rms_error": 2.9411298723258686e-08
+      },
+      "i(va)": {
+        "limit": 0.22652453850215679,
+        "pass": true,
+        "rms_error": 9.492506886745929e-06
+      },
+      "i(vb)": {
+        "limit": 0.2273193541800972,
+        "pass": true,
+        "rms_error": 9.49257168888868e-06
+      },
+      "i(vdah)": {
+        "limit": 0.23038799506630758,
+        "pass": true,
+        "rms_error": 5.856187064884939e-05
+      },
+      "i(vdal)": {
+        "limit": 0.1217056170304403,
+        "pass": true,
+        "rms_error": 2.0464626972242887e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.04040257617115089,
+        "pass": true,
+        "rms_error": 5.84848575544952e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.25485644196876933,
+        "pass": true,
+        "rms_error": 2.2880611269614235e-05
+      },
+      "v(a)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00030090987078199813
+      },
+      "v(b)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00027919369126185614
+      },
+      "v(ch)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0006465919600780796
+      },
+      "v(fa)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0012166945228620505
+      },
+      "v(fb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.001216720628353288
+      },
+      "v(ga)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 5.953793423820114e-06
+      },
+      "v(gb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 7.693986813986156e-06
+      },
+      "v(la)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.000654768885958943
+      },
+      "v(lb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0006548175531340806
+      },
+      "v(lr)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0006547798297293837
+      },
+      "v(p)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00028276504445426295
+      },
+      "v(xcap)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0012166945328389127
+      },
+      "v(yca)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00040289554462762063
+      },
+      "v(ycb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00040297342708984964
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/light-hot_high_c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 60680694,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 400292506,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 841311,
+      "expression_evaluate_ns": 26617632,
+      "expression_full_ad": 14735460,
+      "expression_prepare_ns": 494253,
+      "expression_program_uploads": 2,
+      "expression_value_only": 35743200,
+      "factor_ns": 100320051,
+      "factorizations": 321444,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/light-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 131511680,
+      "readback_ns": 23364963,
+      "refactorizations": 20,
+      "refinements": 354170,
+      "rejected_pivots": 0,
+      "reuses": 199757,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 103409842,
+      "solver_setup_ns": 11797755,
+      "solves": 875361,
+      "successful_solves": 521191,
+      "synchronization_ns": 46069635512,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 519033,
+      "upload_ns": 1077015,
+      "validation_ns": 253135
+    },
+    "id": "light-hot_high_c",
+    "owner": 2,
+    "pass": true,
+    "points": 88202,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 10.71,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/light-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 47.57125803997042,
+      "worker_owner": 2,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604669
+    },
+    "raw_sha256": "24d4bf6439b39fc63076af7f638626a0583548f4d2cf389b1eb93214d0084a1b",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.049515155018232074,
+        "pass": true,
+        "rms_error": 3.056890331130091e-05
+      },
+      "i(lcma)": {
+        "limit": 0.2156253697520409,
+        "pass": true,
+        "rms_error": 4.515026033095618e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.21591511103075586,
+        "pass": true,
+        "rms_error": 4.5145365041381214e-06
+      },
+      "i(lda)": {
+        "limit": 0.21562252180103939,
+        "pass": true,
+        "rms_error": 1.0549474454223705e-05
+      },
+      "i(ldb)": {
+        "limit": 0.21591698508035764,
+        "pass": true,
+        "rms_error": 1.055412515060156e-05
+      },
+      "i(lload)": {
+        "limit": 0.18525791281451337,
+        "pass": true,
+        "rms_error": 7.078223421715177e-08
+      },
+      "i(va)": {
+        "limit": 0.18975162777104113,
+        "pass": true,
+        "rms_error": 2.8288335962666606e-06
+      },
+      "i(vb)": {
+        "limit": 0.1909655905985807,
+        "pass": true,
+        "rms_error": 2.828066519423662e-06
+      },
+      "i(vdah)": {
+        "limit": 0.20426722704199032,
+        "pass": true,
+        "rms_error": 2.0251075167060588e-05
+      },
+      "i(vdal)": {
+        "limit": 0.08878555282802804,
+        "pass": true,
+        "rms_error": 1.3775485690104969e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03951408260078028,
+        "pass": true,
+        "rms_error": 1.9721953752807386e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.2165654416419583,
+        "pass": true,
+        "rms_error": 1.5308871562681384e-05
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00013502667924181606
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00011131314027967421
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002403294076123122
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00037095641934188487
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0003710026449151736
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.775562628114556e-06
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 7.69499334517302e-06
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00024207130910689298
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00024213719746937293
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002420457429220181
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00012352417139941768
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00037095872670013996
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002118006857305752
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00021188037020707643
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/boundary-nominal",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 66050332,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 394260736,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 403244,
+      "expression_evaluate_ns": 24556652,
+      "expression_full_ad": 6923640,
+      "expression_prepare_ns": 432595,
+      "expression_program_uploads": 2,
+      "expression_value_only": 17271000,
+      "factor_ns": 125648871,
+      "factorizations": 135433,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/boundary-nominal/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 68319672,
+      "readback_ns": 19539711,
+      "refactorizations": 19,
+      "refinements": 176221,
+      "rejected_pivots": 0,
+      "reuses": 120349,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98479747,
+      "solver_setup_ns": 3552508,
+      "solves": 431997,
+      "successful_solves": 255776,
+      "synchronization_ns": 21463607927,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439489,
+      "upload_ns": 1952547,
+      "validation_ns": 259798
+    },
+    "id": "boundary-nominal",
+    "owner": 3,
+    "pass": true,
+    "points": 45787,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 8.030000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/boundary-nominal/input.cir",
+      "status": "ok",
+      "wall_s": 22.916811875998974,
+      "worker_owner": 3,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604670
+    },
+    "raw_sha256": "75b0d31a119939eab8ab66e6fb642ec64fa24144c9ed017bd9a2f1b241ab9587",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.058791017703051854,
+        "pass": true,
+        "rms_error": 5.1590548614734986e-05
+      },
+      "i(lcma)": {
+        "limit": 0.09373806931175663,
+        "pass": true,
+        "rms_error": 3.0208552009421736e-07
+      },
+      "i(lcmb)": {
+        "limit": 0.06723682780883972,
+        "pass": true,
+        "rms_error": 3.0207426020470933e-07
+      },
+      "i(lda)": {
+        "limit": 0.09373315455433891,
+        "pass": true,
+        "rms_error": 8.832859229521644e-07
+      },
+      "i(ldb)": {
+        "limit": 0.06724622773236454,
+        "pass": true,
+        "rms_error": 8.835371628780131e-07
+      },
+      "i(lload)": {
+        "limit": 0.06289347038258228,
+        "pass": true,
+        "rms_error": 1.8521293662543475e-08
+      },
+      "i(va)": {
+        "limit": 0.06902039444234721,
+        "pass": true,
+        "rms_error": 6.129118130540988e-07
+      },
+      "i(vb)": {
+        "limit": 0.06853586303139104,
+        "pass": true,
+        "rms_error": 6.12758740568773e-07
+      },
+      "i(vdah)": {
+        "limit": 0.0780734354803934,
+        "pass": true,
+        "rms_error": 4.290704286434711e-05
+      },
+      "i(vdal)": {
+        "limit": 0.07030742422232576,
+        "pass": true,
+        "rms_error": 4.8180792360436855e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03798871807780545,
+        "pass": true,
+        "rms_error": 4.299660354924512e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06969124073873237,
+        "pass": true,
+        "rms_error": 4.8741764748830925e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000365478769704354
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00036237281549189555
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007695580321569546
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007697050758043478
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007697053582103715
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.7487422766973926e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.829071161782921e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007700346496460476
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007700349468969152
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000770034888254797
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00036077366315103934
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007697050707482775
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007695580581303272
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007695583139833441
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/boundary-fast_low_lc",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 65824136,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 394260960,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 386841,
+      "expression_evaluate_ns": 23885961,
+      "expression_full_ad": 6601500,
+      "expression_prepare_ns": 684535,
+      "expression_program_uploads": 2,
+      "expression_value_only": 16608960,
+      "factor_ns": 122439279,
+      "factorizations": 129594,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/boundary-fast_low_lc/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 68008384,
+      "readback_ns": 20178127,
+      "refactorizations": 19,
+      "refinements": 171161,
+      "rejected_pivots": 0,
+      "reuses": 118058,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 101020354,
+      "solver_setup_ns": 6827259,
+      "solves": 418813,
+      "successful_solves": 247652,
+      "synchronization_ns": 20632496243,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439689,
+      "upload_ns": 1723469,
+      "validation_ns": 265912
+    },
+    "id": "boundary-fast_low_lc",
+    "owner": 4,
+    "pass": true,
+    "points": 45578,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 7.54,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/boundary-fast_low_lc/input.cir",
+      "status": "ok",
+      "wall_s": 21.91814153298037,
+      "worker_owner": 4,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604671
+    },
+    "raw_sha256": "4053a6cb3c3d4c72f79d00a40e878c24235897da7a237966ff7cdf65647aa074",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.06326407050102904,
+        "pass": true,
+        "rms_error": 1.397069649275407e-05
+      },
+      "i(lcma)": {
+        "limit": 0.10616603433670711,
+        "pass": true,
+        "rms_error": 2.4898305043685726e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.07759319144583561,
+        "pass": true,
+        "rms_error": 2.489834842297021e-05
+      },
+      "i(lda)": {
+        "limit": 0.1061680178304273,
+        "pass": true,
+        "rms_error": 1.4876537051809712e-06
+      },
+      "i(ldb)": {
+        "limit": 0.07760319615220065,
+        "pass": true,
+        "rms_error": 1.4877695182636597e-06
+      },
+      "i(lload)": {
+        "limit": 0.07366070347964856,
+        "pass": true,
+        "rms_error": 5.423167560254537e-09
+      },
+      "i(va)": {
+        "limit": 0.08098833055897688,
+        "pass": true,
+        "rms_error": 1.113520204924672e-06
+      },
+      "i(vb)": {
+        "limit": 0.08032168798722475,
+        "pass": true,
+        "rms_error": 1.1134706076799974e-06
+      },
+      "i(vdah)": {
+        "limit": 0.08822054698496118,
+        "pass": true,
+        "rms_error": 1.4729013753774486e-05
+      },
+      "i(vdal)": {
+        "limit": 0.07721031211934987,
+        "pass": true,
+        "rms_error": 1.5109508575554963e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03884196469559729,
+        "pass": true,
+        "rms_error": 1.4597511264212174e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.07962912854727561,
+        "pass": true,
+        "rms_error": 1.640271647235773e-05
+      },
+      "v(a)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00016894625264216742
+      },
+      "v(b)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00015330826559218334
+      },
+      "v(ch)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020073538752777886
+      },
+      "v(fa)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020156633752125164
+      },
+      "v(fb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020156631446418267
+      },
+      "v(ga)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 8.525866999516099e-06
+      },
+      "v(gb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 9.85602617814001e-06
+      },
+      "v(la)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020521818033723458
+      },
+      "v(lb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020521828580649952
+      },
+      "v(lr)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020521808178847276
+      },
+      "v(p)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00015907539877207513
+      },
+      "v(xcap)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0002015661827113397
+      },
+      "v(yca)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020071845781567622
+      },
+      "v(ycb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00020071848389371377
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/boundary-hot_high_c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 64731267,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 394018506,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 389999,
+      "expression_evaluate_ns": 28056488,
+      "expression_full_ad": 6678540,
+      "expression_prepare_ns": 474881,
+      "expression_program_uploads": 2,
+      "expression_value_only": 16721400,
+      "factor_ns": 101352241,
+      "factorizations": 130460,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/boundary-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 67204328,
+      "readback_ns": 27807571,
+      "refactorizations": 20,
+      "refinements": 170945,
+      "rejected_pivots": 0,
+      "reuses": 117665,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 105248704,
+      "solver_setup_ns": 8474897,
+      "solves": 419071,
+      "successful_solves": 248126,
+      "synchronization_ns": 20710128450,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 448217,
+      "upload_ns": 963987,
+      "validation_ns": 274061
+    },
+    "id": "boundary-hot_high_c",
+    "owner": 5,
+    "pass": true,
+    "points": 45035,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 7.71,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/boundary-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 22.089259617961943,
+      "worker_owner": 5,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604672
+    },
+    "raw_sha256": "6f838cae211c0c0d77ed49be6bf52ae1ccd8d1761d6cfe0b521f4ba7af02f42e",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.055305773103039524,
+        "pass": true,
+        "rms_error": 1.0959615237971933e-05
+      },
+      "i(lcma)": {
+        "limit": 0.08256607496053521,
+        "pass": true,
+        "rms_error": 1.3589179644308355e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.05869906900513551,
+        "pass": true,
+        "rms_error": 1.3589092230859814e-05
+      },
+      "i(lda)": {
+        "limit": 0.08256376172423126,
+        "pass": true,
+        "rms_error": 3.2282450900774037e-07
+      },
+      "i(ldb)": {
+        "limit": 0.058704413334957364,
+        "pass": true,
+        "rms_error": 3.2252694779571774e-07
+      },
+      "i(lload)": {
+        "limit": 0.054128519388742705,
+        "pass": true,
+        "rms_error": 3.746804965035977e-09
+      },
+      "i(va)": {
+        "limit": 0.05928044564915355,
+        "pass": true,
+        "rms_error": 1.6842553529758463e-07
+      },
+      "i(vb)": {
+        "limit": 0.05877393072102326,
+        "pass": true,
+        "rms_error": 1.6843972330229388e-07
+      },
+      "i(vdah)": {
+        "limit": 0.06932634430571981,
+        "pass": true,
+        "rms_error": 6.996802375750956e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06378166492688418,
+        "pass": true,
+        "rms_error": 5.707130521447802e-06
+      },
+      "i(vdbh)": {
+        "limit": 0.03717182560363175,
+        "pass": true,
+        "rms_error": 6.958372661056352e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.061656356936392806,
+        "pass": true,
+        "rms_error": 7.388882533526046e-06
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 8.12166580617084e-05
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.592382961710158e-05
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014129552720837328
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014132913483894417
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014132922641941676
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 4.406893963102353e-06
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.053848270661208e-06
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014144568284767256
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0001414457743199489
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014144575509959757
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 7.571253341147657e-05
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014132911390839288
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014129544049752357
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014129551023508364
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/reference-nominal",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 61753033,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 394000346,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 466331,
+      "expression_evaluate_ns": 26932222,
+      "expression_full_ad": 7931640,
+      "expression_prepare_ns": 715509,
+      "expression_program_uploads": 2,
+      "expression_value_only": 20048220,
+      "factor_ns": 103113186,
+      "factorizations": 168692,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/reference-nominal/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 86700552,
+      "readback_ns": 24106608,
+      "refactorizations": 19,
+      "refinements": 205729,
+      "rejected_pivots": 0,
+      "reuses": 131173,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 99759971,
+      "solver_setup_ns": 10906916,
+      "solves": 505589,
+      "successful_solves": 299860,
+      "synchronization_ns": 25313216480,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439613,
+      "upload_ns": 965154,
+      "validation_ns": 260807
+    },
+    "id": "reference-nominal",
+    "owner": 6,
+    "pass": true,
+    "points": 58129,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 8.73,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/reference-nominal/input.cir",
+      "status": "ok",
+      "wall_s": 26.62425987201277,
+      "worker_owner": 6,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604673
+    },
+    "raw_sha256": "ba3a8fa66482ea8a66523ca933a34843b2a263e7188cb7b19ac53fbac58841ca",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05879109763448706,
+        "pass": true,
+        "rms_error": 0.0005491185943144314
+      },
+      "i(lcma)": {
+        "limit": 0.1029931031097841,
+        "pass": true,
+        "rms_error": 3.1489305082303406e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.077190564931161,
+        "pass": true,
+        "rms_error": 3.1564514512117205e-06
+      },
+      "i(lda)": {
+        "limit": 0.10298770932081922,
+        "pass": true,
+        "rms_error": 1.8566262058438583e-05
+      },
+      "i(ldb)": {
+        "limit": 0.07719976843658236,
+        "pass": true,
+        "rms_error": 1.8569352635748223e-05
+      },
+      "i(lload)": {
+        "limit": 0.02842832476717003,
+        "pass": true,
+        "rms_error": 6.779458558046139e-08
+      },
+      "i(va)": {
+        "limit": 0.030375519440093215,
+        "pass": true,
+        "rms_error": 1.2871094320208984e-05
+      },
+      "i(vb)": {
+        "limit": 0.029960878172133533,
+        "pass": true,
+        "rms_error": 1.2870596293605991e-05
+      },
+      "i(vdah)": {
+        "limit": 0.08178304988002955,
+        "pass": true,
+        "rms_error": 0.0003373069567617063
+      },
+      "i(vdal)": {
+        "limit": 0.0794447562069189,
+        "pass": true,
+        "rms_error": 0.00027578525515317606
+      },
+      "i(vdbh)": {
+        "limit": 0.03798873278523191,
+        "pass": true,
+        "rms_error": 0.0003369719945240058
+      },
+      "i(vdbl)": {
+        "limit": 0.07923537109871158,
+        "pass": true,
+        "rms_error": 0.000276312666462889
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0037488961059406437
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0037517318671687035
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0060526822582145975
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006059032288902722
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006059034762976714
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00016946814597219322
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001695785537802147
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006079574303915004
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006079576059769832
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006079575069783356
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0035310123929356294
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006059032347119312
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006052592071735448
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.006052594722360289
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/reference-fast_low_lc",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 62428355,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 393886615,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 388490,
+      "expression_evaluate_ns": 28539262,
+      "expression_full_ad": 6635640,
+      "expression_prepare_ns": 424551,
+      "expression_program_uploads": 2,
+      "expression_value_only": 16673760,
+      "factor_ns": 102833540,
+      "factorizations": 129935,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/reference-fast_low_lc/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 67586688,
+      "readback_ns": 23832376,
+      "refactorizations": 19,
+      "refinements": 171862,
+      "rejected_pivots": 0,
+      "reuses": 118501,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 97967740,
+      "solver_setup_ns": 9078908,
+      "solves": 420298,
+      "successful_solves": 248436,
+      "synchronization_ns": 20802679794,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439785,
+      "upload_ns": 891478,
+      "validation_ns": 238122
+    },
+    "id": "reference-fast_low_lc",
+    "owner": 7,
+    "pass": true,
+    "points": 45295,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 7.81,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/reference-fast_low_lc/input.cir",
+      "status": "ok",
+      "wall_s": 22.224343306967057,
+      "worker_owner": 7,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604674
+    },
+    "raw_sha256": "0f7337575f35d6acc509970e3e48949a6fd28ed0345d9f28c872f3b02294d5c7",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.0632677569980885,
+        "pass": true,
+        "rms_error": 0.0006768533592128959
+      },
+      "i(lcma)": {
+        "limit": 0.11894347903698617,
+        "pass": true,
+        "rms_error": 2.1159806291992606e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.09140523833439862,
+        "pass": true,
+        "rms_error": 2.1165752826266913e-05
+      },
+      "i(lda)": {
+        "limit": 0.11894577261587097,
+        "pass": true,
+        "rms_error": 2.301392040544708e-05
+      },
+      "i(ldb)": {
+        "limit": 0.09141272966804234,
+        "pass": true,
+        "rms_error": 2.303147041456699e-05
+      },
+      "i(lload)": {
+        "limit": 0.03129324849352689,
+        "pass": true,
+        "rms_error": 1.5304267688435824e-07
+      },
+      "i(va)": {
+        "limit": 0.033910952471311595,
+        "pass": true,
+        "rms_error": 1.7811137151652038e-05
+      },
+      "i(vb)": {
+        "limit": 0.033362079942482706,
+        "pass": true,
+        "rms_error": 1.7814096810112524e-05
+      },
+      "i(vdah)": {
+        "limit": 0.09354844934797495,
+        "pass": true,
+        "rms_error": 0.0004610475660464667
+      },
+      "i(vdal)": {
+        "limit": 0.08984608437518324,
+        "pass": true,
+        "rms_error": 0.00043082138581973495
+      },
+      "i(vdbh)": {
+        "limit": 0.03884219202961539,
+        "pass": true,
+        "rms_error": 0.00046066277611540336
+      },
+      "i(vdbl)": {
+        "limit": 0.09305663186184601,
+        "pass": true,
+        "rms_error": 0.0004312872876273905
+      },
+      "v(a)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.005461290217474584
+      },
+      "v(b)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00546958112974859
+      },
+      "v(ch)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007651481823370461
+      },
+      "v(fa)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007656778781791028
+      },
+      "v(fb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007656791275103979
+      },
+      "v(ga)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00025702512529593647
+      },
+      "v(gb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00025709423572440335
+      },
+      "v(la)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007681429271321605
+      },
+      "v(lb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00768144192990015
+      },
+      "v(lr)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00768143658178505
+      },
+      "v(p)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.005153453434661504
+      },
+      "v(xcap)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007656778979332616
+      },
+      "v(yca)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007651385696277205
+      },
+      "v(ycb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.007651396136804076
+      }
+    }
+  },
+  {
+    "batch": -1,
+    "directory": "gpu/-1/reference-hot_high_c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 65493334,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 394260840,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 398822,
+      "expression_evaluate_ns": 17996495,
+      "expression_full_ad": 6792900,
+      "expression_prepare_ns": 405329,
+      "expression_program_uploads": 2,
+      "expression_value_only": 17136420,
+      "factor_ns": 144503273,
+      "factorizations": 139581,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/reference-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 70963592,
+      "readback_ns": 9334491,
+      "refactorizations": 20,
+      "refinements": 175925,
+      "rejected_pivots": 0,
+      "reuses": 115766,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 98700305,
+      "solver_setup_ns": 6224364,
+      "solves": 431273,
+      "successful_solves": 255348,
+      "synchronization_ns": 21453256205,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 448341,
+      "upload_ns": 2387126,
+      "validation_ns": 253035
+    },
+    "id": "reference-hot_high_c",
+    "owner": 8,
+    "pass": true,
+    "points": 47559,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 8.200000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/-1/reference-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 23.090225702966563,
+      "worker_owner": 8,
+      "worker_pid": 1604666,
+      "worker_request": 1,
+      "worker_thread": 1604675
+    },
+    "raw_sha256": "97fdc634c8f34972a9b133dcc15f610e3f281acc4f9f32eca9b6ac8a6fc1cbec",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.055305807510276805,
+        "pass": true,
+        "rms_error": 0.00010298804799173335
+      },
+      "i(lcma)": {
+        "limit": 0.08928975732091973,
+        "pass": true,
+        "rms_error": 1.2783659784434992e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.06589915206646184,
+        "pass": true,
+        "rms_error": 1.2782867816314824e-05
+      },
+      "i(lda)": {
+        "limit": 0.08928777779169793,
+        "pass": true,
+        "rms_error": 2.8066837131870573e-06
+      },
+      "i(ldb)": {
+        "limit": 0.06590361881921336,
+        "pass": true,
+        "rms_error": 2.8065282235832603e-06
+      },
+      "i(lload)": {
+        "limit": 0.02634014696947143,
+        "pass": true,
+        "rms_error": 1.6617523841014901e-09
+      },
+      "i(va)": {
+        "limit": 0.027887805412296934,
+        "pass": true,
+        "rms_error": 1.896284681788799e-06
+      },
+      "i(vb)": {
+        "limit": 0.02743637409595554,
+        "pass": true,
+        "rms_error": 1.8962778465547994e-06
+      },
+      "i(vdah)": {
+        "limit": 0.07192106136215835,
+        "pass": true,
+        "rms_error": 0.00010775468777095953
+      },
+      "i(vdal)": {
+        "limit": 0.07038499609597315,
+        "pass": true,
+        "rms_error": 0.00010920946456513542
+      },
+      "i(vdbh)": {
+        "limit": 0.03717199951658671,
+        "pass": true,
+        "rms_error": 0.0001078887485363225
+      },
+      "i(vdbl)": {
+        "limit": 0.0684187095609669,
+        "pass": true,
+        "rms_error": 0.00011073177997487575
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0009100137840585837
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0009021770628268566
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014508401547186592
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.001451527583573565
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014515275918552326
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 5.646530367023519e-05
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 5.817042972045755e-05
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014531530755348971
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014531531048497617
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014531530969157365
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.000868667829221768
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014515275722454552
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014508324900282168
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0014508324968822838
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/light-nominal",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 2863596,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1818681,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 731501,
+      "expression_evaluate_ns": 14523101,
+      "expression_full_ad": 12776820,
+      "expression_prepare_ns": 1969006,
+      "expression_program_uploads": 2,
+      "expression_value_only": 31113240,
+      "factor_ns": 5590313,
+      "factorizations": 280256,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/light-nominal/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 116040680,
+      "readback_ns": 25039176,
+      "refactorizations": 19,
+      "refinements": 309335,
+      "rejected_pivots": 0,
+      "reuses": 174702,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 19461887,
+      "solver_setup_ns": 2584521,
+      "solves": 764279,
+      "successful_solves": 454944,
+      "synchronization_ns": 40149147847,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 510057,
+      "upload_ns": 1151687,
+      "validation_ns": 252489
+    },
+    "id": "light-nominal",
+    "owner": 0,
+    "pass": true,
+    "points": 77819,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 9.649999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/light-nominal/input.cir",
+      "status": "ok",
+      "wall_s": 40.62560903001577,
+      "worker_owner": 0,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604667
+    },
+    "raw_sha256": "be810e0641e613c6fa6bb7ffd1d200049545ea666e33cea958bcb70db513b86c",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.058578740924677256,
+        "pass": true,
+        "rms_error": 0.0001732678255091473
+      },
+      "i(lcma)": {
+        "limit": 0.23985985669728652,
+        "pass": true,
+        "rms_error": 3.6886024965620994e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.2379289331042545,
+        "pass": true,
+        "rms_error": 3.688485002131238e-06
+      },
+      "i(lda)": {
+        "limit": 0.2398507037844597,
+        "pass": true,
+        "rms_error": 6.248874461400936e-05
+      },
+      "i(ldb)": {
+        "limit": 0.23793172753941744,
+        "pass": true,
+        "rms_error": 6.249152103008683e-05
+      },
+      "i(lload)": {
+        "limit": 0.20288725685557704,
+        "pass": true,
+        "rms_error": 2.444575563056138e-08
+      },
+      "i(va)": {
+        "limit": 0.2083019555484923,
+        "pass": true,
+        "rms_error": 1.4143550459285514e-05
+      },
+      "i(vb)": {
+        "limit": 0.2091508849830453,
+        "pass": true,
+        "rms_error": 1.4143575001023593e-05
+      },
+      "i(vdah)": {
+        "limit": 0.2205545268342093,
+        "pass": true,
+        "rms_error": 8.715044590624436e-05
+      },
+      "i(vdal)": {
+        "limit": 0.11245884042666524,
+        "pass": true,
+        "rms_error": 1.888149349224436e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03907637001986208,
+        "pass": true,
+        "rms_error": 8.695843017633146e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.23834269796852983,
+        "pass": true,
+        "rms_error": 2.317773978191457e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004372831144078769
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00042013998412188824
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009073492850208271
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.001857898844673733
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0018579062909704577
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 9.184534691364046e-06
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 1.3669473742201532e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000917769444283168
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009177846691251218
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0009177728904569322
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004024381468878039
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0018578988016634567
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000428160429988084
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.000428192780054822
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/light-fast_low_lc",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 1959245,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 23936,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 716645,
+      "expression_evaluate_ns": 12374562,
+      "expression_full_ad": 12470280,
+      "expression_prepare_ns": 4633200,
+      "expression_program_uploads": 2,
+      "expression_value_only": 30528420,
+      "factor_ns": 5907366,
+      "factorizations": 276529,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/light-fast_low_lc/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 117474808,
+      "readback_ns": 20784185,
+      "refactorizations": 19,
+      "refinements": 305216,
+      "rejected_pivots": 0,
+      "reuses": 171797,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 17412504,
+      "solver_setup_ns": 1347627,
+      "solves": 753531,
+      "successful_solves": 448315,
+      "synchronization_ns": 39371796475,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 510105,
+      "upload_ns": 883557,
+      "validation_ns": 239103
+    },
+    "id": "light-fast_low_lc",
+    "owner": 1,
+    "pass": true,
+    "points": 78782,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 9.559999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/light-fast_low_lc/input.cir",
+      "status": "ok",
+      "wall_s": 39.87512472097296,
+      "worker_owner": 1,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604668
+    },
+    "raw_sha256": "41cea9bb7750da6b940903f9bd81f360b9d1afff8c9ab5a7111804d03d9cbab1",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.06579382486909359,
+        "pass": true,
+        "rms_error": 1.5118230547341876e-05
+      },
+      "i(lcma)": {
+        "limit": 0.25266765223479065,
+        "pass": true,
+        "rms_error": 1.359163325177173e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.2545207226098035,
+        "pass": true,
+        "rms_error": 1.359580452295882e-06
+      },
+      "i(lda)": {
+        "limit": 0.25266424759200246,
+        "pass": true,
+        "rms_error": 7.621523932115604e-07
+      },
+      "i(ldb)": {
+        "limit": 0.25451302197337194,
+        "pass": true,
+        "rms_error": 7.640547766912036e-07
+      },
+      "i(lload)": {
+        "limit": 0.22022256845387894,
+        "pass": true,
+        "rms_error": 1.1448253597756598e-08
+      },
+      "i(va)": {
+        "limit": 0.22652453850215679,
+        "pass": true,
+        "rms_error": 1.820085158375863e-07
+      },
+      "i(vb)": {
+        "limit": 0.2273193541800972,
+        "pass": true,
+        "rms_error": 1.8209296814977576e-07
+      },
+      "i(vdah)": {
+        "limit": 0.23038799506630758,
+        "pass": true,
+        "rms_error": 2.3095532746619563e-05
+      },
+      "i(vdal)": {
+        "limit": 0.1217056170304403,
+        "pass": true,
+        "rms_error": 1.9602248715205105e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.04040257617115089,
+        "pass": true,
+        "rms_error": 2.3007111244574077e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.25485644196876933,
+        "pass": true,
+        "rms_error": 2.202867289483914e-05
+      },
+      "v(a)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00016937617941771641
+      },
+      "v(b)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0001245132651733841
+      },
+      "v(ch)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003245571188440893
+      },
+      "v(fa)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003237218124835675
+      },
+      "v(fb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003237200558258601
+      },
+      "v(ga)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 5.971889203524635e-06
+      },
+      "v(gb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 7.717036332498229e-06
+      },
+      "v(la)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003246708555139814
+      },
+      "v(lb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003246686693958838
+      },
+      "v(lr)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003246701278489476
+      },
+      "v(p)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00016712835645010487
+      },
+      "v(xcap)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003237227386373218
+      },
+      "v(yca)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00032160743719089786
+      },
+      "v(ycb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0003216047385610302
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/light-hot_high_c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 2053448,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1388091,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 841668,
+      "expression_evaluate_ns": 12572480,
+      "expression_full_ad": 14739420,
+      "expression_prepare_ns": 89550,
+      "expression_program_uploads": 2,
+      "expression_value_only": 35760660,
+      "factor_ns": 6481769,
+      "factorizations": 321913,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/light-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 131761960,
+      "readback_ns": 21446042,
+      "refactorizations": 20,
+      "refinements": 354400,
+      "rejected_pivots": 0,
+      "reuses": 199629,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 19868189,
+      "solver_setup_ns": 927530,
+      "solves": 875932,
+      "successful_solves": 521532,
+      "synchronization_ns": 45906111445,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 519033,
+      "upload_ns": 947022,
+      "validation_ns": 254261
+    },
+    "id": "light-hot_high_c",
+    "owner": 2,
+    "pass": true,
+    "points": 88370,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 9.879999999999999,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/light-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 46.29863890603883,
+      "worker_owner": 2,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604669
+    },
+    "raw_sha256": "25d9e8c3608129681c98b4c441804e832b3fa85cffebfecb24bad217fb091f81",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.049515155018232074,
+        "pass": true,
+        "rms_error": 4.4384686914332734e-05
+      },
+      "i(lcma)": {
+        "limit": 0.2156253697520409,
+        "pass": true,
+        "rms_error": 3.041829119024405e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.21591511103075586,
+        "pass": true,
+        "rms_error": 3.0407275362282833e-06
+      },
+      "i(lda)": {
+        "limit": 0.21562252180103939,
+        "pass": true,
+        "rms_error": 1.4954441011794382e-05
+      },
+      "i(ldb)": {
+        "limit": 0.21591698508035764,
+        "pass": true,
+        "rms_error": 1.4958523287157251e-05
+      },
+      "i(lload)": {
+        "limit": 0.18525791281451337,
+        "pass": true,
+        "rms_error": 4.439708726466258e-08
+      },
+      "i(va)": {
+        "limit": 0.18975162777104113,
+        "pass": true,
+        "rms_error": 4.0039780297898505e-06
+      },
+      "i(vb)": {
+        "limit": 0.1909655905985807,
+        "pass": true,
+        "rms_error": 4.0037319368905985e-06
+      },
+      "i(vdah)": {
+        "limit": 0.20426722704199032,
+        "pass": true,
+        "rms_error": 2.562213349365552e-05
+      },
+      "i(vdal)": {
+        "limit": 0.08878555282802804,
+        "pass": true,
+        "rms_error": 1.3842771522659433e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03951408260078028,
+        "pass": true,
+        "rms_error": 2.5167720268563032e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.2165654416419583,
+        "pass": true,
+        "rms_error": 1.5572975134010136e-05
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014066116113676055
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00012829382005729478
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00026171595663879816
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00048154603705423003
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00048154042397933805
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.412140329653295e-06
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 7.277809091081724e-06
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00026402571444082386
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002640128812184725
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00026400767691214924
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00013025154537160122
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0004815473522602687
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00020588630064936566
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002058721455969868
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/boundary-nominal",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 6946853,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1756324,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 405468,
+      "expression_evaluate_ns": 8143083,
+      "expression_full_ad": 6968940,
+      "expression_prepare_ns": 33357352,
+      "expression_program_uploads": 2,
+      "expression_value_only": 17359140,
+      "factor_ns": 6526092,
+      "factorizations": 136189,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/boundary-nominal/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 68321160,
+      "readback_ns": 12126000,
+      "refactorizations": 19,
+      "refinements": 176948,
+      "rejected_pivots": 0,
+      "reuses": 120693,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 18395909,
+      "solver_setup_ns": 5773624,
+      "solves": 433825,
+      "successful_solves": 256877,
+      "synchronization_ns": 21557850617,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439489,
+      "upload_ns": 2879905,
+      "validation_ns": 248506
+    },
+    "id": "boundary-nominal",
+    "owner": 3,
+    "pass": true,
+    "points": 45788,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 6.960000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/boundary-nominal/input.cir",
+      "status": "ok",
+      "wall_s": 21.86689419299364,
+      "worker_owner": 3,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604670
+    },
+    "raw_sha256": "44de0b554f33f903b052a6b6d033ed0d315dbb97a03092be6235e4c74a8ef620",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.058791017703051854,
+        "pass": true,
+        "rms_error": 5.2250205641887094e-05
+      },
+      "i(lcma)": {
+        "limit": 0.09373806931175663,
+        "pass": true,
+        "rms_error": 5.315797958850553e-07
+      },
+      "i(lcmb)": {
+        "limit": 0.06723682780883972,
+        "pass": true,
+        "rms_error": 5.308375770283003e-07
+      },
+      "i(lda)": {
+        "limit": 0.09373315455433891,
+        "pass": true,
+        "rms_error": 8.695523090318852e-07
+      },
+      "i(ldb)": {
+        "limit": 0.06724622773236454,
+        "pass": true,
+        "rms_error": 8.696837544374052e-07
+      },
+      "i(lload)": {
+        "limit": 0.06289347038258228,
+        "pass": true,
+        "rms_error": 1.2054586913568156e-08
+      },
+      "i(va)": {
+        "limit": 0.06902039444234721,
+        "pass": true,
+        "rms_error": 6.033025140833599e-07
+      },
+      "i(vb)": {
+        "limit": 0.06853586303139104,
+        "pass": true,
+        "rms_error": 6.0317777983671e-07
+      },
+      "i(vdah)": {
+        "limit": 0.0780734354803934,
+        "pass": true,
+        "rms_error": 4.304967474163085e-05
+      },
+      "i(vdal)": {
+        "limit": 0.07030742422232576,
+        "pass": true,
+        "rms_error": 4.814774131132697e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03798871807780545,
+        "pass": true,
+        "rms_error": 4.3207402306701585e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.06969124073873237,
+        "pass": true,
+        "rms_error": 4.904908345882902e-05
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004223183874314661
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00041595261654107745
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007982993780728843
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007984354205456578
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007984355183151846
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.0807253936202648e-05
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 2.1739562194348058e-05
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007987521951970661
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007987523020135307
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007987522914207701
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0004105530435804227
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007984354188625509
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007982993452319855
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0007982994361795519
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/boundary-fast_low_lc",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 6578052,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 83729,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 387263,
+      "expression_evaluate_ns": 14245901,
+      "expression_full_ad": 6607980,
+      "expression_prepare_ns": 5755150,
+      "expression_program_uploads": 2,
+      "expression_value_only": 16627800,
+      "factor_ns": 6230515,
+      "factorizations": 129579,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/boundary-fast_low_lc/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 68014336,
+      "readback_ns": 25235584,
+      "refactorizations": 19,
+      "refinements": 171377,
+      "rejected_pivots": 0,
+      "reuses": 118346,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 22379390,
+      "solver_setup_ns": 1820677,
+      "solves": 419302,
+      "successful_solves": 247925,
+      "synchronization_ns": 20637010028,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439689,
+      "upload_ns": 1361977,
+      "validation_ns": 289381
+    },
+    "id": "boundary-fast_low_lc",
+    "owner": 4,
+    "pass": true,
+    "points": 45582,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 6.510000000000002,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/boundary-fast_low_lc/input.cir",
+      "status": "ok",
+      "wall_s": 20.85047871497227,
+      "worker_owner": 4,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604671
+    },
+    "raw_sha256": "a7cc65931c4a315bbdef7afea225a367d2f1dcc32eb049ba4c91fa063f99a5bb",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.06326407050102904,
+        "pass": true,
+        "rms_error": 1.0822125337800376e-05
+      },
+      "i(lcma)": {
+        "limit": 0.10616603433670711,
+        "pass": true,
+        "rms_error": 2.5135960359028835e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.07759319144583561,
+        "pass": true,
+        "rms_error": 2.513584206511428e-05
+      },
+      "i(lda)": {
+        "limit": 0.1061680178304273,
+        "pass": true,
+        "rms_error": 1.3186834090243707e-06
+      },
+      "i(ldb)": {
+        "limit": 0.07760319615220065,
+        "pass": true,
+        "rms_error": 1.3185537180253345e-06
+      },
+      "i(lload)": {
+        "limit": 0.07366070347964856,
+        "pass": true,
+        "rms_error": 1.3603708722710009e-09
+      },
+      "i(va)": {
+        "limit": 0.08098833055897688,
+        "pass": true,
+        "rms_error": 9.76815424674564e-07
+      },
+      "i(vb)": {
+        "limit": 0.08032168798722475,
+        "pass": true,
+        "rms_error": 9.768117109889646e-07
+      },
+      "i(vdah)": {
+        "limit": 0.08822054698496118,
+        "pass": true,
+        "rms_error": 1.0053196706161642e-05
+      },
+      "i(vdal)": {
+        "limit": 0.07721031211934987,
+        "pass": true,
+        "rms_error": 1.0053724016618787e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03884196469559729,
+        "pass": true,
+        "rms_error": 9.78146823550909e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.07962912854727561,
+        "pass": true,
+        "rms_error": 1.2642578984363944e-05
+      },
+      "v(a)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010306612084338061
+      },
+      "v(b)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 6.687446164249249e-05
+      },
+      "v(ch)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010662634127707666
+      },
+      "v(fa)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010781311060152378
+      },
+      "v(fb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010781308553188005
+      },
+      "v(ga)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 6.126086212631946e-06
+      },
+      "v(gb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 8.351551110756323e-06
+      },
+      "v(la)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00011293777522246389
+      },
+      "v(lb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00011293811117387061
+      },
+      "v(lr)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00011293786178821991
+      },
+      "v(p)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 9.464317131619155e-05
+      },
+      "v(xcap)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010781280844246609
+      },
+      "v(yca)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010660163358082377
+      },
+      "v(ycb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00010660163416093425
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/boundary-hot_high_c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 2382948,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 47440,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 389725,
+      "expression_evaluate_ns": 16711932,
+      "expression_full_ad": 6672600,
+      "expression_prepare_ns": 1885033,
+      "expression_program_uploads": 2,
+      "expression_value_only": 16710900,
+      "factor_ns": 6300052,
+      "factorizations": 130357,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/boundary-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 67199864,
+      "readback_ns": 25746483,
+      "refactorizations": 20,
+      "refinements": 170880,
+      "rejected_pivots": 0,
+      "reuses": 117655,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 19491547,
+      "solver_setup_ns": 1719854,
+      "solves": 418893,
+      "successful_solves": 248013,
+      "synchronization_ns": 20716798474,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 448217,
+      "upload_ns": 1292855,
+      "validation_ns": 268271
+    },
+    "id": "boundary-hot_high_c",
+    "owner": 5,
+    "pass": true,
+    "points": 45032,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 6.68,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/boundary-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 21.01629940699786,
+      "worker_owner": 5,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604672
+    },
+    "raw_sha256": "8ec1f7f388d8c61997026cc2b316166a1237a7887807128c263f3692549317cb",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.055305773103039524,
+        "pass": true,
+        "rms_error": 1.107649289141506e-05
+      },
+      "i(lcma)": {
+        "limit": 0.08256607496053521,
+        "pass": true,
+        "rms_error": 1.3530069144806154e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.05869906900513551,
+        "pass": true,
+        "rms_error": 1.3529979225580502e-05
+      },
+      "i(lda)": {
+        "limit": 0.08256376172423126,
+        "pass": true,
+        "rms_error": 3.121748140431888e-07
+      },
+      "i(ldb)": {
+        "limit": 0.058704413334957364,
+        "pass": true,
+        "rms_error": 3.1182812467144585e-07
+      },
+      "i(lload)": {
+        "limit": 0.054128519388742705,
+        "pass": true,
+        "rms_error": 5.344922064519478e-10
+      },
+      "i(va)": {
+        "limit": 0.05928044564915355,
+        "pass": true,
+        "rms_error": 1.5932665366174035e-07
+      },
+      "i(vb)": {
+        "limit": 0.05877393072102326,
+        "pass": true,
+        "rms_error": 1.5935293728647247e-07
+      },
+      "i(vdah)": {
+        "limit": 0.06932634430571981,
+        "pass": true,
+        "rms_error": 7.294071290885474e-06
+      },
+      "i(vdal)": {
+        "limit": 0.06378166492688418,
+        "pass": true,
+        "rms_error": 6.09889212932368e-06
+      },
+      "i(vdbh)": {
+        "limit": 0.03717182560363175,
+        "pass": true,
+        "rms_error": 7.288570932978036e-06
+      },
+      "i(vdbl)": {
+        "limit": 0.061656356936392806,
+        "pass": true,
+        "rms_error": 8.070232675096379e-06
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 8.203033999272282e-05
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.5845367377236e-05
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014164921030834773
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014167942596249861
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0001416794486762208
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 4.3870046432371e-06
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.03914450394655e-06
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014178274041498268
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014178275197475275
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0001417827439203726
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 7.674296206186281e-05
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014167940817992546
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014164923571603785
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014164924246634045
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/reference-nominal",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 2295828,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6753,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 508089,
+      "expression_evaluate_ns": 11013560,
+      "expression_full_ad": 8592600,
+      "expression_prepare_ns": 3644443,
+      "expression_program_uploads": 2,
+      "expression_value_only": 21892740,
+      "factor_ns": 5587787,
+      "factorizations": 188409,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/reference-nominal/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 100120168,
+      "readback_ns": 17035226,
+      "refactorizations": 19,
+      "refinements": 225443,
+      "rejected_pivots": 0,
+      "reuses": 141135,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 14621055,
+      "solver_setup_ns": 1382170,
+      "solves": 554981,
+      "successful_solves": 329538,
+      "synchronization_ns": 27681398989,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439613,
+      "upload_ns": 909744,
+      "validation_ns": 245306
+    },
+    "id": "reference-nominal",
+    "owner": 6,
+    "pass": true,
+    "points": 67140,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 8.239999999999998,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/reference-nominal/input.cir",
+      "status": "ok",
+      "wall_s": 28.06568880699342,
+      "worker_owner": 6,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604673
+    },
+    "raw_sha256": "f96eb29ca80b1d9281b9a9376752b36e0354506e4e3744b5f2ebeed0f9ac5fa1",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.05879109763448706,
+        "pass": true,
+        "rms_error": 0.0007359345916293688
+      },
+      "i(lcma)": {
+        "limit": 0.1029931031097841,
+        "pass": true,
+        "rms_error": 3.3529774149014196e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.077190564931161,
+        "pass": true,
+        "rms_error": 3.3610779944542717e-06
+      },
+      "i(lda)": {
+        "limit": 0.10298770932081922,
+        "pass": true,
+        "rms_error": 2.004829947178153e-05
+      },
+      "i(ldb)": {
+        "limit": 0.07719976843658236,
+        "pass": true,
+        "rms_error": 2.0051729493832293e-05
+      },
+      "i(lload)": {
+        "limit": 0.02842832476717003,
+        "pass": true,
+        "rms_error": 7.449165825584829e-08
+      },
+      "i(va)": {
+        "limit": 0.030375519440093215,
+        "pass": true,
+        "rms_error": 1.3898073077441266e-05
+      },
+      "i(vb)": {
+        "limit": 0.029960878172133533,
+        "pass": true,
+        "rms_error": 1.3897521343646989e-05
+      },
+      "i(vdah)": {
+        "limit": 0.08178304988002955,
+        "pass": true,
+        "rms_error": 0.00043734846972023775
+      },
+      "i(vdal)": {
+        "limit": 0.0794447562069189,
+        "pass": true,
+        "rms_error": 0.00032515679188957285
+      },
+      "i(vdbh)": {
+        "limit": 0.03798873278523191,
+        "pass": true,
+        "rms_error": 0.0004370421905202945
+      },
+      "i(vdbl)": {
+        "limit": 0.07923537109871158,
+        "pass": true,
+        "rms_error": 0.0003256417649755508
+      },
+      "v(a)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0047213068619216675
+      },
+      "v(b)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.004724025089090502
+      },
+      "v(ch)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007814194747228335
+      },
+      "v(fa)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007819831676920005
+      },
+      "v(fb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007819833993600431
+      },
+      "v(ga)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001971856996315021
+      },
+      "v(gb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.0001972774582922538
+      },
+      "v(la)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007838464255259345
+      },
+      "v(lb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.00783846591390473
+      },
+      "v(lr)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007838464987935079
+      },
+      "v(p)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.004436546459519902
+      },
+      "v(xcap)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007819831727784266
+      },
+      "v(yca)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007814119369531677
+      },
+      "v(ycb)": {
+        "limit": 10.0,
+        "pass": true,
+        "rms_error": 0.007814121843211315
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/reference-fast_low_lc",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 4800751,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 1694425,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 455836,
+      "expression_evaluate_ns": 6855314,
+      "expression_full_ad": 7711260,
+      "expression_prepare_ns": 27908298,
+      "expression_program_uploads": 2,
+      "expression_value_only": 19638900,
+      "factor_ns": 6228661,
+      "factorizations": 165782,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/reference-fast_low_lc/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 88460552,
+      "readback_ns": 13818374,
+      "refactorizations": 19,
+      "refinements": 203324,
+      "rejected_pivots": 0,
+      "reuses": 130011,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 16862896,
+      "solver_setup_ns": 3566430,
+      "solves": 499117,
+      "successful_solves": 295793,
+      "synchronization_ns": 24861789980,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 439785,
+      "upload_ns": 1402348,
+      "validation_ns": 250394
+    },
+    "id": "reference-fast_low_lc",
+    "owner": 7,
+    "pass": true,
+    "points": 59311,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 7.75,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/reference-fast_low_lc/input.cir",
+      "status": "ok",
+      "wall_s": 25.160540347977076,
+      "worker_owner": 7,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604674
+    },
+    "raw_sha256": "ca53cc6255127244d5038afda3f1b772c38f72e41e79a4616bfcfaf87ad9c4b0",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.0632677569980885,
+        "pass": true,
+        "rms_error": 0.00031577228738988606
+      },
+      "i(lcma)": {
+        "limit": 0.11894347903698617,
+        "pass": true,
+        "rms_error": 8.28414375393962e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.09140523833439862,
+        "pass": true,
+        "rms_error": 8.283997637973209e-06
+      },
+      "i(lda)": {
+        "limit": 0.11894577261587097,
+        "pass": true,
+        "rms_error": 8.396954330426252e-07
+      },
+      "i(ldb)": {
+        "limit": 0.09141272966804234,
+        "pass": true,
+        "rms_error": 8.403360270679719e-07
+      },
+      "i(lload)": {
+        "limit": 0.03129324849352689,
+        "pass": true,
+        "rms_error": 6.5495356364287595e-09
+      },
+      "i(va)": {
+        "limit": 0.033910952471311595,
+        "pass": true,
+        "rms_error": 6.406083015574004e-07
+      },
+      "i(vb)": {
+        "limit": 0.033362079942482706,
+        "pass": true,
+        "rms_error": 6.406766916982764e-07
+      },
+      "i(vdah)": {
+        "limit": 0.09354844934797495,
+        "pass": true,
+        "rms_error": 0.00026735172635926173
+      },
+      "i(vdal)": {
+        "limit": 0.08984608437518324,
+        "pass": true,
+        "rms_error": 0.000273794841604958
+      },
+      "i(vdbh)": {
+        "limit": 0.03884219202961539,
+        "pass": true,
+        "rms_error": 0.0002673321542441955
+      },
+      "i(vdbl)": {
+        "limit": 0.09305663186184601,
+        "pass": true,
+        "rms_error": 0.0002739296883552903
+      },
+      "v(a)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.003238680187777589
+      },
+      "v(b)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.003236475452201695
+      },
+      "v(ch)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111248449531615
+      },
+      "v(fa)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111170300131421
+      },
+      "v(fb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111170343866816
+      },
+      "v(ga)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00016361426075591048
+      },
+      "v(gb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00016371680612325994
+      },
+      "v(la)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.00411131161524805
+      },
+      "v(lb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111311660472582
+      },
+      "v(lr)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111311642489609
+      },
+      "v(p)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.0030574544493084206
+      },
+      "v(xcap)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111170301041007
+      },
+      "v(yca)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111251994435756
+      },
+      "v(ycb)": {
+        "limit": 10.8,
+        "pass": true,
+        "rms_error": 0.004111252029268876
+      }
+    }
+  },
+  {
+    "batch": 0,
+    "directory": "gpu/0/reference-hot_high_c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 6,
+      "analysis_ns": 5064413,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6392,
+      "controlled_peak_device_bytes": 1309069,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 427689,
+      "expression_evaluate_ns": 8474860,
+      "expression_full_ad": 7258800,
+      "expression_prepare_ns": 27157455,
+      "expression_program_uploads": 2,
+      "expression_value_only": 18402540,
+      "factor_ns": 5981852,
+      "factorizations": 152641,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-corpus100/gpu/0/reference-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 79235048,
+      "readback_ns": 15852078,
+      "refactorizations": 20,
+      "refinements": 189269,
+      "rejected_pivots": 0,
+      "reuses": 122687,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 17530462,
+      "solver_setup_ns": 3033247,
+      "solves": 464598,
+      "successful_solves": 275329,
+      "synchronization_ns": 23171860687,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 448341,
+      "upload_ns": 1595964,
+      "validation_ns": 251260
+    },
+    "id": "reference-hot_high_c",
+    "owner": 8,
+    "pass": true,
+    "points": 53113,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 7.370000000000001,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-corpus100/gpu/0/reference-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 23.516865188023075,
+      "worker_owner": 8,
+      "worker_pid": 1604666,
+      "worker_request": 2,
+      "worker_thread": 1604675
+    },
+    "raw_sha256": "411620badc217189bc2d66dc702cdae3db36b4e1f5349d1a1a2812ae74f3ce4e",
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.055305807510276805,
+        "pass": true,
+        "rms_error": 0.00033994220851249886
+      },
+      "i(lcma)": {
+        "limit": 0.08928975732091973,
+        "pass": true,
+        "rms_error": 1.2869347562312328e-05
+      },
+      "i(lcmb)": {
+        "limit": 0.06589915206646184,
+        "pass": true,
+        "rms_error": 1.2867297483112998e-05
+      },
+      "i(lda)": {
+        "limit": 0.08928777779169793,
+        "pass": true,
+        "rms_error": 7.462463363707516e-06
+      },
+      "i(ldb)": {
+        "limit": 0.06590361881921336,
+        "pass": true,
+        "rms_error": 7.462655394517772e-06
+      },
+      "i(lload)": {
+        "limit": 0.02634014696947143,
+        "pass": true,
+        "rms_error": 4.108538557878602e-09
+      },
+      "i(va)": {
+        "limit": 0.027887805412296934,
+        "pass": true,
+        "rms_error": 5.052526116646778e-06
+      },
+      "i(vb)": {
+        "limit": 0.02743637409595554,
+        "pass": true,
+        "rms_error": 5.052501610497352e-06
+      },
+      "i(vdah)": {
+        "limit": 0.07192106136215835,
+        "pass": true,
+        "rms_error": 0.00024502809499179665
+      },
+      "i(vdal)": {
+        "limit": 0.07038499609597315,
+        "pass": true,
+        "rms_error": 0.000226490895837827
+      },
+      "i(vdbh)": {
+        "limit": 0.03717199951658671,
+        "pass": true,
+        "rms_error": 0.0002450234061316636
+      },
+      "i(vdbl)": {
+        "limit": 0.0684187095609669,
+        "pass": true,
+        "rms_error": 0.00022729526205114353
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0025659537443562122
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.002563306354672756
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0038012203049410213
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0038029451506189456
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0038029451949987774
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014406425592438654
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00014473326605579217
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.003807389670738105
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0038073897446532215
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.003807389723853309
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00241385502928999
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.003802945148052753
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.003801199988294799
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.003801200004185194
+      }
+    }
+  }
+]

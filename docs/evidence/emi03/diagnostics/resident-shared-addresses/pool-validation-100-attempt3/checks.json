@@ -1,0 +1,26 @@
+[
+  {
+    "name": "lint",
+    "command": [
+      "bazel",
+      "lint"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 3.264333486557007
+  },
+  {
+    "name": "build",
+    "command": [
+      "bazel",
+      "build",
+      "--jobs=1",
+      "//..."
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 0,
+    "pass_": false,
+    "elapsed_s": 0.18834900856018066
+  }
+]

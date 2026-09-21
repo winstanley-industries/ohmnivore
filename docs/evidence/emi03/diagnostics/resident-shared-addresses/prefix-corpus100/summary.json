@@ -1,0 +1,35 @@
+{
+  "acceptance_pass": false,
+  "lanes": {
+    "cpu": {
+      "batches": [
+        {
+          "batch": 0,
+          "pass": true,
+          "request_batch_wall_s": 7.017077691038139
+        }
+      ],
+      "jobs": 9,
+      "pass": true,
+      "resource_pass": true
+    },
+    "gpu": {
+      "batches": [
+        {
+          "batch": -1,
+          "pass": true,
+          "request_batch_wall_s": 47.58259797299979
+        },
+        {
+          "batch": 0,
+          "pass": true,
+          "request_batch_wall_s": 46.3130306089879
+        }
+      ],
+      "jobs": 18,
+      "pass": true,
+      "resource_pass": true
+    }
+  },
+  "scope": "Nine distinct candidate/corner 20 us prefixes; request-batch timings only, no full-study acceptance"
+}

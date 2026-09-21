@@ -206,7 +206,10 @@ pivoting remains on the GPU. Old plans are released as they are replaced.
 These are numerical retries inside one IVP, not failed-job retries or CPU fallbacks.
 
 State vectors, expression scratch, and sparse factors use explicitly bounded
-shared storage. Three temporary buffers share storage only across disjoint
+shared storage. Sparse factor and triangular scratch use explicit shared-address
+loads and stores, preserving ordered FP64 operations and existing barriers.
+Dense global-memory work retains its separate accesses. Three temporary buffers
+share storage only across disjoint
 linear/Newton/error-check lifetimes, and derivative histories use the actual
 reactive-coordinate count. Immutable CSR indices use remaining shared storage
 when they fit. Ordered row/source lists avoid scanning unrelated waveform sources

@@ -1,0 +1,303 @@
+{
+  "scope": "Twenty-microsecond actual-pool diagnostic work counts; no frozen performance acceptance",
+  "acceptance_pass": false,
+  "records": [
+    {
+      "case": "light-nominal",
+      "cpu": {
+        "request_wall_s": 6.413892460986972,
+        "points": 80940,
+        "attempts": 92037,
+        "rejected_steps": 11098,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 2,
+          "numeric_refactorizations": 448524,
+          "numeric_refactorization_fallbacks": 1,
+          "numeric_reuses": 14679,
+          "solves": 463205,
+          "iterative_refinement_solves": 313878
+        }
+      },
+      "gpu": {
+        "request_wall_s": 40.62560903001577,
+        "points": 77819,
+        "attempts": 88606,
+        "rejected_steps": 10788,
+        "solver_statistics": {
+          "symbolic_analyses": 7,
+          "numeric_factorizations": 280248,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 26,
+          "numeric_reuses": 174702,
+          "solves": 454924,
+          "iterative_refinement_solves": 309316
+        }
+      }
+    },
+    {
+      "case": "light-fast_low_lc",
+      "cpu": {
+        "request_wall_s": 6.46282345399959,
+        "points": 78777,
+        "attempts": 89407,
+        "rejected_steps": 10631,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 2,
+          "numeric_refactorizations": 429204,
+          "numeric_refactorization_fallbacks": 1,
+          "numeric_reuses": 13598,
+          "solves": 442804,
+          "iterative_refinement_solves": 300289
+        }
+      },
+      "gpu": {
+        "request_wall_s": 39.87512472097296,
+        "points": 78782,
+        "attempts": 89444,
+        "rejected_steps": 10663,
+        "solver_statistics": {
+          "symbolic_analyses": 7,
+          "numeric_factorizations": 276521,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 23,
+          "numeric_reuses": 171797,
+          "solves": 448295,
+          "iterative_refinement_solves": 305197
+        }
+      }
+    },
+    {
+      "case": "light-hot_high_c",
+      "cpu": {
+        "request_wall_s": 6.998636544973124,
+        "points": 87488,
+        "attempts": 101863,
+        "rejected_steps": 14376,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 2,
+          "numeric_refactorizations": 499244,
+          "numeric_refactorization_fallbacks": 1,
+          "numeric_reuses": 16305,
+          "solves": 515551,
+          "iterative_refinement_solves": 349348
+        }
+      },
+      "gpu": {
+        "request_wall_s": 46.29863890603883,
+        "points": 88370,
+        "attempts": 102789,
+        "rejected_steps": 14420,
+        "solver_statistics": {
+          "symbolic_analyses": 7,
+          "numeric_factorizations": 321905,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 23,
+          "numeric_reuses": 199629,
+          "solves": 521511,
+          "iterative_refinement_solves": 354380
+        }
+      }
+    },
+    {
+      "case": "boundary-nominal",
+      "cpu": {
+        "request_wall_s": 3.488882810983341,
+        "points": 45783,
+        "attempts": 52049,
+        "rejected_steps": 6267,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 2,
+          "numeric_refactorizations": 221865,
+          "numeric_refactorization_fallbacks": 1,
+          "numeric_reuses": 27300,
+          "solves": 249167,
+          "iterative_refinement_solves": 170879
+        }
+      },
+      "gpu": {
+        "request_wall_s": 21.86689419299364,
+        "points": 45788,
+        "attempts": 52048,
+        "rejected_steps": 6261,
+        "solver_statistics": {
+          "symbolic_analyses": 5,
+          "numeric_factorizations": 136183,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 19,
+          "numeric_reuses": 120693,
+          "solves": 256857,
+          "iterative_refinement_solves": 176929
+        }
+      }
+    },
+    {
+      "case": "boundary-fast_low_lc",
+      "cpu": {
+        "request_wall_s": 3.4102903670282103,
+        "points": 45282,
+        "attempts": 51288,
+        "rejected_steps": 6007,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 2,
+          "numeric_refactorizations": 211486,
+          "numeric_refactorization_fallbacks": 1,
+          "numeric_reuses": 28351,
+          "solves": 239839,
+          "iterative_refinement_solves": 164885
+        }
+      },
+      "gpu": {
+        "request_wall_s": 20.85047871497227,
+        "points": 45582,
+        "attempts": 51641,
+        "rejected_steps": 6060,
+        "solver_statistics": {
+          "symbolic_analyses": 5,
+          "numeric_factorizations": 129573,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 14,
+          "numeric_reuses": 118346,
+          "solves": 247905,
+          "iterative_refinement_solves": 171358
+        }
+      }
+    },
+    {
+      "case": "boundary-hot_high_c",
+      "cpu": {
+        "request_wall_s": 3.2833285559900105,
+        "points": 44787,
+        "attempts": 50555,
+        "rejected_steps": 5769,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 2,
+          "numeric_refactorizations": 209390,
+          "numeric_refactorization_fallbacks": 1,
+          "numeric_reuses": 27659,
+          "solves": 237051,
+          "iterative_refinement_solves": 162689
+        }
+      },
+      "gpu": {
+        "request_wall_s": 21.01629940699786,
+        "points": 45032,
+        "attempts": 51008,
+        "rejected_steps": 5977,
+        "solver_statistics": {
+          "symbolic_analyses": 5,
+          "numeric_factorizations": 130351,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 14,
+          "numeric_reuses": 117655,
+          "solves": 247992,
+          "iterative_refinement_solves": 170860
+        }
+      }
+    },
+    {
+      "case": "reference-nominal",
+      "cpu": {
+        "request_wall_s": 3.970977290009614,
+        "points": 45952,
+        "attempts": 52309,
+        "rejected_steps": 6358,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 4,
+          "numeric_refactorizations": 223437,
+          "numeric_refactorization_fallbacks": 3,
+          "numeric_reuses": 26749,
+          "solves": 250189,
+          "iterative_refinement_solves": 171716
+        }
+      },
+      "gpu": {
+        "request_wall_s": 28.06568880699342,
+        "points": 67140,
+        "attempts": 75564,
+        "rejected_steps": 8425,
+        "solver_statistics": {
+          "symbolic_analyses": 5,
+          "numeric_factorizations": 188403,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 20,
+          "numeric_reuses": 141135,
+          "solves": 329518,
+          "iterative_refinement_solves": 225424
+        }
+      }
+    },
+    {
+      "case": "reference-fast_low_lc",
+      "cpu": {
+        "request_wall_s": 4.704128769051749,
+        "points": 64144,
+        "attempts": 71879,
+        "rejected_steps": 7736,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 4,
+          "numeric_refactorizations": 283200,
+          "numeric_refactorization_fallbacks": 3,
+          "numeric_reuses": 23868,
+          "solves": 307071,
+          "iterative_refinement_solves": 209800
+        }
+      },
+      "gpu": {
+        "request_wall_s": 25.160540347977076,
+        "points": 59311,
+        "attempts": 66746,
+        "rejected_steps": 7436,
+        "solver_statistics": {
+          "symbolic_analyses": 5,
+          "numeric_factorizations": 165776,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 14,
+          "numeric_reuses": 130011,
+          "solves": 295773,
+          "iterative_refinement_solves": 203305
+        }
+      }
+    },
+    {
+      "case": "reference-hot_high_c",
+      "cpu": {
+        "request_wall_s": 3.4252973580150865,
+        "points": 46210,
+        "attempts": 52306,
+        "rejected_steps": 6097,
+        "solver_statistics": {
+          "symbolic_analyses": 1,
+          "numeric_factorizations": 4,
+          "numeric_refactorizations": 221647,
+          "numeric_refactorization_fallbacks": 3,
+          "numeric_reuses": 22863,
+          "solves": 244513,
+          "iterative_refinement_solves": 167904
+        }
+      },
+      "gpu": {
+        "request_wall_s": 23.516865188023075,
+        "points": 53113,
+        "attempts": 60213,
+        "rejected_steps": 7101,
+        "solver_statistics": {
+          "symbolic_analyses": 5,
+          "numeric_factorizations": 152635,
+          "numeric_refactorizations": 0,
+          "numeric_refactorization_fallbacks": 14,
+          "numeric_reuses": 122687,
+          "solves": 275308,
+          "iterative_refinement_solves": 189249
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+==> Linting C/C++
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'run' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target @@llvm+//tools:clang-format (0 packages loaded, 0 targets configured)
+Analyzing: target @@llvm+//tools:clang-format (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target @@llvm+//tools:clang-format (0 packages loaded, 0 targets configured).
+INFO: Found 1 target...
+Target @@llvm++llvm_toolchain_minimal+llvm-toolchain-minimal-22.1.8-linux-amd64//:bin/clang-format up-to-date (nothing to build)
+INFO: Elapsed time: 0.145s, Critical Path: 0.00s
+INFO: 1 process: 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/external/llvm++llvm_toolchain_minimal+llvm-toolchain-minimal-22.1.8-linux-amd64/bin/clang-format <args omitted>
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/benchmarks/emi03_worker.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/behavioral.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/compiler.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/expression.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/ir.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/nonlinear.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/parser.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/prepared_ac.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/simulator.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/solver.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/sparse.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/status.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/transient.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/include/ohmnivore/waveform.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/behavioral.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/compiler.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/emi02_runner.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/expression.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/expression_internal.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/main.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/nonlinear.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/nonlinear_internal.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/parser.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/prepared_ac.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/prepared_ac_internal.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/simulator.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/solver.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/transient.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cpp/src/waveform.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_cuda_internal.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_expression.cu: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_expression.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_expression_device.cuh: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_expression_test.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_real_solver.cu: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_real_solver.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_real_solver_test.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_reduction.cuh: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_reduction_test.cu: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_resident.cu: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_resident.h: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_resident_device.cuh: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_resident_test.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_worker_pool.cc: No such file or directory
+/home/adam/code/ohmnivore/docs/evidence/emi03/diagnostics/resident-correction-equations/pool-dpt-96/sources/cuda/emi03_worker_pool.h: No such file or directory
