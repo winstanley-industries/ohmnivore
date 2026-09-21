@@ -82,3 +82,8 @@ These rejected trials have no new Compute Sanitizer coverage. The baseline's
 previous sanitizer results and incomplete concurrent racecheck remain separately
 identified in its checkpoint. Full thirty-job qualification, the 120 s coupled-job
 limit, and both complete-study speedup/cold-time invocations remain outstanding.
+
+DPT source snapshots are stored losslessly in `sources.tar.gz` so historical
+BUILD files are not interpreted as live Bazel packages. Every original source
+hash is rechecked after reconstruction. The archived-source audit script and
+its passing log accompany this storage-only change.

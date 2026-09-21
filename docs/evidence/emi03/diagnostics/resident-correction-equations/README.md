@@ -40,3 +40,8 @@ each variant's `scope.json` explains its actual change. Compressed scripts retai
 execution and audit details. `audit.json` reproduces retained source identities,
 raw trajectories, waveform/DPT comparisons, refinements and failure accounting.
 `files.json` inventories the evidence. All acceptance flags remain false.
+
+DPT source snapshots are stored losslessly in `sources.tar.gz` so historical
+BUILD files are not interpreted as live Bazel packages. Every original source
+hash is rechecked after reconstruction. The archived-source audit script and
+its passing log accompany this storage-only change.
