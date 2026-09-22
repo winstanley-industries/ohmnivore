@@ -1,0 +1,22 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+INFO: Found applicable config definition build:ubsan in file /home/adam/code/ohmnivore/.bazelrc: --@llvm//config:ubsan=True
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //cuda:emi03_resident_linkage_test (0 packages loaded, 0 targets configured)
+Analyzing: target //cuda:emi03_resident_linkage_test (0 packages loaded, 0 targets configured)
+
+Target //cuda:emi03_resident_linkage_test failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+ERROR: Analysis of target '//cuda:emi03_resident_linkage_test' failed; build aborted: Target //cuda:emi03_resident_linkage_test is incompatible and cannot be built, but was explicitly requested.
+Dependency chain:
+    //cuda:emi03_resident_linkage_test (a64e29)   <-- target platform (@@platforms//host:host) didn't satisfy constraint @@platforms//:incompatible
+INFO: Elapsed time: 0.155s, Critical Path: 0.00s
+INFO: 1 process: 1 internal.
+ERROR: Build did NOT complete successfully

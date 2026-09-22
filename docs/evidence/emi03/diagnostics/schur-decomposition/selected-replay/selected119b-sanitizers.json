@@ -1,0 +1,38 @@
+[
+  {
+    "tool": "memcheck",
+    "arguments": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "memcheck",
+      "--kernel-name",
+      "kns=SelectedMatrixReplay",
+      "--launch-count",
+      "1",
+      "--error-exitcode",
+      "99",
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cuda/emi03_selected_matrix_probe",
+      "/home/adam/emi03-work/schur-replay117.txt"
+    ],
+    "exit_code": 0,
+    "wall_s": 9.58148585500021
+  },
+  {
+    "tool": "racecheck",
+    "arguments": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--kernel-name",
+      "kns=SelectedMatrixReplay",
+      "--launch-count",
+      "1",
+      "--error-exitcode",
+      "99",
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cuda/emi03_selected_matrix_probe",
+      "/home/adam/emi03-work/schur-replay117.txt"
+    ],
+    "exit_code": 0,
+    "wall_s": 12.940397209999901
+  }
+]

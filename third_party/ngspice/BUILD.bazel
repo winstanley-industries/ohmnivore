@@ -171,6 +171,7 @@ filegroup(
     srcs = [":ngspice_46_build"],
     output_group = "ngspice",
     visibility = [
+        "//reference/emi03:__pkg__",
         "//reference/emi02:__pkg__",
         "//acceptance:__pkg__",
         "//reference/emi01:__pkg__",

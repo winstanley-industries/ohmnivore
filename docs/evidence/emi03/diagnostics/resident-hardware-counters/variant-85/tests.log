@@ -1,0 +1,28 @@
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from Emi03Resident
+[ RUN      ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles
+[       OK ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles (8019 ms)
+[ RUN      ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption
+[       OK ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption (215 ms)
+[ RUN      ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess
+[       OK ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess (40 ms)
+[ RUN      ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+[       OK ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse (33 ms)
+[ RUN      ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian
+[       OK ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian (12 ms)
+[ RUN      ] Emi03Resident.NestedLazyBranchesPreserveDomains
+[       OK ] Emi03Resident.NestedLazyBranchesPreserveDomains (71 ms)
+[ RUN      ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches
+[       OK ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches (35 ms)
+[ RUN      ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives
+[       OK ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives (241 ms)
+[ RUN      ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation
+[       OK ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation (33 ms)
+[ RUN      ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate
+[       OK ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate (1009 ms)
+[----------] 10 tests from Emi03Resident (9713 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (9714 ms total)
+[  PASSED  ] 10 tests.

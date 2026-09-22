@@ -1,0 +1,62 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 81 targets (0 packages loaded, 0 targets configured)
+Analyzing: 81 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 81 targets (0 packages loaded, 0 targets configured).
+INFO: Found 41 targets and 40 test targets...
+INFO: Elapsed time: 1.158s, Critical Path: 0.88s
+INFO: 2 processes: 41 action cache hit, 1 internal, 2 linux-sandbox.
+INFO: Build completed successfully, 2 total actions
+//acceptance:emi02b_expression_test                             (cached) PASSED in 0.8s
+//acceptance:ngspice_acceptance_test                            (cached) PASSED in 6.5s
+//cpp:emi02_expression_cache_test                               (cached) PASSED in 0.0s
+//cpp:emi02_history_lte_test                                    (cached) PASSED in 1.0s
+//cpp:emi02_newton_test                                         (cached) PASSED in 0.0s
+//cpp:emi02_prepared_transient_test                             (cached) PASSED in 1.7s
+//cpp:emi02_refinement_test                                     (cached) PASSED in 0.1s
+//cpp:emi02_solver_reuse_test                                   (cached) PASSED in 0.1s
+//cpp:emi02a_test                                               (cached) PASSED in 5.7s
+//cpp:emi02b_test                                               (cached) PASSED in 0.2s
+//cpp:emi02c_review_test                                        (cached) PASSED in 39.4s
+//cpp:emi02c_test                                               (cached) PASSED in 0.2s
+//cpp:gpu01_prepared_ac_test                                    (cached) PASSED in 0.0s
+//cpp:gpu01_replay_test                                         (cached) PASSED in 0.5s
+//cpp:gpu02s_session_test                                       (cached) PASSED in 8.3s
+//cpp:phase1_test                                               (cached) PASSED in 0.0s
+//cpp:phase2a_test                                              (cached) PASSED in 0.0s
+//cpp:phase2b_test                                              (cached) PASSED in 0.0s
+//cpp:phase2c_parser_test                                       (cached) PASSED in 0.1s
+//cpp:phase2c_simulator_test                                    (cached) PASSED in 0.1s
+//cpp:phase2c_transient_test                                    (cached) PASSED in 0.2s
+//cpp:phase2d_solver_test                                       (cached) PASSED in 0.0s
+//cpp:phase3a_test                                              (cached) PASSED in 0.0s
+//cpp:phase3b_test                                              (cached) PASSED in 0.1s
+//cpp:phase3c_test                                              (cached) PASSED in 0.1s
+//cpp:solver_hermeticity_test                                   (cached) PASSED in 0.4s
+//cpp:transient_accuracy_test                                   (cached) PASSED in 14.2s
+//reference/emi01:adapter_test                                  (cached) PASSED in 0.3s
+//reference/emi01:metrics_test                                  (cached) PASSED in 0.8s
+//reference/emi01:report_test                                   (cached) PASSED in 0.6s
+//reference/emi01:signals_test                                  (cached) PASSED in 0.5s
+//reference/emi01:study_test                                    (cached) PASSED in 2.4s
+//reference/emi02:device_dynamic_test                           (cached) PASSED in 1.8s
+//reference/emi02:importer_oracle_test                          (cached) PASSED in 0.5s
+//reference/emi02:importer_test                                 (cached) PASSED in 0.5s
+//reference/emi02:qualification_test                            (cached) PASSED in 0.7s
+//reference/emi02:runner_process_test                           (cached) PASSED in 0.3s
+//reference/emi03:worker_process_test                           (cached) PASSED in 0.3s
+//third_party/emi_python:runtime_test                           (cached) PASSED in 0.4s
+//reference/emi03:ensemble_test                                          PASSED in 0.5s
+
+Executed 1 out of 40 tests: 40 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

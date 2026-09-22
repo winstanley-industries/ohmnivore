@@ -1,0 +1,194 @@
+{
+  "scope": "full q0 DPT differential only; not complete qualification",
+  "comparison": {
+    "id": "gpu",
+    "pass": true,
+    "metrics": {
+      "peak_v": {
+        "difference": 1.1122324394818861e-08,
+        "limit": 10.78531285607675
+      },
+      "on_edge_s": {
+        "difference": 6.115577879176048e-19,
+        "limit": 3.7190273438115294e-09
+      },
+      "off_edge_s": {
+        "difference": 2.625802136488331e-19,
+        "limit": 3.269407421054973e-09
+      },
+      "on_half_s": {
+        "difference": 1.1722935989999517e-18,
+        "limit": 3.7190273438115294e-09
+      },
+      "off_half_s": {
+        "difference": 1.7753810574450135e-18,
+        "limit": 3.269407421054973e-09
+      },
+      "on_energy_j": {
+        "difference": 2.651326966134071e-14,
+        "limit": 8.21919674605873e-06
+      },
+      "off_energy_j": {
+        "difference": 4.061010696557871e-14,
+        "limit": 4.178435499066896e-06
+      },
+      "frequency_hz": {
+        "difference": 0.0,
+        "limit": 6666666.666666355
+      },
+      "log_decrement": {
+        "difference": 4.369409278837111e-10,
+        "limit": 0.12244700146849169
+      }
+    },
+    "waveforms": {
+      "v(d)": {
+        "passed": true,
+        "difference_rms": 1.620353849779414e-05,
+        "reference_rms": 224.24883674176232,
+        "limit": 10.0
+      },
+      "v(g)": {
+        "passed": true,
+        "difference_rms": 1.1169427108940058e-06,
+        "reference_rms": 16.634216826982946,
+        "limit": 0.5
+      },
+      "i(lload)": {
+        "passed": true,
+        "difference_rms": 1.396394204811996e-10,
+        "reference_rms": 14.51604738479869,
+        "limit": 0.3103209476959738
+      },
+      "i(vdrain)": {
+        "passed": true,
+        "difference_rms": 1.281726901323866e-06,
+        "reference_rms": 10.605153181289541,
+        "limit": 0.2321030636257908
+      }
+    },
+    "classification_agrees": true
+  },
+  "metrics": {
+    "cpu": {
+      "fixture": "dpt",
+      "id": "cpu",
+      "sample_step_s": 1e-09,
+      "metrics": {
+        "sample_step_s": 1e-09,
+        "peak_v": 439.2656428038375,
+        "min_v": -19.960670510859256,
+        "peak_gate_v": 24.178574615407328,
+        "min_gate_v": -3.3005984428278046,
+        "load_at_second_on_a": 17.97302986705623,
+        "on_edge_s": 1.7190273438115293e-08,
+        "on_half_s": 1.2024846931209189e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          8.941096042245848,
+          15.790451606700431,
+          10.569568362510305
+        ],
+        "on_energy_j": 0.00012438393492117462,
+        "off_edge_s": 1.269407421054973e-08,
+        "off_half_s": 1.4034733205589418e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.2550204130263665,
+          0.3925871965625741,
+          0.38494733251782937
+        ],
+        "off_energy_j": 4.356870998133791e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.628472320264457,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4045e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.26564280383752,
+            18.09194619191686,
+            11.540699712638911
+          ],
+          "frequency_hz": 66666666.66666354,
+          "log_decrement": 0.6122350073424584
+        },
+        "pass": true
+      },
+      "status": "qualified"
+    },
+    "gpu": {
+      "fixture": "dpt",
+      "id": "gpu",
+      "sample_step_s": 1e-09,
+      "metrics": {
+        "sample_step_s": 1e-09,
+        "peak_v": 439.26564281495985,
+        "min_v": -19.96067051168603,
+        "peak_gate_v": 24.178574615824925,
+        "min_gate_v": -3.300598436827397,
+        "load_at_second_on_a": 17.973029867014226,
+        "on_edge_s": 1.719027343872685e-08,
+        "on_half_s": 1.2024846931210361e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          8.941096042064942,
+          15.790451608701781,
+          10.569568362117174
+        ],
+        "on_energy_j": 0.00012438393489466135,
+        "off_edge_s": 1.2694074210812311e-08,
+        "off_half_s": 1.4034733205591193e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.2550204126696487,
+          0.3925871950460853,
+          0.3849473339652944
+        ],
+        "off_energy_j": 4.3568710021948015e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.6284723200522322,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4045e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.26564281495985,
+            18.091946180748607,
+            11.540699705822703
+          ],
+          "frequency_hz": 66666666.66666354,
+          "log_decrement": 0.6122350077793993
+        },
+        "pass": true
+      },
+      "status": "qualified"
+    }
+  }
+}

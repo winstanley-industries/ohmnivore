@@ -1,0 +1,62 @@
+[
+  {
+    "tool": "memcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "memcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/auxiliary122-binary",
+      "/home/adam/emi03-work/schur-replay117.txt",
+      "--validate-only"
+    ],
+    "exit_code": 0,
+    "seconds": 3.5585083961486816
+  },
+  {
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/auxiliary122-binary",
+      "/home/adam/emi03-work/schur-replay117.txt",
+      "--validate-only"
+    ],
+    "exit_code": 0,
+    "seconds": 66.78716731071472
+  },
+  {
+    "tool": "synccheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "synccheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/auxiliary122-binary",
+      "/home/adam/emi03-work/schur-replay117.txt",
+      "--validate-only"
+    ],
+    "exit_code": 0,
+    "seconds": 3.4731407165527344
+  },
+  {
+    "tool": "initcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "initcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/auxiliary122-binary",
+      "/home/adam/emi03-work/schur-replay117.txt",
+      "--validate-only"
+    ],
+    "exit_code": 0,
+    "seconds": 3.4821112155914307
+  }
+]

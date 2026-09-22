@@ -1,0 +1,54 @@
+{
+  "acceptance_pass": false,
+  "baseline_source_files": 89,
+  "checks": [
+    {
+      "cpu_raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7",
+      "gpu_jobs": 64,
+      "median_execution_wall_s": 5.877114895964041,
+      "name": "queue98-16-8",
+      "resources_pass": true
+    },
+    {
+      "cpu_raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7",
+      "gpu_jobs": 64,
+      "median_execution_wall_s": 2.741310298035387,
+      "name": "queue98-16-32",
+      "resources_pass": true
+    },
+    {
+      "cpu_raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7",
+      "gpu_jobs": 64,
+      "median_execution_wall_s": 5.142453526030295,
+      "name": "queue98-16-8-repeat",
+      "resources_pass": true
+    },
+    {
+      "cpu_raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7",
+      "gpu_jobs": 64,
+      "median_execution_wall_s": 2.7617686680168845,
+      "name": "queue98-16-32-repeat",
+      "resources_pass": true
+    },
+    {
+      "cpu_raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7",
+      "gpu_jobs": 32,
+      "median_execution_wall_s": 4.708521338994615,
+      "name": "queue98b-profile-8-data",
+      "resources_pass": true
+    },
+    {
+      "cpu_raw_sha256": "c774d7560497828394ab5b72001a7df04e587763dd6a6fa57edb6a3f5d5ff7e7",
+      "gpu_jobs": 32,
+      "median_execution_wall_s": 2.72052559198346,
+      "name": "queue98b-profile-32-data",
+      "resources_pass": true
+    }
+  ],
+  "failed_profiler_attempts_retained": 2,
+  "gpu_waveform_checks": 320,
+  "hardware_reports_reconstructed": 2,
+  "pass": true,
+  "raw_trajectories": 326,
+  "scope": "Shortened diagnostic trajectories, source identities, owner/resource audits and whole-capture metrics only"
+}

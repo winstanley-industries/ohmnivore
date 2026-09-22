@@ -1,0 +1,30 @@
+[==========] Running 11 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 11 tests from Emi03Resident
+[ RUN      ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles
+[       OK ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles (7552 ms)
+[ RUN      ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption
+[       OK ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption (206 ms)
+[ RUN      ] Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry
+[       OK ] Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry (352 ms)
+[ RUN      ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess
+[       OK ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess (41 ms)
+[ RUN      ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+[       OK ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse (34 ms)
+[ RUN      ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian
+[       OK ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian (13 ms)
+[ RUN      ] Emi03Resident.NestedLazyBranchesPreserveDomains
+[       OK ] Emi03Resident.NestedLazyBranchesPreserveDomains (71 ms)
+[ RUN      ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches
+[       OK ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches (33 ms)
+[ RUN      ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives
+[       OK ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives (220 ms)
+[ RUN      ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation
+[       OK ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation (33 ms)
+[ RUN      ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate
+[       OK ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate (1105 ms)
+[----------] 11 tests from Emi03Resident (9664 ms total)
+
+[----------] Global test environment tear-down
+[==========] 11 tests from 1 test suite ran. (9664 ms total)
+[  PASSED  ] 11 tests.

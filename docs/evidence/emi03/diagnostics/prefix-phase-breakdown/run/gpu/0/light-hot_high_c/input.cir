@@ -1,0 +1,182 @@
+* EMI-01 v2 light hot_high_c
+Vbus bus 0 360
+Rbus bus p1 0.02
+Lbus p1 p 20n
+Cbus p1 0 10u
+Vdah p ahd 0
+r_xdah__g2 emi02_xdah__220 emi02_xdah__23 1.2
+l_xdah__g emi02_xdah__220 gah 5.0000000000000001e-09
+r_xdah__gd emi02_xdah__220 gah 2
+l_xdah__s emi02_xdah__230 emi02_xdah__32 4.0000000000000002e-09
+r_xdah__sd emi02_xdah__230 emi02_xdah__32 2
+r_xdah__s emi02_xdah__230 a 0.00050000000000000001
+e_xdah_xm1__fvds emi02_xdah_xm1__100 0 VALUE={v(ahd,emi02_xdah__32)}
+e_xdah_xm1__fvgs emi02_xdah_xm1__101 0 VALUE={v(emi02_xdah__23,emi02_xdah__32)-(0.025864916895449997)}
+e_xdah_xm1__fvgd emi02_xdah_xm1__102 0 VALUE={v(emi02_xdah__23,ahd)-(0.025864916895449997)}
+g_xdah_xm1__13 ahd emi02_xdah__32 VALUE={v(emi02_xdah_xm1__105)}
+g_xdah_xm1__14 ahd emi02_xdah__32 VALUE={v(emi02_xdah_xm1__108)}
+r_xdah_xm1__13 ahd emi02_xdah__32 1000000000
+v_xdah_xm1__gd emi02_xdah_xm1__48 emi02_xdah__23 0
+c_xdah_xm1__gd ahd emi02_xdah_xm1__48 9.9999999999999998e-13
+b_xdah_xm1__gd ahd emi02_xdah__23 I={if(v(ahd,emi02_xdah__23)<0, i(v_xdah_xm1__gd)*8e2, i(v_xdah_xm1__gd)*((8e2+1.6*v(ahd,emi02_xdah__23)**2.62)/(1+0.0121*v(ahd,emi02_xdah__23)**3)))}
+r_xdah_xm1__21 emi02_xdah__23 ahd 1000000000
+r_xdah_xm1__23 emi02_xdah__23 emi02_xdah__32 1000000000
+c_xdah_xm1__gs emi02_xdah__23 emi02_xdah__32 2.0000000000000001e-09
+r_xdah_xm1__40 emi02_xdah_xm1__12 ahd 0.014
+g_xdah_xm1__41 ahd emi02_xdah__32 VALUE={v(emi02_xdah_xm1__109)}
+v_xdah_xm1__ds emi02_xdah_xm1__49 emi02_xdah_xm1__44 0
+c_xdah_xm1__ds ahd emi02_xdah_xm1__49 9.9999999999999998e-13
+b_xdah_xm1__ds ahd emi02_xdah_xm1__44 I={if(v(ahd,emi02_xdah__32)<0, i(v_xdah_xm1__ds)*3e3, i(v_xdah_xm1__ds)*((3e3+45*v(ahd,emi02_xdah__32)**2)/(1+0.01*v(ahd,emi02_xdah__32)**2.5)))}
+r_xdah_xm1__pwell emi02_xdah_xm1__44 emi02_xdah__32 0.0040000000000000001
+e_xdah_xm1__ibd2 emi02_xdah_xm1__109 0 VALUE={(1)*((1.3849003741398743e-06)- exp((-v(emi02_xdah_xm1__100)-(2.6400000000000001))/(0.19570222563315426)))}
+e_xdah_xm1__k2 emi02_xdah_xm1__107 0 VALUE={((v(emi02_xdah_xm1__100)+(20))/(v(emi02_xdah_xm1__100)+(30)))*(467.5)/(((20)-(0.025864916895449997))*((20)-(0.025864916895449997)))}
+e_xdah_xm1__fb emi02_xdah_xm1__106 0 VALUE={((1.0717633615149289)*v(emi02_xdah_xm1__100)*v(emi02_xdah_xm1__107)*v(emi02_xdah_xm1__103)*v(emi02_xdah_xm1__103))/((1.0717633615149289)*v(emi02_xdah_xm1__100)+v(emi02_xdah_xm1__107)*v(emi02_xdah_xm1__103))}
+e_xdah_xm1__remapvgs emi02_xdah_xm1__103 0 VALUE={v(emi02_xdah_xm1__101)*v(emi02_xdah_xm1__101)*(0.141-0.0285*v(emi02_xdah_xm1__101)+0.00011242*30*v(emi02_xdah_xm1__101)*v(emi02_xdah_xm1__101)) /(1+v(emi02_xdah_xm1__101)*v(emi02_xdah_xm1__101)*(-0.0058048+0.00038844*v(emi02_xdah_xm1__101)+0.0001124*v(emi02_xdah_xm1__101)*v(emi02_xdah_xm1__101)))}
+e_xdah_xm1__remapvgd emi02_xdah_xm1__104 0 VALUE={v(emi02_xdah_xm1__102)*v(emi02_xdah_xm1__102)*(0.141-0.0285*v(emi02_xdah_xm1__102)+0.00011242*30*v(emi02_xdah_xm1__102)*v(emi02_xdah_xm1__102)) /(1+v(emi02_xdah_xm1__102)*v(emi02_xdah_xm1__102)*(-0.0058048+0.00038844*v(emi02_xdah_xm1__102)+0.0001124*v(emi02_xdah_xm1__102)*v(emi02_xdah_xm1__102)))}
+e_xdah_xm1__fcond1 emi02_xdah_xm1__105 0 VALUE={(1)*(if(v(emi02_xdah_xm1__100)>0,if(v(emi02_xdah_xm1__101)>0,v(emi02_xdah_xm1__106),0),0))}
+e_xdah_xm1__fcond2 emi02_xdah_xm1__108 0 VALUE={(1)*(if(v(emi02_xdah_xm1__100)<0,if(v(emi02_xdah_xm1__102)>0,(1.0717633615149289)*v(emi02_xdah_xm1__104)*v(emi02_xdah_xm1__100),0),0))}
+Vdal a ald 0
+r_xdal__g2 emi02_xdal__220 emi02_xdal__23 1.2
+l_xdal__g emi02_xdal__220 ga 5.0000000000000001e-09
+r_xdal__gd emi02_xdal__220 ga 2
+l_xdal__s emi02_xdal__230 emi02_xdal__32 4.0000000000000002e-09
+r_xdal__sd emi02_xdal__230 emi02_xdal__32 2
+r_xdal__s emi02_xdal__230 0 0.00050000000000000001
+e_xdal_xm1__fvds emi02_xdal_xm1__100 0 VALUE={v(ald,emi02_xdal__32)}
+e_xdal_xm1__fvgs emi02_xdal_xm1__101 0 VALUE={v(emi02_xdal__23,emi02_xdal__32)-(0.025864916895449997)}
+e_xdal_xm1__fvgd emi02_xdal_xm1__102 0 VALUE={v(emi02_xdal__23,ald)-(0.025864916895449997)}
+g_xdal_xm1__13 ald emi02_xdal__32 VALUE={v(emi02_xdal_xm1__105)}
+g_xdal_xm1__14 ald emi02_xdal__32 VALUE={v(emi02_xdal_xm1__108)}
+r_xdal_xm1__13 ald emi02_xdal__32 1000000000
+v_xdal_xm1__gd emi02_xdal_xm1__48 emi02_xdal__23 0
+c_xdal_xm1__gd ald emi02_xdal_xm1__48 9.9999999999999998e-13
+b_xdal_xm1__gd ald emi02_xdal__23 I={if(v(ald,emi02_xdal__23)<0, i(v_xdal_xm1__gd)*8e2, i(v_xdal_xm1__gd)*((8e2+1.6*v(ald,emi02_xdal__23)**2.62)/(1+0.0121*v(ald,emi02_xdal__23)**3)))}
+r_xdal_xm1__21 emi02_xdal__23 ald 1000000000
+r_xdal_xm1__23 emi02_xdal__23 emi02_xdal__32 1000000000
+c_xdal_xm1__gs emi02_xdal__23 emi02_xdal__32 2.0000000000000001e-09
+r_xdal_xm1__40 emi02_xdal_xm1__12 ald 0.014
+g_xdal_xm1__41 ald emi02_xdal__32 VALUE={v(emi02_xdal_xm1__109)}
+v_xdal_xm1__ds emi02_xdal_xm1__49 emi02_xdal_xm1__44 0
+c_xdal_xm1__ds ald emi02_xdal_xm1__49 9.9999999999999998e-13
+b_xdal_xm1__ds ald emi02_xdal_xm1__44 I={if(v(ald,emi02_xdal__32)<0, i(v_xdal_xm1__ds)*3e3, i(v_xdal_xm1__ds)*((3e3+45*v(ald,emi02_xdal__32)**2)/(1+0.01*v(ald,emi02_xdal__32)**2.5)))}
+r_xdal_xm1__pwell emi02_xdal_xm1__44 emi02_xdal__32 0.0040000000000000001
+e_xdal_xm1__ibd2 emi02_xdal_xm1__109 0 VALUE={(1)*((1.3849003741398743e-06)- exp((-v(emi02_xdal_xm1__100)-(2.6400000000000001))/(0.19570222563315426)))}
+e_xdal_xm1__k2 emi02_xdal_xm1__107 0 VALUE={((v(emi02_xdal_xm1__100)+(20))/(v(emi02_xdal_xm1__100)+(30)))*(467.5)/(((20)-(0.025864916895449997))*((20)-(0.025864916895449997)))}
+e_xdal_xm1__fb emi02_xdal_xm1__106 0 VALUE={((1.0717633615149289)*v(emi02_xdal_xm1__100)*v(emi02_xdal_xm1__107)*v(emi02_xdal_xm1__103)*v(emi02_xdal_xm1__103))/((1.0717633615149289)*v(emi02_xdal_xm1__100)+v(emi02_xdal_xm1__107)*v(emi02_xdal_xm1__103))}
+e_xdal_xm1__remapvgs emi02_xdal_xm1__103 0 VALUE={v(emi02_xdal_xm1__101)*v(emi02_xdal_xm1__101)*(0.141-0.0285*v(emi02_xdal_xm1__101)+0.00011242*30*v(emi02_xdal_xm1__101)*v(emi02_xdal_xm1__101)) /(1+v(emi02_xdal_xm1__101)*v(emi02_xdal_xm1__101)*(-0.0058048+0.00038844*v(emi02_xdal_xm1__101)+0.0001124*v(emi02_xdal_xm1__101)*v(emi02_xdal_xm1__101)))}
+e_xdal_xm1__remapvgd emi02_xdal_xm1__104 0 VALUE={v(emi02_xdal_xm1__102)*v(emi02_xdal_xm1__102)*(0.141-0.0285*v(emi02_xdal_xm1__102)+0.00011242*30*v(emi02_xdal_xm1__102)*v(emi02_xdal_xm1__102)) /(1+v(emi02_xdal_xm1__102)*v(emi02_xdal_xm1__102)*(-0.0058048+0.00038844*v(emi02_xdal_xm1__102)+0.0001124*v(emi02_xdal_xm1__102)*v(emi02_xdal_xm1__102)))}
+e_xdal_xm1__fcond1 emi02_xdal_xm1__105 0 VALUE={(1)*(if(v(emi02_xdal_xm1__100)>0,if(v(emi02_xdal_xm1__101)>0,v(emi02_xdal_xm1__106),0),0))}
+e_xdal_xm1__fcond2 emi02_xdal_xm1__108 0 VALUE={(1)*(if(v(emi02_xdal_xm1__100)<0,if(v(emi02_xdal_xm1__102)>0,(1.0717633615149289)*v(emi02_xdal_xm1__104)*v(emi02_xdal_xm1__100),0),0))}
+Vgah driveah a DC -3 PULSE(-3 20 1u 10n 10n 1.4800000000000001e-05 20u)
+Vgal driveal 0 DC 20 PULSE(20 -3 0.8u 10n 10n 1.52e-05 20u)
+Rgah driveah gah 5.6399999999999997
+Rgal driveal ga 5.6399999999999997
+Cswa a ch 1.2e-10
+Rda a ar 0.0038790000000000005
+Lda ar am 1.1000000000000001e-05
+Rcma am amr 0.0020688000000000004
+Lcma amr fa 0.00011000000000000002
+Cwinda amr fa 1.1999999999999999e-11
+Rya fa yca 22
+Cya yca ch 1.1000000000000001e-09
+Va fa ha 0
+Rha ha har 0.1
+Lha har la 1u
+Cha la ch 2.4e-10
+Cla la ch 1.2e-09
+Vdbh p bhd 0
+r_xdbh__g2 emi02_xdbh__220 emi02_xdbh__23 1.2
+l_xdbh__g emi02_xdbh__220 gbh 5.0000000000000001e-09
+r_xdbh__gd emi02_xdbh__220 gbh 2
+l_xdbh__s emi02_xdbh__230 emi02_xdbh__32 4.0000000000000002e-09
+r_xdbh__sd emi02_xdbh__230 emi02_xdbh__32 2
+r_xdbh__s emi02_xdbh__230 b 0.00050000000000000001
+e_xdbh_xm1__fvds emi02_xdbh_xm1__100 0 VALUE={v(bhd,emi02_xdbh__32)}
+e_xdbh_xm1__fvgs emi02_xdbh_xm1__101 0 VALUE={v(emi02_xdbh__23,emi02_xdbh__32)-(0.025864916895449997)}
+e_xdbh_xm1__fvgd emi02_xdbh_xm1__102 0 VALUE={v(emi02_xdbh__23,bhd)-(0.025864916895449997)}
+g_xdbh_xm1__13 bhd emi02_xdbh__32 VALUE={v(emi02_xdbh_xm1__105)}
+g_xdbh_xm1__14 bhd emi02_xdbh__32 VALUE={v(emi02_xdbh_xm1__108)}
+r_xdbh_xm1__13 bhd emi02_xdbh__32 1000000000
+v_xdbh_xm1__gd emi02_xdbh_xm1__48 emi02_xdbh__23 0
+c_xdbh_xm1__gd bhd emi02_xdbh_xm1__48 9.9999999999999998e-13
+b_xdbh_xm1__gd bhd emi02_xdbh__23 I={if(v(bhd,emi02_xdbh__23)<0, i(v_xdbh_xm1__gd)*8e2, i(v_xdbh_xm1__gd)*((8e2+1.6*v(bhd,emi02_xdbh__23)**2.62)/(1+0.0121*v(bhd,emi02_xdbh__23)**3)))}
+r_xdbh_xm1__21 emi02_xdbh__23 bhd 1000000000
+r_xdbh_xm1__23 emi02_xdbh__23 emi02_xdbh__32 1000000000
+c_xdbh_xm1__gs emi02_xdbh__23 emi02_xdbh__32 2.0000000000000001e-09
+r_xdbh_xm1__40 emi02_xdbh_xm1__12 bhd 0.014
+g_xdbh_xm1__41 bhd emi02_xdbh__32 VALUE={v(emi02_xdbh_xm1__109)}
+v_xdbh_xm1__ds emi02_xdbh_xm1__49 emi02_xdbh_xm1__44 0
+c_xdbh_xm1__ds bhd emi02_xdbh_xm1__49 9.9999999999999998e-13
+b_xdbh_xm1__ds bhd emi02_xdbh_xm1__44 I={if(v(bhd,emi02_xdbh__32)<0, i(v_xdbh_xm1__ds)*3e3, i(v_xdbh_xm1__ds)*((3e3+45*v(bhd,emi02_xdbh__32)**2)/(1+0.01*v(bhd,emi02_xdbh__32)**2.5)))}
+r_xdbh_xm1__pwell emi02_xdbh_xm1__44 emi02_xdbh__32 0.0040000000000000001
+e_xdbh_xm1__ibd2 emi02_xdbh_xm1__109 0 VALUE={(1)*((1.3849003741398743e-06)- exp((-v(emi02_xdbh_xm1__100)-(2.6400000000000001))/(0.19570222563315426)))}
+e_xdbh_xm1__k2 emi02_xdbh_xm1__107 0 VALUE={((v(emi02_xdbh_xm1__100)+(20))/(v(emi02_xdbh_xm1__100)+(30)))*(467.5)/(((20)-(0.025864916895449997))*((20)-(0.025864916895449997)))}
+e_xdbh_xm1__fb emi02_xdbh_xm1__106 0 VALUE={((1.0717633615149289)*v(emi02_xdbh_xm1__100)*v(emi02_xdbh_xm1__107)*v(emi02_xdbh_xm1__103)*v(emi02_xdbh_xm1__103))/((1.0717633615149289)*v(emi02_xdbh_xm1__100)+v(emi02_xdbh_xm1__107)*v(emi02_xdbh_xm1__103))}
+e_xdbh_xm1__remapvgs emi02_xdbh_xm1__103 0 VALUE={v(emi02_xdbh_xm1__101)*v(emi02_xdbh_xm1__101)*(0.141-0.0285*v(emi02_xdbh_xm1__101)+0.00011242*30*v(emi02_xdbh_xm1__101)*v(emi02_xdbh_xm1__101)) /(1+v(emi02_xdbh_xm1__101)*v(emi02_xdbh_xm1__101)*(-0.0058048+0.00038844*v(emi02_xdbh_xm1__101)+0.0001124*v(emi02_xdbh_xm1__101)*v(emi02_xdbh_xm1__101)))}
+e_xdbh_xm1__remapvgd emi02_xdbh_xm1__104 0 VALUE={v(emi02_xdbh_xm1__102)*v(emi02_xdbh_xm1__102)*(0.141-0.0285*v(emi02_xdbh_xm1__102)+0.00011242*30*v(emi02_xdbh_xm1__102)*v(emi02_xdbh_xm1__102)) /(1+v(emi02_xdbh_xm1__102)*v(emi02_xdbh_xm1__102)*(-0.0058048+0.00038844*v(emi02_xdbh_xm1__102)+0.0001124*v(emi02_xdbh_xm1__102)*v(emi02_xdbh_xm1__102)))}
+e_xdbh_xm1__fcond1 emi02_xdbh_xm1__105 0 VALUE={(1)*(if(v(emi02_xdbh_xm1__100)>0,if(v(emi02_xdbh_xm1__101)>0,v(emi02_xdbh_xm1__106),0),0))}
+e_xdbh_xm1__fcond2 emi02_xdbh_xm1__108 0 VALUE={(1)*(if(v(emi02_xdbh_xm1__100)<0,if(v(emi02_xdbh_xm1__102)>0,(1.0717633615149289)*v(emi02_xdbh_xm1__104)*v(emi02_xdbh_xm1__100),0),0))}
+Vdbl b bld 0
+r_xdbl__g2 emi02_xdbl__220 emi02_xdbl__23 1.2
+l_xdbl__g emi02_xdbl__220 gb 5.0000000000000001e-09
+r_xdbl__gd emi02_xdbl__220 gb 2
+l_xdbl__s emi02_xdbl__230 emi02_xdbl__32 4.0000000000000002e-09
+r_xdbl__sd emi02_xdbl__230 emi02_xdbl__32 2
+r_xdbl__s emi02_xdbl__230 0 0.00050000000000000001
+e_xdbl_xm1__fvds emi02_xdbl_xm1__100 0 VALUE={v(bld,emi02_xdbl__32)}
+e_xdbl_xm1__fvgs emi02_xdbl_xm1__101 0 VALUE={v(emi02_xdbl__23,emi02_xdbl__32)-(0.025864916895449997)}
+e_xdbl_xm1__fvgd emi02_xdbl_xm1__102 0 VALUE={v(emi02_xdbl__23,bld)-(0.025864916895449997)}
+g_xdbl_xm1__13 bld emi02_xdbl__32 VALUE={v(emi02_xdbl_xm1__105)}
+g_xdbl_xm1__14 bld emi02_xdbl__32 VALUE={v(emi02_xdbl_xm1__108)}
+r_xdbl_xm1__13 bld emi02_xdbl__32 1000000000
+v_xdbl_xm1__gd emi02_xdbl_xm1__48 emi02_xdbl__23 0
+c_xdbl_xm1__gd bld emi02_xdbl_xm1__48 9.9999999999999998e-13
+b_xdbl_xm1__gd bld emi02_xdbl__23 I={if(v(bld,emi02_xdbl__23)<0, i(v_xdbl_xm1__gd)*8e2, i(v_xdbl_xm1__gd)*((8e2+1.6*v(bld,emi02_xdbl__23)**2.62)/(1+0.0121*v(bld,emi02_xdbl__23)**3)))}
+r_xdbl_xm1__21 emi02_xdbl__23 bld 1000000000
+r_xdbl_xm1__23 emi02_xdbl__23 emi02_xdbl__32 1000000000
+c_xdbl_xm1__gs emi02_xdbl__23 emi02_xdbl__32 2.0000000000000001e-09
+r_xdbl_xm1__40 emi02_xdbl_xm1__12 bld 0.014
+g_xdbl_xm1__41 bld emi02_xdbl__32 VALUE={v(emi02_xdbl_xm1__109)}
+v_xdbl_xm1__ds emi02_xdbl_xm1__49 emi02_xdbl_xm1__44 0
+c_xdbl_xm1__ds bld emi02_xdbl_xm1__49 9.9999999999999998e-13
+b_xdbl_xm1__ds bld emi02_xdbl_xm1__44 I={if(v(bld,emi02_xdbl__32)<0, i(v_xdbl_xm1__ds)*3e3, i(v_xdbl_xm1__ds)*((3e3+45*v(bld,emi02_xdbl__32)**2)/(1+0.01*v(bld,emi02_xdbl__32)**2.5)))}
+r_xdbl_xm1__pwell emi02_xdbl_xm1__44 emi02_xdbl__32 0.0040000000000000001
+e_xdbl_xm1__ibd2 emi02_xdbl_xm1__109 0 VALUE={(1)*((1.3849003741398743e-06)- exp((-v(emi02_xdbl_xm1__100)-(2.6400000000000001))/(0.19570222563315426)))}
+e_xdbl_xm1__k2 emi02_xdbl_xm1__107 0 VALUE={((v(emi02_xdbl_xm1__100)+(20))/(v(emi02_xdbl_xm1__100)+(30)))*(467.5)/(((20)-(0.025864916895449997))*((20)-(0.025864916895449997)))}
+e_xdbl_xm1__fb emi02_xdbl_xm1__106 0 VALUE={((1.0717633615149289)*v(emi02_xdbl_xm1__100)*v(emi02_xdbl_xm1__107)*v(emi02_xdbl_xm1__103)*v(emi02_xdbl_xm1__103))/((1.0717633615149289)*v(emi02_xdbl_xm1__100)+v(emi02_xdbl_xm1__107)*v(emi02_xdbl_xm1__103))}
+e_xdbl_xm1__remapvgs emi02_xdbl_xm1__103 0 VALUE={v(emi02_xdbl_xm1__101)*v(emi02_xdbl_xm1__101)*(0.141-0.0285*v(emi02_xdbl_xm1__101)+0.00011242*30*v(emi02_xdbl_xm1__101)*v(emi02_xdbl_xm1__101)) /(1+v(emi02_xdbl_xm1__101)*v(emi02_xdbl_xm1__101)*(-0.0058048+0.00038844*v(emi02_xdbl_xm1__101)+0.0001124*v(emi02_xdbl_xm1__101)*v(emi02_xdbl_xm1__101)))}
+e_xdbl_xm1__remapvgd emi02_xdbl_xm1__104 0 VALUE={v(emi02_xdbl_xm1__102)*v(emi02_xdbl_xm1__102)*(0.141-0.0285*v(emi02_xdbl_xm1__102)+0.00011242*30*v(emi02_xdbl_xm1__102)*v(emi02_xdbl_xm1__102)) /(1+v(emi02_xdbl_xm1__102)*v(emi02_xdbl_xm1__102)*(-0.0058048+0.00038844*v(emi02_xdbl_xm1__102)+0.0001124*v(emi02_xdbl_xm1__102)*v(emi02_xdbl_xm1__102)))}
+e_xdbl_xm1__fcond1 emi02_xdbl_xm1__105 0 VALUE={(1)*(if(v(emi02_xdbl_xm1__100)>0,if(v(emi02_xdbl_xm1__101)>0,v(emi02_xdbl_xm1__106),0),0))}
+e_xdbl_xm1__fcond2 emi02_xdbl_xm1__108 0 VALUE={(1)*(if(v(emi02_xdbl_xm1__100)<0,if(v(emi02_xdbl_xm1__102)>0,(1.0717633615149289)*v(emi02_xdbl_xm1__104)*v(emi02_xdbl_xm1__100),0),0))}
+Vgbh drivebh b DC -3 PULSE(-3 20 1u 10n 10n 4.7999999999999998e-06 20u)
+Vgbl drivebl 0 DC 20 PULSE(20 -3 0.8u 10n 10n 5.1999999999999993e-06 20u)
+Rgbh drivebh gbh 5.6399999999999997
+Rgbl drivebl gb 5.6399999999999997
+Cswb b ch 1.2e-10
+Rdb b br 0.0038790000000000005
+Ldb br bm 1.1000000000000001e-05
+Rcmb bm bmr 0.0020688000000000004
+Lcmb bmr fb 0.00011000000000000002
+Cwindb bmr fb 1.1999999999999999e-11
+Ryb fb ycb 22
+Cyb ycb ch 1.1000000000000001e-09
+Vb fb hb 0
+Rhb hb hbr 0.1
+Lhb hbr lb 1u
+Chb lb ch 2.4e-10
+Clb lb ch 1.2e-09
+Kcm Lcma Lcmb 0.995
+Kh Lha Lhb 0.2
+Ccouple fa fb 5.9999999999999995e-12
+Rx fa xcap 0.2
+Cx xcap fb 5.17e-08
+Rload la lr 20
+Lload lr lb 100u
+Rloadloss lr lb 100
+Rch ch chr 1
+Lch chr 0 50n
+Cbp p ch 1.2e-10
+Cbn 0 ch 1.2e-10
+.tran 2.5000000000000001e-09 1.9999999999999998e-05 0
+.save v(a) v(b) v(ch) v(fa) v(fb) v(ga) v(gb) v(la) v(lb) i(lch) i(lcma) i(lcmb) i(lda) i(ldb) i(lload) v(lr) v(p) i(va) i(vb) i(vdah) i(vdal) i(vdbh) i(vdbl) v(xcap) v(yca) v(ycb)
+.end

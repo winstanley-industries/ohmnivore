@@ -1,0 +1,38 @@
+START lint
+{"name": "lint", "command": ["bazel", "lint"], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 2.286393880844116}
+START build
+{"name": "build", "command": ["bazel", "build", "--jobs=1", "//..."], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 2.395881414413452}
+START test
+{"name": "test", "command": ["bazel", "test", "--jobs=1", "//..."], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 1.1778321266174316}
+START asan
+{"name": "asan", "command": ["bazel", "test", "--jobs=1", "--config=asan", "//..."], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 338.8617813587189}
+START ubsan
+{"name": "ubsan", "command": ["bazel", "test", "--jobs=1", "--config=ubsan", "//..."], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 294.2334575653076}
+START lockfile
+{"name": "lockfile", "command": ["bazel", "test", "--jobs=1", "--lockfile_mode=error", "//..."], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 221.2516577243805}
+START ngspice
+{"name": "ngspice", "command": ["bazel", "test", "--jobs=1", "//acceptance:ngspice_acceptance_test"], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 0.7294411659240723}
+START prepared-ac
+{"name": "prepared-ac", "command": ["bazel", "test", "--jobs=1", "//cpp:gpu01_prepared_ac_test", "//cpp:gpu01_replay_test"], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 0.32935619354248047}
+START prepared-ac-benchmark
+{"name": "prepared-ac-benchmark", "command": ["bazel", "run", "-c", "opt", "//cpp:prepared_ac_replay_benchmark", "--", "--warmups=2", "--repetitions=9"], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 28.24901843070984}
+START cuda
+{"name": "cuda", "command": ["bazel", "test", "-c", "opt", "--config=cuda", "--jobs=1", "--local_test_jobs=1", "//cuda:emi03_cuda_test", "//cuda:emi03_resident_test", "//cuda:emi03_resident_linkage_test", "//cuda:emi03_reduction_test", "//cuda:emi03_linkage_test", "//:cuda_smoke_test"], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 82.8030035495758}
+START protocol
+{"name": "protocol", "command": ["bazel", "test", "-c", "opt", "--jobs=1", "//reference/emi03:gpu_worker_process_test", "--test_arg=--worker=/home/adam/emi03-work/block-100/worker"], "exit_code": 0, "expected_exit_code": 0, "pass_": true, "elapsed_s": 3.9618077278137207}
+START smoke-asan-incompatible
+{"name": "smoke-asan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=asan", "//cuda:smoke_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.22861003875732422}
+START cuda-asan-incompatible
+{"name": "cuda-asan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=asan", "//cuda:emi03_cuda_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.1769871711730957}
+START resident-asan-incompatible
+{"name": "resident-asan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=asan", "//cuda:emi03_resident_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.17297935485839844}
+START resident-linkage-asan-incompatible
+{"name": "resident-linkage-asan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=asan", "//cuda:emi03_resident_linkage_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.17331171035766602}
+START smoke-ubsan-incompatible
+{"name": "smoke-ubsan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=ubsan", "//cuda:smoke_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.1923811435699463}
+START cuda-ubsan-incompatible
+{"name": "cuda-ubsan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=ubsan", "//cuda:emi03_cuda_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.16890192031860352}
+START resident-ubsan-incompatible
+{"name": "resident-ubsan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=ubsan", "//cuda:emi03_resident_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.1658012866973877}
+START resident-linkage-ubsan-incompatible
+{"name": "resident-linkage-ubsan-incompatible", "command": ["bazel", "build", "--config=cuda", "--config=ubsan", "//cuda:emi03_resident_linkage_test"], "exit_code": 1, "expected_exit_code": 1, "pass_": true, "elapsed_s": 0.17426657676696777}

@@ -1,0 +1,67 @@
+========= COMPUTE-SANITIZER
+Note: Google Test filter = Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Emi03Resident
+[ RUN      ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x15dbb0 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x15dc20 in emi03_resident_device.cuh:320 [15 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x16a5f0 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x16a640 in emi03_resident_device.cuh:320 [14 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x140030 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x1400b0 in emi03_resident_device.cuh:320 [11 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x7d840
+=========     and Write access at Emi03Advance+0x7d8b0 [7 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x97fe0
+=========     and Write access at Emi03Advance+0x98040 [7 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0xa34d0
+=========     and Write access at Emi03Advance+0xa3530 [7 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xd6860 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xd68d0 in emi03_resident_device.cuh:320 [7 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xc79d0 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xc7a70 in emi03_resident_device.cuh:320 [6 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x16a5f0 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x16a640 in emi03_resident_device.cuh:320 [48 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0xa34d0
+=========     and Write access at Emi03Advance+0xa3530 [23 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x15dbb0 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x15dc20 in emi03_resident_device.cuh:320 [18 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x140030 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0x1400b0 in emi03_resident_device.cuh:320 [14 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xd6860 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xd68d0 in emi03_resident_device.cuh:320 [11 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x7d840
+=========     and Write access at Emi03Advance+0x7d8b0 [10 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x97fe0
+=========     and Write access at Emi03Advance+0x98040 [10 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x14c10
+=========     and Write access at Emi03Advance+0x14c70 [5 hazards]
+========= 
+========= Error: Race reported between Read access at Emi03Advance+0x79b0
+=========     and Write access at Emi03Advance+0x7a20 [4 hazards]
+========= 
+========= Error: Race reported between Read access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xc79d0 in emi03_resident_device.cuh:319
+=========     and Write access at ohmnivore::<unnamed>::Expressions(const ohmnivore::<unnamed>::Model &, ohmnivore::<unnamed>::Workspace &, ohmnivore::<unnamed>::Shared &, const double *, bool, bool)+0xc7a70 in emi03_resident_device.cuh:320 [4 hazards]
+========= 
+[       OK ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse (3884 ms)
+[----------] 1 test from Emi03Resident (3884 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (3884 ms total)
+[  PASSED  ] 1 test.
+========= RACECHECK SUMMARY: 18 hazards displayed (18 errors, 0 warnings)

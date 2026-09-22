@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+nsight_systems/nsight-systems/2025.3.2/bin/nsys",
+    "profile",
+    "--trace=cuda,nvtx,osrt",
+    "--sample=none",
+    "--cpuctxsw=none",
+    "--gpu-metrics-devices=none",
+    "--force-overwrite=false",
+    "--output=/home/adam/emi03-work/systems-profile-73/resident",
+    "/home/adam/emi03-work/resident-v73-source/emi03_resident_worker",
+    "/home/adam/emi03-work/hardware-profile-70/input.cir",
+    "/home/adam/emi03-work/systems-profile-73/gpu.raw",
+    "/home/adam/emi03-work/systems-profile-73/gpu.json"
+  ],
+  "returncode": 0,
+  "wall_s": 4.926034396979958,
+  "worker_sha256": "99494c3fdd98454755cc68807ffb733b9ecaf35518589a21710f34a5b8b40a9c",
+  "input_sha256": "96d1b506cdd5bed49245f9af992867e4c154ee80761625092211aec0348679c2",
+  "scope": "Instrumented shortened-coupled diagnostic; not gate timing or qualification."
+}

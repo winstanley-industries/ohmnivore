@@ -1,0 +1,38 @@
+[
+  {
+    "tool": "memcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "memcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry"
+    ],
+    "elapsed_s": 10.835884561005514,
+    "exit_code": 0,
+    "pass": true,
+    "scope": "New dense-factor regression on selected100; memcheck all launches, racecheck first resident chunk only"
+  },
+  {
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "--kernel-name",
+      "kns=Emi03Advance",
+      "--launch-count",
+      "1",
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry"
+    ],
+    "elapsed_s": 11.538710199994966,
+    "exit_code": 0,
+    "pass": true,
+    "scope": "New dense-factor regression on selected100; memcheck all launches, racecheck first resident chunk only"
+  }
+]

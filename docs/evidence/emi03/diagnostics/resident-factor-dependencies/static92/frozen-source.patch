@@ -1,0 +1,180 @@
+diff --git a/cuda/emi03_resident.cu b/cuda/emi03_resident.cu
+index 5148f78..53bdb8d 100644
+--- a/cuda/emi03_resident.cu
++++ b/cuda/emi03_resident.cu
+@@ -264,6 +264,21 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
+     for (auto k = matrix.row_offsets[row]; k < matrix.row_offsets[row + 1]; ++k)
+       inputs.push_back(slots[pi[row] * model.n + qi[matrix.column_indices[k]]]);
+   std::vector<FactorEntry> entries(columns.size());
++  // Row equilibration couples every input in a row to its changing entries.
++  // Bit one denotes companion-scale dependence; bit two denotes state.
++  std::vector<unsigned char> row_changes(model.n, 0);
++  for (int row = 0; row < model.n; ++row)
++    for (auto k = system.c.row_offsets[row];
++         k < system.c.row_offsets[row + 1]; ++k)
++      if (system.c.values[k] != 0)
++        row_changes[row] |= 1;
++  for (const auto &descriptor : system.behavioral_descriptors)
++    for (const auto &stamp : descriptor.rows)
++      row_changes[stamp.row] |= 2;
++  for (int row = 0; row < model.n; ++row)
++    for (auto k = matrix.row_offsets[row]; k < matrix.row_offsets[row + 1]; ++k)
++      entries[inputs[k]].changes = row_changes[row];
++  model.factor_row_changes = allocation.Upload(row_changes);
+   std::vector<FactorTerm> terms;
+   std::vector<int> entry_levels(columns.size(), 0);
+   for (int row = 0; row < model.n; ++row)
+@@ -280,6 +295,7 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
+         const int lower = slots[row * model.n + k],
+                   upper = slots[k * model.n + col];
+         if (lower >= 0 && upper >= 0) {
++          entry.changes |= entries[lower].changes | entries[upper].changes;
+           terms.push_back(FactorTerm{static_cast<std::uint16_t>(lower),
+                                      static_cast<std::uint16_t>(upper)});
+           entry_levels[slot] =
+@@ -287,9 +303,11 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
+                        std::max(entry_levels[lower], entry_levels[upper]) + 1);
+         }
+       }
+-      if (row > col)
++      if (row > col) {
++        entry.changes |= entries[diagonal[col]].changes;
+         entry_levels[slot] =
+             std::max(entry_levels[slot], entry_levels[diagonal[col]] + 1);
++      }
+       if (terms.size() - entry.begin > 255)
+         throw BackendError(ErrorCode::kUnsupportedSize,
+                            "resident factor count encoding bound");
+@@ -298,16 +316,28 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
+   model.factor_levels =
+       *std::max_element(entry_levels.begin(), entry_levels.end()) + 1;
+   std::vector<int> factor_order, factor_starts{0};
++  std::vector<unsigned char> level_changes(model.factor_levels, 0);
+   for (int level = 0; level < model.factor_levels; ++level) {
+     for (int slot = 0; slot < static_cast<int>(entries.size()); ++slot)
+-      if (entry_levels[slot] == level)
++      if (entry_levels[slot] == level) {
+         factor_order.push_back(slot);
++        level_changes[level] |= entries[slot].changes;
++      }
+     factor_starts.push_back(static_cast<int>(factor_order.size()));
+   }
+   model.factor_entries = allocation.Upload(entries);
+   model.factor_term = allocation.Upload(terms);
+   model.factor_order = allocation.Upload(factor_order);
+   model.factor_level_offsets = allocation.Upload(factor_starts);
++  model.factor_level_changes = allocation.Upload(level_changes);
++  if (std::getenv("EMI03_RESIDENT_PROFILE")) {
++    for (unsigned mask : {0U, 1U, 2U, 3U})
++      std::fprintf(stderr, "resident dependency mask=%u entries=%zu levels=%zu\n",
++                   mask,
++                   std::count_if(entries.begin(), entries.end(),
++                                 [mask](auto e) { return e.changes == mask; }),
++                   std::count(level_changes.begin(), level_changes.end(), mask));
++  }
+   model.factor_terms = static_cast<int>(terms.size());
+   std::vector<int> forward(model.n, 0), backward(model.n, 0);
+   for (int row = 0; row < model.n; ++row)
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..c6bc314 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -51,6 +51,7 @@ struct FactorTerm {
+ struct FactorEntry {
+   std::uint64_t begin : 24, count : 8;
+   std::int64_t diagonal : 9, pivot : 9;
++  std::uint64_t changes : 2;
+ };
+ static_assert(sizeof(FactorEntry) == 8);
+ struct Model {
+@@ -72,6 +73,8 @@ struct Model {
+   int factor_nonzeros = 0, forward_levels = 0, backward_levels = 0;
+   const int *forward_offsets, *forward_rows, *backward_offsets, *backward_rows;
+   const int *factor_rows, *factor_columns, *factor_diagonal;
++  const unsigned char *factor_row_changes;
++  const unsigned char *factor_level_changes;
+   const int *row_permutation, *column_permutation, *factor_input_slots;
+   const int *row_offsets, *columns, *expression_offsets;
+   const double *g, *c, *b, *hard_points;
+@@ -751,6 +754,11 @@ __device__ void DenseTriangular(const Model &m, Workspace &w, Shared &s,
+ }
+ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+   const auto prepare_start = clock64();
++  const bool reuse = s.factor_valid && s.sparse_factor;
++  const unsigned changes =
++      reuse ? (s.active_scale == s.factored_scale ? 2U : 3U) : 0U;
++  // All warps capture the previous factor state before its owner changes it.
++  __syncthreads();
+   if (threadIdx.x == 0)
+     s.sparse_factor = m.factor_nonzeros > 0;
+   __syncthreads();
+@@ -759,20 +767,28 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+     return;
+   }
+   for (int i = threadIdx.x; i < m.factor_nonzeros; i += Threads)
+-    s.factor[i] = 0;
++    if (!reuse || (s.factor_entries[i].changes & changes))
++      s.factor[i] = 0;
+   __syncthreads();
+   for (int row = threadIdx.x; row < m.n; row += Threads) {
+-    double scale = 0;
+-    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k)
+-      scale = PositiveMaximum(scale, fabs(w.jacobian[k]));
+-    if (!(scale > 0) || !Bounded(scale)) {
+-      Reject(s, Singular);
+-      scale = 1;
++    const bool changed = !reuse || (m.factor_row_changes[row] & changes);
++    double scale = changed ? 0 : w.equil[row];
++    if (changed) {
++      scale = 0;
++      for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k)
++        scale = PositiveMaximum(scale, fabs(w.jacobian[k]));
++      if (!(scale > 0) || !Bounded(scale)) {
++        Reject(s, Singular);
++        scale = 1;
++      }
++      w.equil[row] = scale;
++      w.inverse_equil[row] = __drcp_rn(scale);
+     }
+-    w.equil[row] = scale;
+-    w.inverse_equil[row] = __drcp_rn(scale);
+     double row_norm = 0;
+     for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
++      const int slot = m.factor_input_slots[k];
++      if (reuse && !(s.factor_entries[slot].changes & changes))
++        continue;
+       const double original = w.jacobian[k];
+       const double scaled = isfinite(w.inverse_equil[row])
+                                 ? original * w.inverse_equil[row]
+@@ -780,11 +796,12 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+       row_norm += fabs(original);
+       if (original != 0 && scaled == 0)
+         Reject(s, Nonfinite);
+-      s.factor[m.factor_input_slots[k]] = scaled;
++      s.factor[slot] = scaled;
+     }
+-    w.linear_row_norm[row] = isfinite(w.inverse_equil[row])
+-                                 ? row_norm * w.inverse_equil[row]
+-                                 : row_norm / scale;
++    if (changed)
++      w.linear_row_norm[row] = isfinite(w.inverse_equil[row])
++                                   ? row_norm * w.inverse_equil[row]
++                                   : row_norm / scale;
+   }
+   __syncthreads();
+   if (threadIdx.x == 0) {
+@@ -793,10 +810,14 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+   }
+   __syncthreads();
+   for (int level = 0; level < m.factor_levels && !s.error; ++level) {
++    if (reuse && !(m.factor_level_changes[level] & changes))
++      continue;
+     for (int at = s.factor_level_offsets[level] + threadIdx.x;
+          at < s.factor_level_offsets[level + 1]; at += Threads) {
+       const int slot = s.factor_order[at];
+       const auto entry = s.factor_entries[slot];
++      if (reuse && !(entry.changes & changes))
++        continue;
+       double value = s.factor[slot];
+       for (int j = entry.begin; j < entry.begin + entry.count; ++j) {
+         const auto term = s.factor_term[j];

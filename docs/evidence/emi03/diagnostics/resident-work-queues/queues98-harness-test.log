@@ -1,0 +1,30 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --compilation_mode has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //reference/emi03:ensemble_test (1 packages loaded, 0 targets configured)
+Analyzing: target //reference/emi03:ensemble_test (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //reference/emi03:ensemble_test (83 packages loaded, 24685 targets configured, 74 aspect applications).
+[9 / 63] checking cached actions
+[103 / 698] checking cached actions
+[697 / 698] [Prepa] runfiles for //reference/emi03:ensemble_test
+[698 / 699] Testing //reference/emi03:ensemble_test; 1s linux-sandbox
+INFO: Found 1 test target...
+Target //reference/emi03:ensemble_test up-to-date:
+  bazel-bin/reference/emi03/ensemble_test
+INFO: Elapsed time: 6.970s, Critical Path: 2.23s
+INFO: 6 processes: 693 action cache hit, 5 internal, 2 linux-sandbox.
+INFO: Build completed successfully, 6 total actions
+//reference/emi03:ensemble_test                                          PASSED in 0.5s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

@@ -1,0 +1,54 @@
+[
+  {
+    "stage": "sanitizers",
+    "command": [
+      "python3",
+      "/home/adam/emi03-work/run_pool_sanitizers81.py"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 210.0968804359436
+  },
+  {
+    "stage": "cuda",
+    "command": [
+      "bazel",
+      "test",
+      "-c",
+      "opt",
+      "--config=cuda",
+      "--jobs=1",
+      "--local_test_jobs=1",
+      "//cuda:emi03_cuda_test",
+      "//cuda:emi03_resident_test",
+      "//cuda:emi03_resident_linkage_test",
+      "//cuda:emi03_reduction_test",
+      "//cuda:emi03_linkage_test",
+      "//:cuda_smoke_test"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 26.966331958770752
+  },
+  {
+    "stage": "protocol",
+    "command": [
+      "bazel",
+      "test",
+      "-c",
+      "opt",
+      "--jobs=1",
+      "//reference/emi03:gpu_worker_process_test",
+      "--test_arg=--worker=/home/adam/emi03-work/pool-worker-81"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.9514968395233154
+  },
+  {
+    "stage": "dpt",
+    "command": [
+      "python3",
+      "/home/adam/emi03-work/run_pool_dpt81.py"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 18.540929555892944
+  }
+]

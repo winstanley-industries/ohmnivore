@@ -1,0 +1,28 @@
+{
+  "schema": "emi02-cpu-v2",
+  "status": "complete",
+  "points": 795,
+  "variables": 5,
+  "unknowns": 80,
+  "raw_bytes": 32011,
+  "attempts": 884,
+  "rejected_steps": 90,
+  "nonlinear_rejections": 0,
+  "behavioral_integration_method": "trapezoidal",
+  "behavioral_error_estimator": "derivative-history-audited-v1",
+  "derivative_history_error_estimates": 486,
+  "derivative_history_step_doubling_checks": 379,
+  "step_doubling_error_estimates": 398,
+  "derivative_history_fallback_entries": 2,
+  "derivative_history_fallback_recoveries": 2,
+  "transient_solver_statistics": {
+    "symbolic_analyses": 1,
+    "numeric_factorizations": 1,
+    "numeric_refactorizations": 5221,
+    "numeric_refactorization_fallbacks": 0,
+    "numeric_reuses": 409,
+    "solves": 5631,
+    "iterative_refinement_solves": 3951
+  },
+  "elapsed_seconds": 0.03625813
+}

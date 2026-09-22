@@ -1,0 +1,61 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'build' from /home/adam/code/ohmnivore/.bazelrc:
+  'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --compilation_mode has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //cpp:emi03_schur_probe (1 packages loaded, 0 targets configured)
+Analyzing: target //cpp:emi03_schur_probe (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //cpp:emi03_schur_probe (178 packages loaded, 20702 targets configured, 73 aspect applications).
+[1 / 1] no actions running
+[95 / 742] [Prepa] Writing script cpp/emi03_schur_probe.cppmap
+[246 / 745] checking cached actions
+[428 / 745] Compiling cpp/benchmarks/emi03_schur_probe.cc; 0s linux-sandbox
+[450 / 745] [Scann] Compiling KLU/Source/klu.c
+INFO: From Compiling KLU/Source/klu_diagnostics.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_kernel.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^
+1 warning generated.
+[476 / 745] [Scann] Compiling KLU/Source/klu_scale.c
+INFO: From Compiling KLU/Source/klu_sort.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_z_diagnostics.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_diagnostics.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_z_kernel.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_kernel.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^
+1 warning generated.
+[500 / 745] [Scann] Compiling KLU/Source/klu_z_refactor.c
+INFO: From Compiling KLU/Source/klu_z_sort.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_sort.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+1 warning generated.
+[530 / 745] [Scann] Compiling AMD/Source/amd_preprocess.c
+INFO: Found 1 target...
+Target //cpp:emi03_schur_probe up-to-date:
+  bazel-bin/cpp/emi03_schur_probe
+INFO: Elapsed time: 10.794s, Critical Path: 2.60s
+INFO: 58 processes: 687 action cache hit, 6 internal, 52 linux-sandbox.
+INFO: Build completed successfully, 58 total actions

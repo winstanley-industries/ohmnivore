@@ -1,0 +1,91 @@
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..2f19830 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -860,6 +860,31 @@ __device__ double Equilibrated(double value, int row, const Workspace &w,
+              ? value * w.inverse_equil[row]
+              : value / w.equil[row];
+ }
++// These addresses refer only to scratch placed in shared memory by
++// Emi03Advance. Keep the ordered FP64 operations while avoiding generic loads.
++__device__ __forceinline__ double SharedDouble(unsigned address) {
++  double value;
++  asm volatile("ld.shared.f64 %0, [%1];"
++               : "=d"(value)
++               : "r"(address)
++               : "memory");
++  return value;
++}
++__device__ __forceinline__ int SharedInteger(unsigned address) {
++  int value;
++  asm volatile("ld.shared.s32 %0, [%1];"
++               : "=r"(value)
++               : "r"(address)
++               : "memory");
++  return value;
++}
++__device__ __forceinline__ void StoreSharedDouble(unsigned address,
++                                                  double value) {
++  asm volatile("st.shared.f64 [%0], %1;"
++               :
++               : "r"(address), "d"(value)
++               : "memory");
++}
+ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+                                const double *rhs, double *result) {
+   if (!s.sparse_factor) {
+@@ -868,6 +893,14 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+   }
+   if (threadIdx.x < 32 && !s.error) {
+     const int lane = threadIdx.x;
++    const unsigned factors =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.factor));
++    const unsigned columns =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.factor_columns));
++    const unsigned values =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.triangular));
++    const unsigned inverse =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.inverse));
+     const auto forward_start = clock64();
+     for (int level = 0; level < m.forward_levels; ++level) {
+       for (int at = s.forward_offsets[level] + lane;
+@@ -875,8 +908,10 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+         const int row = s.forward_rows[at], original = s.row_permutation[row];
+         double value = Equilibrated(rhs[original], original, w, s);
+         for (int j = s.factor_rows[row]; j < s.factor_diagonal[row]; ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
+-        s.triangular[row] = value;
++          value = fma(-SharedDouble(factors + j * 8),
++                      SharedDouble(values + SharedInteger(columns + j * 4) * 8),
++                      value);
++        StoreSharedDouble(values + row * 8, value);
+       }
+       __syncwarp();
+     }
+@@ -886,18 +921,21 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+       for (int at = s.backward_offsets[level] + lane;
+            at < s.backward_offsets[level + 1]; at += 32) {
+         const int row = s.backward_rows[at];
+-        double value = s.triangular[row];
++        double value = SharedDouble(values + row * 8);
+         for (int j = s.factor_diagonal[row] + 1; j < s.factor_rows[row + 1];
+              ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
+-        s.triangular[row] = value * s.inverse[row];
+-        if (!Bounded(s.triangular[row]))
++          value = fma(-SharedDouble(factors + j * 8),
++                      SharedDouble(values + SharedInteger(columns + j * 4) * 8),
++                      value);
++        const double solved = value * SharedDouble(inverse + row * 8);
++        StoreSharedDouble(values + row * 8, solved);
++        if (!Bounded(solved))
+           Reject(s, Nonfinite);
+       }
+       __syncwarp();
+     }
+     for (int row = lane; row < m.n; row += 32)
+-      result[s.column_permutation[row]] = s.triangular[row];
++      result[s.column_permutation[row]] = SharedDouble(values + row * 8);
+   }
+   __syncthreads();
+ }

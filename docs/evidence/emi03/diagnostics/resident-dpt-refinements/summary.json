@@ -1,0 +1,1095 @@
+{
+  "scope": "Fresh CPU and GPU DPT refinements only. No ngspice rerun, coupled qualification, aggregate resource gate or throughput acceptance.",
+  "acceptance_pass": false,
+  "dpt_differential_pass": true,
+  "dpt_refinement_pass": true,
+  "comparisons": [
+    {
+      "id": "q0-gpu",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 1.1122324394818861e-08,
+          "limit": 10.78531285607675
+        },
+        "on_edge_s": {
+          "difference": 6.115577879176048e-19,
+          "limit": 3.7190273438115294e-09
+        },
+        "off_edge_s": {
+          "difference": 2.625802136488331e-19,
+          "limit": 3.269407421054973e-09
+        },
+        "on_half_s": {
+          "difference": 1.1722935989999517e-18,
+          "limit": 3.7190273438115294e-09
+        },
+        "off_half_s": {
+          "difference": 1.7753810574450135e-18,
+          "limit": 3.269407421054973e-09
+        },
+        "on_energy_j": {
+          "difference": 2.651326966134071e-14,
+          "limit": 8.21919674605873e-06
+        },
+        "off_energy_j": {
+          "difference": 4.061010696557871e-14,
+          "limit": 4.178435499066896e-06
+        },
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 4.369409278837111e-10,
+          "limit": 0.12244700146849169
+        }
+      },
+      "waveforms": {
+        "v(d)": {
+          "passed": true,
+          "difference_rms": 1.620353849779414e-05,
+          "reference_rms": 224.24883674176232,
+          "limit": 10.0
+        },
+        "v(g)": {
+          "passed": true,
+          "difference_rms": 1.1169427108940058e-06,
+          "reference_rms": 16.634216826982946,
+          "limit": 0.5
+        },
+        "i(lload)": {
+          "passed": true,
+          "difference_rms": 1.396394204811996e-10,
+          "reference_rms": 14.51604738479869,
+          "limit": 0.3103209476959738
+        },
+        "i(vdrain)": {
+          "passed": true,
+          "difference_rms": 1.281726901323866e-06,
+          "reference_rms": 10.605153181289541,
+          "limit": 0.2321030636257908
+        }
+      },
+      "classification_agrees": true
+    },
+    {
+      "id": "q1-gpu",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 3.815898708126042e-09,
+          "limit": 10.785312856159916
+        },
+        "on_edge_s": {
+          "difference": 5.421010862427522e-19,
+          "limit": 3.7132962119470763e-09
+        },
+        "off_edge_s": {
+          "difference": 3.049318610115481e-19,
+          "limit": 3.2661578017559063e-09
+        },
+        "on_half_s": {
+          "difference": 2.2260025853843013e-18,
+          "limit": 3.7132962119470763e-09
+        },
+        "off_half_s": {
+          "difference": 4.9636130709102e-19,
+          "limit": 3.2661578017559063e-09
+        },
+        "on_energy_j": {
+          "difference": 4.2562226529666014e-14,
+          "limit": 8.218950876569639e-06
+        },
+        "off_energy_j": {
+          "difference": 2.2623863096512056e-13,
+          "limit": 4.178334144423554e-06
+        },
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 5.307139172572306e-10,
+          "limit": 0.12244700134024103
+        }
+      },
+      "waveforms": {
+        "v(d)": {
+          "passed": true,
+          "difference_rms": 3.120184613315398e-07,
+          "reference_rms": 224.24893633749318,
+          "limit": 10.0
+        },
+        "v(g)": {
+          "passed": true,
+          "difference_rms": 6.012166918995537e-08,
+          "reference_rms": 16.63420505130357,
+          "limit": 0.5
+        },
+        "i(lload)": {
+          "passed": true,
+          "difference_rms": 1.5479211175023347e-11,
+          "reference_rms": 14.516306587718299,
+          "limit": 0.310326131754366
+        },
+        "i(vdrain)": {
+          "passed": true,
+          "difference_rms": 1.2296632059151915e-07,
+          "reference_rms": 10.60515275705037,
+          "limit": 0.23210305514100738
+        }
+      },
+      "classification_agrees": true
+    },
+    {
+      "id": "q2-gpu",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 1.5183900359261315e-07,
+          "limit": 10.785676896673028
+        },
+        "on_edge_s": {
+          "difference": 2.812149384884277e-19,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_edge_s": {
+          "difference": 2.671711322229514e-17,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_half_s": {
+          "difference": 3.059483005482533e-18,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_half_s": {
+          "difference": 5.788284348356987e-17,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_energy_j": {
+          "difference": 5.353844537842045e-15,
+          "limit": 8.219044841210118e-06
+        },
+        "off_energy_j": {
+          "difference": 2.8176528628744493e-13,
+          "limit": 4.178356475572955e-06
+        },
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 3.1320478433016774e-09,
+          "limit": 0.12249334735880524
+        }
+      },
+      "waveforms": {
+        "v(d)": {
+          "passed": true,
+          "difference_rms": 2.8555754626464847e-07,
+          "reference_rms": 224.24899087434142,
+          "limit": 10.0
+        },
+        "v(g)": {
+          "passed": true,
+          "difference_rms": 9.668586957545991e-08,
+          "reference_rms": 16.634202030562594,
+          "limit": 0.5
+        },
+        "i(lload)": {
+          "passed": true,
+          "difference_rms": 4.3930949962314714e-11,
+          "reference_rms": 14.516436187476783,
+          "limit": 0.3103287237495357
+        },
+        "i(vdrain)": {
+          "passed": true,
+          "difference_rms": 5.81532627084072e-08,
+          "reference_rms": 10.605152915975648,
+          "limit": 0.23210305831951294
+        }
+      },
+      "classification_agrees": true
+    }
+  ],
+  "refinements": [
+    {
+      "id": "cpu-q0-q1",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 4.158266619924689e-09,
+          "limit": 10.785312856159916
+        },
+        "on_edge_s": {
+          "difference": 5.731131864453198e-11,
+          "limit": 3.7132962119470763e-09
+        },
+        "off_edge_s": {
+          "difference": 3.249619299066926e-11,
+          "limit": 3.2661578017559063e-09
+        },
+        "on_half_s": {
+          "difference": 1.501227269360935e-11,
+          "limit": 3.7132962119470763e-09
+        },
+        "off_half_s": {
+          "difference": 5.603715991123019e-12,
+          "limit": 3.2661578017559063e-09
+        },
+        "on_energy_j": {
+          "difference": 4.917389781852093e-09,
+          "limit": 8.218950876569639e-06
+        },
+        "off_energy_j": {
+          "difference": 2.027092866820231e-09,
+          "limit": 4.178334144423554e-06
+        },
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 6.412532727040343e-10,
+          "limit": 0.12244700134024103
+        }
+      }
+    },
+    {
+      "id": "cpu-q1-q2",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 0.018202025655568832,
+          "limit": 10.785676896673028
+        },
+        "on_edge_s": {
+          "difference": 7.267785928199294e-12,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_edge_s": {
+          "difference": 3.8202378628261974e-12,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_half_s": {
+          "difference": 9.236170713607019e-12,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_half_s": {
+          "difference": 3.249080808882137e-12,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_energy_j": {
+          "difference": 1.879292809586243e-09,
+          "limit": 8.219044841210118e-06
+        },
+        "off_energy_j": {
+          "difference": 4.466229880232316e-10,
+          "limit": 4.178356475572955e-06
+        },
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.0002317300928210697,
+          "limit": 0.12249334735880524
+        }
+      }
+    },
+    {
+      "id": "cpu-output-1e-09",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 0.018202325431616373,
+          "limit": 10.785676896673028
+        },
+        "on_edge_s": {
+          "difference": 6.457910533675499e-11,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_edge_s": {
+          "difference": 3.631641880360475e-11,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_half_s": {
+          "difference": 2.424844327846736e-11,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_half_s": {
+          "difference": 8.852848147142419e-12,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_energy_j": {
+          "difference": 3.038142937830104e-09,
+          "limit": 8.219044841210118e-06
+        },
+        "off_energy_j": {
+          "difference": 1.5806006139075079e-09,
+          "limit": 4.178356475572955e-06
+        },
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.00023173067544313142,
+          "limit": 0.12249334735880524
+        }
+      }
+    },
+    {
+      "id": "cpu-output-5e-10",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 0.018202325431616373,
+          "limit": 10.785676896673028
+        },
+        "on_edge_s": {
+          "difference": 7.267785714746991e-12,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_edge_s": {
+          "difference": 3.820264656172385e-12,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_half_s": {
+          "difference": 9.236168704444868e-12,
+          "limit": 3.7125694333542565e-09
+        },
+        "off_half_s": {
+          "difference": 3.249121003983616e-12,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_energy_j": {
+          "difference": 1.879292588490315e-09,
+          "limit": 8.219044841210118e-06
+        },
+        "off_energy_j": {
+          "difference": 4.467546747041057e-10,
+          "limit": 4.178356475572955e-06
+        },
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.00023173067544313142,
+          "limit": 0.12249334735880524
+        }
+      }
+    },
+    {
+      "id": "gpu-q0-q1",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 1.0779956483020214e-08,
+          "limit": 10.785312856083598
+        },
+        "on_edge_s": {
+          "difference": 5.731131979819085e-11,
+          "limit": 3.713296211892866e-09
+        },
+        "off_edge_s": {
+          "difference": 3.249619294831761e-11,
+          "limit": 3.2661578017863995e-09
+        },
+        "on_half_s": {
+          "difference": 1.5012276091905534e-11,
+          "limit": 3.713296211892866e-09
+        },
+        "off_half_s": {
+          "difference": 5.603713719380655e-12,
+          "limit": 3.2661578017863995e-09
+        },
+        "on_energy_j": {
+          "difference": 4.917320706355902e-09,
+          "limit": 8.21895087869775e-06
+        },
+        "off_energy_j": {
+          "difference": 2.0269072382962314e-09,
+          "limit": 4.178334155735486e-06
+        },
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 5.474802833305148e-10,
+          "limit": 0.12244700144638382
+        }
+      }
+    },
+    {
+      "id": "gpu-q1-q2",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 0.018202181310471133,
+          "limit": 10.785676899709808
+        },
+        "on_edge_s": {
+          "difference": 7.267785104883269e-12,
+          "limit": 3.7125694333823778e-09
+        },
+        "off_edge_s": {
+          "difference": 3.820264884871281e-12,
+          "limit": 3.2657757752979126e-09
+        },
+        "on_half_s": {
+          "difference": 9.23617154708744e-12,
+          "limit": 3.7125694333823778e-09
+        },
+        "off_half_s": {
+          "difference": 3.249139188086928e-12,
+          "limit": 3.2657757752979126e-09
+        },
+        "on_energy_j": {
+          "difference": 1.8792448935151754e-09,
+          "limit": 8.219044840942425e-06
+        },
+        "off_energy_j": {
+          "difference": 4.4667851467855395e-10,
+          "limit": 4.17835648966122e-06
+        },
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.00023172643005930915,
+          "limit": 0.12249334673239567
+        }
+      }
+    },
+    {
+      "id": "gpu-output-1e-09",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 0.018202170842698706,
+          "limit": 10.785676899709808
+        },
+        "on_edge_s": {
+          "difference": 6.457910489799192e-11,
+          "limit": 3.7125694333823778e-09
+        },
+        "off_edge_s": {
+          "difference": 3.631645772646274e-11,
+          "limit": 3.2657757752979126e-09
+        },
+        "on_half_s": {
+          "difference": 2.4248446995247933e-11,
+          "limit": 3.7125694333823778e-09
+        },
+        "off_half_s": {
+          "difference": 8.852853354700979e-12,
+          "limit": 3.2657757752979126e-09
+        },
+        "on_energy_j": {
+          "difference": 3.0381016288870757e-09,
+          "limit": 8.219044840942425e-06
+        },
+        "off_energy_j": {
+          "difference": 1.5802260048248759e-09,
+          "limit": 4.17835648966122e-06
+        },
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.00023172870604593054,
+          "limit": 0.12249334673239567
+        }
+      }
+    },
+    {
+      "id": "gpu-output-5e-10",
+      "pass": true,
+      "metrics": {
+        "peak_v": {
+          "difference": 0.018202170842698706,
+          "limit": 10.785676899709808
+        },
+        "on_edge_s": {
+          "difference": 7.26778574015798e-12,
+          "limit": 3.7125694333823778e-09
+        },
+        "off_edge_s": {
+          "difference": 3.8202631230427504e-12,
+          "limit": 3.2657757752979126e-09
+        },
+        "on_half_s": {
+          "difference": 9.236173542697063e-12,
+          "limit": 3.7125694333823778e-09
+        },
+        "off_half_s": {
+          "difference": 3.2491378904324526e-12,
+          "limit": 3.2657757752979126e-09
+        },
+        "on_energy_j": {
+          "difference": 1.8793001899130614e-09,
+          "limit": 8.219044840942425e-06
+        },
+        "off_energy_j": {
+          "difference": 4.4690659834378983e-10,
+          "limit": 4.17835648966122e-06
+        },
+        "frequency_hz": {
+          "difference": 550964.187325269,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 0.00023172870604593054,
+          "limit": 0.12249334673239567
+        }
+      }
+    }
+  ],
+  "records": [
+    {
+      "fixture": "dpt",
+      "id": "q0-cpu",
+      "sample_step_s": 1e-09,
+      "max_step_s": 2e-09,
+      "source_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+      "model": {
+        "importer": "emi02-microchip-import-v1",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "ambient_temperature_c": 27.0,
+        "vt_volts": 0.025864916895449997,
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "archive_bytes": 28318,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "member_bytes": 29805,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapted_bytes": 29136,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "packages": 2,
+        "instances": 4,
+        "expression_tokens": 1066,
+        "mna_unknowns": 80,
+        "expanded_components": 73,
+        "source_deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+        "flat_deck_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545"
+      },
+      "wall_s": 0.6672287890105508,
+      "child_cpu_s": 0.621014,
+      "returncode": 0,
+      "binary_sha256": "4a3387525d3b26f3698e4f9550482c668408c44038b1ddbc9f4b2bcfe2a8d4d5",
+      "status": "qualified",
+      "metrics": {
+        "sample_step_s": 1e-09,
+        "peak_v": 439.2656428038375,
+        "min_v": -19.960670510859256,
+        "peak_gate_v": 24.178574615407328,
+        "min_gate_v": -3.3005984428278046,
+        "load_at_second_on_a": 17.97302986705623,
+        "on_edge_s": 1.7190273438115293e-08,
+        "on_half_s": 1.2024846931209189e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          8.941096042245848,
+          15.790451606700431,
+          10.569568362510305
+        ],
+        "on_energy_j": 0.00012438393492117462,
+        "off_edge_s": 1.269407421054973e-08,
+        "off_half_s": 1.4034733205589418e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.2550204130263665,
+          0.3925871965625741,
+          0.38494733251782937
+        ],
+        "off_energy_j": 4.356870998133791e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.628472320264457,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4045e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.26564280383752,
+            18.09194619191686,
+            11.540699712638911
+          ],
+          "frequency_hz": 66666666.66666354,
+          "log_decrement": 0.6122350073424584
+        },
+        "pass": true
+      },
+      "points": 17971
+    },
+    {
+      "fixture": "dpt",
+      "id": "q0-gpu",
+      "sample_step_s": 1e-09,
+      "max_step_s": 2e-09,
+      "source_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+      "model": {
+        "importer": "emi02-microchip-import-v1",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "ambient_temperature_c": 27.0,
+        "vt_volts": 0.025864916895449997,
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "archive_bytes": 28318,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "member_bytes": 29805,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapted_bytes": 29136,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "packages": 2,
+        "instances": 4,
+        "expression_tokens": 1066,
+        "mna_unknowns": 80,
+        "expanded_components": 73,
+        "source_deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+        "flat_deck_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545"
+      },
+      "wall_s": 9.685707170981914,
+      "child_cpu_s": 0.43046199999999984,
+      "returncode": 0,
+      "binary_sha256": "158aaf54201f90448db83f7221a479725fc46b7784a42300f5dac5ee4d3c79e8",
+      "status": "qualified",
+      "metrics": {
+        "sample_step_s": 1e-09,
+        "peak_v": 439.26564281495985,
+        "min_v": -19.96067051168603,
+        "peak_gate_v": 24.178574615824925,
+        "min_gate_v": -3.300598436827397,
+        "load_at_second_on_a": 17.973029867014226,
+        "on_edge_s": 1.719027343872685e-08,
+        "on_half_s": 1.2024846931210361e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          8.941096042064942,
+          15.790451608701781,
+          10.569568362117174
+        ],
+        "on_energy_j": 0.00012438393489466135,
+        "off_edge_s": 1.2694074210812311e-08,
+        "off_half_s": 1.4034733205591193e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.2550204126696487,
+          0.3925871950460853,
+          0.3849473339652944
+        ],
+        "off_energy_j": 4.3568710021948015e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.6284723200522322,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4045e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.26564281495985,
+            18.091946180748607,
+            11.540699705822703
+          ],
+          "frequency_hz": 66666666.66666354,
+          "log_decrement": 0.6122350077793993
+        },
+        "pass": true
+      },
+      "points": 17770
+    },
+    {
+      "fixture": "dpt",
+      "id": "q1-cpu",
+      "sample_step_s": 5e-10,
+      "max_step_s": 1e-09,
+      "source_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+      "model": {
+        "importer": "emi02-microchip-import-v1",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "ambient_temperature_c": 27.0,
+        "vt_volts": 0.025864916895449997,
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "archive_bytes": 28318,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "member_bytes": 29805,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapted_bytes": 29136,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "packages": 2,
+        "instances": 4,
+        "expression_tokens": 1066,
+        "mna_unknowns": 80,
+        "expanded_components": 73,
+        "source_deck_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+        "flat_deck_sha256": "521a75938f1386667e1b744c0cd7d0ae366daa2154a0e88625074e305585f532"
+      },
+      "wall_s": 0.8173762999940664,
+      "child_cpu_s": 0.7892680000000001,
+      "returncode": 0,
+      "binary_sha256": "4a3387525d3b26f3698e4f9550482c668408c44038b1ddbc9f4b2bcfe2a8d4d5",
+      "status": "qualified",
+      "metrics": {
+        "sample_step_s": 5e-10,
+        "peak_v": 439.2656428079958,
+        "min_v": -19.960670510791726,
+        "peak_gate_v": 24.17857461497132,
+        "min_gate_v": -3.301800377080882,
+        "load_at_second_on_a": 17.973029867325817,
+        "on_edge_s": 1.713296211947076e-08,
+        "on_half_s": 1.2024831918936495e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          9.010302383192275,
+          15.768356869886732,
+          10.545609686126765
+        ],
+        "on_energy_j": 0.00012437901753139277,
+        "off_edge_s": 1.2661578017559061e-08,
+        "off_half_s": 1.4034738809305409e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.247944282781404,
+          0.38796989604319365,
+          0.3890242995593892
+        ],
+        "off_energy_j": 4.356668288847109e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.5353073029344895,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4045e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.26564280799579,
+            18.091946197034588,
+            11.540699728662105
+          ],
+          "frequency_hz": 66666666.66666354,
+          "log_decrement": 0.6122350067012051
+        },
+        "pass": true
+      },
+      "points": 24817
+    },
+    {
+      "fixture": "dpt",
+      "id": "q1-gpu",
+      "sample_step_s": 5e-10,
+      "max_step_s": 1e-09,
+      "source_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+      "model": {
+        "importer": "emi02-microchip-import-v1",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "ambient_temperature_c": 27.0,
+        "vt_volts": 0.025864916895449997,
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "archive_bytes": 28318,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "member_bytes": 29805,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapted_bytes": 29136,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "packages": 2,
+        "instances": 4,
+        "expression_tokens": 1066,
+        "mna_unknowns": 80,
+        "expanded_components": 73,
+        "source_deck_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+        "flat_deck_sha256": "521a75938f1386667e1b744c0cd7d0ae366daa2154a0e88625074e305585f532"
+      },
+      "wall_s": 12.190397198952269,
+      "child_cpu_s": 0.5187970000000002,
+      "returncode": 0,
+      "binary_sha256": "158aaf54201f90448db83f7221a479725fc46b7784a42300f5dac5ee4d3c79e8",
+      "status": "qualified",
+      "metrics": {
+        "sample_step_s": 5e-10,
+        "peak_v": 439.2656428041799,
+        "min_v": -19.960670510878156,
+        "peak_gate_v": 24.178574614264402,
+        "min_gate_v": -3.3018003768564297,
+        "load_at_second_on_a": 17.97302986731782,
+        "on_edge_s": 1.713296211892866e-08,
+        "on_half_s": 1.202483191893427e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          9.010302384896592,
+          15.768356869535472,
+          10.545609686436697
+        ],
+        "on_energy_j": 0.000124379017573955,
+        "off_edge_s": 1.2661578017863993e-08,
+        "off_half_s": 1.4034738809304913e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.247944282996733,
+          0.3879698965256331,
+          0.38902429908338176
+        ],
+        "off_energy_j": 4.356668311470972e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.5353073015401044,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4045e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.26564280417989,
+            18.091946194415925,
+            11.540699715290941
+          ],
+          "frequency_hz": 66666666.66666354,
+          "log_decrement": 0.612235007231919
+        },
+        "pass": true
+      },
+      "points": 24820
+    },
+    {
+      "fixture": "dpt",
+      "id": "q2-cpu",
+      "sample_step_s": 2.5e-10,
+      "max_step_s": 5e-10,
+      "source_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+      "model": {
+        "importer": "emi02-microchip-import-v1",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "ambient_temperature_c": 27.0,
+        "vt_volts": 0.025864916895449997,
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "archive_bytes": 28318,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "member_bytes": 29805,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapted_bytes": 29136,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "packages": 2,
+        "instances": 4,
+        "expression_tokens": 1066,
+        "mna_unknowns": 80,
+        "expanded_components": 73,
+        "source_deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+        "flat_deck_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c"
+      },
+      "wall_s": 1.4182475410052575,
+      "child_cpu_s": 1.4090090000000002,
+      "returncode": 0,
+      "binary_sha256": "4a3387525d3b26f3698e4f9550482c668408c44038b1ddbc9f4b2bcfe2a8d4d5",
+      "status": "qualified",
+      "metrics": {
+        "sample_step_s": 2.5e-10,
+        "peak_v": 439.28384483365136,
+        "min_v": -20.010016121894516,
+        "peak_gate_v": 24.193244891192293,
+        "min_gate_v": -3.3032766889206022,
+        "load_at_second_on_a": 17.973029867357827,
+        "on_edge_s": 1.7125694333542562e-08,
+        "on_half_s": 1.2024822682765782e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          9.013375636382236,
+          15.762798984002007,
+          10.54388574465433
+        ],
+        "on_energy_j": 0.00012438089682420236,
+        "off_edge_s": 1.2657757779696235e-08,
+        "off_half_s": 1.4034742058386218e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.2473733850215876,
+          0.38813900066787765,
+          0.3912259665389615
+        ],
+        "off_energy_j": 4.356712951145911e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.5305101082720949,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4044750000000001e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.28384483365136,
+            18.09194601315994,
+            11.540699654001628
+          ],
+          "frequency_hz": 66115702.47933827,
+          "log_decrement": 0.6124667367940262
+        },
+        "pass": true
+      },
+      "points": 39171
+    },
+    {
+      "fixture": "dpt",
+      "id": "q2-gpu",
+      "sample_step_s": 2.5e-10,
+      "max_step_s": 5e-10,
+      "source_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+      "model": {
+        "importer": "emi02-microchip-import-v1",
+        "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+        "ambient_temperature_c": 27.0,
+        "vt_volts": 0.025864916895449997,
+        "adapter_version": "emi01-microchip-ngspice-v1",
+        "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+        "archive_bytes": 28318,
+        "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+        "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+        "member_bytes": 29805,
+        "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+        "adapted_bytes": 29136,
+        "model_build_date": "2026-05-05",
+        "model_internal_version": "2026.5",
+        "packages": 2,
+        "instances": 4,
+        "expression_tokens": 1066,
+        "mna_unknowns": 80,
+        "expanded_components": 73,
+        "source_deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+        "flat_deck_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c"
+      },
+      "wall_s": 19.602358951000497,
+      "child_cpu_s": 0.7327499999999997,
+      "returncode": 0,
+      "binary_sha256": "158aaf54201f90448db83f7221a479725fc46b7784a42300f5dac5ee4d3c79e8",
+      "status": "qualified",
+      "metrics": {
+        "sample_step_s": 2.5e-10,
+        "peak_v": 439.28384498549036,
+        "min_v": -20.010016123466016,
+        "peak_gate_v": 24.1932448906377,
+        "min_gate_v": -3.3032766923462016,
+        "load_at_second_on_a": 17.97302986736455,
+        "on_edge_s": 1.7125694333823777e-08,
+        "on_half_s": 1.2024822682762722e-05,
+        "on_gate_at_vds_10_50_90_v": [
+          9.013375635690888,
+          15.762798982617841,
+          10.54388574425053
+        ],
+        "on_energy_j": 0.0001243808968188485,
+        "off_edge_s": 1.2657757752979122e-08,
+        "off_half_s": 1.40347420584441e-05,
+        "off_gate_at_vds_10_50_90_v": [
+          3.247373368766067,
+          0.38813895471858234,
+          0.3912260025574768
+        ],
+        "off_energy_j": 4.35671297932244e-05,
+        "gate_dynamics": {
+          "on_edge_gate_drop_v": 1.5305101085596409,
+          "drop_limits_v": [
+            0.2,
+            30.0
+          ],
+          "half_crossing_gate_limits_v": [
+            -3.0,
+            23.0
+          ],
+          "pass": true
+        },
+        "ringing": {
+          "status": "measured",
+          "polarity": "positive",
+          "residual_reference_v": 400.0,
+          "peak_times_s": [
+            1.4044750000000001e-05,
+            1.4060000000000001e-05,
+            1.4075000000000002e-05
+          ],
+          "peak_amplitudes_v": [
+            39.28384498549036,
+            18.091946207114233,
+            11.540699770900517
+          ],
+          "frequency_hz": 66115702.47933827,
+          "log_decrement": 0.6124667336619783
+        },
+        "pass": true
+      },
+      "points": 39171
+    }
+  ]
+}

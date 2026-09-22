@@ -1,6 +1,7 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_python//python:defs.bzl", "py_binary")
 load(":hermeticity.bzl", "solver_cc_boundary_manifest")
 
 package(default_visibility = ["//visibility:private"])
@@ -29,6 +30,7 @@ exports_files(
         "include/ohmnivore/transient.h",
         "include/ohmnivore/waveform.h",
         "src/behavioral.cc",
+        "src/emi02_runner.cc",
         "src/expression.cc",
         "src/expression_internal.h",
         "src/compiler.cc",
@@ -41,8 +43,11 @@ exports_files(
         "src/solver.cc",
         "src/transient.cc",
         "src/waveform.cc",
+        "benchmarks/emi03_worker.cc",
+        "tests/transient_accuracy_cases.cc",
+        "tests/transient_accuracy_cases.h",
     ],
-    visibility = ["//cuda:__pkg__"],
+    visibility = ["//cuda:__pkg__", "//:__pkg__"],
 )
 
 OHMNIVORE_COPTS = [
@@ -474,6 +479,76 @@ cc_binary(
     deps = [":core"],
 )
 
+cc_binary(
+    name = "emi03_cpu_worker",
+    testonly = True,
+    srcs = ["benchmarks/emi03_worker.cc", "src/emi02_runner.cc"],
+    copts = OHMNIVORE_COPTS,
+    local_defines = ["OHMNIVORE_EMI03_WORKER"],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [":core"],
+)
+
+# Profiling hooks are absent from normal compilation. This separate diagnostic
+# build preserves every numerical operation and bounds, but its wall timings
+# include instrumentation and are not ensemble performance evidence.
+cc_library(
+    name = "emi03_profile_core",
+    srcs = [
+        "benchmarks/emi03_profile.h",
+        "src/behavioral.cc",
+        "src/expression.cc",
+        "src/expression_internal.h",
+        "src/compiler.cc",
+        "src/nonlinear.cc",
+        "src/nonlinear_internal.h",
+        "src/parser.cc",
+        "src/prepared_ac.cc",
+        "src/prepared_ac_internal.h",
+        "src/simulator.cc",
+        "src/solver.cc",
+        "src/transient.cc",
+        "src/waveform.cc",
+    ],
+    hdrs = glob(["include/ohmnivore/*.h"]),
+    copts = OHMNIVORE_COPTS,
+    local_defines = ["OHMNIVORE_EMI03_PROFILE"],
+    strip_include_prefix = "include",
+    tags = ["manual"],
+    deps = ["@suitesparse_7_12_3//:klu"],
+)
+
+cc_binary(
+    name = "emi03_profile_runner",
+    srcs = ["benchmarks/emi03_profile.h", "src/emi02_runner.cc"],
+    copts = OHMNIVORE_COPTS,
+    local_defines = ["OHMNIVORE_EMI03_PROFILE"],
+    tags = ["manual"],
+    deps = [":emi03_profile_core"],
+)
+
+py_binary(
+    name = "emi03_profile",
+    srcs = ["benchmarks/emi03_profile.py"],
+    args = [
+        "--cpu=$(rootpath :emi02_runner)",
+        "--profile=$(rootpath :emi03_profile_runner)",
+        "--model-archive=$(rootpath @emi01_microchip_model//file)",
+    ],
+    data = [
+        "benchmarks/emi03_profile.h",
+        ":emi02_runner",
+        ":emi03_profile_runner",
+        "@emi01_microchip_model//file",
+    ],
+    legacy_create_init = False,
+    main = "benchmarks/emi03_profile.py",
+    python_version = "3.12.13",
+    tags = ["manual"],
+    deps = ["//reference/emi02:support"],
+)
+
 cc_test(
     name = "emi02c_review_test",
     # The independent RLC oracle covers 450,000 steps under sanitizers.
@@ -540,4 +615,31 @@ cc_test(
     srcs = ["src/nonlinear_internal.h", "tests/google_test.h", "tests/emi02_prepared_transient_test.cc"],
     copts = OHMNIVORE_COPTS,
     deps = [":core", "@googletest//:gtest_main"],
+)
+
+cc_binary(
+    name = "emi03_schur_probe",
+    testonly = True,
+    srcs = ["benchmarks/emi03_schur_probe.cc"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)
+
+cc_binary(
+    name = "emi03_time_cpu_probe",
+    testonly = True,
+    srcs = ["benchmarks/emi03_time_cpu_probe.cc"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)
+
+cc_binary(
+    name = "emi03_time_nonlinear_fixture",
+    testonly = True,
+    srcs = ["benchmarks/emi03_time_nonlinear_fixture.cc", "src/expression_internal.h"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
 )

@@ -1,0 +1,45 @@
+[('StringIds',), ('ANALYSIS_FILE',), ('ProcessStreams',), ('TARGET_INFO_SYSTEM_ENV',), ('TARGET_INFO_SESSION_START_TIME',), ('ANALYSIS_DETAILS',), ('DIAGNOSTIC_EVENT',), ('PROCESSES',), ('CUPTI_ACTIVITY_KIND_RUNTIME',), ('CUPTI_ACTIVITY_KIND_CUDA_EVENT',), ('CUPTI_ACTIVITY_KIND_KERNEL',), ('CUPTI_ACTIVITY_KIND_MEMCPY',), ('CUPTI_ACTIVITY_KIND_MEMSET',), ('CUPTI_ACTIVITY_KIND_SYNCHRONIZATION',), ('CUPTI_ACTIVITY_KIND_OVERHEAD',), ('OSRT_CALLCHAINS',), ('OSRT_API',), ('PROFILER_OVERHEAD',), ('ThreadNames',), ('TARGET_INFO_GPU',), ('TARGET_INFO_CUDA_DEVICE',), ('TARGET_INFO_CUDA_CONTEXT_INFO',), ('TARGET_INFO_CUDA_STREAM',), ('ENUM_NSYS_EVENT_TYPE',), ('ENUM_NSYS_EVENT_CLASS',), ('ENUM_NSYS_GENERIC_EVENT_SOURCE',), ('ENUM_NSYS_GENERIC_EVENT_GROUP',), ('ENUM_NSYS_GENERIC_EVENT_FIELD_TYPE',), ('ENUM_NSYS_GENERIC_EVENT_FIELD_ETW_PROPERTY',), ('ENUM_NSYS_GENERIC_EVENT_FIELD_ETW_TYPE',), ('ENUM_NSYS_GENERIC_EVENT_FIELD_ETW_FLAGS',), ('ENUM_CUDA_MEMCPY_OPER',), ('ENUM_CUDA_MEM_KIND',), ('ENUM_CUDA_MEMPOOL_TYPE',), ('ENUM_CUDA_MEMPOOL_OPER',), ('ENUM_CUDA_DEV_MEM_EVENT_OPER',), ('ENUM_CUDA_KERNEL_LAUNCH_TYPE',), ('ENUM_CUDA_SHARED_MEM_LIMIT_CONFIG',), ('ENUM_CUDA_UNIF_MEM_MIGRATION',), ('ENUM_CUDA_UNIF_MEM_ACCESS_TYPE',), ('ENUM_CUDA_FUNC_CACHE_CONFIG',), ('ENUM_CUPTI_STREAM_TYPE',), ('ENUM_CUPTI_SYNC_TYPE',), ('ENUM_CUPTI_OVERHEAD_TYPE',), ('ENUM_CUPTI_JIT_ENTRY_TYPE',), ('ENUM_CUPTI_JIT_OPERATION_TYPE',), ('ENUM_STACK_UNWIND_METHOD',), ('ENUM_SAMPLING_THREAD_STATE',), ('ENUM_SCHEDULING_THREAD_BLOCK',), ('ENUM_DIAGNOSTIC_SEVERITY_LEVEL',), ('ENUM_DIAGNOSTIC_SOURCE_TYPE',), ('ENUM_DIAGNOSTIC_TIMESTAMP_SOURCE',), ('ENUM_OSRT_FILE_ACCESS_EVENT_TYPE',), ('META_DATA_CAPTURE',), ('META_DATA_EXPORT',), ('OSRT_FILE_ACCESS_EVENTS',), ('OSRT_FILE_ACCESS_DESCRIPTORS',)]
+[(0, 1, 3, 1, 'Profiling has started.', -144115188075855872), (59142, 1, 2, 1, 'Process was launched by the profiler, see /home/adam/emi03-work/tmp/nvidia/nsight_systems/quadd_session_10698046/streams/pid_698063_stdout.log and stderr.log for program output', 293186530443264), (20031259, 1, 1, 1, 'Common injection library initialized successfully.', 293186530443264), (27055543, 1, 1, 1, 'OS runtime libraries injection initialized successfully.', 293186530443264), (148464775, 1, 1, 1, 'Buffers holding CUDA trace data will be flushed on CudaProfilerStop() call. See --flush-on-cudaprofilerstop to control this behavior.', 293186530443264), (156539622, 1, 1, 1, 'Loaded CUPTI library: /home/adam/.cache/bazel/_bazel_adam/cache/repos/v1/contents/dad6321fdf87979460b49ee84b10dcfe85ece1a33aedc3e5c1f4f24bff55899a/dd545af4-b427-487b-ab64-d57612628022/target-linux-x64/libcupti.so.13.4', 293186530443264), (300833645, 1, 1, 1, 'Enabling trace for device graph launch', 293186530443264), (304432216, 1, 1, 1, 'CUDA injection initialized successfully.', 293186530443264), (357137493, 1, 1, 2, "CUDA device 0: Unified Memory cannot be traced on devices that don't support peer-to-peer transfers.Please verify that SLI/NVLink is functioning properly.", 293186530443264), (428408695, 2, 3, 2, 'Scheduling information is absent. The thread activity is deduced based on OS runtime libraries traces. This is inaccurate and does not take into account asynchronous interrupts and exception faults.', -144115188075855872), (428456406, 2, 3, 2, 'Not all NVTX events might have been collected.', 293186530443264), (428458790, 2, 3, 2, 'No NVTX events collected. Does the process use NVTX?', 293186530443264), (428460083, 2, 3, 1, 'Number of CUDA events collected: \t8755.', 293186530443264), (428461866, 2, 3, 1, 'Number of OS runtime libraries events collected: \t7700.', 293186530443264), (2458209376, 1, 1, 1, 'Number of CUPTI events produced: \t15138, CUPTI buffers: 50.', 293186530443264), (2458216289, 1, 1, 1, 'CUDA legacy/software instrumented trace was collected.', 293186530443264), (2736958188, 1, 3, 1, 'Profiling has stopped.', -144115188075855872), (14894017231, 1, 2, 1, 'Number of Debuginfod queries: 8 (successful queries: 0, timed out queries: 0).', 281474976710656), (14894024185, 1, 2, 1, 'Number of used Debuginfod cached files: 0.', 281474976710656), (14894026118, 1, 2, 1, 'Total time spent on all Debuginfod queries: 11 sec (successful queries: 0 sec).', 281474976710656)]
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+99.6,1859812914,19,97884890.2,118438790.0,4241724,187257985,63980664.7,Emi03Advance
+0.1,1953591,39,50092.1,49793.0,49313,61090,1833.4,"void cudss::solve_btf_lu_ker<double, long, int, (int)512, (int)1, (int)0>(T3, T3, T2 *, T3 *, T1 *, T2 *, T1 *, long, T3 *, T2 *, T3 *, T3 *, T1 *, T3 *, T3 *, T3 *, T3 *, int *, T3, T3, T3)"
+0.1,1673617,5,334723.4,335498.0,330250,337290,2682.7,"ohmnivore::<unnamed>::DiscoverPivots(ohmnivore::<unnamed>::Model, ohmnivore::<unnamed>::Workspace *, int *, bool)"
+0.1,1371398,26,52746.1,53666.0,38177,53793,3022.6,"ohmnivore::<unnamed>::EvaluatePrograms(const ohmnivore::emi03_device::DeviceProgram *, unsigned int, const ohmnivore::internal::ExportedExpressionNode *, const unsigned int *, const unsigned int *, const double *, ohmnivore::emi03_device::DeviceResult *, double *, double *, double *, unsigned int *, unsigned char *, bool)"
+0.1,1124995,19,59210.3,59202.0,58658,60066,342.8,"void cudss::re_main_loop_ker<double, long, int, int, int, double, (int)256, (int)32>(T3, const T4 *, const T5 *, const T5 *, const T5 *, const T1 *, T1 *, T3 *, T2 *, T2 *, T3 *, T1 *, T3 *, T2 *, T3 *, T3 *, T3, T3 *, int, T6, int *, T3 *, int)"
+0.0,738517,1,738517.0,738517.0,738517,738517,0.0,"void offsets_par_ker<int, int, int, (int)128, (int)1>(T1, T1 *, T2 *, T3 *, int *, int)"
+0.0,477806,1,477806.0,477806.0,477806,477806,0.0,"void cudss::main_loop_ker<double, long, int, int, int, double, (int)256, (int)32, (int)24, (int)6, (int)64, (int)0>(T3, const T4 *, const T5 *, const T5 *, const T5 *, const T1 *, T3 *, T3 *, T1 *, T3 *, T3 *, T3 *, T3 *, T3 *, T2 *, T2 *, T3 *, T1 *, T3 *, T2 *, T3 *, T3 *, T3, T3 *, T3 *, int, T6, T6, int *, T3 *, int)"
+0.0,45249,19,2381.5,2368.0,2368,2400,16.2,"void cudss::offdiag_ker<double, int, int, int, (int)256, (int)1>(T2, const T3 *, const T4 *, const T1 *, T2 *, T2 *, T1 *, T2 *, T2 *, T2 *, T2 *, T2, T2 *, int, int *)"
+0.0,39169,39,1004.3,992.0,992,1024,15.8,"void cudss::perm_ker<double, int, (int)128, (int)0>(T2, T2 *, T1 *, T1 *, int *)"
+0.0,34337,39,880.4,896.0,864,896,16.2,"void cudss::perm_ker<double, int, (int)128, (int)1>(T2, T2 *, T1 *, T1 *, int *)"
+0.0,2848,1,2848.0,2848.0,2848,2848,0.0,"void cudss::a_indexes_ker<int, int, (int)256>(T2, const T1 *, const T2 *, T1 *, T2 *, T2 *, int, int)"
+0.0,2464,1,2464.0,2464.0,2464,2464,0.0,"void cudss::offdiag_ker<double, int, int, int, (int)256, (int)0>(T2, const T3 *, const T4 *, const T1 *, T2 *, T2 *, T1 *, T2 *, T2 *, T2 *, T2 *, T2, T2 *, int, int *)"
+0.0,2080,1,2080.0,2080.0,2080,2080,0.0,"void cudss::nnz_per_col_ker<int, int, (int)256>(T2, const T1 *, const T2 *, T1 *, int, int)"
+0.0,1440,1,1440.0,1440.0,1440,1440,0.0,"void cudss::finalize_lu_columns_ker<long, int, (int)256>(T2, T2, T1 *, T1 *, T2 *, T2 *, T2 *, T1 *, T2 *, T2 *, T2 *, int *)"
+0.0,1056,1,1056.0,1056.0,1056,1056,0.0,"void cudss::finalize_pivot_ker<int, (int)256>(T1, T1 *, T1 *, T1 *, T1 *, int *)"
+
+resident resources registers=106 local=0 shared=7904 dynamic=87984 nodes=892 programs=60 levels=14/27/34
+resident plans=5 sparse retries=0 dense=19 terms=879 metadata=1
+resident breakdown value=539430446 ad=292410224 factor_prepare=158787168 forward=725206986 residual=562384974
+resident chord iterations=7424 refreshes=844
+resident expression cache hits=6697
+resident n=185 fill=885 expression=990309433 factor=1027528448 triangular=1783080861 total=5493172141
+Collecting data...
+Generating '/home/adam/emi03-work/tmp/nsys-adam/nsys-report-8f98.qdstrm'
+Press Ctrl-C to stop symbol files downloading
+
+[1/1] [0%                          ] resident.nsys-rep
+[1/1] [0%                          ] resident.nsys-rep
+[1/1] [1%                          ] resident.nsys-rep
+[1/1] [2%                          ] resident.nsys-rep
+[1/1] [5%                          ] resident.nsys-rep
+[1/1] [14%                         ] resident.nsys-rep
+[1/1] [==19%                       ] resident.nsys-rep
+[1/1] [==20%                       ] resident.nsys-rep
+[1/1] [======================91%   ] resident.nsys-rep
+[1/1] [=======================96%  ] resident.nsys-rep
+[1/1] [========================98% ] resident.nsys-rep
+[1/1] [========================100%] resident.nsys-rep
+[1/1] [========================100%] resident.nsys-rep
+Generated:
+	/home/adam/emi03-work/systems-current-profile-73/resident.nsys-rep
+

@@ -1,0 +1,785 @@
+[
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "47a6d554cf95fc5432b7daf59df4816036d75e5a74974a32128f7c68e6af8df7",
+    "candidate": null,
+    "completion_latency_s": 14.736210989009123,
+    "corner": null,
+    "cpu_validation": {
+      "classification_agrees": true,
+      "id": "q0-dpt",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 7.13282355402356e-09,
+          "limit": 0.12244700146849169
+        },
+        "off_edge_s": {
+          "difference": 6.242632821264193e-17,
+          "limit": 3.269407421054973e-09
+        },
+        "off_energy_j": {
+          "difference": 1.1908236061727168e-11,
+          "limit": 4.178435499066896e-06
+        },
+        "off_half_s": {
+          "difference": 1.5028058550185797e-17,
+          "limit": 3.269407421054973e-09
+        },
+        "on_edge_s": {
+          "difference": 5.750167865730543e-17,
+          "limit": 3.7190273438115294e-09
+        },
+        "on_energy_j": {
+          "difference": 7.013517913136147e-13,
+          "limit": 8.21919674605873e-06
+        },
+        "on_half_s": {
+          "difference": 8.571973426213519e-19,
+          "limit": 3.7190273438115294e-09
+        },
+        "peak_v": {
+          "difference": 7.811520958966867e-07,
+          "limit": 10.78531285607675
+        }
+      },
+      "pass": true,
+      "waveforms": {
+        "i(lload)": {
+          "difference_rms": 1.7920838747921458e-10,
+          "limit": 0.3103209476959738,
+          "passed": true,
+          "reference_rms": 14.51604738479869
+        },
+        "i(vdrain)": {
+          "difference_rms": 1.3269464766161188e-06,
+          "limit": 0.2321030636257908,
+          "passed": true,
+          "reference_rms": 10.605153181289541
+        },
+        "v(d)": {
+          "difference_rms": 1.635924309859997e-05,
+          "limit": 10.0,
+          "passed": true,
+          "reference_rms": 224.24883674176232
+        },
+        "v(g)": {
+          "difference_rms": 1.1257622650091394e-06,
+          "limit": 0.5,
+          "passed": true,
+          "reference_rms": 16.634216826982946
+        }
+      }
+    },
+    "cpu_validation_s": 0.004570385965052992,
+    "deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+    "elapsed_s": 14.735081658989657,
+    "files": {
+      "gpu.json": "e4d327d6f8825f8ba1be12f07f973fb07d6375fdbd16d2a0fcdc462c216c2423",
+      "import.json": "2be38fd38d98aa6f733f54c21d7864755952ba52fd218f808b869602fc9b5863",
+      "process.json": "4f98573bf168a8da53c6ea6692403190a73a379531aa27bc5fccb5d411d2561c",
+      "raw.header": "80c7607661da4d273426d4341c8fc910eca0b2e17830a14c6781334495409d0e",
+      "raw.json": "fa08fc38a89bf50d4becb08e2f554da9454feac03b501166cd0a0f287dfd6679",
+      "statistics.json": "a25609569041f32f903af268813494e44d0c472f4bc9cde3d85ef732cc842569"
+    },
+    "fixture": "dpt",
+    "flattened_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 33,
+      "analysis_ns": 63489153,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 202016057,
+      "controlled_peak_device_bytes": 574403,
+      "cudss_estimated_peak_device_bytes": 656004,
+      "cudss_peak_device_bytes": 656004,
+      "current_device_bytes": 0,
+      "expression_batches": 169712,
+      "expression_evaluate_ns": 17781883,
+      "expression_full_ad": 1485630,
+      "expression_prepare_ns": 234430,
+      "expression_program_uploads": 2,
+      "expression_value_only": 3605730,
+      "factor_ns": 94230918,
+      "factorizations": 81556,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/tmp/emi03-job-cscmkmxm/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 1056055,
+      "readback_bytes": 11657136,
+      "readback_ns": 7093053,
+      "refactorizations": 4,
+      "refinements": 73584,
+      "rejected_pivots": 0,
+      "reuses": 44587,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 79094514,
+      "solver_setup_ns": 7644092,
+      "solves": 179617,
+      "successful_solves": 106033,
+      "synchronization_ns": 13602644031,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 511757,
+      "upload_ns": 1057216,
+      "validation_ns": 48912
+    },
+    "id": "q0-dpt",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 73,
+      "expression_tokens": 1066,
+      "flat_deck_sha256": "6969b822bea5cef3b5f02161f397ce7767c7af62f6b12084a4455d132ebd1545",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 4,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 80,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 2,
+      "source_deck_sha256": "ecd4410981ff37ac383fd00401b3038ba751e811f4e3abe4676244050e5668c8",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 0,
+    "max_step_s": 2e-09,
+    "metrics": {
+      "gate_dynamics": {
+        "drop_limits_v": [
+          0.2,
+          30.0
+        ],
+        "half_crossing_gate_limits_v": [
+          -3.0,
+          23.0
+        ],
+        "on_edge_gate_drop_v": 1.6284724304920193,
+        "pass": true
+      },
+      "load_at_second_on_a": 17.97302986725567,
+      "min_gate_v": -3.3005984608735996,
+      "min_v": -19.96067086373793,
+      "off_edge_s": 1.2694074148123403e-08,
+      "off_energy_j": 4.356872188957397e-05,
+      "off_gate_at_vds_10_50_90_v": [
+        3.2550204032658283,
+        0.3925872131075555,
+        0.3849472646235405
+      ],
+      "off_half_s": 1.403473320557439e-05,
+      "on_edge_s": 1.7190273495616972e-08,
+      "on_energy_j": 0.0001243839356225264,
+      "on_gate_at_vds_10_50_90_v": [
+        8.941095931911663,
+        15.790451614795263,
+        10.569568362403682
+      ],
+      "on_half_s": 1.2024846931208332e-05,
+      "pass": true,
+      "peak_gate_v": 24.178574768308266,
+      "peak_v": 439.2656420226854,
+      "ringing": {
+        "frequency_hz": 66666666.66666354,
+        "log_decrement": 0.6122350002096348,
+        "peak_amplitudes_v": [
+          39.26564202268543,
+          18.091946004554927,
+          11.540699647683368
+        ],
+        "peak_times_s": [
+          1.4045e-05,
+          1.4060000000000001e-05,
+          1.4075000000000002e-05
+        ],
+        "polarity": "positive",
+        "residual_reference_v": 400.0,
+        "status": "measured"
+      },
+      "sample_step_s": 1e-09
+    },
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 2.41,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-cscmkmxm/input.cir",
+      "status": "ok",
+      "wall_s": 14.704174168989994,
+      "worker_owner": 0,
+      "worker_pid": 1299608,
+      "worker_request": 1,
+      "worker_thread": 1299609
+    },
+    "queue_s": 0.0010267550242133439,
+    "raw_points": 17767,
+    "raw_sha256": "45104018b68f03edf86def2cbb275b6c6613e83d033745d74440f27ca44924f8",
+    "reference_raw_sha256": "07f7eec507e775b8437ed307c3d67caa70e151b4850af7471a364c0b976de636",
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-cscmkmxm/input.cir",
+    "sample_step_s": 1e-09,
+    "statistics": {
+      "attempts": 20176,
+      "behavioral_error_estimator": "derivative-history-audited-v1",
+      "behavioral_integration_method": "trapezoidal",
+      "derivative_history_error_estimates": 14033,
+      "derivative_history_fallback_entries": 14,
+      "derivative_history_fallback_recoveries": 14,
+      "derivative_history_step_doubling_checks": 6073,
+      "elapsed_seconds": 14.500936132,
+      "nonlinear_rejections": 0,
+      "points": 17767,
+      "raw_bytes": 710891,
+      "rejected_steps": 2410,
+      "schema": "emi02-cpu-v2",
+      "status": "complete",
+      "step_doubling_error_estimates": 6143,
+      "transient_solver_statistics": {
+        "iterative_refinement_solves": 73580,
+        "numeric_factorizations": 81523,
+        "numeric_refactorization_fallbacks": 20082,
+        "numeric_refactorizations": 0,
+        "numeric_reuses": 44587,
+        "solves": 106028,
+        "symbolic_analyses": 32
+      },
+      "unknowns": 80,
+      "variables": 5
+    },
+    "status": "qualified"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "47a6d554cf95fc5432b7daf59df4816036d75e5a74974a32128f7c68e6af8df7",
+    "candidate": null,
+    "completion_latency_s": 18.351059614040423,
+    "corner": null,
+    "cpu_validation": {
+      "classification_agrees": true,
+      "id": "q1-dpt",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6666666.666666355
+        },
+        "log_decrement": {
+          "difference": 4.861922642263039e-09,
+          "limit": 0.12244700134024103
+        },
+        "off_edge_s": {
+          "difference": 2.6759464869657856e-17,
+          "limit": 3.2661578017559063e-09
+        },
+        "off_energy_j": {
+          "difference": 2.87570077613878e-13,
+          "limit": 4.178334144423554e-06
+        },
+        "off_half_s": {
+          "difference": 1.214306433183765e-17,
+          "limit": 3.2661578017559063e-09
+        },
+        "on_edge_s": {
+          "difference": 6.493693386830368e-17,
+          "limit": 3.7132962119470763e-09
+        },
+        "on_energy_j": {
+          "difference": 1.0424656743304034e-12,
+          "limit": 8.218950876569639e-06
+        },
+        "on_half_s": {
+          "difference": 1.1807639284724947e-18,
+          "limit": 3.7132962119470763e-09
+        },
+        "peak_v": {
+          "difference": 7.893769975453324e-07,
+          "limit": 10.785312856159916
+        }
+      },
+      "pass": true,
+      "waveforms": {
+        "i(lload)": {
+          "difference_rms": 1.2845003632168728e-10,
+          "limit": 0.310326131754366,
+          "passed": true,
+          "reference_rms": 14.516306587718299
+        },
+        "i(vdrain)": {
+          "difference_rms": 1.8874286449680003e-06,
+          "limit": 0.23210305514100738,
+          "passed": true,
+          "reference_rms": 10.60515275705037
+        },
+        "v(d)": {
+          "difference_rms": 2.6370121748114787e-05,
+          "limit": 10.0,
+          "passed": true,
+          "reference_rms": 224.24893633749318
+        },
+        "v(g)": {
+          "difference_rms": 1.5762205064194243e-06,
+          "limit": 0.5,
+          "passed": true,
+          "reference_rms": 16.63420505130357
+        }
+      }
+    },
+    "cpu_validation_s": 0.006415781041141599,
+    "deck_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+    "elapsed_s": 18.34900407103123,
+    "files": {
+      "gpu.json": "300ba087a229c1fd5896dcc8040ffbadcc86d97c6e2f16cdcc9ea6df70b31df7",
+      "import.json": "38d9b43a4437f7919558fc6e20771bc3bca110f858fb476449d81d7daa4d89d4",
+      "process.json": "784ed2602ba09d14e98cb8f5e95ba8036f68248b831013c20dedfaa337fdc882",
+      "raw.header": "d3183e881a95b2acb0b0ed0941bdc1563358494a013e3780283a218e4fe033f1",
+      "raw.json": "c14edc2c93463a43da8923a9f5cf9f3797aa8e1563d0af32671ae86ff72952fa",
+      "statistics.json": "d62ce55e3342abede49f6ae9d1bf1e04bf603b8c494bef8d57eb1c211b72e87f"
+    },
+    "fixture": "dpt",
+    "flattened_sha256": "521a75938f1386667e1b744c0cd7d0ae366daa2154a0e88625074e305585f532",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 33,
+      "analysis_ns": 63510965,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 200974165,
+      "controlled_peak_device_bytes": 574403,
+      "cudss_estimated_peak_device_bytes": 656004,
+      "cudss_peak_device_bytes": 656004,
+      "current_device_bytes": 0,
+      "expression_batches": 232070,
+      "expression_evaluate_ns": 17764137,
+      "expression_full_ad": 2039490,
+      "expression_prepare_ns": 139114,
+      "expression_program_uploads": 2,
+      "expression_value_only": 4922610,
+      "factor_ns": 94598427,
+      "factorizations": 104575,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/tmp/emi03-job-haulbtjx/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 1056055,
+      "readback_bytes": 16234824,
+      "readback_ns": 6532150,
+      "refactorizations": 4,
+      "refinements": 98982,
+      "rejected_pivots": 0,
+      "reuses": 63448,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 78922897,
+      "solver_setup_ns": 7524314,
+      "solves": 243160,
+      "successful_solves": 144178,
+      "synchronization_ns": 17359196277,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 511805,
+      "upload_ns": 1148209,
+      "validation_ns": 31661
+    },
+    "id": "q1-dpt",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 73,
+      "expression_tokens": 1066,
+      "flat_deck_sha256": "521a75938f1386667e1b744c0cd7d0ae366daa2154a0e88625074e305585f532",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 4,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 80,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 2,
+      "source_deck_sha256": "d96c3dedb6cbcfee67b4d56feef8535c05dbfa4f78f17c17f0ec690419cdc689",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 1,
+    "max_step_s": 1e-09,
+    "metrics": {
+      "gate_dynamics": {
+        "drop_limits_v": [
+          0.2,
+          30.0
+        ],
+        "half_crossing_gate_limits_v": [
+          -3.0,
+          23.0
+        ],
+        "on_edge_gate_drop_v": 1.5353074534550242,
+        "pass": true
+      },
+      "load_at_second_on_a": 17.97302986718402,
+      "min_gate_v": -3.3018003685855724,
+      "min_v": -19.960670864111908,
+      "off_edge_s": 1.2661578044318526e-08,
+      "off_energy_j": 4.3566683176041166e-05,
+      "off_gate_at_vds_10_50_90_v": [
+        3.2479442955976263,
+        0.38796988686133627,
+        0.3890242347975912
+      ],
+      "off_half_s": 1.4034738809317552e-05,
+      "on_edge_s": 1.7132962184407695e-08,
+      "on_energy_j": 0.00012437901857385844,
+      "on_gate_at_vds_10_50_90_v": [
+        9.01030223271511,
+        15.768356887281401,
+        10.545609686170135
+      ],
+      "on_half_s": 1.2024831918935315e-05,
+      "pass": true,
+      "peak_gate_v": 24.17857476776664,
+      "peak_v": 439.2656420186188,
+      "ringing": {
+        "frequency_hz": 66666666.66666354,
+        "log_decrement": 0.6122350018392825,
+        "peak_amplitudes_v": [
+          39.26564201861879,
+          18.091945999631776,
+          11.540699608873581
+        ],
+        "peak_times_s": [
+          1.4045e-05,
+          1.4060000000000001e-05,
+          1.4075000000000002e-05
+        ],
+        "polarity": "positive",
+        "residual_reference_v": 400.0,
+        "status": "measured"
+      },
+      "sample_step_s": 5e-10
+    },
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 2.69,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-haulbtjx/input.cir",
+      "status": "ok",
+      "wall_s": 18.310008870030288,
+      "worker_owner": 2,
+      "worker_pid": 1299608,
+      "worker_request": 1,
+      "worker_thread": 1299611
+    },
+    "queue_s": 0.0018998479936271906,
+    "raw_points": 24819,
+    "raw_sha256": "32eb2dd903e2578a99ac874cdfb9923b7b9228d11c09c2f5b1a4ea948b1513e7",
+    "reference_raw_sha256": "23d405318717e98316f8a432836371ffefe4fdec2ad9c9f93a9583bb7f8f6be3",
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-haulbtjx/input.cir",
+    "sample_step_s": 5e-10,
+    "statistics": {
+      "attempts": 27189,
+      "behavioral_error_estimator": "derivative-history-audited-v1",
+      "behavioral_integration_method": "trapezoidal",
+      "derivative_history_error_estimates": 18173,
+      "derivative_history_fallback_entries": 8,
+      "derivative_history_fallback_recoveries": 8,
+      "derivative_history_step_doubling_checks": 8950,
+      "elapsed_seconds": 18.108276961,
+      "nonlinear_rejections": 0,
+      "points": 24819,
+      "raw_bytes": 992971,
+      "rejected_steps": 2371,
+      "schema": "emi02-cpu-v2",
+      "status": "complete",
+      "step_doubling_error_estimates": 9016,
+      "transient_solver_statistics": {
+        "iterative_refinement_solves": 98978,
+        "numeric_factorizations": 104542,
+        "numeric_refactorization_fallbacks": 23817,
+        "numeric_refactorizations": 0,
+        "numeric_reuses": 63448,
+        "solves": 144173,
+        "symbolic_analyses": 32
+      },
+      "unknowns": 80,
+      "variables": 5
+    },
+    "status": "qualified"
+  },
+  {
+    "attempts": 1,
+    "backend": "cuda-fp64",
+    "binary_sha256": "47a6d554cf95fc5432b7daf59df4816036d75e5a74974a32128f7c68e6af8df7",
+    "candidate": null,
+    "completion_latency_s": 26.745893993997015,
+    "corner": null,
+    "cpu_validation": {
+      "classification_agrees": true,
+      "id": "q2-dpt",
+      "metrics": {
+        "frequency_hz": {
+          "difference": 0.0,
+          "limit": 6611570.247933827
+        },
+        "log_decrement": {
+          "difference": 9.674502310375033e-09,
+          "limit": 0.12249334735880524
+        },
+        "off_edge_s": {
+          "difference": 5.118620100257737e-17,
+          "limit": 3.2657757779696237e-09
+        },
+        "off_energy_j": {
+          "difference": 5.863419355622325e-13,
+          "limit": 4.178356475572955e-06
+        },
+        "off_half_s": {
+          "difference": 9.480500965438482e-17,
+          "limit": 3.2657757779696237e-09
+        },
+        "on_edge_s": {
+          "difference": 6.132349131531684e-17,
+          "limit": 3.7125694333542565e-09
+        },
+        "on_energy_j": {
+          "difference": 5.213643102311427e-13,
+          "limit": 8.219044841210118e-06
+        },
+        "on_half_s": {
+          "difference": 1.1394287206464848e-17,
+          "limit": 3.7125694333542565e-09
+        },
+        "peak_v": {
+          "difference": 1.4735811646460206e-06,
+          "limit": 10.785676896673028
+        }
+      },
+      "pass": true,
+      "waveforms": {
+        "i(lload)": {
+          "difference_rms": 1.3864170177153288e-10,
+          "limit": 0.3103287237495357,
+          "passed": true,
+          "reference_rms": 14.516436187476783
+        },
+        "i(vdrain)": {
+          "difference_rms": 1.9581891922648777e-06,
+          "limit": 0.23210305831951294,
+          "passed": true,
+          "reference_rms": 10.605152915975648
+        },
+        "v(d)": {
+          "difference_rms": 3.193869275785506e-05,
+          "limit": 10.0,
+          "passed": true,
+          "reference_rms": 224.24899087434142
+        },
+        "v(g)": {
+          "difference_rms": 1.7384514123555644e-06,
+          "limit": 0.5,
+          "passed": true,
+          "reference_rms": 16.634202030562594
+        }
+      }
+    },
+    "cpu_validation_s": 0.010874271974898875,
+    "deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+    "elapsed_s": 26.733495227003004,
+    "files": {
+      "gpu.json": "ffdf21d6db9fe117ef714dfad434671bc0b2b23f2ffba4886f52fc3b6194436e",
+      "import.json": "9c1bd4fbb4effd4a457c827d423b11ca3663739bbca86a8f1763bcc4652a3bb8",
+      "process.json": "ba387cc8fc2f10d7d9fe2a24be5930d0e6ad2470971a570d073fecc241bfc939",
+      "raw.header": "9a37464ac21e66aa3617b466434d829fe8d8ada794264a48993a10cd1aeffffe",
+      "raw.json": "d887a14b374d3d97e49cace6c18ecb56a1f9185155cc96cd4aa39add19cba9c4",
+      "statistics.json": "a7ca67b19625f2452bff88fe6fe1718cbf30a12c9ea1a0d4b6a037c23861fe40"
+    },
+    "fixture": "dpt",
+    "flattened_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c",
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 33,
+      "analysis_ns": 63341638,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 201148020,
+      "controlled_peak_device_bytes": 574403,
+      "cudss_estimated_peak_device_bytes": 656004,
+      "cudss_peak_device_bytes": 656004,
+      "current_device_bytes": 0,
+      "expression_batches": 356118,
+      "expression_evaluate_ns": 17861881,
+      "expression_full_ad": 3137610,
+      "expression_prepare_ns": 97706,
+      "expression_program_uploads": 2,
+      "expression_value_only": 7545930,
+      "factor_ns": 94384444,
+      "factorizations": 156610,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/tmp/emi03-job-vq7z3yro/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 1056055,
+      "readback_bytes": 25552144,
+      "readback_ns": 5826107,
+      "refactorizations": 4,
+      "refinements": 149803,
+      "rejected_pivots": 0,
+      "reuses": 98281,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 78630317,
+      "solver_setup_ns": 7715898,
+      "solves": 370229,
+      "successful_solves": 220426,
+      "synchronization_ns": 25650190453,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 511805,
+      "upload_ns": 1415952,
+      "validation_ns": 32474
+    },
+    "id": "q2-dpt",
+    "import": {
+      "adapted_bytes": 29136,
+      "adapted_sha256": "17732ddd7ab5361073f8f23594e32158270af47d9b7188cf0ce773189cafcf96",
+      "adapter_version": "emi01-microchip-ngspice-v1",
+      "ambient_temperature_c": 27.0,
+      "archive_bytes": 28318,
+      "archive_sha256": "de4a3acf222cbc7f6c1a4d1a2bc449dd31b5db2c6ed153920d797752c3831d51",
+      "expanded_components": 73,
+      "expression_tokens": 1066,
+      "flat_deck_sha256": "12176d0a96c49a4ec4b39b3497756079ebfcecf36653f606c7486d8482be149c",
+      "importer": "emi02-microchip-import-v1",
+      "instances": 4,
+      "member": "1200V-SMA-SiC-MOSFET-SPICE-Models/MSCSMA120.lib",
+      "member_bytes": 29805,
+      "member_sha256": "6e888e103977f539e62b64952797ded391d2a49c59738bfd53f5fbe4b1fc8df7",
+      "mna_unknowns": 80,
+      "model_build_date": "2026-05-05",
+      "model_internal_version": "2026.5",
+      "ngspice_ps_vt_binding": "ambient_thermal_voltage",
+      "packages": 2,
+      "source_deck_sha256": "b51308d4340665fcd6071a00298efede7480fd47840ce3a78a13fd07228de4cb",
+      "vt_volts": 0.025864916895449997
+    },
+    "level": 2,
+    "max_step_s": 5e-10,
+    "metrics": {
+      "gate_dynamics": {
+        "drop_limits_v": [
+          0.2,
+          30.0
+        ],
+        "half_crossing_gate_limits_v": [
+          -3.0,
+          23.0
+        ],
+        "on_edge_gate_drop_v": 1.5305102485569222,
+        "pass": true
+      },
+      "load_at_second_on_a": 17.97302986726348,
+      "min_gate_v": -3.3032766769292823,
+      "min_v": -20.01001389159179,
+      "off_edge_s": 1.2657757830882436e-08,
+      "off_energy_j": 4.3567128925117176e-05,
+      "off_gate_at_vds_10_50_90_v": [
+        3.247373415462621,
+        0.388139066036882,
+        0.39122587181220647
+      ],
+      "off_half_s": 1.4034742058291413e-05,
+      "on_edge_s": 1.7125694394866053e-08,
+      "on_energy_j": 0.00012438089734556667,
+      "on_gate_at_vds_10_50_90_v": [
+        9.013375496346345,
+        15.76279899529581,
+        10.543885744903267
+      ],
+      "on_half_s": 1.2024822682754387e-05,
+      "pass": true,
+      "peak_gate_v": 24.193242959824207,
+      "peak_v": 439.2838433600702,
+      "ringing": {
+        "frequency_hz": 66115702.47933827,
+        "log_decrement": 0.6124667271195239,
+        "peak_amplitudes_v": [
+          39.28384336007019,
+          18.09194560352961,
+          11.540699444398058
+        ],
+        "peak_times_s": [
+          1.4044750000000001e-05,
+          1.4060000000000001e-05,
+          1.4075000000000002e-05
+        ],
+        "polarity": "positive",
+        "residual_reference_v": 400.0,
+        "status": "measured"
+      },
+      "sample_step_s": 2.5e-10
+    },
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 3.03,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/tmp/emi03-job-vq7z3yro/input.cir",
+      "status": "ok",
+      "wall_s": 26.678964466031175,
+      "worker_owner": 1,
+      "worker_pid": 1299608,
+      "worker_request": 1,
+      "worker_thread": 1299610
+    },
+    "queue_s": 0.001340174989309162,
+    "raw_points": 39172,
+    "raw_sha256": "6e143496cc701ee191f04ef8401e194832560915c7ab79d472110836117c7afc",
+    "reference_raw_sha256": "cd14af20b85143480603b9c02511b9c66df194afdfd567ef9016360aa3a86621",
+    "reference_version": "emi01-v2",
+    "request_attempted": true,
+    "request_input": "/home/adam/emi03-work/tmp/emi03-job-vq7z3yro/input.cir",
+    "sample_step_s": 2.5e-10,
+    "statistics": {
+      "attempts": 41504,
+      "behavioral_error_estimator": "derivative-history-audited-v1",
+      "behavioral_integration_method": "trapezoidal",
+      "derivative_history_error_estimates": 26935,
+      "derivative_history_fallback_entries": 6,
+      "derivative_history_fallback_recoveries": 6,
+      "derivative_history_step_doubling_checks": 14506,
+      "elapsed_seconds": 26.476113744,
+      "nonlinear_rejections": 0,
+      "points": 39172,
+      "raw_bytes": 1567091,
+      "rejected_steps": 2333,
+      "schema": "emi02-cpu-v2",
+      "status": "complete",
+      "step_doubling_error_estimates": 14569,
+      "transient_solver_statistics": {
+        "iterative_refinement_solves": 149799,
+        "numeric_factorizations": 156577,
+        "numeric_refactorization_fallbacks": 34437,
+        "numeric_refactorizations": 0,
+        "numeric_reuses": 98281,
+        "solves": 220421,
+        "symbolic_analyses": 32
+      },
+      "unknowns": 80,
+      "variables": 5
+    },
+    "status": "qualified"
+  }
+]

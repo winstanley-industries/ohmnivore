@@ -1,0 +1,346 @@
+[
+  {
+    "name": "lint",
+    "command": [
+      "bazel",
+      "lint"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 2.2069945335388184
+  },
+  {
+    "name": "probe-cpu-build",
+    "command": [
+      "bazel",
+      "build",
+      "-c",
+      "opt",
+      "--jobs=1",
+      "//cpp:emi03_schur_probe"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.8007907867431641
+  },
+  {
+    "name": "probe-gpu-build",
+    "command": [
+      "bazel",
+      "build",
+      "-c",
+      "opt",
+      "--config=cuda",
+      "--jobs=1",
+      "//cuda:emi03_schur_probe"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.40448665618896484
+  },
+  {
+    "name": "probe-gpu-validation",
+    "command": [
+      "/home/adam/code/ohmnivore/bazel-out/k8-opt/bin/cuda/emi03_schur_probe",
+      "/home/adam/emi03-work/schur-replay117.txt",
+      "--validate-only"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.519890546798706
+  },
+  {
+    "name": "build",
+    "command": [
+      "bazel",
+      "build",
+      "--jobs=1",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 3.6606736183166504
+  },
+  {
+    "name": "test",
+    "command": [
+      "bazel",
+      "test",
+      "--jobs=1",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 5.217627048492432
+  },
+  {
+    "name": "asan",
+    "command": [
+      "bazel",
+      "test",
+      "--jobs=1",
+      "--config=asan",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 335.2140836715698
+  },
+  {
+    "name": "ubsan",
+    "command": [
+      "bazel",
+      "test",
+      "--jobs=1",
+      "--config=ubsan",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 296.75455498695374
+  },
+  {
+    "name": "lockfile",
+    "command": [
+      "bazel",
+      "test",
+      "--jobs=1",
+      "--lockfile_mode=error",
+      "//..."
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 223.86671710014343
+  },
+  {
+    "name": "ngspice",
+    "command": [
+      "bazel",
+      "test",
+      "--jobs=1",
+      "//acceptance:ngspice_acceptance_test"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.6993434429168701
+  },
+  {
+    "name": "prepared-ac",
+    "command": [
+      "bazel",
+      "test",
+      "--jobs=1",
+      "//cpp:gpu01_prepared_ac_test",
+      "//cpp:gpu01_replay_test"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 0.30263233184814453
+  },
+  {
+    "name": "prepared-ac-benchmark",
+    "command": [
+      "bazel",
+      "run",
+      "-c",
+      "opt",
+      "//cpp:prepared_ac_replay_benchmark",
+      "--",
+      "--warmups=2",
+      "--repetitions=9"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 26.299785137176514
+  },
+  {
+    "name": "cuda",
+    "command": [
+      "bazel",
+      "test",
+      "-c",
+      "opt",
+      "--config=cuda",
+      "--jobs=1",
+      "--local_test_jobs=1",
+      "//cuda:emi03_cuda_test",
+      "//cuda:emi03_resident_test",
+      "//cuda:emi03_resident_linkage_test",
+      "//cuda:emi03_reduction_test",
+      "//cuda:emi03_linkage_test",
+      "//:cuda_smoke_test"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 8.584858894348145
+  },
+  {
+    "name": "protocol",
+    "command": [
+      "bazel",
+      "test",
+      "-c",
+      "opt",
+      "--jobs=1",
+      "//reference/emi03:gpu_worker_process_test",
+      "--test_arg=--worker=/home/adam/emi03-work/block-100/worker"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "pass_": true,
+    "elapsed_s": 4.516234636306763
+  },
+  {
+    "name": "schur-probe-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=asan",
+      "//cuda:emi03_schur_probe"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.22629022598266602
+  },
+  {
+    "name": "smoke-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=asan",
+      "//cuda:smoke_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.16767072677612305
+  },
+  {
+    "name": "cuda-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=asan",
+      "//cuda:emi03_cuda_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.16994643211364746
+  },
+  {
+    "name": "resident-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=asan",
+      "//cuda:emi03_resident_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.16927409172058105
+  },
+  {
+    "name": "resident-linkage-asan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=asan",
+      "//cuda:emi03_resident_linkage_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.1773829460144043
+  },
+  {
+    "name": "schur-probe-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=ubsan",
+      "//cuda:emi03_schur_probe"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.1906270980834961
+  },
+  {
+    "name": "smoke-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=ubsan",
+      "//cuda:smoke_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.17867183685302734
+  },
+  {
+    "name": "cuda-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=ubsan",
+      "//cuda:emi03_cuda_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.1676037311553955
+  },
+  {
+    "name": "resident-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=ubsan",
+      "//cuda:emi03_resident_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.17382216453552246
+  },
+  {
+    "name": "resident-linkage-ubsan-incompatible",
+    "command": [
+      "bazel",
+      "build",
+      "--config=cuda",
+      "--config=ubsan",
+      "//cuda:emi03_resident_linkage_test"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "pass_": true,
+    "elapsed_s": 0.1708536148071289
+  }
+]

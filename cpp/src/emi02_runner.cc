@@ -19,6 +19,14 @@
 #include "ohmnivore/solver.h"
 #include "ohmnivore/transient.h"
 
+#ifdef OHMNIVORE_EMI03_RESIDENT
+#include "cuda/emi03_resident.h"
+#endif
+
+#ifdef OHMNIVORE_EMI03_PROFILE
+#include "cpp/benchmarks/emi03_profile.h"
+#endif
+
 namespace {
 std::string Lower(std::string value) {
   for (char &c : value)
@@ -28,8 +36,11 @@ std::string Lower(std::string value) {
 }
 } // namespace
 
-int main(int argc, char **argv) {
+int RunEmi02Job(int argc, char **argv) {
   using namespace ohmnivore;
+#ifdef OHMNIVORE_EMI03_PROFILE
+  emi03_profile::counters = {};
+#endif
   if (argc != 4) {
     std::cerr << "usage: emi02_runner input.spice output.raw metadata.json\n";
     return 2;
@@ -132,6 +143,9 @@ int main(int argc, char **argv) {
     std::vector<double> output_record(selected.size() + 1);
     const auto emit = [&](double time,
                           const std::vector<double> &state) -> Result<bool> {
+#ifdef OHMNIVORE_EMI03_PROFILE
+      const emi03_profile::Scope profile(emi03_profile::Phase::kOutput);
+#endif
       const std::size_t added = (selected.size() + 1) * sizeof(double);
       if (points >= 2'000'000 || bytes + added > 512 * 1024 * 1024)
         return Result<bool>::Fail(ErrorCode::kUnsupportedSize,
@@ -176,6 +190,28 @@ int main(int argc, char **argv) {
               : BehavioralNumericalPolicy::transient_maximum_iterations;
       limits.retain_output_states = false;
       limits.accepted_state_observer = emit;
+#ifdef OHMNIVORE_EMI03_RESIDENT
+      auto solved = RunEmi03ResidentTransient(system, *tran, limits);
+      if (!solved.ok()) {
+        raw.close();
+        return fail(solved.error().code, solved.error().message);
+      }
+      const auto &r = solved.value();
+      attempts = r.attempts;
+      rejected = r.rejected;
+      nonlinear_rejections = r.nonlinear_rejections;
+      history_estimates = r.history_estimates;
+      history_checks = r.history_checks;
+      doubling_estimates = r.doubling_estimates;
+      history_fallback_entries = r.history_fallback_entries;
+      history_fallback_recoveries = r.history_fallback_recoveries;
+      solver_statistics = r.solver_statistics;
+      if (points != r.emitted_points) {
+        raw.close();
+        return fail(ErrorCode::kInvalidStructure,
+                    "resident observer count mismatch");
+      }
+#else
       auto solved = RunTransientAnalysis(system, *tran, limits);
       if (!solved.ok()) {
         raw.close();
@@ -201,6 +237,7 @@ int main(int argc, char **argv) {
         raw.close();
         return fail(ErrorCode::kInvalidStructure, "observer count mismatch");
       }
+#endif
     } else {
       Result<std::vector<double>> state = [&]() {
         if (system.behavioral_descriptors.empty())
@@ -272,8 +309,31 @@ int main(int argc, char **argv) {
          << ",\"numeric_reuses\":" << solver_statistics.numeric_reuses
          << ",\"solves\":" << solver_statistics.solves
          << ",\"iterative_refinement_solves\":"
-         << solver_statistics.iterative_refinement_solves << "}"
-         << ",\"elapsed_seconds\":" << elapsed << "}\n";
+         << solver_statistics.iterative_refinement_solves << "}";
+#ifdef OHMNIVORE_EMI03_PROFILE
+    using emi03_profile::Phase;
+    const double assembly_s = emi03_profile::Seconds(Phase::kAssembly);
+    const double linear_s = emi03_profile::Seconds(Phase::kLinearSolve);
+    const double output_s = emi03_profile::Seconds(Phase::kOutput);
+    info << ",\"diagnostic_profile\":{\"schema\":\"emi03-cpu-profile-v2\""
+         << ",\"assembly_evaluation_s\":" << assembly_s
+         << ",\"linear_factor_solve_refinement_validation_s\":" << linear_s
+         << ",\"accepted_state_output_s\":" << output_s
+         << ",\"integration_setup_other_s\":"
+         << elapsed - assembly_s - linear_s - output_s
+         << ",\"assembly_calls\":" << emi03_profile::Calls(Phase::kAssembly)
+         << ",\"linear_calls\":" << emi03_profile::Calls(Phase::kLinearSolve)
+         << ",\"output_calls\":" << emi03_profile::Calls(Phase::kOutput)
+         << ",\"nested_expression_profile\":{"
+         << "\"interpretation\":\"nested in assembly or setup; not additive; "
+            "includes diagnostic instrumentation effects\""
+         << ",\"full_s\":" << emi03_profile::Seconds(Phase::kExpressionFull)
+         << ",\"value_s\":" << emi03_profile::Seconds(Phase::kExpressionValue)
+         << ",\"full_calls\":" << emi03_profile::Calls(Phase::kExpressionFull)
+         << ",\"value_calls\":" << emi03_profile::Calls(Phase::kExpressionValue)
+         << "}}";
+#endif
+    info << ",\"elapsed_seconds\":" << elapsed << "}\n";
     info.close();
     if (!info)
       return fail(ErrorCode::kIo, "metadata close failed");
@@ -285,3 +345,7 @@ int main(int argc, char **argv) {
     return fail(ErrorCode::kIo, error.what());
   }
 }
+
+#ifndef OHMNIVORE_EMI03_WORKER
+int main(int argc, char **argv) { return RunEmi02Job(argc, argv); }
+#endif

@@ -2,6 +2,10 @@
 
 #include "cpp/src/expression_internal.h"
 
+#ifdef OHMNIVORE_EMI03_PROFILE
+#include "cpp/benchmarks/emi03_profile.h"
+#endif
+
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -787,8 +791,81 @@ struct ExpressionAccess {
   }
 };
 
+const void *
+ExpressionProgramIdentity(const CompiledExpression &expression) noexcept {
+  return ExpressionAccess::Program(expression);
+}
+
+Result<ExportedExpressionProgram>
+ExportExpressionProgram(const CompiledExpression &expression) {
+  const auto *program = ExpressionAccess::Program(expression);
+  if (program == nullptr || program->nodes.empty())
+    return Result<ExportedExpressionProgram>::Fail(
+        ErrorCode::kInvalidStructure, "expression program is empty");
+  if (program->state_size > std::numeric_limits<std::uint32_t>::max())
+    return Result<ExportedExpressionProgram>::Fail(
+        ErrorCode::kUnsupportedSize, "expression state exceeds export budget");
+  ExportedExpressionProgram exported;
+  exported.root = static_cast<std::uint32_t>(program->root);
+  exported.state_size = static_cast<std::uint32_t>(program->state_size);
+  exported.dialect = program->dialect;
+  for (const auto &node : program->nodes) {
+    ExportedExpressionOp op = ExportedExpressionOp::kConstant;
+    switch (node.op) {
+    case Op::kConstant:
+      op = ExportedExpressionOp::kConstant;
+      break;
+    case Op::kState:
+      op = ExportedExpressionOp::kState;
+      break;
+    case Op::kNegate:
+      op = ExportedExpressionOp::kNegate;
+      break;
+    case Op::kAdd:
+      op = ExportedExpressionOp::kAdd;
+      break;
+    case Op::kSubtract:
+      op = ExportedExpressionOp::kSubtract;
+      break;
+    case Op::kMultiply:
+      op = ExportedExpressionOp::kMultiply;
+      break;
+    case Op::kDivide:
+      op = ExportedExpressionOp::kDivide;
+      break;
+    case Op::kPower:
+      op = ExportedExpressionOp::kPower;
+      break;
+    case Op::kExp:
+      op = ExportedExpressionOp::kExp;
+      break;
+    case Op::kLess:
+      op = ExportedExpressionOp::kLess;
+      break;
+    case Op::kGreater:
+      op = ExportedExpressionOp::kGreater;
+      break;
+    case Op::kIf:
+      op = ExportedExpressionOp::kIf;
+      break;
+    }
+    exported.nodes.push_back({op, static_cast<std::uint32_t>(node.first),
+                              static_cast<std::uint32_t>(node.second),
+                              static_cast<std::uint32_t>(node.third),
+                              node.value, node.constant ? 1U : 0U});
+  }
+  for (const auto index : program->reverse_ad_indices)
+    exported.reverse_ad_indices.push_back(static_cast<std::uint32_t>(index));
+  for (const auto index : program->dependencies)
+    exported.dependencies.push_back(static_cast<std::uint32_t>(index));
+  return Result<ExportedExpressionProgram>::Ok(std::move(exported));
+}
+
 Result<double> EvaluateExpressionValue(const CompiledExpression &expression,
                                        std::span<const double> state) {
+#ifdef OHMNIVORE_EMI03_PROFILE
+  const emi03_profile::Scope profile(emi03_profile::Phase::kExpressionValue);
+#endif
   const auto *program = ExpressionAccess::Program(expression);
   if (program == nullptr) {
     return Result<double>::Fail(ErrorCode::kInvalidStructure,
@@ -850,6 +927,9 @@ Result<CompiledExpression> CompileExpression(std::string_view text,
 Result<ExpressionEvaluation>
 EvaluateExpression(const CompiledExpression &expression,
                    std::span<const double> state) {
+#ifdef OHMNIVORE_EMI03_PROFILE
+  const emi03_profile::Scope profile(emi03_profile::Phase::kExpressionFull);
+#endif
   if (!expression.program_) {
     return Result<ExpressionEvaluation>::Fail(ErrorCode::kInvalidStructure,
                                               "uncompiled expression");

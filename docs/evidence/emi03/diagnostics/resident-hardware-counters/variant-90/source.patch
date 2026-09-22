@@ -1,0 +1,54 @@
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..a3d1d43 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -860,6 +860,26 @@ __device__ double Equilibrated(double value, int row, const Workspace &w,
+              ? value * w.inverse_equil[row]
+              : value / w.equil[row];
+ }
++__device__ double TriangularRow(const Shared &s, int begin, int end,
++                                double value) {
++  // Prefetch independent operands, retaining the original ordered FP64 FMAs.
++  constexpr int Width = 4;
++  int j = begin;
++  for (; j + Width <= end; j += Width) {
++    double coefficient[Width], operand[Width];
++#pragma unroll
++    for (int k = 0; k < Width; ++k) {
++      coefficient[k] = s.factor[j + k];
++      operand[k] = s.triangular[s.factor_columns[j + k]];
++    }
++#pragma unroll
++    for (int k = 0; k < Width; ++k)
++      value = fma(-coefficient[k], operand[k], value);
++  }
++  for (; j < end; ++j)
++    value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
++  return value;
++}
+ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+                                const double *rhs, double *result) {
+   if (!s.sparse_factor) {
+@@ -874,8 +894,8 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+            at < s.forward_offsets[level + 1]; at += 32) {
+         const int row = s.forward_rows[at], original = s.row_permutation[row];
+         double value = Equilibrated(rhs[original], original, w, s);
+-        for (int j = s.factor_rows[row]; j < s.factor_diagonal[row]; ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
++        value = TriangularRow(s, s.factor_rows[row], s.factor_diagonal[row],
++                              value);
+         s.triangular[row] = value;
+       }
+       __syncwarp();
+@@ -887,9 +907,8 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+            at < s.backward_offsets[level + 1]; at += 32) {
+         const int row = s.backward_rows[at];
+         double value = s.triangular[row];
+-        for (int j = s.factor_diagonal[row] + 1; j < s.factor_rows[row + 1];
+-             ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
++        value = TriangularRow(s, s.factor_diagonal[row] + 1,
++                              s.factor_rows[row + 1], value);
+         s.triangular[row] = value * s.inverse[row];
+         if (!Bounded(s.triangular[row]))
+           Reject(s, Nonfinite);

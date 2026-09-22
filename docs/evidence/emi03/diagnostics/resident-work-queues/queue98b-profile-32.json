@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+nsight_systems_current/bin/nsys",
+    "profile",
+    "--trace=none",
+    "--sample=none",
+    "--cpuctxsw=none",
+    "--gpu-metrics-devices=all",
+    "--gpu-metrics-frequency=10000",
+    "--resolve-symbols=false",
+    "--output=/home/adam/emi03-work/queue98b-profile-32",
+    "/usr/bin/python3",
+    "/home/adam/emi03-work/run_queue98.py",
+    "queue98b-profile-32-data",
+    "16",
+    "32",
+    "1"
+  ],
+  "LD_LIBRARY_PATH": "/home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/bin/reference/emi03/ensemble.runfiles/gcc_toolchain++gcc_toolchains+ohmnivore_cuda_gcc15/lib64:/home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/bin/reference/emi03/ensemble.runfiles/_main/third_party/emi_python",
+  "exit_code": 0,
+  "elapsed_s": 9.537334983993787,
+  "acceptance_pass": false
+}

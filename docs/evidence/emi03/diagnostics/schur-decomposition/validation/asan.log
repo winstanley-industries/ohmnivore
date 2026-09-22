@@ -1,0 +1,346 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:asan in file /home/adam/code/ohmnivore/.bazelrc: --@llvm//config:asan=True
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --@@llvm+//config:asan has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 81 targets (0 packages loaded, 0 targets configured)
+Analyzing: 81 targets (0 packages loaded, 33 targets configured)
+
+INFO: Analyzed 81 targets (5 packages loaded, 33857 targets configured, 200 aspect applications).
+[843 / 851] [Prepa] Writing repo mapping manifest for //reference/emi01:study_test
+[849 / 853] [Prepa] runfiles for //reference/emi01:study_test
+[919 / 1,002] Compiling third_party/ngspice/unavailable_build_tool.cc; 0s linux-sandbox
+[962 / 1,298] [Scann] Compiling crc32.c
+[1,026 / 1,663] [Scann] Compiling AMD/Source/amd_1.c
+INFO: From Compiling KLU/Source/klu_z_sort.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_sort.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_z_kernel.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_kernel.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_z_diagnostics.c:
+In file included from external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_z_diagnostics.c:10:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_sort.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_sort.c:107:9: warning: variable 'n' set but not used [-Wunused-but-set-variable]
+  107 |     Int n, nk, nz, block, nblocks, maxblock, k1 ;
+      |         ^
+1 warning generated.
+[1,067 / 1,797] [Scann] Compiling KLU/Source/klu_kernel.c
+INFO: From Compiling KLU/Source/klu_kernel.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_kernel.c:543:17: warning: variable 'Ux' set but not used [-Wunused-but-set-variable]
+  543 |     Entry *Lx, *Ux ;
+      |                 ^
+1 warning generated.
+INFO: From Compiling KLU/Source/klu_diagnostics.c:
+external/+http_archive+suitesparse_7_12_3/KLU/Source/klu_diagnostics.c:43:14: warning: variable 'Ui' set but not used [-Wunused-but-set-variable]
+   43 |     Int *Q, *Ui, *Uip, *Ulen, *Pinv ;
+      |              ^
+1 warning generated.
+[1,106 / 1,977] [Scann] Compiling cpp/src/transient.cc
+[1,106 / 1,977] Compiling cpp/src/transient.cc; 1s linux-sandbox
+[1,110 / 1,991] [Scann] Compiling cpp/src/simulator.cc
+[1,112 / 2,003] [Scann] Compiling cpp/src/prepared_ac.cc
+[1,114 / 2,005] Compiling cpp/src/parser.cc; 0s linux-sandbox
+[1,116 / 2,005] [Scann] Compiling cpp/src/nonlinear.cc
+[1,118 / 2,097] [Scann] Compiling cpp/src/compiler.cc
+[1,118 / 2,097] Compiling cpp/src/compiler.cc; 1s linux-sandbox
+[1,120 / 2,097] Compiling cpp/src/expression.cc; 0s linux-sandbox
+[1,126 / 2,113] [Scann] Compiling cpp/src/emi02_runner.cc
+[1,129 / 2,119] [Prepa] Writing repo mapping manifest for //reference/emi02:runner_process_test
+[1,365 / 2,996] Compiling googletest/src/gtest-test-part.cc; 0s linux-sandbox
+INFO: From Compiling googletest/src/gtest-test-part.cc:
+In file included from external/googletest+/googletest/src/gtest-test-part.cc:39:
+In file included from external/googletest+/googletest/src/gtest-internal-inl.h:63:
+In file included from external/googletest+/googletest/include/gtest/gtest-spi.h:38:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+INFO: From Compiling googletest/src/gtest-printers.cc:
+In file included from external/googletest+/googletest/src/gtest-printers.cc:43:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,369 / 2,998] Compiling googletest/src/gtest-port.cc; 1s linux-sandbox
+INFO: From Compiling googletest/src/gtest-port.cc:
+In file included from external/googletest+/googletest/src/gtest-port.cc:91:
+In file included from external/googletest+/googletest/include/gtest/gtest-spi.h:38:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+INFO: From Compiling googletest/src/gtest-matchers.cc:
+In file included from external/googletest+/googletest/src/gtest-matchers.cc:35:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,375 / 3,001] [Scann] Compiling googletest/src/gtest-death-test.cc
+INFO: From Compiling googletest/src/gtest-death-test.cc:
+In file included from external/googletest+/googletest/src/gtest-death-test.cc:33:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,377 / 3,001] [Scann] Compiling googletest/src/gtest-assertion-result.cc
+INFO: From Compiling googlemock/src/gmock-matchers.cc:
+In file included from external/googletest+/googlemock/src/gmock-matchers.cc:35:
+In file included from external/googletest+/googlemock/include/gmock/gmock-matchers.h:275:
+In file included from external/googletest+/googlemock/include/gmock/internal/gmock-internal-utils.h:51:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,381 / 3,017] [Scann] Compiling googlemock/src/gmock-internal-utils.cc
+INFO: From Compiling googlemock/src/gmock-internal-utils.cc:
+In file included from external/googletest+/googlemock/src/gmock-internal-utils.cc:36:
+In file included from external/googletest+/googlemock/include/gmock/internal/gmock-internal-utils.h:51:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,383 / 3,045] Compiling googlemock/src/gmock-cardinalities.cc; 0s linux-sandbox
+INFO: From Compiling googlemock/src/gmock-cardinalities.cc:
+In file included from external/googletest+/googlemock/src/gmock-cardinalities.cc:34:
+In file included from external/googletest+/googlemock/include/gmock/gmock-cardinalities.h:48:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,387 / 3,144] Compiling googlemock/src/gmock_main.cc; 0s linux-sandbox
+INFO: From Compiling googlemock/src/gmock_main.cc:
+In file included from external/googletest+/googlemock/src/gmock_main.cc:32:
+In file included from external/googletest+/googlemock/include/gmock/gmock.h:56:
+In file included from external/googletest+/googlemock/include/gmock/gmock-actions.h:146:
+In file included from external/googletest+/googlemock/include/gmock/internal/gmock-internal-utils.h:51:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,395 / 3,159] [Prepa] Writing repo mapping manifest for //cpp:phase2c_simulator_test
+[1,401 / 3,168] Compiling cpp/tests/emi02c_test.cc; 1s linux-sandbox
+[1,412 / 3,269] [Scann] Compiling cpp/tests/transient_accuracy_test.cc
+[1,414 / 3,282] [Prepa] Writing repo mapping manifest for //cpp:transient_accuracy_test
+[1,423 / 3,287] Compiling cpp/tests/phase2b_test.cc; 1s linux-sandbox
+[1,436 / 3,299] [Prepa] Writing repo mapping manifest for //cpp:phase3b_test
+[1,489 / 3,527] BootstrapGNUMake external/rules_foreign_cc+/toolchains/private/make [for tool]; 0s linux-sandbox
+[1,497 / 3,623] [Prepa] Testing //reference/emi01:study_test
+[1,497 / 3,623] Testing //reference/emi01:study_test; 1s linux-sandbox
+[1,499 / 3,623] 1 / 40 tests; Testing //reference/emi01:signals_test; 0s linux-sandbox
+[1,553 / 4,085] 3 / 40 tests; [Scann] Compiling third_party/ngspice/hermetic_tools_builder.cc
+[1,554 / 4,087] 3 / 40 tests; [Prepa] runfiles for //reference/emi01:report_test
+[1,568 / 4,109] 3 / 40 tests; Compiling cpp/tests/emi02b_test.cc; 1s linux-sandbox
+[1,573 / 4,114] 3 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:phase2a_test
+[1,579 / 4,125] 3 / 40 tests; Compiling cpp/tests/phase3c_test.cc; 1s linux-sandbox
+[1,580 / 4,127] 3 / 40 tests; Compiling cpp/tests/emi02_solver_reuse_test.cc; 0s linux-sandbox
+[1,589 / 4,139] 3 / 40 tests; Compiling cpp/tests/phase3a_test.cc; 1s linux-sandbox
+[1,590 / 4,141] 3 / 40 tests; [Scann] Compiling cpp/tests/emi02a_test.cc
+[1,591 / 4,143] 3 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:phase3a_test
+[1,608 / 4,169] 3 / 40 tests; Compiling cpp/src/main.cc; 0s linux-sandbox
+[1,610 / 4,169] 3 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:solver_hermeticity_test
+[1,630 / 4,184] 3 / 40 tests; Compiling cpp/tests/emi02_expression_cache_test.cc; 0s linux-sandbox
+[1,633 / 4,187] 3 / 40 tests; Compiling cpp/benchmarks/prepared_ac_session.cc; 0s linux-sandbox
+[1,637 / 4,188] 3 / 40 tests; Compiling cpp/tests/gpu02s_session_test.cc; 1s linux-sandbox
+[1,638 / 4,190] 3 / 40 tests; Compiling googletest/src/gtest.cc; 0s linux-sandbox
+INFO: From Compiling googletest/src/gtest.cc:
+In file included from external/googletest+/googletest/src/gtest.cc:33:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,639 / 4,190] 3 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:gpu02s_session_test
+INFO: From Compiling googletest/src/gtest-typed-test.cc:
+In file included from external/googletest+/googletest/src/gtest-typed-test.cc:36:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,643 / 4,192] 3 / 40 tests; Compiling googlemock/src/gmock.cc; 0s linux-sandbox
+INFO: From Compiling googlemock/src/gmock.cc:
+In file included from external/googletest+/googlemock/src/gmock.cc:30:
+In file included from external/googletest+/googlemock/include/gmock/gmock.h:56:
+In file included from external/googletest+/googlemock/include/gmock/gmock-actions.h:146:
+In file included from external/googletest+/googlemock/include/gmock/internal/gmock-internal-utils.h:51:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,648 / 4,202] 3 / 40 tests; [Scann] Compiling cpp/tests/emi02c_review_test.cc
+[1,648 / 4,202] 3 / 40 tests; Compiling cpp/tests/emi02c_review_test.cc; 1s linux-sandbox
+[1,665 / 4,219] 3 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:emi02_history_lte_test
+[1,679 / 4,231] 3 / 40 tests; Compiling googlemock/src/gmock-spec-builders.cc; 0s linux-sandbox
+INFO: From Compiling googlemock/src/gmock-spec-builders.cc:
+In file included from external/googletest+/googlemock/src/gmock-spec-builders.cc:35:
+In file included from external/googletest+/googlemock/include/gmock/gmock-spec-builders.h:76:
+In file included from external/googletest+/googlemock/include/gmock/gmock-actions.h:146:
+In file included from external/googletest+/googlemock/include/gmock/internal/gmock-internal-utils.h:51:
+In file included from external/googletest+/googletest/include/gtest/gtest.h:64:
+In file included from external/googletest+/googletest/include/gtest/gtest-death-test.h:43:
+In file included from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47:
+In file included from external/googletest+/googletest/include/gtest/gtest-matchers.h:49:
+external/googletest+/googletest/include/gtest/gtest-printers.h:528:35: warning: implicit conversion from 'char8_t' to 'char32_t' may change the meaning of the represented code unit [-Wcharacter-conversion]
+  528 |   PrintTo(ImplicitCast_<char32_t>(c), os);
+      |           ~~~~~~~~~~~~~           ^
+1 warning generated.
+[1,683 / 4,238] 3 / 40 tests; Compiling cpp/tests/phase2c_transient_test.cc; 1s linux-sandbox
+[1,693 / 4,244] 3 / 40 tests; Testing //reference/emi01:report_test; 0s linux-sandbox
+[1,697 / 4,247] 4 / 40 tests; [Prepa] Linking cpp/libtransient_accuracy_cases.a
+[1,701 / 4,257] 4 / 40 tests; Compiling cpp/tests/emi02_prepared_transient_test.cc; 1s linux-sandbox
+[1,708 / 4,261] 4 / 40 tests; Compiling cpp/tests/phase2d_solver_test.cc; 0s linux-sandbox
+[1,710 / 4,263] 4 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:phase2d_solver_test
+[1,745 / 4,285] 6 / 40 tests; [Prepa] Writing repo mapping manifest for //reference/emi01:metrics_test
+[1,750 / 4,290] 6 / 40 tests; Compiling cpp/tests/phase1_test.cc; 0s linux-sandbox
+[1,765 / 4,309] 6 / 40 tests; Compiling cpp/tests/gpu01_replay_test.cc; 0s linux-sandbox
+[1,773 / 4,322] 6 / 40 tests; Compiling cpp/tests/phase2c_parser_test.cc; 1s linux-sandbox
+[1,779 / 4,330] 6 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:emi02_refinement_test
+[1,785 / 4,334] 6 / 40 tests; [Prepa] Writing repo mapping manifest for //cpp:emi02_newton_test
+[3,434 / 4,335] 6 / 40 tests; checking cached actions
+[4,259 / 4,335] 6 / 40 tests; [Prepa] Testing //reference/emi01:metrics_test
+[4,261 / 4,335] 7 / 40 tests; Testing //reference/emi02:qualification_test; 0s linux-sandbox
+[4,265 / 4,335] 8 / 40 tests; Foreign Cc - Configure: Building ngspice_46_build; 0s linux-sandbox
+[4,265 / 4,335] 8 / 40 tests; Foreign Cc - Configure: Building ngspice_46_build; 10s linux-sandbox
+[4,265 / 4,335] 8 / 40 tests; Foreign Cc - Configure: Building ngspice_46_build; 40s linux-sandbox
+[4,266 / 4,335] 8 / 40 tests; [Prepa] Linking cpp/emi02_newton_test
+[4,267 / 4,335] 8 / 40 tests; Linking third_party/ngspice/hermetic_tools_builder; 0s linux-sandbox
+[4,272 / 4,336] 8 / 40 tests; [Prepa] runfiles for //cpp:emi02_refinement_test
+[4,276 / 4,337] 8 / 40 tests; [Prepa] runfiles for //cpp:phase2c_parser_test
+[4,283 / 4,339] 8 / 40 tests; [Prepa] Linking cpp/phase1_test
+[4,287 / 4,340] 8 / 40 tests; [Prepa] runfiles for //reference/emi02:runner_process_test
+[4,291 / 4,342] 8 / 40 tests; [Prepa] runfiles for //cpp:phase2c_transient_test
+[4,294 / 4,344] 8 / 40 tests; Linking cpp/emi02_history_lte_test; 0s linux-sandbox
+[4,298 / 4,346] 8 / 40 tests; Linking cpp/emi02c_test; 0s linux-sandbox
+[4,303 / 4,347] 8 / 40 tests; [Prepa] runfiles for //cpp:emi02c_review_test
+[4,307 / 4,349] 8 / 40 tests; [Prepa] runfiles for //cpp:gpu01_prepared_ac_test
+[4,311 / 4,351] 8 / 40 tests; [Prepa] runfiles for //cpp:gpu02s_session_test
+[4,315 / 4,353] 8 / 40 tests; [Prepa] runfiles for //cpp:emi02_expression_cache_test
+[4,318 / 4,354] 8 / 40 tests; Linking cpp/emi02b_test; 0s linux-sandbox
+[4,323 / 4,356] 8 / 40 tests; [Prepa] runfiles for //cpp:ohmnivore
+[4,327 / 4,357] 8 / 40 tests; [Prepa] runfiles for //cpp:solver_hermeticity_test
+[4,331 / 4,359] 8 / 40 tests; [Prepa] runfiles for //cpp:emi02a_test
+[4,338 / 4,362] 12 / 40 tests; Testing //cpp:emi02c_test; 0s linux-sandbox
+[4,339 / 4,362] 12 / 40 tests; Testing //cpp:emi02c_review_test; 1s linux-sandbox
+[4,339 / 4,362] 12 / 40 tests; Testing //cpp:emi02c_review_test; 11s linux-sandbox
+[4,339 / 4,362] 12 / 40 tests; Testing //cpp:emi02c_review_test; 41s linux-sandbox
+[4,339 / 4,362] 13 / 40 tests; Testing //cpp:emi02c_review_test; 86s linux-sandbox
+[4,340 / 4,362] 13 / 40 tests; Testing //cpp:transient_accuracy_test; 1s linux-sandbox
+[4,340 / 4,362] 13 / 40 tests; Testing //cpp:transient_accuracy_test; 11s linux-sandbox
+[4,340 / 4,362] 14 / 40 tests; Testing //cpp:transient_accuracy_test; 29s linux-sandbox
+[4,343 / 4,362] 16 / 40 tests; Testing //cpp:gpu02s_session_test; 1s linux-sandbox
+[4,343 / 4,362] 16 / 40 tests; Testing //cpp:gpu02s_session_test; 11s linux-sandbox
+[4,343 / 4,362] 17 / 40 tests; Testing //cpp:gpu02s_session_test; 15s linux-sandbox
+[4,346 / 4,362] 19 / 40 tests; Testing //reference/emi03:worker_process_test; 0s linux-sandbox
+[4,350 / 4,362] 23 / 40 tests; Testing //reference/emi02:runner_process_test; 0s linux-sandbox
+[4,352 / 4,362] 25 / 40 tests; Testing //cpp:phase2c_transient_test; 0s linux-sandbox
+[4,353 / 4,362] 26 / 40 tests; Testing //cpp:emi02_prepared_transient_test; 1s linux-sandbox
+[4,353 / 4,362] 27 / 40 tests; Testing //cpp:emi02_prepared_transient_test; 4s linux-sandbox
+[4,355 / 4,362] 29 / 40 tests; Testing //cpp:emi02_history_lte_test; 1s linux-sandbox
+[4,357 / 4,362] 30 / 40 tests; Testing //cpp:solver_hermeticity_test; 1s linux-sandbox
+[4,357 / 4,362] 30 / 40 tests; Testing //cpp:solver_hermeticity_test; 6s linux-sandbox
+[4,359 / 4,362] 32 / 40 tests; Testing //cpp:emi02a_test; 1s linux-sandbox
+[4,359 / 4,362] 33 / 40 tests; Testing //cpp:emi02a_test; 10s linux-sandbox
+INFO: Found 41 targets and 40 test targets...
+INFO: Elapsed time: 335.180s, Critical Path: 88.86s
+INFO: 348 processes: 4014 action cache hit, 127 internal, 232 linux-sandbox.
+INFO: Build completed successfully, 348 total actions
+//acceptance:emi02b_expression_test                                     SKIPPED
+//acceptance:ngspice_acceptance_test                                    SKIPPED
+//reference/emi01:adapter_test                                          SKIPPED
+//reference/emi02:device_dynamic_test                                   SKIPPED
+//reference/emi02:importer_oracle_test                                  SKIPPED
+//cpp:emi02_expression_cache_test                                        PASSED in 0.1s
+//cpp:emi02_history_lte_test                                             PASSED in 1.6s
+//cpp:emi02_newton_test                                                  PASSED in 0.1s
+//cpp:emi02_prepared_transient_test                                      PASSED in 4.0s
+//cpp:emi02_refinement_test                                              PASSED in 0.0s
+//cpp:emi02_solver_reuse_test                                            PASSED in 0.1s
+//cpp:emi02a_test                                                        PASSED in 10.3s
+//cpp:emi02b_test                                                        PASSED in 0.3s
+//cpp:emi02c_review_test                                                 PASSED in 86.1s
+//cpp:emi02c_test                                                        PASSED in 0.2s
+//cpp:gpu01_prepared_ac_test                                             PASSED in 0.1s
+//cpp:gpu01_replay_test                                                  PASSED in 0.6s
+//cpp:gpu02s_session_test                                                PASSED in 15.3s
+//cpp:phase1_test                                                        PASSED in 0.0s
+//cpp:phase2a_test                                                       PASSED in 0.1s
+//cpp:phase2b_test                                                       PASSED in 0.1s
+//cpp:phase2c_parser_test                                                PASSED in 0.0s
+//cpp:phase2c_simulator_test                                             PASSED in 0.1s
+//cpp:phase2c_transient_test                                             PASSED in 0.3s
+//cpp:phase2d_solver_test                                                PASSED in 0.0s
+//cpp:phase3a_test                                                       PASSED in 0.1s
+//cpp:phase3b_test                                                       PASSED in 0.2s
+//cpp:phase3c_test                                                       PASSED in 0.1s
+//cpp:solver_hermeticity_test                                            PASSED in 6.5s
+//cpp:transient_accuracy_test                                            PASSED in 29.3s
+//reference/emi01:metrics_test                                           PASSED in 0.6s
+//reference/emi01:report_test                                            PASSED in 0.4s
+//reference/emi01:signals_test                                           PASSED in 0.4s
+//reference/emi01:study_test                                             PASSED in 2.0s
+//reference/emi02:importer_test                                          PASSED in 0.3s
+//reference/emi02:qualification_test                                     PASSED in 0.5s
+//reference/emi02:runner_process_test                                    PASSED in 0.4s
+//reference/emi03:ensemble_test                                          PASSED in 0.4s
+//reference/emi03:worker_process_test                                    PASSED in 0.2s
+//third_party/emi_python:runtime_test                                    PASSED in 0.3s
+
+Executed 35 out of 40 tests: 35 tests pass and 5 were skipped.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

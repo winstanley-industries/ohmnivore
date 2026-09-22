@@ -1,0 +1,150 @@
+{
+  "acceptance_pass": false,
+  "canonical_checks": 19,
+  "distinct_coupled_prefix_inputs": 9,
+  "dpt_refinements": 8,
+  "gpu_waveform_comparisons": 58,
+  "hardware_profile_waveforms": {
+    "i(lch)": {
+      "limit": 0.05829304628232079,
+      "pass": true,
+      "rms_error": 4.003070044666376e-05
+    },
+    "i(lcma)": {
+      "limit": 0.02000036030557083,
+      "pass": true,
+      "rms_error": 8.167778171678975e-12
+    },
+    "i(lcmb)": {
+      "limit": 0.020000360305570796,
+      "pass": true,
+      "rms_error": 8.166800886858527e-12
+    },
+    "i(lda)": {
+      "limit": 0.020009377185160368,
+      "pass": true,
+      "rms_error": 5.241143392722123e-09
+    },
+    "i(ldb)": {
+      "limit": 0.020009377185160365,
+      "pass": true,
+      "rms_error": 5.241143420905047e-09
+    },
+    "i(lload)": {
+      "limit": 0.020000000000000365,
+      "pass": true,
+      "rms_error": 2.3935917610270524e-18
+    },
+    "i(va)": {
+      "limit": 0.020000803342320073,
+      "pass": true,
+      "rms_error": 6.040781358002223e-10
+    },
+    "i(vb)": {
+      "limit": 0.020000803342316565,
+      "pass": true,
+      "rms_error": 6.040183107948026e-10
+    },
+    "i(vdah)": {
+      "limit": 0.07069148819264967,
+      "pass": true,
+      "rms_error": 1.1737518937738678e-05
+    },
+    "i(vdal)": {
+      "limit": 0.06489681168626768,
+      "pass": true,
+      "rms_error": 1.9188866100354657e-05
+    },
+    "i(vdbh)": {
+      "limit": 0.07069148819268027,
+      "pass": true,
+      "rms_error": 1.1737517920012344e-05
+    },
+    "i(vdbl)": {
+      "limit": 0.06489681168625995,
+      "pass": true,
+      "rms_error": 1.9188867593036564e-05
+    },
+    "v(a)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005930553125658869
+    },
+    "v(b)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005930553106137146
+    },
+    "v(ch)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005737837837529286
+    },
+    "v(fa)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005736838592697657
+    },
+    "v(fb)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005736838612803565
+    },
+    "v(ga)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 2.1541897864951614e-05
+    },
+    "v(gb)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 2.154189884724768e-05
+    },
+    "v(la)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005737816364270121
+    },
+    "v(lb)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005737816364220378
+    },
+    "v(lr)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005737816364148123
+    },
+    "v(p)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005203686958019275
+    },
+    "v(xcap)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005736838612585989
+    },
+    "v(yca)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005737831081960715
+    },
+    "v(ycb)": {
+      "limit": 10.0,
+      "pass": true,
+      "rms_error": 0.0005737831081964582
+    }
+  },
+  "historical_packaging_failures_retained": 3,
+  "pass": true,
+  "prefix_setup_failures_retained": 1,
+  "raw_trajectories": 75,
+  "sanitizer_checks": 7,
+  "scope": "Source, raw, DPT/refinement, resource and diagnostic reconstruction; variant 100 selected for continued qualification, no full EMI-03 acceptance",
+  "source_variants": [
+    99,
+    100,
+    101
+  ]
+}

@@ -1,0 +1,16 @@
+diff --git a/cuda/emi03_resident.cu b/cuda/emi03_resident.cu
+index 5148f78..f27affb 100644
+--- a/cuda/emi03_resident.cu
++++ b/cuda/emi03_resident.cu
+@@ -175,8 +175,9 @@ void PrepareFactorPlan(const MnaSystem &system, const TranAnalysis &analysis,
+   auto csc = converted.TakeValue();
+   klu_common common;
+   klu_defaults(&common);
+-  common.ordering =
+-      1; // COLAMD: structural ordering only, never a CPU numeric solve.
++  // Change the symbolic ordering after a numeric pivot has invalidated the
++  // initial AMD plan. Both plans use GPU numeric pivot discovery and solves.
++  common.ordering = refresh ? 1 : 0;
+   const auto release_symbolic = [&common](klu_symbolic *value) {
+     if (value)
+       klu_free_symbolic(&value, &common);

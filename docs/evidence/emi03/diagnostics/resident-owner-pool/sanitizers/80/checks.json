@@ -1,0 +1,92 @@
+[
+  {
+    "name": "race-cache",
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-80/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "pass": true,
+    "elapsed_s": 4.223514556884766,
+    "binary_sha256": "13c86310bd112d855d68098416e1b6ee23ce03004e4319c5d5b9a9315509e95e",
+    "scope": "Instrumented correctness only; wide test race checking covers only its first resident kernel chunk; other selected checks cover all launches."
+  },
+  {
+    "name": "memcheck",
+    "tool": "memcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "memcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-80/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "pass": true,
+    "elapsed_s": 55.471736907958984,
+    "binary_sha256": "13c86310bd112d855d68098416e1b6ee23ce03004e4319c5d5b9a9315509e95e",
+    "scope": "Instrumented correctness only; wide test race checking covers only its first resident kernel chunk; other selected checks cover all launches."
+  },
+  {
+    "name": "synccheck",
+    "tool": "synccheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "synccheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-80/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "pass": true,
+    "elapsed_s": 40.089598417282104,
+    "binary_sha256": "13c86310bd112d855d68098416e1b6ee23ce03004e4319c5d5b9a9315509e95e",
+    "scope": "Instrumented correctness only; wide test race checking covers only its first resident kernel chunk; other selected checks cover all launches."
+  },
+  {
+    "name": "initcheck",
+    "tool": "initcheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "initcheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-80/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate:Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption:Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse"
+    ],
+    "exit_code": 0,
+    "pass": true,
+    "elapsed_s": 52.82578945159912,
+    "binary_sha256": "13c86310bd112d855d68098416e1b6ee23ce03004e4319c5d5b9a9315509e95e",
+    "scope": "Instrumented correctness only; wide test race checking covers only its first resident kernel chunk; other selected checks cover all launches."
+  },
+  {
+    "name": "race-expressions",
+    "tool": "racecheck",
+    "command": [
+      "/home/adam/emi03-work/pinned-profiler-bazel/external/+http_archive+compute_sanitizer_current/compute-sanitizer/compute-sanitizer",
+      "--tool",
+      "racecheck",
+      "--error-exitcode",
+      "99",
+      "/home/adam/emi03-work/pool-test-runtime-80/cuda/emi03_resident_test",
+      "--gtest_filter=Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives:Emi03Resident.NestedLazyBranchesPreserveDomains"
+    ],
+    "exit_code": 99,
+    "pass": false,
+    "elapsed_s": 340.0141091346741,
+    "binary_sha256": "13c86310bd112d855d68098416e1b6ee23ce03004e4319c5d5b9a9315509e95e",
+    "scope": "Instrumented correctness only; wide test race checking covers only its first resident kernel chunk; other selected checks cover all launches."
+  }
+]

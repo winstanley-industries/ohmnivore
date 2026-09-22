@@ -1,0 +1,31 @@
+--- a/cuda/emi03_expression.cu
++++ b/cuda/emi03_expression.cu
+@@ -66 +66,4 @@
+-                                 double *all_gradients, bool derivatives) {
++                                 double *all_gradients, double *all_values,
++                                 double *all_adjoints,
++                                 std::uint32_t *all_stacks,
++                                 unsigned char *all_stages, bool derivatives) {
+@@ -83,2 +86,5 @@
+-  double values[kMaximumNodes];
+-  double adjoints[kMaximumNodes];
++  // Dynamic indexing of large thread-local arrays creates opaque driver-backed
++  // local-memory residency. Size this workspace to the actual program nodes
++  // instead, and charge every byte to the shared device-allocation ledger.
++  auto *values = all_values + program.node_offset;
++  auto *adjoints = all_adjoints + program.node_offset;
+@@ -89,2 +95,2 @@
+-  std::uint32_t stack[65];
+-  unsigned char stage[65];
++  auto *stack = all_stacks + index * 65;
++  auto *stage = all_stages + index * 65;
+@@ -354,0 +361,4 @@
++    device_values_.Allocate(nodes.size() * sizeof(double));
++    device_adjoints_.Allocate(nodes.size() * sizeof(double));
++    device_stacks_.Allocate(programs_.size() * 65 * sizeof(std::uint32_t));
++    device_stages_.Allocate(programs_.size() * 65 * sizeof(unsigned char));
+@@ -383,0 +394,2 @@
++        device_values_.as<double>(), device_adjoints_.as<double>(),
++        device_stacks_.as<std::uint32_t>(), device_stages_.as<unsigned char>(),
+@@ -463,0 +476 @@
++  DeviceBuffer device_values_, device_adjoints_, device_stacks_, device_stages_;

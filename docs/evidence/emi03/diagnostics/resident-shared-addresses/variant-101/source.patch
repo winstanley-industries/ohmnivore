@@ -1,0 +1,224 @@
+diff --git a/cuda/emi03_expression_device.cuh b/cuda/emi03_expression_device.cuh
+index 128a26f..50f705a 100644
+--- a/cuda/emi03_expression_device.cuh
++++ b/cuda/emi03_expression_device.cuh
+@@ -41,8 +41,8 @@ __device__ inline double Denominator(double value) {
+   return value + (value >= 0 ? 1e-32 : -1e-32);
+ }
+ 
+-template <typename Node>
+-__device__ inline void AddAdjoint(const Node *nodes, double *adjoints,
++template <typename Node, typename Adjoints>
++__device__ inline void AddAdjoint(const Node *nodes, Adjoints adjoints,
+                                   std::uint32_t child, double adjoint,
+                                   double factor, bool *error) {
+   if (nodes[child].constant)
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..2fbd157 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -8,6 +8,58 @@ constexpr int Nonconvergence = static_cast<int>(ErrorCode::kNonConvergence) + 1;
+ constexpr int Invalid = static_cast<int>(ErrorCode::kSolutionValidation) + 1;
+ constexpr int Budget = static_cast<int>(ErrorCode::kUnsupportedSize) + 1;
+ 
++// These addresses refer only to scratch placed in shared memory by
++// Emi03Advance. Keep the ordered FP64 operations while avoiding generic loads.
++__device__ __forceinline__ double SharedDouble(unsigned address) {
++  double value;
++  asm volatile("ld.shared.f64 %0, [%1];"
++               : "=d"(value)
++               : "r"(address)
++               : "memory");
++  return value;
++}
++__device__ __forceinline__ int SharedInteger(unsigned address) {
++  int value;
++  asm volatile("ld.shared.s32 %0, [%1];"
++               : "=r"(value)
++               : "r"(address)
++               : "memory");
++  return value;
++}
++__device__ __forceinline__ void StoreSharedDouble(unsigned address,
++                                                  double value) {
++  asm volatile("st.shared.f64 [%0], %1;"
++               :
++               : "r"(address), "d"(value)
++               : "memory");
++}
++// A shared-address view for resident-only expression scratch. The standalone
++// expression executor retains its global pointers and the same AD arithmetic.
++struct SharedDoubleReference {
++  unsigned address;
++  __device__ operator double() const { return SharedDouble(address); }
++  __device__ SharedDoubleReference &operator=(double value) {
++    StoreSharedDouble(address, value);
++    return *this;
++  }
++  __device__ SharedDoubleReference &
++  operator=(const SharedDoubleReference &other) {
++    return *this = static_cast<double>(other);
++  }
++  __device__ SharedDoubleReference &operator+=(double value) {
++    return *this = SharedDouble(address) + value;
++  }
++};
++struct SharedDoubles {
++  unsigned address;
++  __device__ void Set(double *pointer) {
++    address = static_cast<unsigned>(__cvta_generic_to_shared(pointer));
++  }
++  __device__ SharedDoubleReference operator[](int index) const {
++    return {address + static_cast<unsigned>(index) * 8};
++  }
++};
++
+ struct Pair {
+   double time, value;
+ };
+@@ -128,10 +180,10 @@ struct Shared {
+   bool sparse_factor, factor_valid;
+   double active_scale, factored_scale;
+   bool expression_cache_valid, expression_cache_derivatives;
+-  double *expression_state;
++  SharedDoubles expression_state;
+   int factor_changed;
+   double *factor, *triangular, *inverse;
+-  double *expression_values, *expression_adjoints;
++  SharedDoubles expression_values, expression_adjoints;
+   const PackedExpressionNode *expression_nodes;
+   unsigned char *expression_active;
+   int pivot_failure;
+@@ -758,8 +810,12 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+     DenseFactor(m, w, s);
+     return;
+   }
++  const unsigned factors =
++      static_cast<unsigned>(__cvta_generic_to_shared(s.factor));
++  const unsigned inverse =
++      static_cast<unsigned>(__cvta_generic_to_shared(s.inverse));
+   for (int i = threadIdx.x; i < m.factor_nonzeros; i += Threads)
+-    s.factor[i] = 0;
++    StoreSharedDouble(factors + i * 8, 0);
+   __syncthreads();
+   for (int row = threadIdx.x; row < m.n; row += Threads) {
+     double scale = 0;
+@@ -780,7 +836,7 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+       row_norm += fabs(original);
+       if (original != 0 && scaled == 0)
+         Reject(s, Nonfinite);
+-      s.factor[m.factor_input_slots[k]] = scaled;
++      StoreSharedDouble(factors + m.factor_input_slots[k] * 8, scaled);
+     }
+     w.linear_row_norm[row] = isfinite(w.inverse_equil[row])
+                                  ? row_norm * w.inverse_equil[row]
+@@ -797,21 +853,23 @@ __device__ void FactorImpl(const Model &m, Workspace &w, Shared &s) {
+          at < s.factor_level_offsets[level + 1]; at += Threads) {
+       const int slot = s.factor_order[at];
+       const auto entry = s.factor_entries[slot];
+-      double value = s.factor[slot];
++      double value = SharedDouble(factors + slot * 8);
+       for (int j = entry.begin; j < entry.begin + entry.count; ++j) {
+         const auto term = s.factor_term[j];
+-        value = fma(-s.factor[term.lower], s.factor[term.upper], value);
++        value = fma(-SharedDouble(factors + term.lower * 8),
++                    SharedDouble(factors + term.upper * 8), value);
+       }
+       if (entry.diagonal >= 0)
+-        value *= s.inverse[entry.diagonal];
+-      s.factor[slot] = value;
++        value *= SharedDouble(inverse + entry.diagonal * 8);
++      StoreSharedDouble(factors + slot * 8, value);
+       if (!Bounded(value))
+         atomicExch(&s.pivot_failure, 1);
+       if (entry.pivot >= 0) {
+         if (!(fabs(value) >= 2.2250738585072014e-308))
+           atomicExch(&s.pivot_failure, 1);
+-        s.inverse[entry.pivot] = __drcp_rn(value);
+-        if (!isfinite(s.inverse[entry.pivot]))
++        const double reciprocal = __drcp_rn(value);
++        StoreSharedDouble(inverse + entry.pivot * 8, reciprocal);
++        if (!isfinite(reciprocal))
+           atomicExch(&s.pivot_failure, 1);
+       }
+     }
+@@ -868,6 +926,14 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+   }
+   if (threadIdx.x < 32 && !s.error) {
+     const int lane = threadIdx.x;
++    const unsigned factors =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.factor));
++    const unsigned columns =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.factor_columns));
++    const unsigned values =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.triangular));
++    const unsigned inverse =
++        static_cast<unsigned>(__cvta_generic_to_shared(s.inverse));
+     const auto forward_start = clock64();
+     for (int level = 0; level < m.forward_levels; ++level) {
+       for (int at = s.forward_offsets[level] + lane;
+@@ -875,8 +941,10 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+         const int row = s.forward_rows[at], original = s.row_permutation[row];
+         double value = Equilibrated(rhs[original], original, w, s);
+         for (int j = s.factor_rows[row]; j < s.factor_diagonal[row]; ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
+-        s.triangular[row] = value;
++          value = fma(-SharedDouble(factors + j * 8),
++                      SharedDouble(values + SharedInteger(columns + j * 4) * 8),
++                      value);
++        StoreSharedDouble(values + row * 8, value);
+       }
+       __syncwarp();
+     }
+@@ -886,18 +954,21 @@ __device__ void TriangularImpl(const Model &m, Workspace &w, Shared &s,
+       for (int at = s.backward_offsets[level] + lane;
+            at < s.backward_offsets[level + 1]; at += 32) {
+         const int row = s.backward_rows[at];
+-        double value = s.triangular[row];
++        double value = SharedDouble(values + row * 8);
+         for (int j = s.factor_diagonal[row] + 1; j < s.factor_rows[row + 1];
+              ++j)
+-          value = fma(-s.factor[j], s.triangular[s.factor_columns[j]], value);
+-        s.triangular[row] = value * s.inverse[row];
+-        if (!Bounded(s.triangular[row]))
++          value = fma(-SharedDouble(factors + j * 8),
++                      SharedDouble(values + SharedInteger(columns + j * 4) * 8),
++                      value);
++        const double solved = value * SharedDouble(inverse + row * 8);
++        StoreSharedDouble(values + row * 8, solved);
++        if (!Bounded(solved))
+           Reject(s, Nonfinite);
+       }
+       __syncwarp();
+     }
+     for (int row = lane; row < m.n; row += 32)
+-      result[s.column_permutation[row]] = s.triangular[row];
++      result[s.column_permutation[row]] = SharedDouble(values + row * 8);
+   }
+   __syncthreads();
+ }
+@@ -1365,7 +1436,7 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+     w.equil = vectors + 11 * m.n;
+     w.inverse_equil = vectors + 12 * m.n;
+     w.linear_row_norm = vectors + 13 * m.n;
+-    s.expression_state = vectors + 14 * m.n;
++    s.expression_state.Set(vectors + 14 * m.n);
+     // Linear correction/forward work finish before the next nonlinear assembly
+     // replaces residual/scale. The second half-step result is the final Newton
+     // proposal and survives until its error/history checks have consumed it.
+@@ -1380,11 +1451,12 @@ extern "C" __global__ void Emi03Advance(Model m, Workspace *workspace) {
+     w.gradients = w.jacobian + m.nnz;
+     w.expressions =
+         reinterpret_cast<DeviceResult *>(w.gradients + m.dependency_count);
+-    s.expression_values =
++    double *expression_values =
+         reinterpret_cast<double *>(w.expressions + m.programs);
+-    s.expression_adjoints = s.expression_values + m.expression_node_count;
++    s.expression_values.Set(expression_values);
++    s.expression_adjoints.Set(expression_values + m.expression_node_count);
+     s.expression_active = reinterpret_cast<unsigned char *>(
+-        s.expression_adjoints + m.expression_node_count);
++        expression_values + 2 * m.expression_node_count);
+     s.factor_columns = reinterpret_cast<int *>(
+         (reinterpret_cast<std::uintptr_t>(s.expression_active +
+                                           m.expression_node_count) +

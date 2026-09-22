@@ -1,0 +1,109 @@
+diff --git a/cuda/emi03_resident_device.cuh b/cuda/emi03_resident_device.cuh
+index ea6533c..4688430 100644
+--- a/cuda/emi03_resident_device.cuh
++++ b/cuda/emi03_resident_device.cuh
+@@ -553,46 +553,38 @@ __device__ void Assemble(const Model &m, Workspace &w, Shared &s,
+                          bool force_fresh = false) {
+   Expressions(m, w, s, state, derivatives, force_fresh);
+   for (int row = threadIdx.x; row < m.n; row += Threads) {
+-    double residual = 0, scale = fabs(w.companion_rhs[row]);
+-    Sum affine;
+-    affine.Add(w.companion_rhs[row]);
++    double scale = fabs(w.companion_rhs[row]);
++    Sum residual;
++    residual.Add(-w.companion_rhs[row]);
+     for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+       const int col = s.matrix_columns[k];
+       const double a = w.base[k], term = a * state[col];
+-      residual += term;
++      residual.Product(a, state[col]);
+       scale += fabs(term);
+       if (derivatives)
+         w.jacobian[k] = a;
+     }
+-    residual -= w.companion_rhs[row];
+     for (int k = m.expression_offsets[row]; k < m.expression_offsets[row + 1];
+          ++k) {
+       const auto stamp = m.expression_stamps[k];
+       const auto program = m.program[stamp.program];
+       const double value =
+           stamp.coefficient * w.expressions[stamp.program].value;
+-      residual += value;
++      residual.Product(stamp.coefficient, w.expressions[stamp.program].value);
+       scale += fabs(value);
+       if (derivatives) {
+-        Sum local;
+-        local.Add(-w.expressions[stamp.program].value);
+         for (unsigned j = 0; j < program.dependency_count; ++j) {
+           const auto at = program.dependency_offset + j;
+-          const auto col = m.dependencies[at];
+-          const double derivative = w.gradients[at];
+-          local.Product(derivative, state[col]);
+           w.jacobian[m.expression_jacobian_slots[stamp.offset + j]] +=
+-              stamp.coefficient * derivative;
++              stamp.coefficient * w.gradients[at];
+         }
+-        affine.Product(stamp.coefficient, local.hi);
+-        affine.Product(stamp.coefficient, local.lo);
+       }
+     }
+-    w.residual[row] = residual;
++    w.residual[row] = residual.Value();
+     w.row_scale[row] = scale;
+-    if (derivatives)
+-      w.affine_rhs[row] = affine.Value();
+-    if (!Bounded(residual) || !Bounded(scale) || !Bounded(affine.Value()))
++    // Solve J * delta = -F(x), retaining the original-equation linear guard.
++    w.affine_rhs[row] = -w.residual[row];
++    if (!Bounded(w.residual[row]) || !Bounded(scale))
+       Reject(s, Nonfinite);
+   }
+   __syncthreads();
+@@ -1039,32 +1031,20 @@ __device__ double UpdateNorm(const Model &m, Workspace &w, Shared &s) {
+   }
+   return Maximum(norm, s);
+ }
+-// A chord iteration solves with a previously validated Jacobian at the exact
+-// same companion scale. Form J_old*x - F(x) with compensated products; retain
+-// the full fresh nonlinear residual and the linear certification of J_old.
++// A chord iteration uses the validated previous Jacobian for the current
++// correction equation. The fresh residual still belongs to the current state.
+ __device__ void ChordRhs(const Model &m, Workspace &w, Shared &s,
+                          const double *state) {
+   for (int row = threadIdx.x; row < m.n; row += Threads) {
+-    Sum affine;
+-    affine.Add(w.companion_rhs[row]);
+-    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k) {
+-      const double old = w.factored_jacobian[k];
+-      const int col = s.matrix_columns[k];
+-      affine.Product(old, state[col]);
+-      affine.Product(-w.base[k], state[col]);
+-      w.jacobian[k] = old;
+-    }
+-    for (int k = m.expression_offsets[row]; k < m.expression_offsets[row + 1];
+-         ++k) {
+-      const auto stamp = m.expression_stamps[k];
+-      affine.Product(-stamp.coefficient, w.expressions[stamp.program].value);
+-    }
+-    w.affine_rhs[row] = affine.Value();
++    for (int k = s.matrix_rows[row]; k < s.matrix_rows[row + 1]; ++k)
++      w.jacobian[k] = w.factored_jacobian[k];
++    w.affine_rhs[row] = -w.residual[row];
+     if (!Bounded(w.affine_rhs[row]))
+       Reject(s, Nonfinite);
+   }
+   if (threadIdx.x == 0)
+     ++w.progress.chord_iterations;
++  (void)state;
+   __syncthreads();
+ }
+ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+@@ -1098,7 +1078,7 @@ __device__ void Newton(const Model &m, Workspace &w, Shared &s,
+     if (s.error)
+       return;
+     for (int i = threadIdx.x; i < m.n; i += Threads)
+-      w.delta[i] = w.solution[i] - w.current[i];
++      w.delta[i] = w.solution[i];
+     __syncthreads();
+     double scale = 1;
+     for (int backtrack = 0; backtrack <= 16; ++backtrack) {

@@ -1,0 +1,27 @@
+{
+  "complete": true,
+  "exact_trajectory_metrics_work_parity": true,
+  "gpu_authorized": false,
+  "invocation_wall_s": 74.96242141298717,
+  "ordinary_process_wall_s": 33.37483808101388,
+  "performance_gate_evaluated": false,
+  "profile": {
+    "accepted_state_output_s": 0.23502048,
+    "assembly_calls": 3480258,
+    "assembly_evaluation_s": 21.186959277,
+    "integration_setup_other_s": 5.453415472000002,
+    "linear_calls": 2648365,
+    "linear_factor_solve_refinement_validation_s": 11.075893902,
+    "nested_expression_profile": {
+      "full_calls": 111243720,
+      "full_s": 9.103100063,
+      "interpretation": "nested in assembly or setup; not additive; includes diagnostic instrumentation effects",
+      "value_calls": 49913520,
+      "value_s": 2.489043884
+    },
+    "output_calls": 461672,
+    "schema": "emi03-cpu-profile-v2"
+  },
+  "profile_process_wall_s": 37.99756000202615,
+  "schema": "emi03-cpu-profile-v1"
+}
