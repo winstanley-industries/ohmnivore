@@ -146,3 +146,7 @@ is a selected or qualified optimization.
 The frozen median, p95, cold-run, resource and complete-job gates remain those in
 [the experiment contract](emi01-gpu-experiment-contract.md). CPU FP64 KLU remains
 the correctness authority and supported no-GPU implementation.
+
+A subsequent [time-window decomposition probe](emi03-time-window-decomposition.md)
+exposes parallelism across coupled timesteps. Its matrix and bounded nonlinear
+window results remain separate from complete transient acceptance.

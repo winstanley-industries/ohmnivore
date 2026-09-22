@@ -625,3 +625,21 @@ cc_binary(
     copts = OHMNIVORE_COPTS,
     deps = [":core"],
 )
+
+cc_binary(
+    name = "emi03_time_cpu_probe",
+    testonly = True,
+    srcs = ["benchmarks/emi03_time_cpu_probe.cc"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)
+
+cc_binary(
+    name = "emi03_time_nonlinear_fixture",
+    testonly = True,
+    srcs = ["benchmarks/emi03_time_nonlinear_fixture.cc", "src/expression_internal.h"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)

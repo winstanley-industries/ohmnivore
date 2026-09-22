@@ -32,7 +32,8 @@ template <class T> void Array(const std::vector<T> &values) {
 } // namespace
 int main(int argc, char **argv) {
   using namespace ohmnivore;
-  if (argc != 2)
+  if (argc < 2 || argc > 3 ||
+      (argc == 3 && std::string(argv[2]) != "--structure"))
     return 2;
   try {
     std::ifstream input(argv[1]);
@@ -41,6 +42,17 @@ int main(int argc, char **argv) {
     const std::string text{std::istreambuf_iterator<char>(input), {}};
     const auto parsed = Checked(ParseBehavioralNetlist(text));
     const auto system = Checked(CompileBehavioralMna(parsed));
+    if (argc == 3) {
+      std::cout << std::setprecision(17) << "{\"n\":" << system.g.rows
+                << ",\"c_rows\":";
+      Array(system.c.row_offsets);
+      std::cout << ",\"c_columns\":";
+      Array(system.c.column_indices);
+      std::cout << ",\"c_values\":";
+      Array(system.c.values);
+      std::cout << "}\n";
+      return 0;
+    }
     if (parsed.circuit.analyses.size() != 1)
       throw std::runtime_error("one analysis required");
     const auto *analysis =
