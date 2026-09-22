@@ -272,3 +272,13 @@ remain. This changes the experimental Newton iteration and must independently
 pass the full frozen qualification. The complete q0 reference/nominal diagnostic
 passes its physical comparison but fails the 120 s wall limit at 286.349 s.
 EMI-03 remains incomplete.
+
+### Algebraic decomposition screen
+
+The [parallel-decomposition experiment](../emi03-parallel-decomposition.md)
+partitions one complete Newton matrix into concurrent interiors and a fully
+coupled interface. It does not introduce independent electrical trajectories.
+The final retained matrix probe passes its differential and sanitizer checks,
+but its four-block replay is slower than the selected resident solver on the
+same matrices. It is a manual diagnostic and is not selected for transient
+execution. The full qualification and performance gates remain unmet.

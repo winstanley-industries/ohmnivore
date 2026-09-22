@@ -1,0 +1,711 @@
+{
+  "scope": "Structural candidate for exact linear-interior condensation after auxiliary elimination; unqualified",
+  "core_unknowns": 105,
+  "ports": [
+    {
+      "core": 3,
+      "original": 3,
+      "name": "ahd"
+    },
+    {
+      "core": 5,
+      "original": 5,
+      "name": "emi02_xdah__23"
+    },
+    {
+      "core": 8,
+      "original": 8,
+      "name": "emi02_xdah__32"
+    },
+    {
+      "core": 14,
+      "original": 14,
+      "name": "ald"
+    },
+    {
+      "core": 16,
+      "original": 16,
+      "name": "emi02_xdal__23"
+    },
+    {
+      "core": 19,
+      "original": 19,
+      "name": "emi02_xdal__32"
+    },
+    {
+      "core": 35,
+      "original": 35,
+      "name": "bhd"
+    },
+    {
+      "core": 37,
+      "original": 37,
+      "name": "emi02_xdbh__23"
+    },
+    {
+      "core": 40,
+      "original": 40,
+      "name": "emi02_xdbh__32"
+    },
+    {
+      "core": 46,
+      "original": 46,
+      "name": "bld"
+    },
+    {
+      "core": 48,
+      "original": 48,
+      "name": "emi02_xdbl__23"
+    },
+    {
+      "core": 51,
+      "original": 51,
+      "name": "emi02_xdbl__32"
+    },
+    {
+      "core": 74,
+      "original": 114,
+      "name": "v_xdah_xm1__gd"
+    },
+    {
+      "core": 75,
+      "original": 115,
+      "name": "v_xdah_xm1__ds"
+    },
+    {
+      "core": 79,
+      "original": 119,
+      "name": "v_xdal_xm1__gd"
+    },
+    {
+      "core": 80,
+      "original": 120,
+      "name": "v_xdal_xm1__ds"
+    },
+    {
+      "core": 90,
+      "original": 130,
+      "name": "v_xdbh_xm1__gd"
+    },
+    {
+      "core": 91,
+      "original": 131,
+      "name": "v_xdbh_xm1__ds"
+    },
+    {
+      "core": 95,
+      "original": 135,
+      "name": "v_xdbl_xm1__gd"
+    },
+    {
+      "core": 96,
+      "original": 136,
+      "name": "v_xdbl_xm1__ds"
+    }
+  ],
+  "linear": [
+    {
+      "core": 0,
+      "original": 0,
+      "name": "bus"
+    },
+    {
+      "core": 1,
+      "original": 1,
+      "name": "p1"
+    },
+    {
+      "core": 2,
+      "original": 2,
+      "name": "p"
+    },
+    {
+      "core": 4,
+      "original": 4,
+      "name": "emi02_xdah__220"
+    },
+    {
+      "core": 6,
+      "original": 6,
+      "name": "gah"
+    },
+    {
+      "core": 7,
+      "original": 7,
+      "name": "emi02_xdah__230"
+    },
+    {
+      "core": 9,
+      "original": 9,
+      "name": "a"
+    },
+    {
+      "core": 10,
+      "original": 10,
+      "name": "emi02_xdah_xm1__48"
+    },
+    {
+      "core": 11,
+      "original": 11,
+      "name": "emi02_xdah_xm1__12"
+    },
+    {
+      "core": 12,
+      "original": 12,
+      "name": "emi02_xdah_xm1__49"
+    },
+    {
+      "core": 13,
+      "original": 13,
+      "name": "emi02_xdah_xm1__44"
+    },
+    {
+      "core": 15,
+      "original": 15,
+      "name": "emi02_xdal__220"
+    },
+    {
+      "core": 17,
+      "original": 17,
+      "name": "ga"
+    },
+    {
+      "core": 18,
+      "original": 18,
+      "name": "emi02_xdal__230"
+    },
+    {
+      "core": 20,
+      "original": 20,
+      "name": "emi02_xdal_xm1__48"
+    },
+    {
+      "core": 21,
+      "original": 21,
+      "name": "emi02_xdal_xm1__12"
+    },
+    {
+      "core": 22,
+      "original": 22,
+      "name": "emi02_xdal_xm1__49"
+    },
+    {
+      "core": 23,
+      "original": 23,
+      "name": "emi02_xdal_xm1__44"
+    },
+    {
+      "core": 24,
+      "original": 24,
+      "name": "driveah"
+    },
+    {
+      "core": 25,
+      "original": 25,
+      "name": "driveal"
+    },
+    {
+      "core": 26,
+      "original": 26,
+      "name": "ch"
+    },
+    {
+      "core": 27,
+      "original": 27,
+      "name": "ar"
+    },
+    {
+      "core": 28,
+      "original": 28,
+      "name": "am"
+    },
+    {
+      "core": 29,
+      "original": 29,
+      "name": "amr"
+    },
+    {
+      "core": 30,
+      "original": 30,
+      "name": "fa"
+    },
+    {
+      "core": 31,
+      "original": 31,
+      "name": "yca"
+    },
+    {
+      "core": 32,
+      "original": 32,
+      "name": "ha"
+    },
+    {
+      "core": 33,
+      "original": 33,
+      "name": "har"
+    },
+    {
+      "core": 34,
+      "original": 34,
+      "name": "la"
+    },
+    {
+      "core": 36,
+      "original": 36,
+      "name": "emi02_xdbh__220"
+    },
+    {
+      "core": 38,
+      "original": 38,
+      "name": "gbh"
+    },
+    {
+      "core": 39,
+      "original": 39,
+      "name": "emi02_xdbh__230"
+    },
+    {
+      "core": 41,
+      "original": 41,
+      "name": "b"
+    },
+    {
+      "core": 42,
+      "original": 42,
+      "name": "emi02_xdbh_xm1__48"
+    },
+    {
+      "core": 43,
+      "original": 43,
+      "name": "emi02_xdbh_xm1__12"
+    },
+    {
+      "core": 44,
+      "original": 44,
+      "name": "emi02_xdbh_xm1__49"
+    },
+    {
+      "core": 45,
+      "original": 45,
+      "name": "emi02_xdbh_xm1__44"
+    },
+    {
+      "core": 47,
+      "original": 47,
+      "name": "emi02_xdbl__220"
+    },
+    {
+      "core": 49,
+      "original": 49,
+      "name": "gb"
+    },
+    {
+      "core": 50,
+      "original": 50,
+      "name": "emi02_xdbl__230"
+    },
+    {
+      "core": 52,
+      "original": 52,
+      "name": "emi02_xdbl_xm1__48"
+    },
+    {
+      "core": 53,
+      "original": 53,
+      "name": "emi02_xdbl_xm1__12"
+    },
+    {
+      "core": 54,
+      "original": 54,
+      "name": "emi02_xdbl_xm1__49"
+    },
+    {
+      "core": 55,
+      "original": 55,
+      "name": "emi02_xdbl_xm1__44"
+    },
+    {
+      "core": 56,
+      "original": 56,
+      "name": "drivebh"
+    },
+    {
+      "core": 57,
+      "original": 57,
+      "name": "drivebl"
+    },
+    {
+      "core": 58,
+      "original": 58,
+      "name": "br"
+    },
+    {
+      "core": 59,
+      "original": 59,
+      "name": "bm"
+    },
+    {
+      "core": 60,
+      "original": 60,
+      "name": "bmr"
+    },
+    {
+      "core": 61,
+      "original": 61,
+      "name": "fb"
+    },
+    {
+      "core": 62,
+      "original": 62,
+      "name": "ycb"
+    },
+    {
+      "core": 63,
+      "original": 63,
+      "name": "hb"
+    },
+    {
+      "core": 64,
+      "original": 64,
+      "name": "hbr"
+    },
+    {
+      "core": 65,
+      "original": 65,
+      "name": "lb"
+    },
+    {
+      "core": 66,
+      "original": 66,
+      "name": "xcap"
+    },
+    {
+      "core": 67,
+      "original": 67,
+      "name": "lr"
+    },
+    {
+      "core": 68,
+      "original": 68,
+      "name": "chr"
+    },
+    {
+      "core": 69,
+      "original": 109,
+      "name": "Vbus"
+    },
+    {
+      "core": 70,
+      "original": 110,
+      "name": "Lbus"
+    },
+    {
+      "core": 71,
+      "original": 111,
+      "name": "Vdah"
+    },
+    {
+      "core": 72,
+      "original": 112,
+      "name": "l_xdah__g"
+    },
+    {
+      "core": 73,
+      "original": 113,
+      "name": "l_xdah__s"
+    },
+    {
+      "core": 76,
+      "original": 116,
+      "name": "Vdal"
+    },
+    {
+      "core": 77,
+      "original": 117,
+      "name": "l_xdal__g"
+    },
+    {
+      "core": 78,
+      "original": 118,
+      "name": "l_xdal__s"
+    },
+    {
+      "core": 81,
+      "original": 121,
+      "name": "Vgah"
+    },
+    {
+      "core": 82,
+      "original": 122,
+      "name": "Vgal"
+    },
+    {
+      "core": 83,
+      "original": 123,
+      "name": "Lda"
+    },
+    {
+      "core": 84,
+      "original": 124,
+      "name": "Lcma"
+    },
+    {
+      "core": 85,
+      "original": 125,
+      "name": "Va"
+    },
+    {
+      "core": 86,
+      "original": 126,
+      "name": "Lha"
+    },
+    {
+      "core": 87,
+      "original": 127,
+      "name": "Vdbh"
+    },
+    {
+      "core": 88,
+      "original": 128,
+      "name": "l_xdbh__g"
+    },
+    {
+      "core": 89,
+      "original": 129,
+      "name": "l_xdbh__s"
+    },
+    {
+      "core": 92,
+      "original": 132,
+      "name": "Vdbl"
+    },
+    {
+      "core": 93,
+      "original": 133,
+      "name": "l_xdbl__g"
+    },
+    {
+      "core": 94,
+      "original": 134,
+      "name": "l_xdbl__s"
+    },
+    {
+      "core": 97,
+      "original": 137,
+      "name": "Vgbh"
+    },
+    {
+      "core": 98,
+      "original": 138,
+      "name": "Vgbl"
+    },
+    {
+      "core": 99,
+      "original": 139,
+      "name": "Ldb"
+    },
+    {
+      "core": 100,
+      "original": 140,
+      "name": "Lcmb"
+    },
+    {
+      "core": 101,
+      "original": 141,
+      "name": "Vb"
+    },
+    {
+      "core": 102,
+      "original": 142,
+      "name": "Lhb"
+    },
+    {
+      "core": 103,
+      "original": 143,
+      "name": "Lload"
+    },
+    {
+      "core": 104,
+      "original": 144,
+      "name": "Lch"
+    }
+  ],
+  "nonlinear_programs": [
+    {
+      "program": 3,
+      "rows": [],
+      "columns": [
+        3,
+        5,
+        8
+      ]
+    },
+    {
+      "program": 4,
+      "rows": [],
+      "columns": [
+        3,
+        5,
+        8
+      ]
+    },
+    {
+      "program": 5,
+      "rows": [],
+      "columns": [
+        3,
+        5,
+        74
+      ]
+    },
+    {
+      "program": 6,
+      "rows": [],
+      "columns": [
+        3,
+        8
+      ]
+    },
+    {
+      "program": 7,
+      "rows": [],
+      "columns": [
+        3,
+        8,
+        75
+      ]
+    },
+    {
+      "program": 18,
+      "rows": [],
+      "columns": [
+        14,
+        16,
+        19
+      ]
+    },
+    {
+      "program": 19,
+      "rows": [],
+      "columns": [
+        14,
+        16,
+        19
+      ]
+    },
+    {
+      "program": 20,
+      "rows": [],
+      "columns": [
+        14,
+        16,
+        79
+      ]
+    },
+    {
+      "program": 21,
+      "rows": [],
+      "columns": [
+        14,
+        19
+      ]
+    },
+    {
+      "program": 22,
+      "rows": [],
+      "columns": [
+        14,
+        19,
+        80
+      ]
+    },
+    {
+      "program": 33,
+      "rows": [],
+      "columns": [
+        35,
+        37,
+        40
+      ]
+    },
+    {
+      "program": 34,
+      "rows": [],
+      "columns": [
+        35,
+        37,
+        40
+      ]
+    },
+    {
+      "program": 35,
+      "rows": [],
+      "columns": [
+        35,
+        37,
+        90
+      ]
+    },
+    {
+      "program": 36,
+      "rows": [],
+      "columns": [
+        35,
+        40
+      ]
+    },
+    {
+      "program": 37,
+      "rows": [],
+      "columns": [
+        35,
+        40,
+        91
+      ]
+    },
+    {
+      "program": 48,
+      "rows": [],
+      "columns": [
+        46,
+        48,
+        51
+      ]
+    },
+    {
+      "program": 49,
+      "rows": [],
+      "columns": [
+        46,
+        48,
+        51
+      ]
+    },
+    {
+      "program": 50,
+      "rows": [],
+      "columns": [
+        46,
+        48,
+        95
+      ]
+    },
+    {
+      "program": 51,
+      "rows": [],
+      "columns": [
+        46,
+        51
+      ]
+    },
+    {
+      "program": 52,
+      "rows": [],
+      "columns": [
+        46,
+        51,
+        96
+      ]
+    }
+  ]
+}

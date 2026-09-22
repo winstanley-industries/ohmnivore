@@ -1,0 +1,628 @@
+{
+  "scope": "Structural second-level partition of the passive interior; numerical feasibility must be tested",
+  "unknowns": 185,
+  "interface_size": 14,
+  "interface": [
+    {
+      "index": 3,
+      "name": "ahd"
+    },
+    {
+      "index": 6,
+      "name": "gah"
+    },
+    {
+      "index": 9,
+      "name": "a"
+    },
+    {
+      "index": 14,
+      "name": "ald"
+    },
+    {
+      "index": 17,
+      "name": "ga"
+    },
+    {
+      "index": 26,
+      "name": "ch"
+    },
+    {
+      "index": 35,
+      "name": "bhd"
+    },
+    {
+      "index": 38,
+      "name": "gbh"
+    },
+    {
+      "index": 41,
+      "name": "b"
+    },
+    {
+      "index": 46,
+      "name": "bld"
+    },
+    {
+      "index": 49,
+      "name": "gb"
+    },
+    {
+      "index": 116,
+      "name": "Vdal"
+    },
+    {
+      "index": 127,
+      "name": "Vdbh"
+    },
+    {
+      "index": 132,
+      "name": "Vdbl"
+    }
+  ],
+  "interior_sizes": [
+    6,
+    31,
+    1,
+    31,
+    1,
+    2,
+    2,
+    27,
+    31,
+    1,
+    31,
+    1,
+    2,
+    2,
+    2
+  ],
+  "groups": [
+    {
+      "indices": [
+        0,
+        1,
+        2,
+        109,
+        110,
+        111
+      ],
+      "names": [
+        "bus",
+        "p1",
+        "p",
+        "Vbus",
+        "Lbus",
+        "Vdah"
+      ],
+      "interface_columns": [
+        3,
+        26,
+        127
+      ],
+      "interface_rows": [
+        3,
+        26,
+        127
+      ]
+    },
+    {
+      "indices": [
+        4,
+        5,
+        7,
+        8,
+        10,
+        12,
+        13,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        112,
+        113,
+        114,
+        115,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154
+      ],
+      "names": [
+        "emi02_xdah__220",
+        "emi02_xdah__23",
+        "emi02_xdah__230",
+        "emi02_xdah__32",
+        "emi02_xdah_xm1__48",
+        "emi02_xdah_xm1__49",
+        "emi02_xdah_xm1__44",
+        "emi02_xdah_xm1__100",
+        "emi02_xdah_xm1__101",
+        "emi02_xdah_xm1__102",
+        "emi02_xdah_xm1__109",
+        "emi02_xdah_xm1__107",
+        "emi02_xdah_xm1__106",
+        "emi02_xdah_xm1__103",
+        "emi02_xdah_xm1__104",
+        "emi02_xdah_xm1__105",
+        "emi02_xdah_xm1__108",
+        "l_xdah__g",
+        "l_xdah__s",
+        "v_xdah_xm1__gd",
+        "v_xdah_xm1__ds",
+        "e_xdah_xm1__fvds",
+        "e_xdah_xm1__fvgs",
+        "e_xdah_xm1__fvgd",
+        "e_xdah_xm1__ibd2",
+        "e_xdah_xm1__k2",
+        "e_xdah_xm1__fb",
+        "e_xdah_xm1__remapvgs",
+        "e_xdah_xm1__remapvgd",
+        "e_xdah_xm1__fcond1",
+        "e_xdah_xm1__fcond2"
+      ],
+      "interface_columns": [
+        3,
+        6,
+        9
+      ],
+      "interface_rows": [
+        3,
+        6,
+        9
+      ]
+    },
+    {
+      "indices": [
+        11
+      ],
+      "names": [
+        "emi02_xdah_xm1__12"
+      ],
+      "interface_columns": [
+        3
+      ],
+      "interface_rows": [
+        3
+      ]
+    },
+    {
+      "indices": [
+        15,
+        16,
+        18,
+        19,
+        20,
+        22,
+        23,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        117,
+        118,
+        119,
+        120,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164
+      ],
+      "names": [
+        "emi02_xdal__220",
+        "emi02_xdal__23",
+        "emi02_xdal__230",
+        "emi02_xdal__32",
+        "emi02_xdal_xm1__48",
+        "emi02_xdal_xm1__49",
+        "emi02_xdal_xm1__44",
+        "emi02_xdal_xm1__100",
+        "emi02_xdal_xm1__101",
+        "emi02_xdal_xm1__102",
+        "emi02_xdal_xm1__109",
+        "emi02_xdal_xm1__107",
+        "emi02_xdal_xm1__106",
+        "emi02_xdal_xm1__103",
+        "emi02_xdal_xm1__104",
+        "emi02_xdal_xm1__105",
+        "emi02_xdal_xm1__108",
+        "l_xdal__g",
+        "l_xdal__s",
+        "v_xdal_xm1__gd",
+        "v_xdal_xm1__ds",
+        "e_xdal_xm1__fvds",
+        "e_xdal_xm1__fvgs",
+        "e_xdal_xm1__fvgd",
+        "e_xdal_xm1__ibd2",
+        "e_xdal_xm1__k2",
+        "e_xdal_xm1__fb",
+        "e_xdal_xm1__remapvgs",
+        "e_xdal_xm1__remapvgd",
+        "e_xdal_xm1__fcond1",
+        "e_xdal_xm1__fcond2"
+      ],
+      "interface_columns": [
+        14,
+        17
+      ],
+      "interface_rows": [
+        14,
+        17
+      ]
+    },
+    {
+      "indices": [
+        21
+      ],
+      "names": [
+        "emi02_xdal_xm1__12"
+      ],
+      "interface_columns": [
+        14
+      ],
+      "interface_rows": [
+        14
+      ]
+    },
+    {
+      "indices": [
+        24,
+        121
+      ],
+      "names": [
+        "driveah",
+        "Vgah"
+      ],
+      "interface_columns": [
+        6,
+        9
+      ],
+      "interface_rows": [
+        6,
+        9
+      ]
+    },
+    {
+      "indices": [
+        25,
+        122
+      ],
+      "names": [
+        "driveal",
+        "Vgal"
+      ],
+      "interface_columns": [
+        17
+      ],
+      "interface_rows": [
+        17
+      ]
+    },
+    {
+      "indices": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        123,
+        124,
+        125,
+        126,
+        139,
+        140,
+        141,
+        142,
+        143
+      ],
+      "names": [
+        "ar",
+        "am",
+        "amr",
+        "fa",
+        "yca",
+        "ha",
+        "har",
+        "la",
+        "br",
+        "bm",
+        "bmr",
+        "fb",
+        "ycb",
+        "hb",
+        "hbr",
+        "lb",
+        "xcap",
+        "lr",
+        "Lda",
+        "Lcma",
+        "Va",
+        "Lha",
+        "Ldb",
+        "Lcmb",
+        "Vb",
+        "Lhb",
+        "Lload"
+      ],
+      "interface_columns": [
+        9,
+        26,
+        41
+      ],
+      "interface_rows": [
+        9,
+        26,
+        41
+      ]
+    },
+    {
+      "indices": [
+        36,
+        37,
+        39,
+        40,
+        42,
+        44,
+        45,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        128,
+        129,
+        130,
+        131,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174
+      ],
+      "names": [
+        "emi02_xdbh__220",
+        "emi02_xdbh__23",
+        "emi02_xdbh__230",
+        "emi02_xdbh__32",
+        "emi02_xdbh_xm1__48",
+        "emi02_xdbh_xm1__49",
+        "emi02_xdbh_xm1__44",
+        "emi02_xdbh_xm1__100",
+        "emi02_xdbh_xm1__101",
+        "emi02_xdbh_xm1__102",
+        "emi02_xdbh_xm1__109",
+        "emi02_xdbh_xm1__107",
+        "emi02_xdbh_xm1__106",
+        "emi02_xdbh_xm1__103",
+        "emi02_xdbh_xm1__104",
+        "emi02_xdbh_xm1__105",
+        "emi02_xdbh_xm1__108",
+        "l_xdbh__g",
+        "l_xdbh__s",
+        "v_xdbh_xm1__gd",
+        "v_xdbh_xm1__ds",
+        "e_xdbh_xm1__fvds",
+        "e_xdbh_xm1__fvgs",
+        "e_xdbh_xm1__fvgd",
+        "e_xdbh_xm1__ibd2",
+        "e_xdbh_xm1__k2",
+        "e_xdbh_xm1__fb",
+        "e_xdbh_xm1__remapvgs",
+        "e_xdbh_xm1__remapvgd",
+        "e_xdbh_xm1__fcond1",
+        "e_xdbh_xm1__fcond2"
+      ],
+      "interface_columns": [
+        35,
+        38,
+        41
+      ],
+      "interface_rows": [
+        35,
+        38,
+        41
+      ]
+    },
+    {
+      "indices": [
+        43
+      ],
+      "names": [
+        "emi02_xdbh_xm1__12"
+      ],
+      "interface_columns": [
+        35
+      ],
+      "interface_rows": [
+        35
+      ]
+    },
+    {
+      "indices": [
+        47,
+        48,
+        50,
+        51,
+        52,
+        54,
+        55,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        133,
+        134,
+        135,
+        136,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184
+      ],
+      "names": [
+        "emi02_xdbl__220",
+        "emi02_xdbl__23",
+        "emi02_xdbl__230",
+        "emi02_xdbl__32",
+        "emi02_xdbl_xm1__48",
+        "emi02_xdbl_xm1__49",
+        "emi02_xdbl_xm1__44",
+        "emi02_xdbl_xm1__100",
+        "emi02_xdbl_xm1__101",
+        "emi02_xdbl_xm1__102",
+        "emi02_xdbl_xm1__109",
+        "emi02_xdbl_xm1__107",
+        "emi02_xdbl_xm1__106",
+        "emi02_xdbl_xm1__103",
+        "emi02_xdbl_xm1__104",
+        "emi02_xdbl_xm1__105",
+        "emi02_xdbl_xm1__108",
+        "l_xdbl__g",
+        "l_xdbl__s",
+        "v_xdbl_xm1__gd",
+        "v_xdbl_xm1__ds",
+        "e_xdbl_xm1__fvds",
+        "e_xdbl_xm1__fvgs",
+        "e_xdbl_xm1__fvgd",
+        "e_xdbl_xm1__ibd2",
+        "e_xdbl_xm1__k2",
+        "e_xdbl_xm1__fb",
+        "e_xdbl_xm1__remapvgs",
+        "e_xdbl_xm1__remapvgd",
+        "e_xdbl_xm1__fcond1",
+        "e_xdbl_xm1__fcond2"
+      ],
+      "interface_columns": [
+        46,
+        49
+      ],
+      "interface_rows": [
+        46,
+        49
+      ]
+    },
+    {
+      "indices": [
+        53
+      ],
+      "names": [
+        "emi02_xdbl_xm1__12"
+      ],
+      "interface_columns": [
+        46
+      ],
+      "interface_rows": [
+        46
+      ]
+    },
+    {
+      "indices": [
+        56,
+        137
+      ],
+      "names": [
+        "drivebh",
+        "Vgbh"
+      ],
+      "interface_columns": [
+        38,
+        41
+      ],
+      "interface_rows": [
+        38,
+        41
+      ]
+    },
+    {
+      "indices": [
+        57,
+        138
+      ],
+      "names": [
+        "drivebl",
+        "Vgbl"
+      ],
+      "interface_columns": [
+        49
+      ],
+      "interface_rows": [
+        49
+      ]
+    },
+    {
+      "indices": [
+        68,
+        144
+      ],
+      "names": [
+        "chr",
+        "Lch"
+      ],
+      "interface_columns": [
+        26
+      ],
+      "interface_rows": [
+        26
+      ]
+    }
+  ]
+}

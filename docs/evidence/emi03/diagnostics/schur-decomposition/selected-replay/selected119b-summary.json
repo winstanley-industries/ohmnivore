@@ -1,0 +1,18 @@
+{
+  "scope": "Matched matrix replay of selected resident Factor/Linear routines, forced refactor per solve, original on-device validation and refinement; setup and CPU validation excluded from device timing",
+  "rows": 30,
+  "solves": 26000,
+  "refinements": 26000,
+  "medians_batch_us": {
+    "1": 106.11071586608887,
+    "9": 106.45536422729492,
+    "16": 106.49632453918457
+  },
+  "sha256": {
+    "cuda/emi03_selected_matrix_probe.cu": "cb4f102fee9c346c315eafaf0a1fc2fe7675b97bb009e5944b997776601fae2b",
+    "cuda/emi03_resident_device.cuh": "3dfb852bd0e85a6d623aa78c287b9d06fc67cfc78afcb9dc0c9d5229b2e757d6",
+    "cuda/emi03_resident.cu": "c03a1fa36bdaa6bd749dce14a4cf218e831188465c9ef44d899b8b77470e9683",
+    "bazel-out/k8-opt/bin/cuda/emi03_selected_matrix_probe": "adffa96e0f2e9f446332622c760efcf8da12a9795eb4f2fa03f556fee14bcf29",
+    "/home/adam/emi03-work/schur-replay117.txt": "e0e2c596e3829711850354c4f6ac9db85c13bb01659940738dcc997edf55e85d"
+  }
+}

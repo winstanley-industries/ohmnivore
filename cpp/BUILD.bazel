@@ -616,3 +616,12 @@ cc_test(
     copts = OHMNIVORE_COPTS,
     deps = [":core", "@googletest//:gtest_main"],
 )
+
+cc_binary(
+    name = "emi03_schur_probe",
+    testonly = True,
+    srcs = ["benchmarks/emi03_schur_probe.cc"],
+    tags = ["manual"],
+    copts = OHMNIVORE_COPTS,
+    deps = [":core"],
+)

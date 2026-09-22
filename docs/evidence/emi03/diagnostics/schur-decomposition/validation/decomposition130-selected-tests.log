@@ -1,0 +1,161 @@
+INFO: Options provided by the client:
+  Inherited 'common' options: --isatty=0 --terminal_columns=80
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'common' options: --announce_rc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  Inherited 'build' options: --cxxopt=-std=c++20 --spawn_strategy=sandboxed
+INFO: Reading rc options for 'test' from /home/adam/code/ohmnivore/.bazelrc:
+  'test' options: --test_output=errors --spawn_strategy=sandboxed
+INFO: Found applicable config definition build:cuda in file /home/adam/code/ohmnivore/.bazelrc: --@rules_cuda//cuda:enable=True --@rules_cuda//cuda:compiler=nvcc --@rules_cuda//cuda:archs=compute_120:compute_120,sm_120 --@rules_cuda//cuda:runtime=@cuda//:cuda_runtime_static --extra_toolchains=@ohmnivore_cuda_gcc15//:cc_toolchain --linkopt=-static-libstdc++ --linkopt=-static-libgcc
+INFO: Found applicable config definition test:cuda in file /home/adam/code/ohmnivore/.bazelrc: --test_output=all
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --@@rules_cuda+//cuda:archs, --@@rules_cuda+//cuda:runtime, --compilation_mode, and 2 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 6 targets (1 packages loaded, 0 targets configured)
+Analyzing: 6 targets (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed 6 targets (1 packages loaded, 2395 targets configured).
+[209 / 224] 2 / 6 tests; Compiling cuda/emi03_expression.cu; 1s linux-sandbox
+[211 / 224] 2 / 6 tests; [Prepa] Compiling cuda/emi03_real_solver.cu
+[211 / 224] 2 / 6 tests; Compiling cuda/emi03_real_solver.cu; 1s linux-sandbox
+[214 / 224] 2 / 6 tests; [Prepa] Compiling cuda/emi03_resident.cu
+[214 / 224] 2 / 6 tests; Compiling cuda/emi03_resident.cu; 1s linux-sandbox
+[214 / 224] 2 / 6 tests; Compiling cuda/emi03_resident.cu; 11s linux-sandbox
+[215 / 224] 2 / 6 tests; [Prepa] Linking cuda/libemi03_cuda.a
+[216 / 224] 2 / 6 tests; Linking cuda/emi03_gpu_worker; 1s linux-sandbox
+[217 / 224] 2 / 6 tests; [Prepa] runfiles for //cuda:emi03_linkage_test
+[218 / 225] 2 / 6 tests; Linking cuda/emi03_resident_test; 1s linux-sandbox
+[219 / 225] 2 / 6 tests; [Prepa] runfiles for //cuda:emi03_resident_test
+[220 / 226] 2 / 6 tests; Linking cuda/emi03_resident_worker; 1s linux-sandbox
+[221 / 226] 2 / 6 tests; [Prepa] runfiles for //cuda:emi03_resident_linkage_test
+[222 / 227] 2 / 6 tests; Linking cuda/emi03_cuda_test; 1s linux-sandbox
+[223 / 227] 2 / 6 tests; [Prepa] runfiles for //cuda:emi03_cuda_test
+[224 / 228] 2 / 6 tests; Testing //cuda:emi03_linkage_test; 1s linux-sandbox
+INFO: From Testing //cuda:emi03_linkage_test:
+==================== Test output for //cuda:emi03_linkage_test:
+GPU-02 linkage passed: cuDSS and cuBLAS are embedded statically; CUDA and GCC runtimes are static; DT_NEEDED contains only the declared glibc host ABI
+================================================================================
+[225 / 228] 3 / 6 tests; Testing //cuda:emi03_resident_test; 1s linux-sandbox
+[225 / 228] 4 / 6 tests; Testing //cuda:emi03_resident_test; 9s linux-sandbox
+INFO: From Testing //cuda:emi03_resident_test:
+==================== Test output for //cuda:emi03_resident_test:
+[==========] Running 11 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 11 tests from Emi03Resident
+[ RUN      ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles
+[       OK ] Emi03Resident.FineResolutionMatchesIndependentPhysicalOracles (7686 ms)
+[ RUN      ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption
+[       OK ] Emi03Resident.WideOutputRowsCrossChunkBoundariesWithoutCorruption (205 ms)
+[ RUN      ] Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry
+[       OK ] Emi03Resident.DenseCouplingRetainsEverySparseFactorEntry (351 ms)
+[ RUN      ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess
+[       OK ] Emi03Resident.ObserverFailureAndAttemptBudgetCannotPublishSuccess (40 ms)
+[ RUN      ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse
+[       OK ] Emi03Resident.DynamicGpuPivotsDoNotHideBehindZeroResponse (33 ms)
+[ RUN      ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian
+[       OK ] Emi03Resident.ZeroResponseCannotHideASingularAcceptedJacobian (13 ms)
+[ RUN      ] Emi03Resident.NestedLazyBranchesPreserveDomains
+[       OK ] Emi03Resident.NestedLazyBranchesPreserveDomains (72 ms)
+[ RUN      ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches
+[       OK ] Emi03Resident.CompactExpressionIndicesCrossHighBitsAndPreserveLazyBranches (33 ms)
+[ RUN      ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives
+[       OK ] Emi03Resident.IndependentExpressionInputsPreserveValuesAndDerivatives (226 ms)
+[ RUN      ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation
+[       OK ] Emi03Resident.MultipleWaveformSourcesKeepRowAndSignAssociation (33 ms)
+[ RUN      ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate
+[       OK ] Emi03Resident.ConcurrentJobsKeepStateAndFailureOwnershipPrivate (1000 ms)
+[----------] 11 tests from Emi03Resident (9699 ms total)
+
+[----------] Global test environment tear-down
+[==========] 11 tests from 1 test suite ran. (9699 ms total)
+[  PASSED  ] 11 tests.
+================================================================================
+[226 / 228] 4 / 6 tests; Testing //cuda:emi03_resident_linkage_test; 1s linux-sandbox
+INFO: From Testing //cuda:emi03_resident_linkage_test:
+==================== Test output for //cuda:emi03_resident_linkage_test:
+GPU-02 linkage passed: cuDSS and cuBLAS are embedded statically; CUDA and GCC runtimes are static; DT_NEEDED contains only the declared glibc host ABI
+================================================================================
+INFO: From Testing //cuda:emi03_cuda_test:
+==================== Test output for //cuda:emi03_cuda_test:
+[==========] Running 20 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from Emi03Expression
+[ RUN      ] Emi03Expression.AllOperationsAndDerivativesMatchCpuAuthority
+[       OK ] Emi03Expression.AllOperationsAndDerivativesMatchCpuAuthority (267 ms)
+[ RUN      ] Emi03Expression.LazyIfAndValueOnlyDerivativeBoundaryPreserveErrors
+[       OK ] Emi03Expression.LazyIfAndValueOnlyDerivativeBoundaryPreserveErrors (1 ms)
+[ RUN      ] Emi03Expression.ConstantOnlyZeroStateAndStrictDivisionAreSupported
+[       OK ] Emi03Expression.ConstantOnlyZeroStateAndStrictDivisionAreSupported (1 ms)
+[ RUN      ] Emi03Expression.DuplicateDependenciesAccumulateInOriginalAdOrder
+[       OK ] Emi03Expression.DuplicateDependenciesAccumulateInOriginalAdOrder (1 ms)
+[ RUN      ] Emi03Expression.UnequalProgramWorkspacesStayPrivateAcrossBlocks
+[       OK ] Emi03Expression.UnequalProgramWorkspacesStayPrivateAcrossBlocks (1 ms)
+[ RUN      ] Emi03Expression.DependencyChecksIncludeInactiveArms
+[       OK ] Emi03Expression.DependencyChecksIncludeInactiveArms (1 ms)
+[ RUN      ] Emi03Expression.ProgramOwnershipOrderAndChangingStateStayPrivate
+[       OK ] Emi03Expression.ProgramOwnershipOrderAndChangingStateStayPrivate (1 ms)
+[ RUN      ] Emi03Expression.UncompiledAndWrongStateAreTypedFailures
+[       OK ] Emi03Expression.UncompiledAndWrongStateAreTypedFailures (1 ms)
+[----------] 8 tests from Emi03Expression (277 ms total)
+
+[----------] 2 tests from Emi03ExpressionFailures
+[ RUN      ] Emi03ExpressionFailures.NonfiniteReadbackAndAllocationFailClosed
+[       OK ] Emi03ExpressionFailures.NonfiniteReadbackAndAllocationFailClosed (1 ms)
+[ RUN      ] Emi03ExpressionFailures.FiniteCorruptionRequiresDifferentialValidation
+[       OK ] Emi03ExpressionFailures.FiniteCorruptionRequiresDifferentialValidation (1 ms)
+[----------] 2 tests from Emi03ExpressionFailures (2 ms total)
+
+[----------] 7 tests from Emi03RealSolver
+[ RUN      ] Emi03RealSolver.PivotingRefactorReuseAndOriginalEquationValidation
+[       OK ] Emi03RealSolver.PivotingRefactorReuseAndOriginalEquationValidation (198 ms)
+[ RUN      ] Emi03RealSolver.RowEquilibrationPreservesMixedPhysicalUnits
+[       OK ] Emi03RealSolver.RowEquilibrationPreservesMixedPhysicalUnits (3 ms)
+[ RUN      ] Emi03RealSolver.MandatoryOriginalResidualRefinesWeakCommonMode
+[       OK ] Emi03RealSolver.MandatoryOriginalResidualRefinesWeakCommonMode (3 ms)
+[ RUN      ] Emi03RealSolver.ZeroRhsCannotHideSingularAcceptedJacobian
+[       OK ] Emi03RealSolver.ZeroRhsCannotHideSingularAcceptedJacobian (3 ms)
+[ RUN      ] Emi03RealSolver.MalformedChangedPatternAndNonfiniteInputsFail
+[       OK ] Emi03RealSolver.MalformedChangedPatternAndNonfiniteInputsFail (2 ms)
+[ RUN      ] Emi03RealSolver.EmptySystemUsesNoDeviceBuffers
+[       OK ] Emi03RealSolver.EmptySystemUsesNoDeviceBuffers (0 ms)
+[ RUN      ] Emi03RealSolver.BehavioralTransientPreservesDisplacementCurrent
+[       OK ] Emi03RealSolver.BehavioralTransientPreservesDisplacementCurrent (183 ms)
+[----------] 7 tests from Emi03RealSolver (394 ms total)
+
+[----------] 3 tests from Emi03RealFailures
+[ RUN      ] Emi03RealFailures.FaultsFailClosedAndReleaseAllDeviceBuffers
+[       OK ] Emi03RealFailures.FaultsFailClosedAndReleaseAllDeviceBuffers (20 ms)
+[ RUN      ] Emi03RealFailures.DeviceCapIsEnforcedBeforeAllocation
+[       OK ] Emi03RealFailures.DeviceCapIsEnforcedBeforeAllocation (2 ms)
+[ RUN      ] Emi03RealFailures.ExplicitJobAndClosedOwnershipAreRequired
+[       OK ] Emi03RealFailures.ExplicitJobAndClosedOwnershipAreRequired (2 ms)
+[----------] 3 tests from Emi03RealFailures (25 ms total)
+
+[----------] Global test environment tear-down
+[==========] 20 tests from 4 test suites ran. (700 ms total)
+[  PASSED  ] 20 tests.
+================================================================================
+INFO: Found 6 test targets...
+INFO: Elapsed time: 55.592s, Critical Path: 31.17s
+INFO: 17 processes: 211 action cache hit, 5 internal, 14 linux-sandbox.
+INFO: Build completed successfully, 17 total actions
+PASSED: //cuda:emi03_reduction_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/testlogs/cuda/emi03_reduction_test/test.log)
+INFO: From Testing //cuda:emi03_reduction_test
+==================== Test output for //cuda:emi03_reduction_test:
+1024 magnitude groups match the host FP64 oracle in all lanes
+================================================================================
+PASSED: //cuda:smoke_test (see /home/adam/.cache/bazel/_bazel_adam/eecd01b58056b0b7acbaf3efb8be965c/execroot/_main/bazel-out/k8-opt/testlogs/cuda/smoke_test/test.log)
+INFO: From Testing //cuda:smoke_test
+==================== Test output for //cuda:smoke_test:
+backend=cuda device="NVIDIA GeForce RTX 5080" compute_capability=12.0 runtime=13000 driver=13040 global_memory_bytes=17066033152 deterministic_oracle=pass gcc_runtime=static
+================================================================================
+//cuda:emi03_reduction_test                                     (cached) PASSED in 0.3s
+//cuda:smoke_test                                               (cached) PASSED in 0.4s
+//cuda:emi03_cuda_test                                                   PASSED in 0.8s
+//cuda:emi03_linkage_test                                                PASSED in 1.2s
+//cuda:emi03_resident_linkage_test                                       PASSED in 1.4s
+//cuda:emi03_resident_test                                               PASSED in 9.8s
+
+Executed 4 out of 6 tests: 6 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

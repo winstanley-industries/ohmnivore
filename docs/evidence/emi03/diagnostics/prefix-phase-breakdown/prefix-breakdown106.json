@@ -1,0 +1,313 @@
+{
+  "scope": "Read-only explanation of original 46.313-second diagnostic using exact saved timers and a fresh same-binary, same-input phase-counter replay; not frozen acceptance",
+  "acceptance_pass": false,
+  "original_batch_s": 46.3130306089879,
+  "critical_case": "light-hot_high_c",
+  "original_critical_request_s": 46.29863890603883,
+  "original_completion_wait_s": 45.906111445,
+  "original_other_worker_s": 0.3863330000000005,
+  "original_protocol_other_s": 0.006194461038830923,
+  "original_batch_minus_critical_request_s": 0.01439170294906944,
+  "original_work_counts": {
+    "schema": "emi02-cpu-v2",
+    "status": "complete",
+    "points": 88370,
+    "variables": 27,
+    "unknowns": 185,
+    "raw_bytes": 19088519,
+    "attempts": 102789,
+    "rejected_steps": 14420,
+    "nonlinear_rejections": 0,
+    "behavioral_integration_method": "trapezoidal",
+    "behavioral_error_estimator": "derivative-history-audited-v1",
+    "derivative_history_error_estimates": 70618,
+    "derivative_history_step_doubling_checks": 32063,
+    "step_doubling_error_estimates": 32171,
+    "derivative_history_fallback_entries": 28,
+    "derivative_history_fallback_recoveries": 28,
+    "transient_solver_statistics": {
+      "symbolic_analyses": 7,
+      "numeric_factorizations": 321905,
+      "numeric_refactorizations": 0,
+      "numeric_refactorization_fallbacks": 23,
+      "numeric_reuses": 199629,
+      "solves": 521511,
+      "iterative_refinement_solves": 354380
+    },
+    "elapsed_seconds": 46.292444445
+  },
+  "original_cpu_work_counts": {
+    "schema": "emi02-cpu-v2",
+    "status": "complete",
+    "points": 87488,
+    "variables": 27,
+    "unknowns": 185,
+    "raw_bytes": 18898007,
+    "attempts": 101863,
+    "rejected_steps": 14376,
+    "nonlinear_rejections": 0,
+    "behavioral_integration_method": "trapezoidal",
+    "behavioral_error_estimator": "derivative-history-audited-v1",
+    "derivative_history_error_estimates": 69693,
+    "derivative_history_step_doubling_checks": 32064,
+    "step_doubling_error_estimates": 32170,
+    "derivative_history_fallback_entries": 29,
+    "derivative_history_fallback_recoveries": 29,
+    "transient_solver_statistics": {
+      "symbolic_analyses": 1,
+      "numeric_factorizations": 2,
+      "numeric_refactorizations": 499244,
+      "numeric_refactorization_fallbacks": 1,
+      "numeric_reuses": 16305,
+      "solves": 515551,
+      "iterative_refinement_solves": 349348
+    },
+    "elapsed_seconds": 6.996282366
+  },
+  "same_cpu_gpu_binaries": true,
+  "same_input_hashes": true,
+  "replay_gpu_batch_s": 47.65889220300596,
+  "replay_cpu_batch_s": 7.19076873396989,
+  "replay_critical_record": {
+    "batch": 0,
+    "directory": "gpu/0/light-hot_high_c",
+    "end_offset_s": 47.658827872015536,
+    "gpu": {
+      "allocation_failures": 0,
+      "analyses": 8,
+      "analysis_ns": 2071333,
+      "backend": "cuda-fp64",
+      "cleanup_failures": 0,
+      "context_setup_ns": 6272,
+      "controlled_peak_device_bytes": 1309157,
+      "cudss_estimated_peak_device_bytes": 2021780,
+      "cudss_peak_device_bytes": 2021780,
+      "current_device_bytes": 0,
+      "expression_batches": 841311,
+      "expression_evaluate_ns": 14636668,
+      "expression_full_ad": 14735460,
+      "expression_prepare_ns": 336379,
+      "expression_program_uploads": 2,
+      "expression_value_only": 35743200,
+      "factor_ns": 6435902,
+      "factorizations": 321444,
+      "gpu_fallbacks": 0,
+      "job_id": "/home/adam/emi03-work/prefix-phases106/gpu/0/light-hot_high_c/input.cir",
+      "live_factorizations": 0,
+      "maximum_device_bytes": 268435456,
+      "outstanding_device_bytes": 0,
+      "peak_device_bytes": 2923657,
+      "readback_bytes": 131511680,
+      "readback_ns": 22634187,
+      "refactorizations": 20,
+      "refinements": 354170,
+      "rejected_pivots": 0,
+      "reuses": 199757,
+      "schema": "emi03-cuda-v1",
+      "solve_ns": 17875320,
+      "solver_setup_ns": 4195759,
+      "solves": 875361,
+      "successful_solves": 521191,
+      "synchronization_ns": 47315374717,
+      "transient_algorithm": "resident-be-trap-fp64-v1",
+      "upload_bytes": 519033,
+      "upload_ns": 1301506,
+      "validation_ns": 260926
+    },
+    "id": "light-hot_high_c",
+    "owner": 2,
+    "pass": true,
+    "points": 88202,
+    "process": {
+      "cpu_accounting": "shared-process upper bound",
+      "cpu_s": 10.35,
+      "exit_code": 0,
+      "input": "/home/adam/emi03-work/prefix-phases106/gpu/0/light-hot_high_c/input.cir",
+      "status": "ok",
+      "wall_s": 47.643016221001744,
+      "worker_owner": 2,
+      "worker_pid": 1951791,
+      "worker_request": 2,
+      "worker_thread": 1951794
+    },
+    "raw_sha256": "24d4bf6439b39fc63076af7f638626a0583548f4d2cf389b1eb93214d0084a1b",
+    "start_offset_s": 0.00034119305200874805,
+    "status": "complete",
+    "waveforms": {
+      "i(lch)": {
+        "limit": 0.049515155018232074,
+        "pass": true,
+        "rms_error": 3.056890331130091e-05
+      },
+      "i(lcma)": {
+        "limit": 0.2156253697520409,
+        "pass": true,
+        "rms_error": 4.515026033095618e-06
+      },
+      "i(lcmb)": {
+        "limit": 0.21591511103075586,
+        "pass": true,
+        "rms_error": 4.5145365041381214e-06
+      },
+      "i(lda)": {
+        "limit": 0.21562252180103939,
+        "pass": true,
+        "rms_error": 1.0549474454223705e-05
+      },
+      "i(ldb)": {
+        "limit": 0.21591698508035764,
+        "pass": true,
+        "rms_error": 1.055412515060156e-05
+      },
+      "i(lload)": {
+        "limit": 0.18525791281451337,
+        "pass": true,
+        "rms_error": 7.078223421715177e-08
+      },
+      "i(va)": {
+        "limit": 0.18975162777104113,
+        "pass": true,
+        "rms_error": 2.8288335962666606e-06
+      },
+      "i(vb)": {
+        "limit": 0.1909655905985807,
+        "pass": true,
+        "rms_error": 2.828066519423662e-06
+      },
+      "i(vdah)": {
+        "limit": 0.20426722704199032,
+        "pass": true,
+        "rms_error": 2.0251075167060588e-05
+      },
+      "i(vdal)": {
+        "limit": 0.08878555282802804,
+        "pass": true,
+        "rms_error": 1.3775485690104969e-05
+      },
+      "i(vdbh)": {
+        "limit": 0.03951408260078028,
+        "pass": true,
+        "rms_error": 1.9721953752807386e-05
+      },
+      "i(vdbl)": {
+        "limit": 0.2165654416419583,
+        "pass": true,
+        "rms_error": 1.5308871562681384e-05
+      },
+      "v(a)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00013502667924181606
+      },
+      "v(b)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00011131314027967421
+      },
+      "v(ch)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002403294076123122
+      },
+      "v(fa)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00037095641934188487
+      },
+      "v(fb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0003710026449151736
+      },
+      "v(ga)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 6.775562628114556e-06
+      },
+      "v(gb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 7.69499334517302e-06
+      },
+      "v(la)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00024207130910689298
+      },
+      "v(lb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00024213719746937293
+      },
+      "v(lr)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002420457429220181
+      },
+      "v(p)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00012352417139941768
+      },
+      "v(xcap)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00037095872670013996
+      },
+      "v(yca)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.0002118006857305752
+      },
+      "v(ycb)": {
+        "limit": 9.2,
+        "pass": true,
+        "rms_error": 0.00021188037020707643
+      }
+    }
+  },
+  "replay_last_completion_gap_s": 5.9037986629409716,
+  "replay_phase_log": [
+    "resident resources registers=106 local=0 shared=7904 dynamic=88352 nodes=892 programs=60 levels=15/29/35",
+    "resident plans=7 sparse retries=0 dense=23 terms=912 metadata=1",
+    "resident breakdown value=15099322575 ad=7697079625 factor_prepare=4637868589 forward=17719850443 residual=15582369095",
+    "resident chord iterations=199757 refreshes=3950",
+    "resident expression cache hits=184580",
+    "resident n=185 fill=895 expression=27835239582 factor=27772352976 triangular=38975745347 total=138483727792"
+  ],
+  "replay_total_cycles": 138483727792,
+  "replay_phases": {
+    "Triangular solves, including refinement": {
+      "cycles": 38975745347,
+      "percent_device_cycles": 28.144639062244806,
+      "illustrative_seconds_if_scaled_to_original_wait": 12.920109373707104
+    },
+    "Factorization and factor reuse checks": {
+      "cycles": 27772352976,
+      "percent_device_cycles": 20.054596607706547,
+      "illustrative_seconds_if_scaled_to_original_wait": 9.206285468578958
+    },
+    "Behavioral expressions and derivatives": {
+      "cycles": 27835239582,
+      "percent_device_cycles": 20.10000743466988,
+      "illustrative_seconds_if_scaled_to_original_wait": 9.227131813412841
+    },
+    "Linear residual and backward-error checks": {
+      "cycles": 15582369095,
+      "percent_device_cycles": 11.252130010830175,
+      "illustrative_seconds_if_scaled_to_original_wait": 5.165415342707991
+    },
+    "Remaining assembly, Newton and timestep work": {
+      "cycles": 28318020792,
+      "percent_device_cycles": 20.44862688454859,
+      "illustrative_seconds_if_scaled_to_original_wait": 9.387169446593107
+    }
+  },
+  "limits": [
+    "Completion wait includes queued GPU execution, copies, and host polling; it is not pure synchronization overhead.",
+    "Resident phase counters were not printed in the original run. Replay cycle shares are new diagnostic measurements, not exact original wall-time attribution.",
+    "Illustrative seconds merely scale device-cycle shares to original completion wait; they are not directly measured phase seconds.",
+    "The remaining device category is subtraction, not a separate detailed instrumentation region.",
+    "New replay uses a fresh CPU batch and 18 GPU outputs; all waveform and resource checks pass, but no full spectra or frozen acceptance claim."
+  ]
+}
